@@ -74,6 +74,7 @@ mod tests {
             "Ada".into(),
             [3; 32],
             10,
+            game::GameSetup::default(),
         )
         .unwrap();
         {

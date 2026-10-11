@@ -196,8 +196,12 @@ p { line-height: 1.55; }
 
 .map-legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 13px; padding: 9px; border: 1px solid var(--line); background: rgba(13,20,33,.88); color: var(--muted); font-size: 11px; }
 .map-legend span { display: inline-flex; align-items: center; gap: 5px; }
-.symbol-legend { border-top: 0; padding-top: 7px; }
+.symbol-legend { border-top: 0; padding-top: 8px; padding-bottom: 8px; gap: 16px; align-items: flex-start; }
 .symbol-legend .board-glyph { width: 15px; height: 15px; color: var(--text); }
+.symbol-legend .symbol-legend-item { display: inline-flex; flex-direction: column; align-items: center; gap: 5px; }
+.symbol-legend .symbol-legend-name { display: inline-flex; align-items: center; gap: 5px; }
+.symbol-legend .symbol-legend-cost { min-height: 10px; display: inline-flex; align-items: center; }
+.symbol-legend-cost .resource-dot { width: 7px; height: 7px; }
 .tooltip-anchor { position: relative; }
 .tooltip-anchor::after {
   content: attr(data-tooltip);

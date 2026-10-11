@@ -8,6 +8,8 @@
   const PLAYER_COLORS = ['#55d9f4', '#ff9f6e', '#a58cff', '#f2cf66'];
   const PLAYER_NAMES = ['You', 'Ember Directorate', 'Violet Assembly', 'Helios Compact'];
   const PLAYER_STRATEGIES = ['human', 'military', 'economy', 'expansion'];
+  const SPACE_CUTOUTS = ['-4,6', '5,-5'];
+  const HOME_CLUSTER_OWNERS = [[4,0],[8,1],[15,2],[19,3]];
   const SHIP_STATS = {
     scout: { name: 'Scout', move: 3, dice: 1, hull: 1, cost: { matter: 1, energy: 1 } },
     frigate: { name: 'Frigate', move: 2, dice: 2, hull: 2, cost: { matter: 2, energy: 1, biomass: 1 } },
@@ -15,7 +17,7 @@
   };
   const STRUCTURES = {
     harvester: { name: 'Harvester', code: 'H', cost: { matter: 1, energy: 1, biomass: 1 } },
-    starbase: { name: 'Starbase', code: 'S', cost: { matter: 2, energy: 1, biomass: 1, data: 1 } },
+    starbase: { name: 'Shipyard', code: 'S', cost: { matter: 2, energy: 1, biomass: 1, data: 1 } },
     warehouse: { name: 'Warehouse', code: 'W', cost: { matter: 2, energy: 1, data: 1 } }
   };
   const LEGEND_TOOLTIPS = {
@@ -29,7 +31,7 @@
   };
   const BASIC_TOOLTIPS = {
     colonize: 'Use a Scout on an eligible planet to found or capture a Colony.',
-    construct: 'Build one planet upgrade or commission one ship at a Starbase.',
+    construct: 'Build one planet upgrade or commission one ship at a Shipyard.',
     move: 'Move one fleet up to its slowest ship’s movement.'
   };
   const BOARD_ICONS = {
@@ -56,7 +58,7 @@
     gateSynchronization: { name: 'Gate Synchronization', kind: 'Exploration', accent: 'var(--energy)', resource: { energy: 2 }, order: 'move', tag: 'gateMove', text: 'Move between Gates, then one additional hex.', cost: { energy: 2, data: 2 } },
     modularConstruction: { name: 'Modular Construction', kind: 'Industry', accent: 'var(--matter)', resource: { matter: 2 }, order: 'construct', tag: 'doubleBuild', text: 'Build upgrades on two different planets; second costs 1 less Matter.', cost: { matter: 2, energy: 1, data: 1 } },
     industrialSurge: { name: 'Industrial Surge', kind: 'Industry', accent: 'var(--matter)', resource: { matter: 1, energy: 1 }, order: 'special', tag: 'surge', text: 'Produce up to three controlled planets in one cluster; ignore Harvesters.', cost: { matter: 2, energy: 2, biomass: 1 } },
-    orbitalShipyards: { name: 'Orbital Shipyards', kind: 'Industry', accent: 'var(--matter)', resource: { matter: 2 }, order: 'construct', tag: 'doubleShip', text: 'Commission up to two ships at one Starbase; second costs 1 less Energy.', cost: { matter: 2, energy: 1, biomass: 1, data: 1 } },
+    orbitalShipyards: { name: 'Orbital Shipyards', kind: 'Industry', accent: 'var(--matter)', resource: { matter: 2 }, order: 'construct', tag: 'doubleShip', text: 'Commission up to two ships at one Shipyard; second costs 1 less Energy.', cost: { matter: 2, energy: 1, biomass: 1, data: 1 } },
     terraformingProtocols: { name: 'Terraforming Protocols', kind: 'Industry', accent: 'var(--biomass)', resource: { biomass: 2 }, order: 'special', tag: 'terraform', text: 'Pay 2 Biomass to make a controlled planet Rich.', cost: { matter: 2, energy: 1, biomass: 2, data: 1 } },
     tradeConsortium: { name: 'Trade Consortium', kind: 'Commerce', accent: 'var(--gold)', resource: { data: 1 }, wildcard: 1, order: 'special', tag: 'bankTrade', text: 'Gain any resource, or exchange with the bank at 2:1 twice.', cost: { matter: 1, energy: 1, biomass: 1, data: 1 } },
     fleetOverdrive: { name: 'Fleet Overdrive', kind: 'Military', accent: 'var(--energy)', resource: { energy: 2 }, order: 'move', tag: 'overdrive', text: 'Move a fleet with +2 range; an initiated battle cannot be retreated from early.', cost: { matter: 1, energy: 2 } },
@@ -106,7 +108,7 @@
       [-6,6,'up'],[-4,6,'down'],[-1,6,'up'],[1,6,'down']
     ];
     const names = ['Asterion','Borealis','Cygnus','Draco','Erebus','Fornax','Gemini','Helios','Icarus','Juno','Kepler','Lyra','Meridian','Nyx','Orison','Praxis','Quillon','Rhea','Solace','Talos','Umbra','Vesper','Wayfarer','Zenith'];
-    const homes = new Map([[4,0],[8,1],[15,2],[19,3]]);
+    const homes = new Map(HOME_CLUSTER_OWNERS);
     const specials = new Map([[2,'rich'],[5,'ruin'],[9,'gate'],[12,'rich'],[14,'ruin'],[17,'gate'],[22,'rich']]);
     const resourceCycle = ['matter','energy','biomass','data'];
     const numerals = ['I','II','III'];
@@ -118,18 +120,58 @@
       if (clusterIndex === 20) coords = [[-6,6],[-5,6],[-6,7]];
       clusters.push({ id: clusterIndex, name: names[clusterIndex], coords: coords.map(([cq,cr]) => coordKey(cq,cr)) });
       coords.forEach(([cq,cr], planetIndex) => {
-        const owner = homes.has(clusterIndex) ? homes.get(clusterIndex) : null;
-        const type = owner !== null ? ['matter','energy','data'][planetIndex] : resourceCycle[(clusterIndex * 3 + planetIndex) % 4];
-        const upgrades = owner !== null ? ['starbase', null, 'warehouse'] : [null,null,null];
+        const homeOwner = homes.has(clusterIndex) ? homes.get(clusterIndex) : null;
+        const owner = homeOwner !== null && planetIndex === 0 ? homeOwner : null;
+        const type = homeOwner !== null ? ['matter','energy','data'][planetIndex] : resourceCycle[(clusterIndex * 3 + planetIndex) % 4];
         planets[coordKey(cq,cr)] = {
           q: cq, r: cr, cluster: clusterIndex, name: `${names[clusterIndex]} ${numerals[planetIndex]}`,
           type, special: planetIndex === 1 ? specials.get(clusterIndex) || null : null,
-          owner, originalFounder: owner, upgrade: upgrades[planetIndex], rich: specials.get(clusterIndex) === 'rich' && planetIndex === 1,
+          owner, originalFounder: owner, upgrade: null, rich: specials.get(clusterIndex) === 'rich' && planetIndex === 1,
           relicClaimed: false, occupiedBy: null, conquest: owner !== null ? false : null
         };
       });
     });
-    return { planets, clusters, homes };
+    const galaxy = { planets, clusters, homes };
+    applySpaceCutouts(galaxy);
+    return galaxy;
+  }
+
+  function applySpaceCutouts(target) {
+    SPACE_CUTOUTS.forEach(key => {
+      delete target.planets?.[key];
+      delete target.fleets?.[key];
+      target.clusters?.forEach(cluster => { cluster.coords = cluster.coords.filter(coord => coord !== key); });
+    });
+    if (SPACE_CUTOUTS.includes(target.selected)) target.selected = null;
+    if (SPACE_CUTOUTS.includes(target.moveSource)) target.moveSource = null;
+    if (target.reachable) target.reachable = target.reachable.filter(key => !SPACE_CUTOUTS.includes(key));
+  }
+
+  function isPristineLegacyOpening(target) {
+    if (target.round !== 1 || target.players.some(player => player.discard.length || player.bought)) return false;
+    return HOME_CLUSTER_OWNERS.every(([clusterIndex,playerId]) => {
+      const coords = target.clusters?.[clusterIndex]?.coords || [];
+      const planets = coords.map(key => target.planets?.[key]);
+      const fleet = target.fleets?.[coords[0]]?.[playerId];
+      return planets.length === 3 && planets.every(planet => planet?.owner === playerId) && planets[0].upgrade === 'starbase' && planets[2].upgrade === 'warehouse' && fleet?.scout === 2 && fleet?.frigate === 1 && !fleet?.dreadnought;
+    });
+  }
+
+  function applyLeanStartingSetup(target) {
+    HOME_CLUSTER_OWNERS.forEach(([clusterIndex,playerId]) => {
+      const coords = target.clusters[clusterIndex].coords;
+      coords.forEach((key,index) => {
+        const planet = target.planets[key];
+        planet.owner = index === 0 ? playerId : null;
+        planet.originalFounder = index === 0 ? playerId : null;
+        planet.upgrade = null;
+        planet.occupiedBy = null;
+        planet.conquest = index === 0 ? false : null;
+        delete target.fleets[key];
+      });
+      target.fleets[coords[0]] = { [playerId]: { scout: 1, frigate: 0, dreadnought: 0 } };
+    });
+    target.startingSetupRevision = 2;
   }
 
   function createPlayer(index) {
@@ -152,11 +194,11 @@
     [...galaxy.homes.entries()].forEach(([clusterIndex, player]) => {
       const starbaseCoord = galaxy.clusters[clusterIndex].coords[0];
       fleets[starbaseCoord] = fleets[starbaseCoord] || {};
-      fleets[starbaseCoord][player] = { scout: 2, frigate: 1, dreadnought: 0 };
+      fleets[starbaseCoord][player] = { scout: 1, frigate: 0, dreadnought: 0 };
     });
     const advancedDeck = shuffled(Object.keys(ADVANCED_CARDS).flatMap(key => [makeCard(key), makeCard(key)]));
     return {
-      version: 1, startingDeckRevision: 2, round: 1, phase: 'production', firstPlayer: 0, activePlayer: 0, players,
+      version: 1, startingDeckRevision: 2, mapRevision: 2, startingSetupRevision: 2, round: 1, phase: 'production', firstPlayer: 0, activePlayer: 0, players,
       planets: galaxy.planets, clusters: galaxy.clusters, fleets, advancedDeck, market: [], marketDiscard: [],
       selected: null, actionMode: null, actionCardId: null, actionOptions: {}, moveSource: null, reachable: [],
       turnStage: 'waiting', log: [], awards: { fleet: null, reach: null, occupation: null }, winner: null,
@@ -231,6 +273,17 @@
       if (!state.startingDeckRevision) {
         state.players.forEach(player => { player.deck = shuffled([...player.deck, makeCard('move')]); });
         state.startingDeckRevision = 2;
+        clearTurnHistory();
+        saveGame();
+      }
+      if (!state.mapRevision) {
+        applySpaceCutouts(state);
+        state.mapRevision = 2;
+        clearTurnHistory();
+        saveGame();
+      }
+      if (!state.startingSetupRevision && isPristineLegacyOpening(state)) {
+        applyLeanStartingSetup(state);
         clearTurnHistory();
         saveGame();
       }
@@ -1240,9 +1293,12 @@
   function renderSymbolLegend() {
     const entries = [
       ['scout','Scout'],['frigate','Frigate'],['dreadnought','Dreadnought'],
-      ['colony','Colony'],['harvester','Harvester'],['starbase','Starbase'],['warehouse','Warehouse']
+      ['colony','Colony'],['harvester','Harvester'],['starbase','Shipyard'],['warehouse','Warehouse']
     ];
-    $('#symbol-legend').innerHTML = entries.map(([type,label]) => `<span class="tooltip-anchor" tabindex="0" data-tooltip="${LEGEND_TOOLTIPS[type]}" aria-label="${label}. ${LEGEND_TOOLTIPS[type]}">${BOARD_ICONS[type]}${label}</span>`).join('');
+    $('#symbol-legend').innerHTML = entries.map(([type,label]) => {
+      const cost = type === 'colony' ? { biomass: 2 } : SHIP_STATS[type]?.cost || STRUCTURES[type]?.cost;
+      return `<span class="tooltip-anchor symbol-legend-item" tabindex="0" data-tooltip="${LEGEND_TOOLTIPS[type]}" aria-label="${label}. ${LEGEND_TOOLTIPS[type]}"><span class="symbol-legend-name">${BOARD_ICONS[type]}${label}</span><span class="symbol-legend-cost">${resourceDots(cost)}</span></span>`;
+    }).join('');
   }
 
   function renderBoard() {

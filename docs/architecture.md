@@ -24,7 +24,7 @@ Each event is linked to its predecessor using a domain-separated SHA-256 hash. T
 
 ## Growing the testing bed
 
-Next useful additions are versioned card/ruleset definitions, saved setup presets, structured playtest notes, deterministic replay tooling, and balance simulations. Introduce a ruleset registry when a second game needs one. The current code intentionally ships one working ruleset rather than an untested generic plugin abstraction.
+Match setup now stores selected market piles and a shared starting-deck preset with each game. Next useful additions are versioned card/ruleset definitions, user-saved setup presets, structured playtest notes, deterministic replay tooling, and balance simulations. Introduce a ruleset registry when a second game needs one. The current code intentionally ships one working ruleset rather than an untested generic plugin abstraction.
 
 ## Soroban and ZKP path
 

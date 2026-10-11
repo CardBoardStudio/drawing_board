@@ -3,8 +3,10 @@ use rand::{SeedableRng, seq::SliceRandom};
 use rand_chacha::ChaCha20Rng;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+mod setup;
+pub use setup::{GameSetup, MARKET_SIZE, MarketPreset, StartingDeck};
 
-pub const RULES_VERSION: &str = "voidwright/1";
+pub const RULES_VERSION: &str = "voidwright/2";
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
@@ -21,6 +23,12 @@ pub enum Card {
     Laboratory,
     Exchange,
     Salvager,
+    Surveyor,
+    MiningRig,
+    CommandBridge,
+    Wormhole,
+    Fabricator,
+    Observatory,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -42,7 +50,7 @@ pub struct CardInfo {
     pub icon: String,
 }
 impl Card {
-    pub const ALL: [Card; 12] = [
+    pub const ALL: [Card; 18] = [
         Self::Credit,
         Self::Reactor,
         Self::Fusion,
@@ -55,6 +63,12 @@ impl Card {
         Self::Laboratory,
         Self::Exchange,
         Self::Salvager,
+        Self::Surveyor,
+        Self::MiningRig,
+        Self::CommandBridge,
+        Self::Wormhole,
+        Self::Fabricator,
+        Self::Observatory,
     ];
     pub fn info(self) -> CardInfo {
         use Card::*;
@@ -155,6 +169,54 @@ impl Card {
                 "Nothing is lost. Only repurposed.",
                 "⟐",
             ),
+            Surveyor => (
+                "Survey vessel",
+                Kind::Action,
+                4,
+                "+1 card · +1 action · +1 credit",
+                "Chart the route. Claim the horizon.",
+                "⌖",
+            ),
+            MiningRig => (
+                "Asteroid rig",
+                Kind::Action,
+                4,
+                "+2 credits · +1 buy",
+                "The belt has more to give.",
+                "⛏",
+            ),
+            CommandBridge => (
+                "Command bridge",
+                Kind::Action,
+                5,
+                "+1 card · +3 actions",
+                "One fleet. A hundred possibilities.",
+                "⌬",
+            ),
+            Wormhole => (
+                "Wormhole drive",
+                Kind::Action,
+                4,
+                "+3 cards",
+                "Distance is a matter of perspective.",
+                "◌",
+            ),
+            Fabricator => (
+                "Fabricator",
+                Kind::Action,
+                4,
+                "+1 action · gain a Reactor to discard if available",
+                "Tomorrow's engines, assembled today.",
+                "⚙",
+            ),
+            Observatory => (
+                "Observatory",
+                Kind::Action,
+                5,
+                "+2 cards · +1 buy",
+                "See a little farther. Reach a little more.",
+                "✧",
+            ),
         };
         CardInfo {
             id: self,
@@ -240,6 +302,8 @@ pub struct Game {
     pub id: String,
     pub name: String,
     pub rules_version: String,
+    #[serde(default)]
+    pub setup: GameSetup,
     pub status: Status,
     pub players: Vec<Player>,
     pub supply: BTreeMap<Card, u16>,
@@ -274,6 +338,8 @@ pub struct GameView {
     pub id: String,
     pub name: String,
     pub rules_version: String,
+    #[serde(default)]
+    pub setup: GameSetup,
     pub status: Status,
     pub players: Vec<PlayerView>,
     pub supply: BTreeMap<Card, u16>,
@@ -311,6 +377,8 @@ pub struct CreateGame {
     pub name: String,
     pub practice: bool,
     pub round_limit: u16,
+    #[serde(default)]
+    pub setup: GameSetup,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CommandRequest {
@@ -334,14 +402,17 @@ impl Game {
         player_name: String,
         seed: [u8; 32],
         round_limit: u16,
+        setup: GameSetup,
     ) -> Result<Self, String> {
         if !(10..=50).contains(&round_limit) {
             return Err("Round limit must be between 10 and 50.".into());
         }
+        setup.validate()?;
         let mut game = Self {
             id,
             name,
             rules_version: RULES_VERSION.into(),
+            setup,
             status: Status::Lobby,
             players: vec![],
             supply: BTreeMap::new(),
@@ -427,6 +498,9 @@ impl Game {
             }
             self.revision += 1;
             for c in Card::ALL {
+                if c.info().kind == Kind::Action && !self.setup.market.contains(&c) {
+                    continue;
+                }
                 self.supply.insert(
                     c,
                     match c.info().kind {
@@ -443,8 +517,7 @@ impl Game {
                 );
             }
             for i in 0..self.players.len() {
-                self.players[i].deck = vec![Card::Credit; 7];
-                self.players[i].deck.extend([Card::Outpost; 3]);
+                self.players[i].deck = self.setup.starting_deck.cards();
                 self.shuffle(i);
                 self.draw(i, 5);
             }
@@ -523,6 +596,34 @@ impl Game {
                             self.record(format!("{name} scrapped {}.", c.info().name));
                         }
                     }
+                    Card::Surveyor => {
+                        self.draw(i, 1);
+                        self.actions += 1;
+                        self.credits += 1;
+                    }
+                    Card::MiningRig => {
+                        self.credits += 2;
+                        self.buys += 1;
+                    }
+                    Card::CommandBridge => {
+                        self.draw(i, 1);
+                        self.actions += 3;
+                    }
+                    Card::Wormhole => self.draw(i, 3),
+                    Card::Fabricator => {
+                        self.actions += 1;
+                        if let Some(count) = self.supply.get_mut(&Card::Reactor)
+                            && *count > 0
+                        {
+                            *count -= 1;
+                            self.players[i].discard.push(Card::Reactor);
+                            self.record(format!("{name} fabricated a Reactor."));
+                        }
+                    }
+                    Card::Observatory => {
+                        self.draw(i, 2);
+                        self.buys += 1;
+                    }
                     _ => {}
                 }
             }
@@ -545,7 +646,10 @@ impl Game {
                 self.record(format!("{name} generated {gain} credits."));
             }
             Command::Buy { card } => {
-                let count = *self.supply.get(&card).ok_or("Unknown card.")?;
+                let count = *self
+                    .supply
+                    .get(&card)
+                    .ok_or("That card is not in this market.")?;
                 if count == 0 {
                     return Err("That supply pile is empty.".into());
                 }
@@ -596,11 +700,17 @@ impl Game {
         if self.phase == Phase::Action && self.actions > 0 {
             // Prefer actions that keep the chain alive.
             for card in [
+                Card::CommandBridge,
                 Card::Relay,
                 Card::Laboratory,
                 Card::Exchange,
+                Card::Surveyor,
+                Card::Fabricator,
+                Card::Observatory,
+                Card::Wormhole,
                 Card::Scout,
                 Card::Salvager,
+                Card::MiningRig,
                 Card::Freighter,
             ] {
                 if let Some(index) = p.hand.iter().position(|c| *c == card) {
@@ -616,10 +726,18 @@ impl Game {
                 Card::Metropolis,
                 Card::Fusion,
                 Card::Laboratory,
+                Card::CommandBridge,
                 Card::Colony,
+                Card::Observatory,
+                Card::Exchange,
+                Card::Surveyor,
+                Card::Wormhole,
+                Card::Fabricator,
+                Card::MiningRig,
                 Card::Freighter,
                 Card::Reactor,
                 Card::Relay,
+                Card::Salvager,
                 Card::Scout,
             ] {
                 let owned = p.cards().filter(|&&c| c == card).count();
@@ -646,6 +764,7 @@ impl Game {
             id: self.id.clone(),
             name: self.name.clone(),
             rules_version: self.rules_version.clone(),
+            setup: self.setup.clone(),
             status: self.status,
             players: self
                 .players
@@ -713,6 +832,7 @@ mod tests {
             "Ada".into(),
             [42; 32],
             10,
+            GameSetup::default(),
         )
         .unwrap();
         g.join("b".into(), "Turing".into(), true).unwrap();
@@ -830,12 +950,239 @@ mod tests {
     }
     #[test]
     fn host_and_capacity_are_enforced() {
-        let mut g = Game::new("t".into(), "t".into(), "a".into(), "A".into(), [0; 32], 10).unwrap();
+        let mut g = Game::new(
+            "t".into(),
+            "t".into(),
+            "a".into(),
+            "A".into(),
+            [0; 32],
+            10,
+            GameSetup::default(),
+        )
+        .unwrap();
         assert!(g.apply("a", Command::Start).is_err());
         for id in ["b", "c", "d"] {
             g.join(id.into(), id.into(), false).unwrap();
         }
         assert!(g.join("e".into(), "E".into(), false).is_err());
         assert!(g.apply("b", Command::Start).is_err());
+    }
+    fn configured(setup: GameSetup) -> Game {
+        let mut g = Game::new(
+            "configured".into(),
+            "Configured".into(),
+            "a".into(),
+            "Ada".into(),
+            [24; 32],
+            10,
+            setup,
+        )
+        .unwrap();
+        g.join("b".into(), "Kepler".into(), true).unwrap();
+        g.apply("a", Command::Start).unwrap();
+        g
+    }
+    #[test]
+    fn setup_requires_six_distinct_action_piles() {
+        for market in [
+            vec![],
+            vec![Card::Scout; 6],
+            Card::ALL[..6].to_vec(),
+            Card::ALL[6..].to_vec(),
+        ] {
+            assert!(
+                Game::new(
+                    "x".into(),
+                    "X".into(),
+                    "a".into(),
+                    "Ada".into(),
+                    [0; 32],
+                    10,
+                    GameSetup {
+                        market,
+                        ..Default::default()
+                    }
+                )
+                .is_err()
+            );
+        }
+        for preset in MarketPreset::ALL {
+            assert!(
+                GameSetup {
+                    market: preset.cards(),
+                    ..Default::default()
+                }
+                .validate()
+                .is_ok()
+            );
+        }
+    }
+    #[test]
+    fn selected_market_excludes_other_cards_without_counting_them_as_empty() {
+        let mut setup = GameSetup {
+            market: MarketPreset::DeepSpace.cards(),
+            ..Default::default()
+        };
+        setup.market[0] = Card::Scout;
+        let mut g = configured(setup.clone());
+        assert_eq!(g.supply.len(), 12);
+        for card in Card::ALL {
+            assert_eq!(
+                g.supply.contains_key(&card),
+                card.info().kind != Kind::Action || setup.market.contains(&card)
+            );
+        }
+        g.credits = 10;
+        let before = g.clone();
+        assert!(
+            g.apply(
+                "a",
+                Command::Buy {
+                    card: Card::Surveyor
+                }
+            )
+            .is_err()
+        );
+        assert_eq!(g, before);
+        g.apply("a", Command::EndTurn).unwrap();
+        assert_eq!(g.status, Status::Active);
+        assert_eq!(g.view("b").unwrap().setup, setup);
+    }
+    #[test]
+    fn every_player_receives_the_selected_ten_card_deck() {
+        for deck in StartingDeck::ALL {
+            let g = configured(GameSetup {
+                starting_deck: deck,
+                ..Default::default()
+            });
+            let mut expected = deck.cards();
+            expected.sort();
+            assert_eq!(expected.len(), 10);
+            for player in &g.players {
+                let mut actual: Vec<_> = player.cards().copied().collect();
+                actual.sort();
+                assert_eq!(actual, expected);
+                assert_eq!(player.hand.len(), 5);
+                assert_eq!(player.score(), 3);
+            }
+            assert_eq!(g.supply[&Card::Reactor], 40);
+        }
+    }
+    #[test]
+    fn new_action_cards_apply_their_printed_effects() {
+        for (card, draws, actions, credits, buys) in [
+            (Card::Surveyor, 1, 1, 1, 1),
+            (Card::MiningRig, 0, 0, 2, 2),
+            (Card::CommandBridge, 1, 3, 0, 1),
+            (Card::Wormhole, 3, 0, 0, 1),
+            (Card::Observatory, 2, 0, 0, 2),
+        ] {
+            let mut g = configured(GameSetup {
+                market: MarketPreset::DeepSpace.cards(),
+                ..Default::default()
+            });
+            g.players[0].hand = vec![card];
+            // Drawing must also work across an exhausted draw pile.
+            g.players[0].deck.clear();
+            g.players[0].discard = vec![Card::Credit; 3];
+            g.apply("a", Command::Play { index: 0 }).unwrap();
+            assert_eq!(g.players[0].hand.len(), draws, "{card:?}");
+            assert_eq!(
+                (g.actions, g.credits, g.buys),
+                (actions, credits, buys),
+                "{card:?}"
+            );
+            assert_eq!(g.phase, Phase::Action);
+            assert_eq!(g.players[0].played, vec![card]);
+        }
+    }
+    #[test]
+    fn fabricator_gains_from_supply_without_a_buy_and_handles_empty_pile() {
+        let mut g = configured(GameSetup {
+            market: MarketPreset::DeepSpace.cards(),
+            ..Default::default()
+        });
+        for available in [1, 0] {
+            g.players[0].hand = vec![Card::Fabricator];
+            g.players[0].discard.clear();
+            g.supply.insert(Card::Reactor, available);
+            g.apply("a", Command::Play { index: 0 }).unwrap();
+            assert_eq!(g.supply[&Card::Reactor], 0);
+            assert_eq!(
+                g.players[0].discard,
+                if available > 0 {
+                    vec![Card::Reactor]
+                } else {
+                    vec![]
+                }
+            );
+            assert_eq!(
+                (g.actions, g.buys, g.credits, g.phase),
+                (1, 1, 0, Phase::Action)
+            );
+        }
+    }
+    #[test]
+    fn old_saved_games_keep_their_original_setup() {
+        for mut game in [
+            started(),
+            Game::new(
+                "old".into(),
+                "Old".into(),
+                "a".into(),
+                "Ada".into(),
+                [9; 32],
+                10,
+                GameSetup::default(),
+            )
+            .unwrap(),
+        ] {
+            game.rules_version = "voidwright/1".into();
+            let mut old = serde_json::to_value(&game).unwrap();
+            old.as_object_mut().unwrap().remove("setup");
+            let restored: Game = serde_json::from_value(old).unwrap();
+            assert_eq!(restored, game);
+            assert_eq!(restored.setup, GameSetup::default());
+        }
+    }
+    #[test]
+    fn all_presets_finish_with_bots_conserve_cards_and_resume_deterministically() {
+        for market in MarketPreset::ALL {
+            for starting_deck in StartingDeck::ALL {
+                let mut game = configured(GameSetup {
+                    market: market.cards(),
+                    starting_deck,
+                });
+                game.players[0].bot = true;
+                let total = game.supply.values().map(|&n| n as usize).sum::<usize>() + 20;
+                for _ in 0..2000 {
+                    let Some(command) = game.bot_command() else {
+                        break;
+                    };
+                    let actor = game.players[game.active].id.clone();
+                    let mut restored: Game =
+                        serde_json::from_str(&serde_json::to_string(&game).unwrap()).unwrap();
+                    assert_eq!(restored.bot_command(), Some(command.clone()));
+                    restored.apply(&actor, command.clone()).unwrap();
+                    game.apply(&actor, command).unwrap();
+                    assert_eq!(game, restored);
+                    assert_eq!(
+                        game.supply.values().map(|&n| n as usize).sum::<usize>()
+                            + game
+                                .players
+                                .iter()
+                                .map(|p| p.cards().count())
+                                .sum::<usize>()
+                            + game.trash.len(),
+                        total
+                    );
+                }
+                assert_eq!(
+                    game.status,
+                    Status::Finished,
+                    "{market:?} / {starting_deck:?}"
+                );
+            }
+        }
     }
 }

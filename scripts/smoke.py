@@ -61,12 +61,18 @@ assert request("/api/auth/dev", {"name": "Nobody"})[0] == 404
 assert request("/api/auth/preview", {"name": "Nobody", "code": "wrong"})[0] == 401
 assert request("/api/auth/preview", {"name": "Nobody", "code": CODE}, origin="https://attacker.example")[0] == 403
 alice, bob = login("Alice"), login("Bob")
-status, _, game = request("/api/games", {"name": "Container smoke test", "practice": False, "round_limit": 10}, alice)
+setup = {
+    "market": ["surveyor", "mining_rig", "command_bridge", "wormhole", "fabricator", "observatory"],
+    "starting_deck": "industrial",
+}
+status, _, game = request("/api/games", {"name": "Container smoke test", "practice": False, "round_limit": 10, "setup": setup}, alice)
 assert status == 200
+assert game["setup"] == setup
 path = f"/api/games/{game['id']}"
 assert request(path)[0] == 401
 assert request(path, cookie=bob)[0] == 403
 assert request(path + "/join", {}, bob)[0] == 200
+assert request(path, cookie=bob)[2]["setup"] == setup
 current = request(path, cookie=alice)[2]
 
 
@@ -83,13 +89,17 @@ def command(cookie, action, expected=200):
 command(alice, {"type": "start"})
 assert len(current["hand"]) == 5 and isinstance(current["players"][1]["hand"], int)
 assert "seed" not in current and "shuffles" not in current
+assert len(current["supply"]) == 12 and "scout" not in current["supply"]
+assert current["collection"]["reactor"] == 2
+assert request(path, cookie=bob)[2]["collection"]["reactor"] == 2
 command(bob, {"type": "end_turn"}, 400)
 command(alice, {"type": "play_resources"})
-card = "reactor" if current["credits"] >= 3 else "scout"
+command(alice, {"type": "buy", "card": "scout"}, 400)
+card = "reactor" if current["credits"] >= 3 else "outpost"
 command(alice, {"type": "buy", "card": card})
 assert current["players"][0]["discard"] == 1
 command(alice, {"type": "end_turn"})
 assert request(path, cookie=bob)[2]["your_turn"]
 assert request("/api/auth/logout", {}, alice)[0] == 200
 assert request(path, cookie=alice)[0] == 401
-print("Container smoke passed: assets, preview access, two-player game, private views, purchase, turn handoff, logout.")
+print("Container smoke passed: assets, preview access, chosen market and starting deck, private views, purchase, turn handoff, logout.")

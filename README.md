@@ -17,7 +17,7 @@ For two human players on one computer, use separate browser profiles or a privat
 
 ## Additional prototypes
 
-[`prototypes/galactic-reach`](prototypes/galactic-reach) contains **Galactic Reach**, a self-contained browser prototype for a four-faction strategy game. It currently supports one human player against three computer-controlled factions and saves progress in the browser. See the prototype README for local play instructions and scope.
+[`prototypes/galactic-reach`](prototypes/galactic-reach) contains **Galactic Reach**, a self-contained browser prototype for a four-faction strategy game. It currently supports one human player against three computer-controlled factions and saves progress in the browser. The deployment build serves this prototype as the root UI while retaining the Rust API and Wasm build artifacts. See the prototype README for local play instructions and scope.
 
 ## Included
 

@@ -21,4 +21,4 @@ The prototype has no build step or external runtime dependencies. Game state and
 - Three computer-controlled rival factions with military, economy, and expansion strategies.
 - Public awards, Prestige scoring, round phases, game log, rules reference, autosave, and one-turn undo.
 
-This is an independent static playtest prototype. It is not yet integrated with the repository's Rust server, multiplayer sessions, or persistence model.
+This is an independent static playtest prototype. The deployment build serves it from the repository's Rust server, but the game does not yet use the multiplayer API, sessions, or server-side persistence model.

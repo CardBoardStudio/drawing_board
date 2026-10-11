@@ -9,3 +9,6 @@ mkdir -p dist/pkg
 .tools/bin/wasm-bindgen target/wasm32-unknown-unknown/release/web.wasm --target web --out-dir dist/pkg
 cp crates/web/index.html dist/index.html
 cp crates/web/style.css dist/style.css
+cp prototypes/galactic-reach/index.html dist/index.html
+cp prototypes/galactic-reach/styles.css dist/styles.css
+cp prototypes/galactic-reach/app.js dist/app.js

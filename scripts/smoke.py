@@ -51,9 +51,11 @@ for attempt in range(60):
 else:
     raise RuntimeError("The container never became healthy")
 
-for path, content_type in [("/", "text/html"), ("/style.css", "text/css"), ("/pkg/web.js", "javascript"), ("/pkg/web_bg.wasm", "application/wasm")]:
+for path, content_type in [("/", "text/html"), ("/styles.css", "text/css"), ("/app.js", "javascript"), ("/pkg/web.js", "javascript"), ("/pkg/web_bg.wasm", "application/wasm")]:
     status, headers, body = request(path)
     assert status == 200 and content_type in headers["Content-Type"] and len(body) > 100, path
+
+assert b"Galactic Reach" in request("/")[2]
 
 session = request("/api/session")[2]
 assert session["preview_auth"] and not session["dev_auth"]

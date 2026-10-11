@@ -1,0 +1,24 @@
+# Single-service previews: the Rust server serves both the API and Wasm UI.
+# Connect this Blueprint to main once to activate PR deployments.
+services:
+  - type: web
+    name: drawing-board
+    runtime: docker
+    plan: 0.5c-512mb
+    region: ohio
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    numInstances: 1
+    autoDeployTrigger: checksPass
+    previews:
+      generation: automatic
+    envVars:
+      - key: RUST_LOG
+        value: info
+      - key: DATABASE_PATH
+        value: /app/data/drawing-board.sqlite
+      # Enabled only when Render also sets IS_PULL_REQUEST=true.
+      - key: PREVIEW_AUTH
+        value: "1"
+      - key: PREVIEW_ACCESS_CODE
+        generateValue: true

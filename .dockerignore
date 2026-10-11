@@ -1,0 +1,8 @@
+**
+!Cargo.toml
+!Cargo.lock
+!Dockerfile
+!crates/
+!crates/**
+!scripts/
+!scripts/build-web.sh

@@ -21,7 +21,7 @@ The prototype has no build step or external runtime dependencies. Game state and
 - Eleven seven-hex worlds with fog of war. Probes reveal only exact relic coordinates; fast Scouts explore blindly and reveal worlds on arrival.
 - Four home worlds touch the outer edge. Every faction begins with a Colony on the world’s center hex and a Shipyard on the adjacent inward hex.
 - Colonies can only be founded or captured on the center hex of a seven-hex world.
-- A Colony claims its seven-hex world. Each hex can hold only one building; additional structures spread across connected empty hexes and upgrade in place.
+- A Colony claims its seven-hex world. A player may build a structure on any empty planet hex adjacent to their Colony. Each hex can hold only one building, and structures upgrade in place.
 - During Production, every planet hex held by a combat fleet grants that fleet's controller 1 of its printed resource, in addition to any normal owner production. Researcher-only teams do not produce.
 - Deck-building market with basic orders, advanced cards, reactions, and card-pile inspection.
 - Deck-building is a primary scoring path: every eight purchased cards grant 1 permanent Prestige.

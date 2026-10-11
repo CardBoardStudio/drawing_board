@@ -25,7 +25,7 @@
   - Home planets sit at the outer edge of the board.
   - Every faction starts with a Colony on the center hex of its edge world and a Shipyard on the adjacent inward hex.
   - Colonies can only be founded or captured on a planet’s center hex.
-  - Each hex holds only one building. A Colony claims its world, and further structures spread across connected empty hexes and upgrade in place.
+  - A player may build a structure on any empty planet hex adjacent to their Colony. Each hex holds only one building, and structures upgrade in place.
   - During Production, a combat fleet controlling a planet hex gains 1 of that hex's resource in addition to normal owner production. Researcher-only teams do not collect this fleet-control income.
   - All four starting Shipyard hexes produce Energy so starting fleet income is symmetric.
   - Include some kind of fog of war: players must explore to find planets.

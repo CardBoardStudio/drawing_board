@@ -5,6 +5,24 @@
   const TURN_HISTORY_KEY = 'galactic-reach-turn-history-v4';
   const RESOURCES = ['matter', 'energy', 'biomass', 'data'];
   const RESOURCE_NAMES = { matter: 'Matter', energy: 'Energy', biomass: 'Biomass', data: 'Data' };
+  const RESOURCE_DETAILS = {
+    matter: {
+      purpose: 'Build ships and structures',
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 2 8 7-3 11H7L4 9z"></path><path d="m4 9 8 4 8-4M12 13v7M8 6l4 7 4-7"></path></svg>'
+    },
+    energy: {
+      purpose: 'Power movement and fleets',
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13.5 2 5 13h6l-.5 9L19 10h-6z"></path></svg>'
+    },
+    biomass: {
+      purpose: 'Found colonies and sustain growth',
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20 4C11 4 5 8.5 5 15c0 2.8 2.2 5 5 5 6.5 0 10-7 10-16Z"></path><path d="M4 21c2.6-5.1 6.3-8.8 11-11"></path></svg>'
+    },
+    data: {
+      purpose: 'Research, buy, and upgrade cards',
+      icon: '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="2.5"></circle><circle cx="6" cy="18" r="2.5"></circle><circle cx="18" cy="18" r="2.5"></circle><path d="m10.7 7.2-3.4 8.6M13.3 7.2l3.4 8.6M8.5 18h7"></path></svg>'
+    }
+  };
   const PLAYER_COLORS = ['#55d9f4', '#ff9f6e', '#a58cff', '#f2cf66'];
   const PLAYER_NAMES = ['You', 'Ember Directorate', 'Violet Assembly', 'Helios Compact'];
   const PLAYER_STRATEGIES = ['human', 'military', 'economy', 'expansion'];
@@ -69,7 +87,7 @@
   };
   const BASIC_TOOLTIPS = {
     colonize: 'Use a Scout on the center hex of an eligible world to found or capture its Colony.',
-    construct: 'Build one structure on an empty controlled-world hex, upgrade one building, or commission one ship at a Shipyard.',
+    construct: 'Build one structure on any empty planet hex adjacent to your Colony, upgrade one building, or commission one ship at a Shipyard.',
     move: 'Move ships or Researchers up to the selected group’s speed.',
     probe: 'Locate one alien relic. Its exact coordinate is marked, but the surrounding world remains unknown.'
   };
@@ -88,7 +106,7 @@
 
   const BASIC_CARDS = {
     colonize: { name: 'Colonize', kind: 'Basic', accent: 'var(--biomass)', resource: { biomass: 1 }, order: 'colonize', text: 'Establish a Colony with a Scout on a world’s center hex.' , cost: { biomass: 1, data: 1 } },
-    construct: { name: 'Construct', kind: 'Basic', accent: 'var(--matter)', resource: { matter: 1 }, order: 'construct', text: 'Build one structure on an empty world hex, upgrade a building, or commission one ship.', cost: { matter: 1, data: 1 } },
+    construct: { name: 'Construct', kind: 'Basic', accent: 'var(--matter)', resource: { matter: 1 }, order: 'construct', text: 'Build on any empty planet hex adjacent to your Colony, upgrade a building, or commission one ship.', cost: { matter: 1, data: 1 } },
     move: { name: 'Move', kind: 'Basic', accent: 'var(--energy)', resource: { energy: 1 }, order: 'move', text: 'Move one ship group or Researcher team at its own speed.', cost: { energy: 1, data: 1 } },
     probe: { name: 'Probe', kind: 'Basic', accent: 'var(--data)', resource: { data: 1 }, order: 'probe', text: 'Locate one alien relic without revealing its surrounding world.', cost: { energy: 1, data: 1 } }
   };
@@ -470,15 +488,15 @@
   }
 
   function resourceDot(resource, className = '') {
-    return `<i class="resource-dot ${resource} ${className}" aria-hidden="true"></i>`;
+    return `<span class="resource-symbol ${resource} ${className}" aria-hidden="true">${RESOURCE_DETAILS[resource].icon}</span>`;
   }
 
   function resourceDots(cost) {
     const present = RESOURCES.filter(resource => cost?.[resource]);
     if (!present.length) return '<span class="resource-free">Free</span>';
     const label = present.map(resource => `${cost[resource]} ${RESOURCE_NAMES[resource]}`).join(', ');
-    const dots = present.map(resource => `<span class="resource-dot-group">${Array.from({ length: cost[resource] }, () => resourceDot(resource)).join('')}</span>`).join('');
-    return `<span class="resource-dots" role="img" aria-label="${label}" title="${label}">${dots}</span>`;
+    const chips = present.map(resource => `<span class="resource-chip ${resource}" title="${cost[resource]} ${RESOURCE_NAMES[resource]}">${resourceDot(resource)}<strong>${cost[resource]}</strong></span>`).join('');
+    return `<span class="resource-dots" role="img" aria-label="${label}">${chips}</span>`;
   }
 
   function resourceText(text) {
@@ -835,7 +853,7 @@
     state.actionOptions = { tag: definition.tag || null, cardName: definition.name };
     state.moveSource = null;
     state.reachable = [];
-    toast(definition.order === 'move' ? 'Select one of your fleets or Researcher teams.' : definition.order === 'construct' ? 'Select an empty hex in a controlled world, an existing structure, or a relic occupied by your Researcher.' : 'Select an eligible planet containing your Scout.');
+    toast(definition.order === 'move' ? 'Select one of your fleets or Researcher teams.' : definition.order === 'construct' ? 'Select an empty planet hex adjacent to your Colony, an existing structure, or a relic occupied by your Researcher.' : 'Select an eligible planet containing your Scout.');
     render();
   }
 
@@ -1794,6 +1812,7 @@
   }
 
   function renderSymbolLegend() {
+    $('#resource-legend').innerHTML = `${RESOURCES.map(resource=>`<span>${resourceDot(resource)}${RESOURCE_NAMES[resource]}</span>`).join('')}<span>★ Rich</span><span>◈ Located relic</span><span>⇄ Gate</span><span>Fog hides unvisited worlds</span>`;
     const entries = [
       ['scout','Scout'],['researcher','Researcher'],['frigate','Frigate'],['dreadnought','Dreadnought'],
       ['colony','Colony'],['harvester','Harvester'],['starbase','Shipyard'],['warehouse','Warehouse'],['research','Research Station']
@@ -1867,8 +1886,14 @@
 
   function renderResources() {
     const player = state.players[0];
-    $('#capacity-value').textContent = `${totalResources(player)} / ${playerCapacity(0)}`;
-    $('#resource-grid').innerHTML = RESOURCES.map(resource=>`<div class="resource-box" style="--resource:var(--${resource})" aria-label="${RESOURCE_NAMES[resource]}: ${player.resources[resource]}" title="${RESOURCE_NAMES[resource]}"><span>${resourceDot(resource)}</span><strong>${player.resources[resource]}</strong></div>`).join('');
+    const stored = totalResources(player);
+    const capacity = playerCapacity(0);
+    $('#capacity-value').textContent = `${stored} of ${capacity} stored`;
+    $('#capacity-meter').setAttribute('aria-valuenow', stored);
+    $('#capacity-meter').setAttribute('aria-valuemax', capacity);
+    $('#capacity-meter').setAttribute('aria-label', `${stored} of ${capacity} resource storage used`);
+    $('#capacity-fill').style.width = `${Math.min(100, stored / capacity * 100)}%`;
+    $('#resource-grid').innerHTML = RESOURCES.map(resource=>`<article class="resource-box ${resource}" style="--resource:var(--${resource})" aria-label="${RESOURCE_NAMES[resource]}: ${player.resources[resource]}. ${RESOURCE_DETAILS[resource].purpose}."><div class="resource-box-main">${resourceDot(resource,'resource-symbol-large')}<div><span class="resource-name">${RESOURCE_NAMES[resource]}</span><strong class="resource-amount">${player.resources[resource]}</strong></div></div><p>${RESOURCE_DETAILS[resource].purpose}</p></article>`).join('');
   }
 
   function renderInspector() {

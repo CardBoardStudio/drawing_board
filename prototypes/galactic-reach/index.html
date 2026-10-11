@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#070b13">
   <title>Galactic Reach</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=balance-pass-1">
+  <link rel="stylesheet" href="styles.css?v=cockpit-ui-1">
 </head>
 <body>
   <div class="starfield" aria-hidden="true"></div>
@@ -43,7 +43,7 @@
         <div class="board-stage">
           <div class="galaxy-board" id="galaxy-board" aria-label="Interactive galaxy map"></div>
         </div>
-        <div class="map-legend" aria-label="Map legend">
+        <div class="map-legend" id="resource-legend" aria-label="Map legend">
           <span><i class="resource-swatch matter"></i>Matter</span>
           <span><i class="resource-swatch energy"></i>Energy</span>
           <span><i class="resource-swatch biomass"></i>Biomass</span>
@@ -57,7 +57,10 @@
         <section class="panel resource-panel">
           <div class="panel-heading">
             <div><div class="eyebrow">YOUR COMMAND</div><h2>Resources</h2></div>
-            <span class="capacity" id="capacity-value">0 / 15</span>
+            <div class="storage-summary">
+              <span class="capacity" id="capacity-value">0 of 15 stored</span>
+              <div class="capacity-meter" id="capacity-meter" role="progressbar" aria-valuemin="0" aria-valuemax="15" aria-valuenow="0" aria-label="0 of 15 resource storage used"><span id="capacity-fill"></span></div>
+            </div>
           </div>
           <div class="resource-grid" id="resource-grid"></div>
         </section>
@@ -158,10 +161,10 @@
       <section><h3>Round</h3><p>Production → Draw → alternating one-card Operations → Buy → Directive. Every third round also ends with a secret policy vote.</p></section>
       <section><h3>Cards</h3><p>At the start of your turn, play cards for resources, then use one order. Starter cards cannot be scrapped; upgrade them during Buy to improve them and gain Technology.</p></section>
       <section><h3>Probes & fog</h3><p>A Probe pinpoints one alien relic, but reveals nothing about its planet or nearby sectors. A Scout explores blindly, moves up to 3 hexes, and reveals a world when it enters.</p></section>
-      <section><h3>Control</h3><p>Each home world touches the board edge. Its Colony always occupies the center hex, with the starting Shipyard on an adjacent inward hex. Colonies can only be founded or captured at a world’s center. Every hex holds only one building, and structures upgrade in place to level II. During Production, each combat fleet on a planet hex gains its controller 1 of that hex’s resource, even on an unclaimed or enemy world; Researcher-only teams do not collect resources.</p></section>
+      <section><h3>Control & construction</h3><p>Each home world touches the board edge. Its Colony always occupies the center hex, with the starting Shipyard on an adjacent inward hex. Colonies can only be founded or captured at a world’s center. You may build a structure on any empty planet hex adjacent to your Colony; each hex holds only one building, and structures upgrade in place to level II. During Production, each combat fleet on a planet hex gains its controller 1 of that hex’s resource, even on an unclaimed or enemy world; Researcher-only teams do not collect resources.</p></section>
       <section><h3>Researchers</h3><p>Researchers move 1 hex and do not fight or colonize. Recruit them at your home Colony; an outer level-II structure can also recruit them.</p></section>
       <section><h3>Military deck</h3><p>Combat lasts up to three volleys. Each side gets 1 base hit per 4 fleet power, rounded up, then reveals one tactic for added hits, shields, piercing, or withdrawal. Used tactics reshuffle when the deck is empty.</p></section>
-      <section><h3>Conquest</h3><p>Occupy an enemy planet, then later use Colonize with a Scout and <span class="resource-dots" role="img" aria-label="1 Biomass" title="1 Biomass"><i class="resource-dot biomass" aria-hidden="true"></i></span>. Captured worlds receive a conquest marker.</p></section>
+      <section><h3>Conquest</h3><p>Occupy an enemy planet, then later use Colonize with a Scout and 1 Biomass. Captured worlds receive a conquest marker.</p></section>
       <section><h3>Victory</h3><p>Reach 10 Prestige. Each Colony is worth 1, plus 1 more for every two Colonies beyond your home world. Each Relic and the Galactic Reach award are worth 1; Fleet Supremacy and Occupation Mandate are worth 2; every pair of Shipyards is worth 1; every 10 unspent influence is worth 1; and every eight purchased cards are worth 1. Finish the round, then compare Prestige, Colonies, and stored resources.</p></section>
       <section><h3>Relics</h3><p>A Researcher on a Rosetta Stone can establish a Research Station and recover a 1-Prestige Relic. After you control three such stations, exchange basic Relics one-for-one for powerful relic-deck cards during Buy.</p></section>
     </div>
@@ -196,6 +199,6 @@
     <div class="discard-scroll"><div class="card-row discard-row" id="discard-row"></div></div>
   </dialog>
 
-  <script src="app.js?v=balance-pass-1"></script>
+  <script src="app.js?v=cockpit-ui-1"></script>
 </body>
 </html>

@@ -762,6 +762,7 @@
   function startOperationsTurn() {
     clearAction();
     if (state.players.every(player => player.passed)) {
+      logEvent('All factions have passed. Operations are complete.');
       startBuyPhase();
       return;
     }
@@ -774,7 +775,28 @@
     if (state.activePlayer === 0) captureHumanTurn(`Operations turn in Round ${state.round}`);
     render();
     saveGame();
-    if (state.activePlayer !== 0) aiTimer = setTimeout(runAiOperation, 650);
+    if (state.activePlayer !== 0) scheduleAiTurn('operations', runAiOperation, 650);
+  }
+
+  function scheduleAiTurn(phase, action, delay) {
+    clearTimeout(aiTimer);
+    const expectedPlayer = state.activePlayer;
+    aiTimer = setTimeout(() => {
+      aiTimer = null;
+      if (state.phase !== phase || state.activePlayer !== expectedPlayer || state.winner !== null) return;
+      try {
+        action();
+      } catch (error) {
+        console.error(`AI ${phase} turn failed for player ${expectedPlayer}.`, error);
+        if (phase === 'operations') {
+          logEvent(`${state.players[expectedPlayer].name} could not complete an action and passed.`);
+          passOperations(expectedPlayer);
+        } else {
+          logEvent(`${state.players[expectedPlayer].name} could not complete its Buy turn.`);
+          nextBuyPlayer();
+        }
+      }
+    }, delay);
   }
 
   function nextOperationsPlayer() {
@@ -789,12 +811,15 @@
   }
 
   function passOperations(playerId) {
+    if (state.phase !== 'operations' || state.activePlayer !== playerId) return false;
     const player = state.players[playerId];
+    if (!player || player.passed) return false;
     if (playerId === 0) completeHumanTurn();
     player.passed = true;
     logEvent(`${player.name} passed for the rest of Operations.`);
-    if (playerId === 0) toast('You have passed for this round.');
+    if (playerId === 0) toast('You passed. Remaining rivals will continue until they pass.');
     nextOperationsPlayer();
+    return true;
   }
 
   function clearAction() {
@@ -1508,7 +1533,7 @@
     if (state.activePlayer === 0) captureHumanTurn(`Buy turn in Round ${state.round}`);
     render();
     saveGame();
-    if (state.activePlayer !== 0) aiTimer = setTimeout(runAiBuy,550);
+    if (state.activePlayer !== 0) scheduleAiTurn('buy', runAiBuy, 550);
   }
 
   function nextBuyPlayer() {
@@ -2136,6 +2161,7 @@
   } else {
     fillMarket();
     render();
-    if (!state.winner && state.activePlayer!==0) aiTimer=setTimeout(state.phase==='operations'?runAiOperation:runAiBuy,650);
+    if (!state.winner && state.activePlayer !== 0 && state.phase === 'operations') scheduleAiTurn('operations', runAiOperation, 650);
+    if (!state.winner && state.activePlayer !== 0 && state.phase === 'buy') scheduleAiTurn('buy', runAiBuy, 650);
   }
 })();

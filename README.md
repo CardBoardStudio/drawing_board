@@ -68,6 +68,6 @@ Current scope is one built-in ruleset, not yet a visual card editor or arbitrary
 
 ## Pull request previews
 
-The repository includes a multi-stage Docker image and a Render Blueprint with automatic per-PR service previews. GitHub Actions builds and smoke-tests the actual deployment image. Preview instances have an access-code-protected test login and isolated, disposable game data; the main service keeps test login disabled.
+The repository includes a multi-stage Docker image and a Render Blueprint with automatic per-PR service previews. GitHub Actions builds and smoke-tests the actual deployment image. Preview instances have an access-code-protected test login and isolated, disposable game data; the main service keeps test login disabled. During active Galactic Reach playtests, save-compatible changes stay in the stable playtest pull request while breaking rules experiments use separate pull requests and preview URLs.
 
-See [PR preview activation](docs/pr-previews.md) for the one-time Render/GitHub connection, first-PR bootstrap, access code, lifecycle, and storage limitations. The checked-in Blueprint is a disposable testing host, not durable production infrastructure.
+See [the playtest branching workflow](docs/playtest-workflow.md) for stable and experimental lanes. See [PR preview activation](docs/pr-previews.md) for the one-time Render/GitHub connection, first-PR bootstrap, access code, lifecycle, and storage limitations. The checked-in Blueprint is a disposable testing host, not durable production infrastructure.

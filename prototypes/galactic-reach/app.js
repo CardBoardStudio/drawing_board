@@ -1,8 +1,9 @@
 (() => {
   'use strict';
 
-  const SAVE_KEY = 'galactic-reach-save-v4';
-  const TURN_HISTORY_KEY = 'galactic-reach-turn-history-v4';
+  const SAVE_FORMAT_VERSION = 4;
+  const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
+  const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${SAVE_FORMAT_VERSION}`;
   const RESOURCES = ['matter', 'energy', 'biomass', 'data'];
   const RESOURCE_NAMES = { matter: 'Matter', energy: 'Energy', biomass: 'Biomass', data: 'Data' };
   const RESOURCE_DETAILS = {
@@ -255,7 +256,7 @@
     });
     const advancedDeck = shuffled(Object.keys(ADVANCED_CARDS).flatMap(key => [makeCard(key), makeCard(key)]));
     return {
-      version: 4, round: 1, phase: 'production', firstPlayer: 0, activePlayer: 0, players,
+      version: SAVE_FORMAT_VERSION, round: 1, phase: 'production', firstPlayer: 0, activePlayer: 0, players,
       planets: galaxy.planets, clusters: galaxy.clusters, fleets, advancedDeck, market: [], marketDiscard: [],
       selected: null, actionMode: null, actionCardId: null, actionOptions: {}, moveSource: null, reachable: [],
       turnStage: 'waiting', log: [], awards: { fleet: null, reach: null, occupation: null }, winner: null,
@@ -325,7 +326,7 @@
       const raw = localStorage.getItem(SAVE_KEY);
       if (!raw) return false;
       const parsed = JSON.parse(raw);
-      if (!parsed || parsed.version !== 4) return false;
+      if (!parsed || parsed.version !== SAVE_FORMAT_VERSION) return false;
       state = parsed;
       cardSerial = Math.max(1, ...state.players.flatMap(p => [...p.deck, ...p.discard, ...p.hand].map(c => Number(String(c.id).split('-').pop()) || 0)), ...state.market.map(c => Number(String(c.id).split('-').pop()) || 0)) + 1;
       if (!state.visibilityRevision) {

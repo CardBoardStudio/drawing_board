@@ -1,0 +1,29 @@
+[package]
+name = "server"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+game.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+axum = "0.8"
+tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.6", features = ["fs", "trace"] }
+uuid = { version = "1", features = ["v4"] }
+rusqlite = { version = "0.37", features = ["bundled"] }
+rand = "0.8"
+sha2 = "0.10"
+subtle = "2"
+url = "2"
+base64 = "0.22"
+hex = "0.4"
+p256 = { version = "0.13", features = ["ecdsa"] }
+stellar-strkey = "0.0.13"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"

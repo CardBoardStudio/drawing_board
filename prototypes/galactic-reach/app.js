@@ -1812,15 +1812,15 @@
   }
 
   function renderSymbolLegend() {
-    $('#resource-legend').innerHTML = `${RESOURCES.map(resource=>`<span>${resourceDot(resource)}${RESOURCE_NAMES[resource]}</span>`).join('')}<span>★ Rich</span><span>◈ Located relic</span><span>⇄ Gate</span><span>Fog hides unvisited worlds</span>`;
+    $('#resource-legend').innerHTML = `<strong class="legend-heading">Map key</strong>${RESOURCES.map(resource=>`<span>${resourceDot(resource)}${RESOURCE_NAMES[resource]}</span>`).join('')}<span>★ Rich world</span><span>◈ Located relic</span><span>⇄ Gate</span><span>Fog = unvisited</span>`;
     const entries = [
       ['scout','Scout'],['researcher','Researcher'],['frigate','Frigate'],['dreadnought','Dreadnought'],
       ['colony','Colony'],['harvester','Harvester'],['starbase','Shipyard'],['warehouse','Warehouse'],['research','Research Station']
     ];
-    $('#symbol-legend').innerHTML = entries.map(([type,label]) => {
+    $('#symbol-legend').innerHTML = `<strong class="legend-heading">Units &amp; buildings</strong>${entries.map(([type,label]) => {
       const cost = type === 'colony' ? { biomass: 2 } : SHIP_STATS[type]?.cost || STRUCTURES[type]?.cost;
       return `<span class="tooltip-anchor symbol-legend-item" tabindex="0" data-tooltip="${LEGEND_TOOLTIPS[type]}" aria-label="${label}. ${LEGEND_TOOLTIPS[type]}"><span class="symbol-legend-name">${BOARD_ICONS[type]}${label}</span><span class="symbol-legend-cost">${resourceDots(cost)}</span></span>`;
-    }).join('');
+    }).join('')}`;
   }
 
   function renderBoard() {
@@ -2078,7 +2078,7 @@
   }
 
   function switchTab(name) {
-    $$('.console-tab').forEach(tab=>{const active=tab.dataset.tab===name;tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active));});
+    $$('.console-tab').forEach(tab=>{const active=tab.dataset.tab===name;tab.classList.toggle('active',active);tab.setAttribute('aria-selected',String(active));tab.tabIndex=active?0:-1;});
     $$('.tab-panel').forEach(panel=>{const active=panel.dataset.panel===name;panel.classList.toggle('active',active);panel.hidden=!active;});
   }
 
@@ -2106,7 +2106,21 @@
       $('#policy-dialog').close();
       resolvePolicyVote(choice,bid);
     });
-    $$('.console-tab').forEach(tab=>tab.addEventListener('click',()=>switchTab(tab.dataset.tab)));
+    const consoleTabs=$$('.console-tab');
+    consoleTabs.forEach((tab,index)=>{
+      tab.addEventListener('click',()=>switchTab(tab.dataset.tab));
+      tab.addEventListener('keydown',event=>{
+        let next=index;
+        if(event.key==='ArrowRight')next=(index+1)%consoleTabs.length;
+        else if(event.key==='ArrowLeft')next=(index-1+consoleTabs.length)%consoleTabs.length;
+        else if(event.key==='Home')next=0;
+        else if(event.key==='End')next=consoleTabs.length-1;
+        else return;
+        event.preventDefault();
+        switchTab(consoleTabs[next].dataset.tab);
+        consoleTabs[next].focus();
+      });
+    });
   }
 
   wireUi();

@@ -6,9 +6,10 @@
   <meta name="theme-color" content="#070b13">
   <title>Galactic Reach</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=cockpit-ui-1">
+  <link rel="stylesheet" href="styles.css?v=accessible-ui-1">
 </head>
 <body>
+  <a class="skip-link" href="#console">Skip to player controls</a>
   <div class="starfield" aria-hidden="true"></div>
   <main class="app-shell">
     <header class="topbar">
@@ -41,7 +42,7 @@
           <button class="button button-danger" id="pass-button" type="button" hidden>Pass for round</button>
         </div>
         <div class="board-stage">
-          <div class="galaxy-board" id="galaxy-board" aria-label="Interactive galaxy map"></div>
+          <div class="galaxy-board" id="galaxy-board" aria-label="Interactive galaxy map" aria-describedby="resource-legend symbol-legend"></div>
         </div>
         <div class="map-legend" id="resource-legend" aria-label="Map legend">
           <span><i class="resource-swatch matter"></i>Matter</span>
@@ -103,13 +104,13 @@
 
     <section class="console" id="console">
       <div class="console-tabs" role="tablist" aria-label="Player controls">
-        <button class="console-tab active" type="button" data-tab="hand" role="tab" aria-selected="true">Hand <span id="hand-count">0</span></button>
-        <button class="console-tab" type="button" data-tab="market" role="tab" aria-selected="false">Market</button>
-        <button class="console-tab" type="button" data-tab="trade" role="tab" aria-selected="false">Trade</button>
-        <button class="console-tab" type="button" data-tab="fleet" role="tab" aria-selected="false">Fleet</button>
+        <button class="console-tab active" id="hand-tab" type="button" data-tab="hand" role="tab" aria-selected="true" aria-controls="hand-panel" tabindex="0">Hand <span id="hand-count">0</span></button>
+        <button class="console-tab" id="market-tab" type="button" data-tab="market" role="tab" aria-selected="false" aria-controls="market-panel" tabindex="-1">Market</button>
+        <button class="console-tab" id="trade-tab" type="button" data-tab="trade" role="tab" aria-selected="false" aria-controls="trade-panel" tabindex="-1">Trade</button>
+        <button class="console-tab" id="fleet-tab" type="button" data-tab="fleet" role="tab" aria-selected="false" aria-controls="fleet-panel" tabindex="-1">Fleet</button>
       </div>
       <div class="console-body">
-        <div class="tab-panel active" id="hand-panel" data-panel="hand">
+        <div class="tab-panel active" id="hand-panel" data-panel="hand" role="tabpanel" aria-labelledby="hand-tab" tabindex="0">
           <div class="section-intro">
             <div><h2>Your hand</h2><p id="hand-help">Cards may be used for resources at the start of your Operations turn, or for their printed order.</p></div>
             <div class="hand-tools">
@@ -123,7 +124,7 @@
           </div>
           <div class="card-row" id="hand-row"></div>
         </div>
-        <div class="tab-panel" id="market-panel" data-panel="market" hidden>
+        <div class="tab-panel" id="market-panel" data-panel="market" role="tabpanel" aria-labelledby="market-tab" tabindex="0" hidden>
           <div class="section-intro">
             <div><h2>Acquisition market</h2><p id="market-help">Buy one card during your Buy turn. Every eight purchased cards grant 1 Prestige.</p></div>
             <button class="button button-primary" id="finish-buy-button" type="button" hidden>Finish Buy</button>
@@ -132,7 +133,7 @@
           <div class="card-row market-row" id="market-row"></div>
           <div class="decommission" id="decommission-area"></div>
         </div>
-        <div class="tab-panel" id="trade-panel" data-panel="trade" hidden>
+        <div class="tab-panel" id="trade-panel" data-panel="trade" role="tabpanel" aria-labelledby="trade-tab" tabindex="0" hidden>
           <div class="section-intro"><div><h2>Trade channel</h2><p>Make one offer per round. Rival acceptance depends on current shortages and strategy.</p></div></div>
           <form id="trade-form" class="trade-form">
             <label>Rival<select id="trade-rival"></select></label>
@@ -145,7 +146,7 @@
           <div class="trade-response" id="trade-response"></div>
           <div class="trade-ledger" id="trade-ledger" aria-label="Completed trades by rival"></div>
         </div>
-        <div class="tab-panel" id="fleet-panel" data-panel="fleet" hidden>
+        <div class="tab-panel" id="fleet-panel" data-panel="fleet" role="tabpanel" aria-labelledby="fleet-tab" tabindex="0" hidden>
           <div class="section-intro"><div><h2>Fleet manifest</h2><p>Scouts move fast and colonize. Researchers move slowly toward probe-marked relics.</p></div></div>
           <div class="fleet-summary" id="fleet-summary"></div>
           <div class="military-deck-heading"><div><h3>Your military deck</h3><p>Each side reveals one tactic per volley. Used tactics reshuffle when the deck empties.</p></div><strong id="military-deck-count">12 ready · 0 used</strong></div>
@@ -199,6 +200,6 @@
     <div class="discard-scroll"><div class="card-row discard-row" id="discard-row"></div></div>
   </dialog>
 
-  <script src="app.js?v=cockpit-ui-1"></script>
+  <script src="app.js?v=accessible-ui-1"></script>
 </body>
 </html>

@@ -15,6 +15,10 @@ Open **http://127.0.0.1:3000**. Enter a pilot name under **Local development acc
 
 For two human players on one computer, use separate browser profiles or a private window. Share the table invitation, join before launch, then have the host launch. Local identities last for the browser session cookie (24 hours); signing in again creates a new local identity, even with the same name. Nido identities are stable across sign-ins.
 
+## Additional prototypes
+
+[`prototypes/galactic-reach`](prototypes/galactic-reach) contains **Galactic Reach**, a self-contained browser prototype for a four-faction strategy game. It currently supports one human player against three computer-controlled factions and saves progress in the browser. See the prototype README for local play instructions and scope.
+
 ## Included
 
 - Yew Rust/WebAssembly UI: lobby, saved tables, private invitations, hand, market, collection, rules, and flight log.

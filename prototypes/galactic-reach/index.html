@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070b13">
+  <title>Galactic Reach</title>
+  <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="starfield" aria-hidden="true"></div>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <div class="eyebrow">FOUR-FACTION STRATEGY PROTOTYPE</div>
+        <h1>Galactic Reach</h1>
+      </div>
+      <div class="round-block" aria-live="polite">
+        <div><span class="label">Round</span><strong id="round-value">1</strong></div>
+        <div><span class="label">Phase</span><strong id="phase-value">Production</strong></div>
+        <div><span class="label">Active</span><strong id="active-value">You</strong></div>
+      </div>
+      <div class="header-actions">
+        <button class="button button-ghost" id="undo-turn-button" type="button" disabled title="Available after you complete a turn">Undo turn</button>
+        <button class="button button-ghost" id="rules-button" type="button">Rules</button>
+        <button class="button button-ghost" id="new-game-button" type="button">New game</button>
+      </div>
+    </header>
+
+    <section class="score-ribbon" id="score-ribbon" aria-label="Player standings"></section>
+
+    <section class="game-layout">
+      <div class="board-column">
+        <div class="board-toolbar">
+          <div>
+            <span class="status-dot" id="turn-dot"></span>
+            <strong id="turn-title">Preparing the galaxy</strong>
+            <span id="turn-instruction">Please wait…</span>
+          </div>
+          <button class="button button-danger" id="pass-button" type="button" hidden>Pass for round</button>
+        </div>
+        <div class="board-stage">
+          <div class="galaxy-board" id="galaxy-board" aria-label="Interactive galaxy map"></div>
+        </div>
+        <div class="map-legend" aria-label="Map legend">
+          <span><i class="resource-swatch matter"></i>Matter</span>
+          <span><i class="resource-swatch energy"></i>Energy</span>
+          <span><i class="resource-swatch biomass"></i>Biomass</span>
+          <span><i class="resource-swatch data"></i>Data</span>
+          <span>★ Rich</span><span>✦ Ruin</span><span>⇄ Gate</span>
+        </div>
+        <div class="map-legend symbol-legend" id="symbol-legend" aria-label="Ship and building symbol legend"></div>
+      </div>
+
+      <aside class="command-column">
+        <section class="panel resource-panel">
+          <div class="panel-heading">
+            <div><div class="eyebrow">YOUR COMMAND</div><h2>Resources</h2></div>
+            <span class="capacity" id="capacity-value">0 / 15</span>
+          </div>
+          <div class="resource-grid" id="resource-grid"></div>
+        </section>
+
+        <section class="panel inspector-panel">
+          <div class="panel-heading">
+            <div><div class="eyebrow">SECTOR SCAN</div><h2 id="inspect-title">Select a hex</h2></div>
+            <span class="coordinate" id="inspect-coordinate">—</span>
+          </div>
+          <p id="inspect-detail" class="muted">Choose a planet or space hex to inspect fleets, control, and possible actions.</p>
+          <div id="inspect-facts" class="fact-list"></div>
+          <div id="context-actions" class="context-actions"></div>
+        </section>
+
+        <section class="panel objective-panel">
+          <div class="panel-heading">
+            <div><div class="eyebrow">PRESTIGE RACE</div><h2>Public awards</h2></div>
+            <strong>15 to win</strong>
+          </div>
+          <div id="award-list" class="award-list"></div>
+        </section>
+
+        <section class="panel log-panel">
+          <div class="panel-heading">
+            <div><div class="eyebrow">COMMS FEED</div><h2>Game log</h2></div>
+          </div>
+          <ol id="game-log" class="game-log" aria-live="polite"></ol>
+        </section>
+      </aside>
+    </section>
+
+    <section class="console" id="console">
+      <div class="console-tabs" role="tablist" aria-label="Player controls">
+        <button class="console-tab active" type="button" data-tab="hand" role="tab" aria-selected="true">Hand <span id="hand-count">0</span></button>
+        <button class="console-tab" type="button" data-tab="market" role="tab" aria-selected="false">Market</button>
+        <button class="console-tab" type="button" data-tab="trade" role="tab" aria-selected="false">Trade</button>
+        <button class="console-tab" type="button" data-tab="fleet" role="tab" aria-selected="false">Fleet</button>
+      </div>
+      <div class="console-body">
+        <div class="tab-panel active" id="hand-panel" data-panel="hand">
+          <div class="section-intro">
+            <div><h2>Your hand</h2><p id="hand-help">Cards may be used for resources at the start of your Operations turn, or for their printed order.</p></div>
+            <div class="hand-tools">
+              <div class="pile-stats" aria-label="Your card piles">
+                <span>Deck <strong id="deck-count">0</strong></span>
+                <span>Hand <strong id="hand-pile-count">0</strong></span>
+                <button id="discard-button" type="button" title="Browse your discard pile">Discard <strong id="discard-count">0</strong></button>
+              </div>
+              <button class="button button-primary" id="finish-prep-button" type="button" hidden>Choose an order</button>
+            </div>
+          </div>
+          <div class="card-row" id="hand-row"></div>
+        </div>
+        <div class="tab-panel" id="market-panel" data-panel="market" hidden>
+          <div class="section-intro">
+            <div><h2>Acquisition market</h2><p>Buy one card during your Buy turn. Advanced cards refill immediately.</p></div>
+            <button class="button button-primary" id="finish-buy-button" type="button" hidden>Finish Buy</button>
+          </div>
+          <div class="basic-market" id="basic-market"></div>
+          <div class="card-row market-row" id="market-row"></div>
+          <div class="decommission" id="decommission-area"></div>
+        </div>
+        <div class="tab-panel" id="trade-panel" data-panel="trade" hidden>
+          <div class="section-intro"><div><h2>Trade channel</h2><p>Make one offer per round. Rival acceptance depends on current shortages and strategy.</p></div></div>
+          <form id="trade-form" class="trade-form">
+            <label>Rival<select id="trade-rival"></select></label>
+            <label>You give<select id="trade-give-type"></select></label>
+            <label>Amount<input id="trade-give-amount" type="number" min="1" max="5" value="1"></label>
+            <label>You receive<select id="trade-get-type"></select></label>
+            <label>Amount<input id="trade-get-amount" type="number" min="1" max="5" value="1"></label>
+            <button class="button button-primary" type="submit">Send offer</button>
+          </form>
+          <div class="trade-response" id="trade-response"></div>
+        </div>
+        <div class="tab-panel" id="fleet-panel" data-panel="fleet" hidden>
+          <div class="section-intro"><div><h2>Fleet manifest</h2><p>Select a fleet on the board, then play a Move order to see reachable destinations.</p></div></div>
+          <div class="fleet-summary" id="fleet-summary"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="rules-dialog">
+    <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
+    <div class="rules-grid">
+      <section><h3>Round</h3><p>Production → Draw → alternating Operations → Buy → Cleanup. The first-player marker rotates every round.</p></section>
+      <section><h3>Cards</h3><p>At the start of your turn, play any number of cards for their resource mode. Then play one order, make your one Trade action, or pass.</p></section>
+      <section><h3>Control</h3><p>Colonies produce their planet resource. Harvesters add one. Warehouses add five storage. Starbases build ships and defend.</p></section>
+      <section><h3>Combat</h3><p>Both sides roll; 5–6 hits. Scouts roll 1, Frigates 2, Dreadnoughts 4, and Starbases 3. Combat lasts up to three volleys.</p></section>
+      <section><h3>Conquest</h3><p>Occupy an enemy planet, then later use Colonize with a Scout and <span class="resource-dots" role="img" aria-label="1 Biomass" title="1 Biomass"><i class="resource-dot biomass" aria-hidden="true"></i></span>. Captured worlds receive a conquest marker.</p></section>
+      <section><h3>Victory</h3><p>Reach 15 Prestige. Finish the round, then compare Prestige, Colonies, and stored resources.</p></section>
+    </div>
+  </dialog>
+
+  <dialog id="message-dialog">
+    <div class="dialog-heading"><div><div class="eyebrow" id="message-kicker">EVENT</div><h2 id="message-title">Title</h2></div></div>
+    <p id="message-body"></p>
+    <div id="message-details" class="message-details"></div>
+    <button class="button button-primary button-wide" id="message-continue" type="button">Continue</button>
+  </dialog>
+
+  <dialog id="discard-dialog" class="pile-dialog">
+    <div class="dialog-heading">
+      <div><div class="eyebrow">YOUR CARDS</div><h2>Discard pile <span id="discard-dialog-count">0</span></h2><p>Most recently discarded cards appear first.</p></div>
+      <button class="icon-button" id="close-discard" type="button" aria-label="Close discard pile">×</button>
+    </div>
+    <div class="discard-scroll"><div class="card-row discard-row" id="discard-row"></div></div>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>

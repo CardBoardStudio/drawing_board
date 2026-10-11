@@ -1,0 +1,45 @@
+# Game Edit Notes
+
+- Deck building.
+  - Every eight purchased cards grant 1 Prestige, making deck-building the slightly favored strategic path.
+- The basic structure is a round: everyone has a hand, and players go around taking turns playing one card each.
+- Build structures on some kind of board.
+  - Buildings should be upgradeable.
+- Physical units that move and fight.
+  - Combat uses a separate 12-card military deck for each faction rather than dice. Each volley reveals one tactic per side; fleet power supplies base hits and tactics add attack, shields, piercing, or withdrawal.
+- Trading with other players in some form.
+- A mechanic for picking a bonus at the end of each round:
+  - The player who picks a bonus receives its full effect.
+  - Everyone else receives a related but less powerful bonus.
+- A separate political track where players vote at certain points.
+  - Tracks:
+    - **Expansionist:** 1 point per thing built.
+    - **Culture:** 1 point per trade. Track trades with each player.
+    - **Economy:** 1 point per card purchased.
+    - **Technology:** Players start with a set of cards. Some cannot be trashed and can only be upgraded. Upgrading one advances the player on the Technology track.
+  - Policies can be one of the track types.
+    - A policy comes up every three rounds.
+    - Each policy presents two options, and players vote between them.
+    - Each player secretly chooses how many points to spend; the spent points determine that player's voting power.
+- Planets consist of seven hexes. Everyone starts on their own planet.
+  - Home planets sit at the outer edge of the board.
+  - Every faction starts with a Colony on the center hex of its edge world and a Shipyard on the adjacent inward hex.
+  - Colonies can only be founded or captured on a planet’s center hex.
+  - Each hex holds only one building. A Colony claims its world, and further structures spread across connected empty hexes and upgrade in place.
+  - During Production, a combat fleet controlling a planet hex gains 1 of that hex's resource in addition to normal owner production. Researcher-only teams do not collect this fleet-control income.
+  - All four starting Shipyard hexes produce Energy so starting fleet income is symmetric.
+  - Include some kind of fog of war: players must explore to find planets.
+  - Probes pinpoint alien relics but reveal nothing else about the planet or surrounding sectors.
+  - Scouts move farther, explore blindly, reveal worlds on arrival, and can colonize.
+  - Researchers move only 1 hex. They initially deploy only from a player's home planet; a distant settlement with a level-II structure can also deploy them.
+- Alien relics:
+  - An alien relic is a card worth 1 victory point.
+  - A rare alien hex contains a Rosetta Stone.
+  - A Researcher who reaches it can build a research station and recover a basic Relic card worth 1 victory point.
+  - After one player has three Research Stations on relics, that player may replace their basic Relic cards one-for-one with cards from a separate powerful relic deck.
+- Balance rules:
+  - The victory target is 10 Prestige.
+  - Every 10 unspent influence grants 1 Prestige.
+  - Each Colony grants 1 Prestige, plus 1 bonus for every two Colonies beyond the home world.
+  - Every pair of Shipyards grants 1 Prestige.
+  - Fleet Supremacy and Occupation Mandate grant 2 Prestige; Galactic Reach grants 1.

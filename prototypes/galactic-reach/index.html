@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#070b13">
   <title>Galactic Reach</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=balance-pass-1">
 </head>
 <body>
   <div class="starfield" aria-hidden="true"></div>
@@ -48,7 +48,7 @@
           <span><i class="resource-swatch energy"></i>Energy</span>
           <span><i class="resource-swatch biomass"></i>Biomass</span>
           <span><i class="resource-swatch data"></i>Data</span>
-          <span>★ Rich</span><span>✦ Ruin</span><span>⇄ Gate</span>
+          <span>★ Rich</span><span>◈ Located relic</span><span>⇄ Gate</span><span>Fog hides unvisited worlds</span>
         </div>
         <div class="map-legend symbol-legend" id="symbol-legend" aria-label="Ship and building symbol legend"></div>
       </div>
@@ -75,9 +75,18 @@
         <section class="panel objective-panel">
           <div class="panel-heading">
             <div><div class="eyebrow">PRESTIGE RACE</div><h2>Public awards</h2></div>
-            <strong>15 to win</strong>
+            <strong>10 to win</strong>
           </div>
           <div id="award-list" class="award-list"></div>
+        </section>
+
+        <section class="panel politics-panel">
+          <div class="panel-heading">
+            <div><div class="eyebrow">POLITICAL CAPITAL</div><h2>Influence tracks</h2></div>
+            <span class="capacity" id="policy-status">No policy enacted</span>
+          </div>
+          <div class="track-grid" id="track-grid"></div>
+          <p class="muted policy-summary" id="policy-summary">Every third round, secretly spend track points to vote between two policies.</p>
         </section>
 
         <section class="panel log-panel">
@@ -113,7 +122,7 @@
         </div>
         <div class="tab-panel" id="market-panel" data-panel="market" hidden>
           <div class="section-intro">
-            <div><h2>Acquisition market</h2><p>Buy one card during your Buy turn. Advanced cards refill immediately.</p></div>
+            <div><h2>Acquisition market</h2><p id="market-help">Buy one card during your Buy turn. Every eight purchased cards grant 1 Prestige.</p></div>
             <button class="button button-primary" id="finish-buy-button" type="button" hidden>Finish Buy</button>
           </div>
           <div class="basic-market" id="basic-market"></div>
@@ -131,10 +140,13 @@
             <button class="button button-primary" type="submit">Send offer</button>
           </form>
           <div class="trade-response" id="trade-response"></div>
+          <div class="trade-ledger" id="trade-ledger" aria-label="Completed trades by rival"></div>
         </div>
         <div class="tab-panel" id="fleet-panel" data-panel="fleet" hidden>
-          <div class="section-intro"><div><h2>Fleet manifest</h2><p>Select a fleet on the board, then play a Move order to see reachable destinations.</p></div></div>
+          <div class="section-intro"><div><h2>Fleet manifest</h2><p>Scouts move fast and colonize. Researchers move slowly toward probe-marked relics.</p></div></div>
           <div class="fleet-summary" id="fleet-summary"></div>
+          <div class="military-deck-heading"><div><h3>Your military deck</h3><p>Each side reveals one tactic per volley. Used tactics reshuffle when the deck empties.</p></div><strong id="military-deck-count">12 ready · 0 used</strong></div>
+          <div class="military-card-grid" id="military-card-grid"></div>
         </div>
       </div>
     </section>
@@ -143,13 +155,30 @@
   <dialog id="rules-dialog">
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
     <div class="rules-grid">
-      <section><h3>Round</h3><p>Production → Draw → alternating Operations → Buy → Cleanup. The first-player marker rotates every round.</p></section>
-      <section><h3>Cards</h3><p>At the start of your turn, play any number of cards for their resource mode. Then play one order, make your one Trade action, or pass.</p></section>
-      <section><h3>Control</h3><p>Colonies produce their planet resource. Harvesters add one. Warehouses add five storage. Shipyards build ships and defend.</p></section>
-      <section><h3>Combat</h3><p>Both sides roll; 5–6 hits. Scouts roll 1, Frigates 2, Dreadnoughts 4, and Shipyards 3. Combat lasts up to three volleys.</p></section>
+      <section><h3>Round</h3><p>Production → Draw → alternating one-card Operations → Buy → Directive. Every third round also ends with a secret policy vote.</p></section>
+      <section><h3>Cards</h3><p>At the start of your turn, play cards for resources, then use one order. Starter cards cannot be scrapped; upgrade them during Buy to improve them and gain Technology.</p></section>
+      <section><h3>Probes & fog</h3><p>A Probe pinpoints one alien relic, but reveals nothing about its planet or nearby sectors. A Scout explores blindly, moves up to 3 hexes, and reveals a world when it enters.</p></section>
+      <section><h3>Control</h3><p>Each home world touches the board edge. Its Colony always occupies the center hex, with the starting Shipyard on an adjacent inward hex. Colonies can only be founded or captured at a world’s center. Every hex holds only one building, and structures upgrade in place to level II. During Production, each combat fleet on a planet hex gains its controller 1 of that hex’s resource, even on an unclaimed or enemy world; Researcher-only teams do not collect resources.</p></section>
+      <section><h3>Researchers</h3><p>Researchers move 1 hex and do not fight or colonize. Recruit them at your home Colony; an outer level-II structure can also recruit them.</p></section>
+      <section><h3>Military deck</h3><p>Combat lasts up to three volleys. Each side gets 1 base hit per 4 fleet power, rounded up, then reveals one tactic for added hits, shields, piercing, or withdrawal. Used tactics reshuffle when the deck is empty.</p></section>
       <section><h3>Conquest</h3><p>Occupy an enemy planet, then later use Colonize with a Scout and <span class="resource-dots" role="img" aria-label="1 Biomass" title="1 Biomass"><i class="resource-dot biomass" aria-hidden="true"></i></span>. Captured worlds receive a conquest marker.</p></section>
-      <section><h3>Victory</h3><p>Reach 15 Prestige. Finish the round, then compare Prestige, Colonies, and stored resources.</p></section>
+      <section><h3>Victory</h3><p>Reach 10 Prestige. Each Colony is worth 1, plus 1 more for every two Colonies beyond your home world. Each Relic and the Galactic Reach award are worth 1; Fleet Supremacy and Occupation Mandate are worth 2; every pair of Shipyards is worth 1; every 10 unspent influence is worth 1; and every eight purchased cards are worth 1. Finish the round, then compare Prestige, Colonies, and stored resources.</p></section>
+      <section><h3>Relics</h3><p>A Researcher on a Rosetta Stone can establish a Research Station and recover a 1-Prestige Relic. After you control three such stations, exchange basic Relics one-for-one for powerful relic-deck cards during Buy.</p></section>
     </div>
+  </dialog>
+
+  <dialog id="directive-dialog" class="choice-dialog">
+    <div class="dialog-heading"><div><div class="eyebrow">END OF ROUND</div><h2>Choose the council directive</h2><p>You receive the primary benefit. Every rival receives the linked lesser benefit.</p></div></div>
+    <div class="choice-grid" id="directive-choices"></div>
+  </dialog>
+
+  <dialog id="policy-dialog" class="choice-dialog">
+    <div class="dialog-heading"><div><div class="eyebrow">SECRET BALLOT</div><h2>Choose a policy and voting power</h2><p>Your bid stays hidden until all factions have committed. Spent track points are removed.</p></div></div>
+    <form id="policy-form">
+      <div class="choice-grid" id="policy-choices"></div>
+      <label class="vote-power">Voting power <input id="vote-power" type="number" min="0" value="0"><span id="vote-limit">0 available</span></label>
+      <button class="button button-primary button-wide" type="submit">Cast hidden ballot</button>
+    </form>
   </dialog>
 
   <dialog id="message-dialog">
@@ -167,6 +196,6 @@
     <div class="discard-scroll"><div class="card-row discard-row" id="discard-row"></div></div>
   </dialog>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=balance-pass-1"></script>
 </body>
 </html>

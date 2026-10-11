@@ -343,6 +343,7 @@ button.game-card { color: var(--text); cursor: pointer; }
 .game-card:hover:not(:disabled) { border-color: var(--card-accent, var(--cyan)); transform: translateY(-1px); }
 .game-card:disabled { opacity: .58; cursor: not-allowed; }
 .game-card.upgraded { box-shadow: inset 0 0 0 1px color-mix(in srgb,var(--card-accent) 35%,transparent); }
+.game-card.order-selected { border-color: var(--card-accent, var(--cyan)); box-shadow: 0 0 0 2px color-mix(in srgb,var(--card-accent, var(--cyan)) 42%,transparent), inset 0 0 24px color-mix(in srgb,var(--card-accent, var(--cyan)) 10%,transparent); }
 .card-type { color: var(--card-accent, var(--cyan)); font-size: 10px; font-weight: 750; letter-spacing: .1em; }
 .card-name { margin: 5px 0 8px; font-size: 14px; font-weight: 750; }
 .card-effect { flex: 1; color: var(--muted); font-size: 12px; line-height: 1.45; }

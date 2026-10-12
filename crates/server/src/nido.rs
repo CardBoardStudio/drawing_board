@@ -159,6 +159,15 @@ pub async fn callback(
             .map_err(internal)?;
     }
     tx.execute(
+        "INSERT OR IGNORE INTO accounts(id,name,kind,created) VALUES(?,?,'human',?)",
+        rusqlite::params![
+            format!("nido:{account}"),
+            format!("Pilot {}", &account[account.len().saturating_sub(6)..]),
+            now()
+        ],
+    )
+    .map_err(internal)?;
+    tx.execute(
         "INSERT INTO sessions VALUES(?,?,?,?,?)",
         rusqlite::params![
             digest(&token),
@@ -297,6 +306,7 @@ mod tests {
             store: Arc::new(Store::open(":memory:").unwrap()),
             dev_auth: false,
             preview_code_hash: None,
+            registration_code_hash: None,
             origin: "http://127.0.0.1:3000".into(),
             nido: Arc::new(BTreeMap::from([("CTEST".into(), vec![key])])),
         };

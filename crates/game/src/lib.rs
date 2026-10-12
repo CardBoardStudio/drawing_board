@@ -1,4 +1,5 @@
 //! Voidwright's deterministic, transport-independent rules. Never send `Game` to a client.
+pub mod agents;
 use rand::{SeedableRng, seq::SliceRandom};
 use rand_chacha::ChaCha20Rng;
 use serde::{Deserialize, Serialize};
@@ -305,9 +306,13 @@ pub struct SessionInfo {
     #[serde(default)]
     pub preview_auth: bool,
     pub nido_available: bool,
+    #[serde(default)]
+    pub registration_available: bool,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CreateGame {
+    #[serde(default)]
+    pub opponent_id: Option<String>,
     pub name: String,
     pub practice: bool,
     pub round_limit: u16,
@@ -589,51 +594,7 @@ impl Game {
         Ok(())
     }
     pub fn bot_command(&self) -> Option<Command> {
-        if self.status != Status::Active || !self.players[self.active].bot {
-            return None;
-        }
-        let p = &self.players[self.active];
-        if self.phase == Phase::Action && self.actions > 0 {
-            // Prefer actions that keep the chain alive.
-            for card in [
-                Card::Relay,
-                Card::Laboratory,
-                Card::Exchange,
-                Card::Scout,
-                Card::Salvager,
-                Card::Freighter,
-            ] {
-                if let Some(index) = p.hand.iter().position(|c| *c == card) {
-                    return Some(Command::Play { index });
-                }
-            }
-        }
-        if p.hand.iter().any(|c| c.credits() > 0) {
-            return Some(Command::PlayResources);
-        }
-        if self.buys > 0 {
-            for card in [
-                Card::Metropolis,
-                Card::Fusion,
-                Card::Laboratory,
-                Card::Colony,
-                Card::Freighter,
-                Card::Reactor,
-                Card::Relay,
-                Card::Scout,
-            ] {
-                let owned = p.cards().filter(|&&c| c == card).count();
-                if card.info().kind == Kind::Action && owned >= 2 {
-                    continue;
-                }
-                if self.credits >= card.info().cost as u16
-                    && self.supply.get(&card).copied().unwrap_or(0) > 0
-                {
-                    return Some(Command::Buy { card });
-                }
-            }
-        }
-        Some(Command::EndTurn)
+        self.agent_command(agents::Strategy::Kepler)
     }
     pub fn view(&self, viewer: &str) -> Option<GameView> {
         let you = self.players.iter().position(|p| p.id == viewer)?;

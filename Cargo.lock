@@ -428,10 +428,18 @@ dependencies = [
 name = "game"
 version = "0.1.0"
 dependencies = [
+ "game-core",
  "rand",
  "rand_chacha",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "game-core"
+version = "0.1.0"
+dependencies = [
+ "serde",
 ]
 
 [[package]]
@@ -1680,6 +1688,7 @@ dependencies = [
  "axum",
  "base64",
  "game",
+ "game-core",
  "hex",
  "http-body-util",
  "p256",

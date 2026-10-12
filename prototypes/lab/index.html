@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#060911" />
+    <meta
+      name="description"
+      content="Drawing Board — discover board games, build AI players, and find your next challenge."
+    />
+    <title>Drawing Board · Playtest Lab</title>
+    <link rel="stylesheet" href="/lab/lab.css" />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="brand" href="/#library"
+          ><span class="brand-icon" aria-hidden="true">db</span
+          ><span>Drawing Board<small>THE PLAYTEST LAB</small></span></a
+        >
+        <div class="nav-label">WORKSPACE</div>
+        <nav aria-label="Workspace">
+          <a href="#library" data-page="library"
+            ><span aria-hidden="true">▦</span> Game library</a
+          ><a href="#arena" data-page="arena"
+            ><span aria-hidden="true">◇</span> AI arena</a
+          ><a href="#account" data-page="account"
+            ><span aria-hidden="true">◎</span> Your account</a
+          >
+        </nav>
+        <div class="sidebar-note">
+          <span class="live-dot"></span> A place for games to begin.
+          <p>Play. Experiment.<br />Find the next good idea.</p>
+          <small>DRAWING BOARD / LAB 01</small>
+        </div>
+      </aside>
+      <div class="workspace">
+        <header class="topbar">
+          <span class="breadcrumb"
+            >Workspace <span>/</span> <b id="page-name">Game library</b></span
+          ><a class="account-link" href="#account" id="account-link"
+            >Sign in <span>↗</span></a
+          >
+        </header>
+        <div id="notice" class="notice" role="status" hidden></div>
+        <main id="main" tabindex="-1">
+          <p class="loading">Opening the lab…</p>
+        </main>
+        <footer>
+          <span>Built for curious players.</span
+          ><span>Experimental games. Real possibilities.</span>
+        </footer>
+      </div>
+    </div>
+    <dialog id="key-dialog" aria-labelledby="key-title">
+      <div class="eyebrow">YOUR ACCOUNT IS READY</div>
+      <h2 id="key-title">Keep your recovery key.</h2>
+      <p>
+        This key is your sign-in credential. Save it in your password manager.
+        Anyone with it can access your account; we cannot recover a lost key.
+      </p>
+      <label for="new-key">Private recovery key</label
+      ><textarea id="new-key" readonly rows="3" spellcheck="false"></textarea>
+      <div class="actions">
+        <button id="copy-key" class="secondary">Copy key</button
+        ><button id="download-key" class="secondary">Download key</button>
+      </div>
+      <label class="check"
+        ><input id="saved-key" type="checkbox" /> I saved my key somewhere
+        safe.</label
+      ><button id="close-key" class="primary" disabled>
+        Continue to the lab →
+      </button>
+    </dialog>
+    <script type="module" src="/lab/lab.js"></script>
+  </body>
+</html>

@@ -6,6 +6,7 @@ pub struct Config {
     pub origin: String,
     pub dev_auth: bool,
     pub preview_code_hash: Option<[u8; 32]>,
+    pub registration_code_hash: Option<[u8; 32]>,
 }
 impl Config {
     pub fn from_env(get: impl Fn(&str) -> Option<String>) -> Result<Self, String> {
@@ -40,7 +41,15 @@ impl Config {
             return Err("APP_ORIGIN must be an exact HTTP(S) origin without a path, credentials, query, or trailing slash.".into());
         }
         let dev_auth = get("DEV_AUTH").as_deref() == Some("1");
-        if dev_auth && (!bind.ip().is_loopback() || on_render) {
+        let local_origin = parsed.scheme() == "http"
+            && parsed.host_str().is_some_and(|host| {
+                host == "localhost"
+                    || host
+                        .trim_matches(['[', ']'])
+                        .parse::<std::net::IpAddr>()
+                        .is_ok_and(|ip| ip.is_loopback())
+            });
+        if dev_auth && (!bind.ip().is_loopback() || on_render || !local_origin) {
             return Err(
                 "DEV_AUTH is restricted to local loopback development, never Render.".into(),
             );
@@ -58,11 +67,20 @@ impl Config {
         } else {
             None
         };
+        let registration_code_hash = if let Some(code) = get("ACCOUNT_REGISTRATION_CODE") {
+            if code.len() < 24 || (!local_origin && parsed.scheme() != "https") {
+                return Err("Account enrollment requires a code of at least 24 characters and HTTPS (or local HTTP).".into());
+            }
+            Some(Sha256::digest(code.as_bytes()).into())
+        } else {
+            None
+        };
         Ok(Self {
             bind,
             origin,
             dev_auth,
             preview_code_hash,
+            registration_code_hash,
         })
     }
 }
@@ -82,6 +100,34 @@ mod tests {
         assert!(config(&[("DEV_AUTH", "1")]).unwrap().dev_auth);
         assert!(config(&[("DEV_AUTH", "1"), ("PORT", "3000")]).is_err());
         assert!(config(&[("DEV_AUTH", "1"), ("RENDER", "true")]).is_err());
+        assert!(config(&[("DEV_AUTH", "1"), ("APP_ORIGIN", "https://host.ts.net")]).is_err());
+        assert!(config(&[("DEV_AUTH", "1"), ("APP_ORIGIN", "http://public.example")]).is_err());
+    }
+    #[test]
+    fn enrollment_requires_strong_code_and_safe_origin() {
+        assert!(config(&[("ACCOUNT_REGISTRATION_CODE", "short")]).is_err());
+        assert!(
+            config(&[
+                (
+                    "ACCOUNT_REGISTRATION_CODE",
+                    "a-long-enrollment-code-for-testing"
+                ),
+                ("APP_ORIGIN", "http://public.example")
+            ])
+            .is_err()
+        );
+        assert!(
+            config(&[
+                (
+                    "ACCOUNT_REGISTRATION_CODE",
+                    "a-long-enrollment-code-for-testing"
+                ),
+                ("APP_ORIGIN", "https://public.example")
+            ])
+            .unwrap()
+            .registration_code_hash
+            .is_some()
+        );
     }
     #[test]
     fn production_never_enables_preview_login() {

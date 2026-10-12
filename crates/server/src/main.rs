@@ -1,5 +1,9 @@
+mod accounts;
+mod arena;
 mod config;
 mod nido;
+#[cfg(test)]
+mod platform_tests;
 mod store;
 use axum::{
     Json, Router,
@@ -27,6 +31,7 @@ struct App {
     store: Arc<Store>,
     dev_auth: bool,
     preview_code_hash: Option<[u8; 32]>,
+    registration_code_hash: Option<[u8; 32]>,
     origin: String,
     nido: Arc<nido::TrustedSigners>,
 }
@@ -81,7 +86,7 @@ fn user(app: &App, headers: &HeaderMap) -> ApiResult<User> {
     ))?;
     let db = app.store.0.lock().map_err(internal)?;
     db.query_row(
-        "SELECT user_id,name,development FROM sessions WHERE token_hash=? AND expires>?",
+        "SELECT s.user_id,a.name,s.development FROM sessions s JOIN accounts a ON a.id=s.user_id WHERE s.token_hash=? AND s.expires>? AND a.kind='human'",
         rusqlite::params![digest(&token), now()],
         |r| {
             Ok(User {
@@ -141,6 +146,15 @@ async fn protect(State(app): State<App>, request: axum::extract::Request, next: 
         .headers_mut()
         .insert("referrer-policy", "same-origin".parse().unwrap());
     response
+        .headers_mut()
+        .insert("x-frame-options", "DENY".parse().unwrap());
+    response.headers_mut().insert(
+        "content-security-policy",
+        "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+            .parse()
+            .unwrap(),
+    );
+    response
 }
 async fn session(State(app): State<App>, headers: HeaderMap) -> Json<SessionInfo> {
     Json(SessionInfo {
@@ -151,6 +165,9 @@ async fn session(State(app): State<App>, headers: HeaderMap) -> Json<SessionInfo
         dev_auth: app.dev_auth,
         preview_auth: app.preview_code_hash.is_some(),
         nido_available: !app.nido.is_empty(),
+        registration_available: app.dev_auth
+            || app.registration_code_hash.is_some()
+            || app.preview_code_hash.is_some(),
     })
 }
 #[derive(Deserialize)]
@@ -213,15 +230,15 @@ fn create_test_session(
         tx.execute("DELETE FROM sessions WHERE token_hash=?", [digest(&old)])
             .map_err(internal)?;
     }
+    let id = format!("{identity_prefix}:{}", uuid::Uuid::new_v4());
+    tx.execute(
+        "INSERT INTO accounts(id,name,kind,created) VALUES(?,?,'human',?)",
+        rusqlite::params![id, name, now()],
+    )
+    .map_err(internal)?;
     tx.execute(
         "INSERT INTO sessions VALUES(?,?,?,?,?)",
-        rusqlite::params![
-            digest(&token),
-            format!("{identity_prefix}:{}", uuid::Uuid::new_v4()),
-            name,
-            true,
-            now() + 86400
-        ],
+        rusqlite::params![digest(&token), id, name, true, now() + 86400],
     )
     .map_err(internal)?;
     tx.commit().map_err(internal)?;
@@ -302,12 +319,29 @@ async fn create_game(
         action: json!({"type":"create","initial":g}),
     }];
     if input.practice {
-        g.join("bot:kepler".into(), "KEPLER / 01".into(), true)
-            .map_err(bad)?;
+        let (bot_id, bot_name) = if let Some(id) = input.opponent_id {
+            let db = app.store.0.lock().map_err(internal)?;
+            let name = db
+                .query_row(
+                    "SELECT name FROM accounts WHERE id=? AND owner_id=? AND kind='ai'",
+                    rusqlite::params![id, u.id],
+                    |r| r.get::<_, String>(0),
+                )
+                .map_err(|_| {
+                    ApiError(
+                        StatusCode::FORBIDDEN,
+                        "Choose an AI player from your own lab.".into(),
+                    )
+                })?;
+            (id, name)
+        } else {
+            ("bot:kepler".into(), "KEPLER / 01".into())
+        };
+        g.join(bot_id, bot_name, true).map_err(bad)?;
         records.push(Record {
             revision: g.revision,
             actor: u.id.clone(),
-            action: json!({"type":"join_bot"}),
+            action: json!({"type":"join_bot","id":g.players[1].id,"name":g.players[1].name}),
         });
         g.apply(&u.id, Command::Start).map_err(bad)?;
         records.push(Record {
@@ -384,7 +418,22 @@ async fn command(
         action: serde_json::to_value(input.command).unwrap(),
     }];
     let mut steps = 0;
-    while let Some(c) = g.bot_command() {
+    while g.status == Status::Active && g.players[g.active].bot {
+        let strategy = if g.players[g.active].id == "bot:kepler" {
+            game::agents::Strategy::Kepler
+        } else {
+            let policy: String = db
+                .query_row(
+                    "SELECT policy FROM accounts WHERE id=? AND kind='ai'",
+                    [&g.players[g.active].id],
+                    |r| r.get(0),
+                )
+                .map_err(internal)?;
+            arena::strategy(&policy)?
+        };
+        let c = g
+            .agent_command(strategy)
+            .ok_or_else(|| internal("No legal bot action"))?;
         let actor = g.players[g.active].id.clone();
         g.apply(&actor, c.clone()).map_err(internal)?;
         records.push(Record {
@@ -412,6 +461,21 @@ fn router(app: App) -> Router {
         .route("/api/auth/dev", post(dev_login))
         .route("/api/auth/preview", post(preview_login))
         .route("/api/auth/logout", post(logout))
+        .route("/api/accounts/register", post(accounts::register))
+        .route("/api/accounts/login", post(accounts::login))
+        .route(
+            "/api/account",
+            get(accounts::profile).post(accounts::rename),
+        )
+        .route(
+            "/api/account/revoke-sessions",
+            post(accounts::revoke_other_sessions),
+        )
+        .route("/api/account/rotate-key", post(accounts::rotate_key))
+        .route("/api/catalog", get(arena::catalog))
+        .route("/api/arena", get(arena::overview))
+        .route("/api/arena/bots", post(arena::create_bot))
+        .route("/api/arena/series", post(arena::run_series))
         .route("/api/games", get(list_games).post(create_game))
         .route("/api/games/{id}", get(get_game))
         .route("/api/games/{id}/join", post(join_game))
@@ -439,6 +503,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )?),
         dev_auth: config.dev_auth,
         preview_code_hash: config.preview_code_hash,
+        registration_code_hash: config.registration_code_hash,
         origin: config.origin.clone(),
         nido: Arc::new(nido::load_config()?),
     };
@@ -477,16 +542,17 @@ mod tests {
     use axum::{body::Body, http::Request};
     use http_body_util::BodyExt;
     use tower::ServiceExt;
-    fn app(dev: bool) -> App {
+    pub(super) fn app(dev: bool) -> App {
         App {
             store: Arc::new(Store::open(":memory:").unwrap()),
             dev_auth: dev,
             preview_code_hash: None,
+            registration_code_hash: None,
             origin: "http://127.0.0.1:3000".into(),
             nido: Arc::new(Default::default()),
         }
     }
-    async fn call(
+    pub(super) async fn call(
         app: &App,
         method: &str,
         path: &str,

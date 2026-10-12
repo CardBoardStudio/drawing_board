@@ -9,7 +9,7 @@
     shell.inert = true;
     const bar = document.createElement('section');
     bar.className = 'table-save-bar';
-    bar.innerHTML = '<a class="button button-ghost" href="/?game=galactic-reach#tables">← Your tables</a><strong id="saved-table-name">Opening table…</strong><span id="table-sync" role="status">Connecting…</span><button class="button button-ghost" id="table-retry" hidden>Retry save</button><button class="button button-ghost" id="table-reload" hidden>Load latest saved table</button><button class="button button-ghost" id="table-download" hidden>Download local copy</button>';
+    bar.innerHTML = '<a class="button button-ghost" href="/?game=galactic-reach#tables">← Your tables</a><strong id="saved-table-name">Opening table…</strong><span id="table-rules" class="rules-badge"></span><span id="table-sync" role="status">Connecting…</span><button class="button button-ghost" id="table-retry" hidden>Retry save</button><button class="button button-ghost" id="table-reload" hidden>Load latest saved table</button><button class="button button-ghost" id="table-download" hidden>Download local copy</button>';
     shell.before(bar);
     const status = bar.querySelector('#table-sync');
     const retry = bar.querySelector('#table-retry');
@@ -77,6 +77,12 @@
     try {
       if (!/^[a-f0-9]{32}$/.test(id)) throw new Error('Invalid table link. Return to Your tables.');
       const table = await api(`/api/tables/${id}`);
+      const rules=table.rules_version;
+      const versions={'galactic-reach/5.10':{format:5,path:'/galactic-reach/rules/5.10/'},'galactic-reach/6.11':{format:6,path:'/galactic-reach/'}};
+      const version=versions[rules];
+      if(!version) throw new Error(`Rules ${rules || 'unknown'} are not available on this host. Your table is preserved.`);
+      if(location.pathname!==version.path) {location.replace(`${version.path}?table=${id}`);return;}
+      bar.querySelector('#table-rules').textContent=`Rules ${rules.split('/')[1]} · pinned`;
       revision = table.revision;
       cacheKey = `drawing-board-table:${table.owner_id}:${id}`;
       bar.querySelector('#saved-table-name').textContent = table.name;
@@ -89,11 +95,11 @@
         throw Object.assign(new Error('Another tab or device saved a newer version. Download your local copy or load the latest table.'),{status:409});
       }
       if (local && local.revision === revision) { save=local.save; pending=save; }
-      // Engine storage is in memory; never replace the guest's v5 localStorage keys.
+      // Engine storage is in memory; never replace the guest's versioned localStorage keys.
       const memory = new Map();
       if (save) {
-        memory.set('galactic-reach-save-v5',JSON.stringify(save.state));
-        memory.set('galactic-reach-turn-history-v5',JSON.stringify(save.turnHistory || {pending:null,undo:null}));
+        memory.set(`galactic-reach-save-v${version.format}`,JSON.stringify(save.state));
+        memory.set(`galactic-reach-turn-history-v${version.format}`,JSON.stringify(save.turnHistory || {pending:null,undo:null}));
       }
       const storage = {getItem:k=>memory.get(k) || null,setItem:(k,v)=>memory.set(k,v),removeItem:k=>memory.delete(k)};
       globalThis.createGalacticReach({storage,requireSave:!!save,newTable:leave,paused:()=>conflict,onSave:value=>{

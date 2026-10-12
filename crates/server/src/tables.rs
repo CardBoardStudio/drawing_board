@@ -9,7 +9,18 @@ pub fn migrate(db: &Connection) -> rusqlite::Result<()> {
         name TEXT NOT NULL, state TEXT, revision INTEGER NOT NULL DEFAULT 0,
         created INTEGER NOT NULL, updated INTEGER NOT NULL);
         CREATE INDEX IF NOT EXISTS solo_tables_owner ON solo_tables(owner_id,updated);",
-    )
+    )?;
+    let has_rules: bool = db
+        .prepare("PRAGMA table_info(solo_tables)")?
+        .query_map([], |r| r.get::<_, String>(1))?
+        .collect::<Result<Vec<_>, _>>()?
+        .iter()
+        .any(|c| c == "rules_version");
+    if !has_rules {
+        db.execute_batch("ALTER TABLE solo_tables ADD COLUMN rules_version TEXT NOT NULL DEFAULT 'galactic-reach/5.10';
+        UPDATE solo_tables SET rules_version='galactic-reach/' || json_extract(state,'$.state.version') || '.' || json_extract(state,'$.state.rulesRevision') WHERE state IS NOT NULL;")?;
+    }
+    Ok(())
 }
 fn table_url(game: &str, id: &str) -> String {
     if game == "voidwright" {
@@ -25,7 +36,7 @@ pub async fn list(
     let u = user(&app, &headers)?;
     let db = app.store.0.lock().map_err(internal)?;
     let mut result = vec![];
-    let mut query=db.prepare("SELECT id,name,state,updated FROM solo_tables WHERE owner_id=? ORDER BY updated DESC,rowid DESC").map_err(internal)?;
+    let mut query=db.prepare("SELECT id,name,state,updated,rules_version FROM solo_tables WHERE owner_id=? ORDER BY updated DESC,rowid DESC").map_err(internal)?;
     let rows = query
         .query_map([&u.id], |r| {
             Ok((
@@ -33,11 +44,12 @@ pub async fn list(
                 r.get::<_, String>(1)?,
                 r.get::<_, Option<String>>(2)?,
                 r.get::<_, u64>(3)?,
+                r.get::<_, String>(4)?,
             ))
         })
         .map_err(internal)?;
     for row in rows {
-        let (id, name, state, updated) = row.map_err(internal)?;
+        let (id, name, state, updated, rules) = row.map_err(internal)?;
         let save: serde_json::Value = state
             .as_deref()
             .map(serde_json::from_str)
@@ -51,7 +63,7 @@ pub async fn list(
         } else {
             "finished"
         };
-        result.push(json!({"id":id,"name":name,"game":"galactic-reach","status":status,"players":4,"round":save["state"]["round"].as_u64().unwrap_or(1),"url":table_url("galactic-reach",&id),"updated":updated}));
+        result.push(json!({"id":id,"name":name,"game":"galactic-reach","rules_version":rules,"status":status,"players":4,"round":save["state"]["round"].as_u64().unwrap_or(1),"url":table_url("galactic-reach",&id),"updated":updated}));
     }
     let mut query = db
         .prepare("SELECT state FROM games ORDER BY rowid DESC")
@@ -62,7 +74,7 @@ pub async fn list(
     {
         let g: Game = serde_json::from_str(&row.map_err(internal)?).map_err(internal)?;
         if g.players.iter().any(|p| p.id == u.id) {
-            result.push(json!({"id":g.id,"name":g.name,"game":"voidwright","status":g.status,"players":g.players.len(),"round":(g.players.iter().map(|p|p.turns).min().unwrap_or(0)+1).min(g.round_limit),"url":table_url("voidwright",&g.id)}));
+            result.push(json!({"id":g.id,"name":g.name,"game":"voidwright","rules_version":RULES_VERSION,"status":g.status,"players":g.players.len(),"round":(g.players.iter().map(|p|p.turns).min().unwrap_or(0)+1).min(g.round_limit),"url":table_url("voidwright",&g.id)}));
         }
     }
     Ok(Json(result))
@@ -120,17 +132,21 @@ pub async fn create(
     }
     let id = uuid::Uuid::new_v4().simple().to_string();
     db.execute(
-        "INSERT INTO solo_tables(id,owner_id,name,created,updated) VALUES(?,?,?,?,?)",
-        params![id, u.id, name, now(), now()],
+        "INSERT INTO solo_tables(id,owner_id,name,created,updated,rules_version) VALUES(?,?,?,?,?,?)",
+        params![id, u.id, name, now(), now(),galactic_reach::RULES],
     )
     .map_err(internal)?;
     Ok(Json(json!({"id":id,"url":table_url("galactic-reach",&id)})))
 }
-fn load(db: &Connection, id: &str, owner: &str) -> ApiResult<(String, Option<String>, u64)> {
+fn load(
+    db: &Connection,
+    id: &str,
+    owner: &str,
+) -> ApiResult<(String, Option<String>, u64, String)> {
     db.query_row(
-        "SELECT name,state,revision FROM solo_tables WHERE id=? AND owner_id=?",
+        "SELECT name,state,revision,rules_version FROM solo_tables WHERE id=? AND owner_id=?",
         params![id, owner],
-        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+        |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
     )
     .optional()
     .map_err(internal)?
@@ -145,7 +161,7 @@ pub async fn get(
     Path(id): Path<String>,
 ) -> ApiResult<Json<serde_json::Value>> {
     let u = user(&app, &headers)?;
-    let (name, state, revision) = load(&*app.store.0.lock().map_err(internal)?, &id, &u.id)?;
+    let (name, state, revision, rules) = load(&*app.store.0.lock().map_err(internal)?, &id, &u.id)?;
     let save: serde_json::Value = state
         .as_deref()
         .map(serde_json::from_str)
@@ -153,7 +169,7 @@ pub async fn get(
         .map_err(internal)?
         .unwrap_or_default();
     Ok(Json(
-        json!({"id":id,"name":name,"owner_id":u.id,"revision":revision,"save":save}),
+        json!({"id":id,"name":name,"owner_id":u.id,"revision":revision,"rules_version":rules,"save":save}),
     ))
 }
 #[derive(Deserialize)]
@@ -163,8 +179,8 @@ pub struct Save {
 }
 fn validate(save: &serde_json::Value) -> ApiResult<()> {
     let s = &save["state"];
-    if s["version"] != 5
-        || s["rulesRevision"] != 10
+    if !((s["version"] == 5 && s["rulesRevision"] == 10)
+        || (s["version"] == 6 && s["rulesRevision"] == 11))
         || s["players"].as_array().is_none_or(|p| p.len() != 4)
         || !s["planets"].is_object()
         || !s["fleets"].is_object()
@@ -203,7 +219,17 @@ pub async fn save(
         return Err(bad("This save exceeds the table size limit."));
     }
     let db = app.store.0.lock().map_err(internal)?;
-    let (_, current, revision) = load(&db, &id, &u.id)?;
+    let (_, current, revision, rules) = load(&db, &id, &u.id)?;
+    let incoming = format!(
+        "galactic-reach/{}.{}",
+        input.save["state"]["version"], input.save["state"]["rulesRevision"]
+    );
+    if incoming != rules {
+        return Err(ApiError(
+            StatusCode::CONFLICT,
+            "This table is pinned to another rules version. Open it from Your tables.".into(),
+        ));
+    }
     // Retry a successful save after a dropped response without creating a conflict.
     if current.as_deref() == Some(&encoded) {
         return Ok(Json(json!({"revision":revision})));
@@ -219,6 +245,21 @@ pub async fn save(
 mod tests {
     use super::*;
     use crate::tests::{app, call};
+    #[test]
+    fn old_tables_keep_their_rules_version() {
+        let db = Connection::open_in_memory().unwrap();
+        db.execute_batch("CREATE TABLE solo_tables(id TEXT,owner_id TEXT,name TEXT,state TEXT,revision INTEGER,created INTEGER,updated INTEGER);INSERT INTO solo_tables VALUES('old','a','old','{\"state\":{\"version\":5,\"rulesRevision\":10}}',1,1,1);INSERT INTO solo_tables VALUES('blank','a','blank',NULL,0,1,1);").unwrap();
+        migrate(&db).unwrap();
+        migrate(&db).unwrap();
+        let versions: Vec<String> = db
+            .prepare("SELECT rules_version FROM solo_tables")
+            .unwrap()
+            .query_map([], |r| r.get(0))
+            .unwrap()
+            .collect::<Result<_, _>>()
+            .unwrap();
+        assert_eq!(versions, vec!["galactic-reach/5.10"; 2]);
+    }
     async fn account(a: &App, name: &str) -> String {
         let (s, h, _) = call(
             a,
@@ -259,9 +300,21 @@ mod tests {
             call(&a, "GET", &endpoint, &owner, json!({})).await.2["save"],
             serde_json::Value::Null
         );
+        assert_eq!(
+            call(&a, "GET", &endpoint, &owner, json!({})).await.2["rules_version"],
+            galactic_reach::RULES
+        );
         // A realistic size above the normal 16 KiB request limit is accepted here only.
-        let save = json!({"state":{"version":5,"rulesRevision":10,"players":[{},{},{},{}],"planets":{},"fleets":{},"clusters":[],"round":3,"activePlayer":0,"phase":"policy","winner":null,"log":"x".repeat(40000)},"turnHistory":{"pending":null,"undo":null}});
+        let save = json!({"state":{"version":6,"rulesRevision":11,"players":[{},{},{},{}],"planets":{},"fleets":{},"clusters":[],"round":3,"activePlayer":0,"phase":"policy","winner":null,"log":"x".repeat(40000)},"turnHistory":{"pending":null,"undo":null}});
         let body = json!({"revision":0,"save":save});
+        let mut wrong = body.clone();
+        wrong["save"]["state"]["version"] = json!(5);
+        wrong["save"]["state"]["rulesRevision"] = json!(10);
+        assert_eq!(
+            call(&a, "POST", &savepath, &owner, wrong).await.0,
+            StatusCode::CONFLICT
+        );
+
         assert_eq!(
             call(&a, "POST", &savepath, &other, body.clone()).await.0,
             StatusCode::NOT_FOUND

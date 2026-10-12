@@ -14,7 +14,7 @@ function engine() {
   return {port,adapter};
 }
 const {port,adapter}=engine();
-assert.equal(adapter.rulesVersion,'galactic-reach/5.10');
+assert.equal(adapter.rulesVersion,'galactic-reach/6.11');
 const before=JSON.stringify(port.state);
 adapter.legalActions(0);adapter.observe(0);
 assert.equal(JSON.stringify(port.state),before,'Observation and legality must not mutate state');
@@ -48,3 +48,47 @@ assert.equal(t.port.state.players[1].resources.matter,5);
 assert.throws(()=>t.adapter.applyAction(1,accept),/Illegal action/,'An accepted offer cannot settle twice');
 assert(!t.adapter.legalActions(1).some(a=>a.type==='trade_accept'));
 console.log('Galactic Reach: mechanics, non-mutating legality, forged commands, shared open trades, and single settlement passed.');
+// Upgraded orders must be legal in exactly the same way for browser and arena.
+function orderFixture(key,upgraded=true) {
+  const f=engine();f.port.state.phase='operations';f.port.state.activePlayer=0;
+  f.port.state.players[0].hand=[{id:'test-order',key,starter:true,upgraded}];return f;
+}
+for(const [kind,base] of [['scout',2],['researcher',1],['frigate',1],['dreadnought',1]]){
+  for(const upgraded of [false,true]){
+    const f=orderFixture('move',upgraded);f.port.state.planets={};f.port.state.fleets={'0,0':{0:{[kind]:1}}};
+    const legal=f.adapter.legalActions(0).filter(a=>a.type==='move');
+    assert(legal.some(a=>a.destination===`${base+(upgraded?1:0)},0`));
+    assert(!legal.some(a=>a.destination===`${base+(upgraded?2:1)},0`));
+  }
+}
+for(const upgraded of [false,true]){
+  const f=orderFixture('probe',upgraded), target=f.port.nearestUnscannedRelicCluster(0,upgraded);
+  f.adapter.applyAction(0,f.adapter.legalActions(0).find(a=>a.type==='probe'));
+  assert(target.scannedBy.includes(0));assert.equal(target.revealedBy.includes(0),upgraded);
+  if(upgraded)assert(target.coords.every(key=>!f.adapter.observe(0).planets[key].unknown));
+}
+for(const upgraded of [false,true]){
+  const f=orderFixture('construct',upgraded),s=f.port.state,p=s.players[0],coord=s.clusters[0].coords[2];
+  p.resources={matter:0,energy:1,biomass:1,data:0};
+  const before=JSON.stringify(s),build=f.adapter.legalActions(0).find(a=>a.type==='build'&&a.kind==='harvester'&&a.coord===coord);
+  assert.equal(JSON.stringify(s),before,'Discount legality is non-mutating');
+  assert.equal(!!build,upgraded);
+  if(build){assert.equal(build.discountResource,'matter');assert.throws(()=>f.adapter.applyAction(0,{...build,discountResource:'data'}),/Illegal action/);f.adapter.applyAction(0,build);assert.equal(p.resources.energy,0);assert.equal(p.resources.biomass,0);assert.equal(s.planets[coord].upgrade,'harvester');}
+}
+for(const finish of ['build','skip']){
+  const f=orderFixture('colonize'),s=f.port.state,p=s.players[0],world=s.clusters[4];
+  world.revealedBy=[0,1,2,3];s.fleets[world.center]={0:{scout:1}};p.resources={matter:1,energy:1,biomass:3,data:0};s.activePolicy={id:'frontier_grants'};
+  const order=f.adapter.legalActions(0).find(a=>a.type==='colonize'&&a.coord===world.center);assert(order);f.adapter.applyAction(0,order);
+  assert.equal(s.activePlayer,0);assert.equal(s.pendingColonyBuild.colony,world.center);assert.equal(p.hand.length,0);assert.equal(p.resources.biomass,1);
+  const options=f.adapter.legalActions(0);assert(!options.some(a=>['pass','trade_offer','build'].includes(a.type)));
+  const bonus=options.find(a=>a.type==='colony_build'&&a.kind==='harvester');assert(bonus);
+  assert.throws(()=>f.adapter.applyAction(0,{...bonus,coord:s.clusters[0].coords[2]}),/Illegal action/);
+  f.adapter.applyAction(0,finish==='build'?bonus:options.find(a=>a.type==='finish_colony_build'));
+  assert.equal(s.pendingColonyBuild,null);assert.equal(s.activePlayer,1);
+  if(finish==='build'){assert.equal(p.resources.matter,0,'Bonus building pays full cost even with Frontier Grants');assert.equal(p.resources.energy,0);assert.equal(p.resources.biomass,0);}
+  else assert.equal(p.resources.matter,1);
+}
+const ranked=engine();ranked.port.state.winner=0;
+ranked.port.state.players.forEach((p,i)=>{p.relics=i===0?20:10;p.resources={matter:i===3?0:1,energy:0,biomass:0,data:0};});
+assert.equal(JSON.stringify(ranked.adapter.scores()),JSON.stringify([3,2,2,0]),'Prestige ranks, resource tiebreaks, and exact ties are reflected in terminal scores');
+console.log('Upgraded orders: unit minimums, +1 range, full-world Probe, chosen construction discounts, optional paid colony building, and tied placements passed.');

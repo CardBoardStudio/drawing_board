@@ -84,7 +84,7 @@ struct User {
     development: bool,
 }
 fn user(app: &App, headers: &HeaderMap) -> ApiResult<User> {
-    let token = cookie(headers, "drawing_board_long_reach_session").ok_or(ApiError(
+    let token = cookie(headers, "drawing_board_long_reach_v6_session").ok_or(ApiError(
         StatusCode::UNAUTHORIZED,
         "Sign in to join the table.".into(),
     ))?;
@@ -240,7 +240,7 @@ fn create_test_session(
     let tx = db.transaction().map_err(internal)?;
     tx.execute("DELETE FROM sessions WHERE expires<=?", [now()])
         .map_err(internal)?;
-    if let Some(old) = cookie(headers, "drawing_board_long_reach_session") {
+    if let Some(old) = cookie(headers, "drawing_board_long_reach_v6_session") {
         tx.execute("DELETE FROM sessions WHERE token_hash=?", [digest(&old)])
             .map_err(internal)?;
     }
@@ -261,10 +261,10 @@ fn create_test_session(
     } else {
         ""
     };
-    Ok(([(header::SET_COOKIE,format!("drawing_board_long_reach_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400{secure}"))],Json(json!({"ok":true}))).into_response())
+    Ok(([(header::SET_COOKIE,format!("drawing_board_long_reach_v6_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400{secure}"))],Json(json!({"ok":true}))).into_response())
 }
 async fn logout(State(app): State<App>, headers: HeaderMap) -> ApiResult<Response> {
-    if let Some(token) = cookie(&headers, "drawing_board_long_reach_session") {
+    if let Some(token) = cookie(&headers, "drawing_board_long_reach_v6_session") {
         app.store
             .0
             .lock()
@@ -275,7 +275,7 @@ async fn logout(State(app): State<App>, headers: HeaderMap) -> ApiResult<Respons
     Ok((
         [(
             header::SET_COOKIE,
-            "drawing_board_long_reach_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
+            "drawing_board_long_reach_v6_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
         )],
         Json(json!({"ok":true})),
     )
@@ -467,7 +467,7 @@ fn router(app: App) -> Router {
     Router::new()
         .route(
             "/api/health",
-            get(|| async { Json(json!({"ok":true,"rules":RULES_VERSION})) }),
+            get(|| async { Json(json!({"ok":true,"rules":RULES_VERSION,"galactic_reach_rules":galactic_reach::RULES})) }),
         )
         .route("/api/auth/nido", get(nido::begin))
         .route("/api/auth/nido/callback", get(nido::callback))
@@ -503,6 +503,8 @@ fn router(app: App) -> Router {
         .route("/api/arena", get(arena::overview))
         .route("/api/arena/bots", post(arena::create_bot))
         .route("/api/arena/series", post(arena::run_series))
+        .route("/api/arena/matches", get(arena::replays::list))
+        .route("/api/arena/replays/{id}", post(arena::replays::get))
         .route("/api/games", get(list_games).post(create_game))
         .route("/api/games/{id}", get(get_game))
         .route("/api/games/{id}/join", post(join_game))
@@ -549,6 +551,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let games: u8 = args[1].parse()?;
         match arena::calibrate(&app, &args[0], games, &args[2]) {
             Ok(result) => println!("{}", serde_json::to_string_pretty(&result)?),
+            Err(e) => return Err(e.1.into()),
+        }
+        return Ok(());
+    }
+    if std::env::args().nth(1).as_deref() == Some("index-replays") {
+        let owner = std::env::args()
+            .nth(2)
+            .ok_or("Usage: server index-replays OWNER_ID")?;
+        match arena::replays::index(&app, &owner) {
+            Ok(count) => println!("Indexed {count} completed matches."),
             Err(e) => return Err(e.1.into()),
         }
         return Ok(());

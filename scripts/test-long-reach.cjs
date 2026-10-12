@@ -80,25 +80,25 @@ let cells=0;
 for(let q=-13;q<=13;q++) for(let y=-13;y<=13;y++) if(r.boardHas(`${q},${y}`)) cells++;
 assert.equal(cells,469); assert.equal(r.BOARD_RADIUS,12);
 assert.equal(JSON.stringify(fresh(42)),JSON.stringify(fresh(42)),'A seeded fixture remains reproducible');
-assert.equal(r.fleetMove({researcher:1}),2);
-assert.equal(r.fleetMove({researcher:1,scout:1}),2);
+assert.equal(r.fleetMove({researcher:1}),1);
+assert.equal(r.fleetMove({researcher:1,scout:1}),1);
 assert.equal(r.fleetMove({researcher:1,dreadnought:1}),1);
-assert.equal(r.fleetMove({scout:1}),3); assert.equal(r.fleetMove({frigate:1}),2);
+assert.equal(r.fleetMove({scout:1}),2); assert.equal(r.fleetMove({frigate:1}),1);
 assert.equal(r.fleetMove({}),0);
 fresh(9); r.state.planets={}; r.state.fleets={'0,0':{0:{researcher:1}}};
 r.prepareHumanMove('0,0','researcher');
-assert.equal(r.state.reachable.length,18);
-assert(r.state.reachable.includes('2,0')); assert(!r.state.reachable.includes('3,0'));
+assert.equal(r.state.reachable.length,6);
+assert(r.state.reachable.includes('1,0')); assert(!r.state.reachable.includes('2,0'));
 r.state.actionOptions={tag:'pathfinder'}; r.prepareHumanMove('0,0','researcher');
-assert(r.state.reachable.includes('3,0')); assert(!r.state.reachable.includes('4,0'));
+assert(r.state.reachable.includes('2,0')); assert(!r.state.reachable.includes('3,0'));
 const atEdge=r.reachableFrom('-12,0',0,2,false,{researcher:1});
 assert(atEdge.every(key=>distance(key)<=12));
-// A real AI choice uses two steps toward a scanned relic, respecting hostile blockers.
+// A real AI choice uses one step toward a scanned relic, respecting hostile blockers.
 r.state.planets={'5,0':{special:'relic',owner:null,upgrade:null,hasColony:false,researchStationOwner:null}};
 r.state.clusters=[{id:4,coords:['5,0'],scannedBy:[1]}];
 r.state.fleets={'0,0':{1:{researcher:1}}};
 let move=r.chooseAiMove(1);
-assert.equal(move.moveGroup,'researcher'); assert.equal(move.destination,'2,0');
+assert.equal(move.moveGroup,'researcher'); assert.equal(move.destination,'1,0');
 r.state.fleets['1,0']={2:{frigate:1}};
 assert(!r.chooseAiMove(1) || r.chooseAiMove(1).destination!=='2,0','Do not jump through a hostile fleet');
 // The end-of-round rule must not end at the old target or one point below the new one.
@@ -116,8 +116,8 @@ r.playOrder(order.id); assert.equal(r.state.actionMode,'move'); assert.equal(r.s
 r.playOrder(order.id); assert.equal(r.state.actionMode,null,'Clicking again cancels without spending the card');
 assert.equal(r.state.players[0].hand.length,1);
 const old='untouched-v4-save'; storage.set('galactic-reach-save-v4',old);
-assert.equal(r.SAVE_KEY,'galactic-reach-save-v5');
-assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v5');
+assert.equal(r.SAVE_KEY,'galactic-reach-save-v6');
+assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v6');
 const saved=JSON.stringify(fresh(123)); r.saveGame(); fresh(456);
 assert(r.loadGame()); assert.equal(JSON.stringify(r.state),saved,'Reload retains randomized placement');
 assert.equal(storage.get('galactic-reach-save-v4'),old);

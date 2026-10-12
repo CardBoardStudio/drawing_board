@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070b13">
-  <title>Galactic Reach · Long Reach experiment</title>
+  <title>Galactic Reach · 6.11 · Long Reach experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=long-reach-1">
+  <link rel="stylesheet" href="styles.css?v=long-reach-6-11">
 </head>
 <body>
   <a class="skip-link" href="#console">Skip to player controls</a>
@@ -15,7 +15,7 @@
     <header class="topbar">
       <div class="brand-block">
         <div class="eyebrow">LONG REACH EXPERIMENT · 20 PRESTIGE</div>
-        <h1>Galactic Reach</h1>
+        <h1>Galactic Reach <small class="rules-badge">Rules 6.11</small></h1>
       </div>
       <div class="round-block" aria-live="polite">
         <div><span class="label">Round</span><strong id="round-value">1</strong></div>
@@ -99,7 +99,7 @@
         <div class="tab-panel active" id="hand-panel" data-panel="hand" role="tabpanel" aria-labelledby="hand-tab" tabindex="0">
           <div class="section-intro">
             <div><h2>Your hand</h2><p id="hand-help">Cards may be converted into resources at any time during your Operations turn, or used for their printed order.</p></div>
-            <div class="hand-tools">
+            <div class="hand-tools"><button class="button" id="skip-colony-build" hidden>Finish without building</button>
               <div class="pile-stats" aria-label="Your card piles">
                 <span>Deck <strong id="deck-count">0</strong></span>
                 <span>Hand <strong id="hand-pile-count">0</strong></span>
@@ -132,7 +132,7 @@
           <div class="trade-ledger" id="trade-ledger" aria-label="Completed trades by rival"></div>
         </div>
         <div class="tab-panel" id="fleet-panel" data-panel="fleet" role="tabpanel" aria-labelledby="fleet-tab" tabindex="0" hidden>
-          <div class="section-intro"><div><h2>Fleet manifest</h2><p>Scouts move fast and colonize. Researchers move up to two hexes toward probe-marked relics.</p></div></div>
+          <div class="section-intro"><div><h2>Fleet manifest</h2><p>Scouts move fast and colonize. Researchers move one hex toward probe-marked relics.</p></div></div>
           <div class="fleet-summary" id="fleet-summary"></div>
           <div class="military-deck-heading"><div><h3>Your military deck</h3><p>Each side reveals one tactic per volley. Used tactics reshuffle when the deck empties.</p></div><strong id="military-deck-count">12 ready · 0 used</strong></div>
           <div class="military-card-grid" id="military-card-grid"></div>
@@ -145,10 +145,10 @@
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
     <div class="rules-grid">
       <section><h3>Round</h3><p>Production → Draw → alternating one-card Operations → Buy → Directive. Every third round also ends with a secret policy vote.</p></section>
-      <section><h3>Cards &amp; storage</h3><p>At any time during your Operations turn, convert cards into their shown resources. You may also use one card for its printed order. You can store 10 resources, plus 5 per Warehouse level; automatic gains beyond that limit are lost. Starter cards cannot be scrapped; upgrade them during Buy to improve them and gain Technology.</p></section>
-      <section><h3>Probes & fog</h3><p>A Probe pinpoints one alien relic, but reveals nothing about its planet or nearby sectors. A Scout explores blindly, moves up to 3 hexes, and reveals a world when it enters.</p></section>
+      <section><h3>Cards &amp; storage</h3><p>At any time during your Operations turn, convert cards into their shown resources. You may also use one card for its printed order. You can store 10 resources, plus 5 per Warehouse level; automatic gains beyond that limit are lost. Starter cards cannot be scrapped. Upgrade them during Buy to gain Technology, an extra conversion resource, and a stronger order: Move +1 range; Probe reveals a whole world; Construct reduces one chosen resource cost by 1; Colonize allows one extra adjacent building at full cost. All units move at least one hex.</p></section>
+      <section><h3>Probes & fog</h3><p>A Probe pinpoints one alien relic, but reveals nothing about its planet or nearby sectors. A Scout explores blindly, moves up to 2 hexes, and reveals a world when it enters.</p></section>
       <section><h3>Control & construction</h3><p>The radius-12 board has 469 hexes. Four home worlds touch the outer edge; seven inner worlds are placed randomly each new game, with at least one empty hex between worlds. Each home Colony occupies its world’s center hex, with the starting Shipyard on an adjacent inward hex. Colonies can only be founded or captured at a world’s center. You may build a structure on any empty planet hex adjacent to your Colony; each hex holds only one building, and structures upgrade in place to level II. During Production, each combat fleet on a planet hex gains its controller 1 of that hex’s resource, even on an unclaimed or enemy world; Researcher-only teams do not collect resources.</p></section>
-      <section><h3>Researchers</h3><p>Researchers move up to 2 hexes and do not fight or colonize. Recruit them at your home Colony; an outer level-II structure can also recruit them.</p></section>
+      <section><h3>Researchers</h3><p>Researchers move one hex and do not fight or colonize. Recruit them at your home Colony; an outer level-II structure can also recruit them.</p></section>
       <section><h3>Military deck</h3><p>Combat lasts up to three volleys. Each side gets 1 base hit per 4 fleet power, rounded up, then reveals one tactic for added hits, shields, piercing, or withdrawal. Used tactics reshuffle when the deck is empty.</p></section>
       <section><h3>Conquest</h3><p>Occupy an enemy planet, then later use Colonize with a Scout and 1 Biomass. Captured worlds receive a conquest marker.</p></section>
       <section><h3>Open trades</h3><p>Publish one offer per round as your Operations action. Every other faction may accept or reject during its turn for free. The first valid acceptance completes the trade and grants both parties 1 Culture. Both sides must still have the resources and storage when accepting. Offers expire when Operations ends; you can withdraw your open offer on your turn.</p></section>
@@ -191,7 +191,7 @@
             <div><div class="eyebrow">SECTOR SCAN</div><h2 id="inspect-title">Select a hex</h2></div>
             <span class="coordinate" id="inspect-coordinate">—</span><button class="icon-button" id="close-sector-scan" type="button" aria-label="Close sector scan" popovertarget="sector-popover" popovertargetaction="hide">×</button>
           </div>
-          <p id="inspect-detail" class="muted">Choose a planet or space hex to inspect fleets, control, and possible actions.</p>
+          <p id="inspect-detail" class="muted">Choose a planet or space hex to inspect fleets, control, and possible actions.</p><label id="construction-discount-row" hidden>Construct II · reduce one resource by 1<select id="construction-discount"><option value="matter">Matter</option><option value="energy">Energy</option><option value="biomass">Biomass</option><option value="data">Data</option></select></label>
           <div id="inspect-facts" class="fact-list"></div>
           <div id="context-actions" class="context-actions"></div>
         </section>
@@ -208,7 +208,7 @@
         <div class="map-legend symbol-legend" id="symbol-legend" aria-label="Ship and building symbol legend"></div>
   </dialog>
 
-  <script src="table.js?v=long-reach-1"></script>
-  <script src="app.js?v=long-reach-1"></script>
+  <script src="table.js?v=long-reach-6-11"></script>
+  <script src="app.js?v=long-reach-6-11"></script>
 </body>
 </html>

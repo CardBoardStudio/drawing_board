@@ -134,7 +134,7 @@ gr_series = {'request_id': str(uuid.uuid4()), 'game': 'galactic-reach', 'bots': 
 status, _, gr_result = request('/api/arena/series', gr_series, account_cookie)
 assert status == 200, gr_result
 assert len(gr_result['matches']) == 4
-assert all(m['result']['rules_version'] == 'galactic-reach/5.10' for m in gr_result['matches'])
+assert all(m['result']['rules_version'] == 'galactic-reach/6.11' for m in gr_result['matches'])
 assert request('/api/arena/series', gr_series, account_cookie)[2] == gr_result
 gr_ladder = request('/api/arena?game=galactic-reach', cookie=account_cookie)[2]
 assert len(gr_ladder['bots']) == 4 and all(b['games'] == 4 for b in gr_ladder['bots'])

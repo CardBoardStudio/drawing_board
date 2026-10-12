@@ -1,5 +1,7 @@
 //! Owner-scoped AI laboratories. Only completed authoritative simulations affect Elo.
 use crate::*;
+#[path = "replays.rs"]
+pub mod replays;
 use game::agents::{BuiltinAgent, Strategy};
 use game_core::{MatchResult, PlayerAgent, elo_multiplayer, run_match};
 use rusqlite::{Connection, OptionalExtension, params};
@@ -18,7 +20,7 @@ impl GameKind {
     fn pool(self) -> &'static str {
         match self {
             Self::Voidwright => "voidwright/1:duel:20-rounds:policies-v1",
-            Self::GalacticReach => "galactic-reach/5.10:four-player:winner:policies-v2",
+            Self::GalacticReach => "galactic-reach/6.11:four-player:placement:policies-v3",
         }
     }
     fn seats(self) -> usize {
@@ -42,7 +44,7 @@ impl GameKind {
         seed: [u8; 32],
         policies: &[String],
         agent_seeds: &[[u8; 32]],
-    ) -> Result<MatchResult, String> {
+    ) -> Result<(MatchResult, Option<serde_json::Value>), String> {
         match self {
             Self::Voidwright => {
                 let mut game = Game::new(
@@ -65,23 +67,11 @@ impl GameKind {
                         )) as Box<dyn PlayerAgent<Game>>)
                     })
                     .collect::<Result<_, String>>()?;
-                run_match(&mut game, &mut agents, 10000)
+                run_match(&mut game, &mut agents, 10000).map(|result| (result, None))
             }
             Self::GalacticReach => {
-                use galactic_reach::{BuiltinAgent, GalacticReach, Strategy};
-                let mut game = GalacticReach::new(seed)?;
-                let mut agents: Vec<Box<dyn PlayerAgent<GalacticReach>>> = policies
-                    .iter()
-                    .zip(agent_seeds)
-                    .map(|(p, seed)| {
-                        Ok(Box::new(BuiltinAgent::new(
-                            Strategy::parse(p).ok_or("Invalid Galactic Reach policy")?,
-                            *seed,
-                        ))
-                            as Box<dyn PlayerAgent<GalacticReach>>)
-                    })
-                    .collect::<Result<_, String>>()?;
-                run_match(&mut game, &mut agents, 10000)
+                replays::simulate(seed, galactic_reach::RULES, policies, agent_seeds)
+                    .map(|(result, replay)| (result, Some(replay)))
             }
         }
     }
@@ -98,21 +88,22 @@ pub fn migrate(db: &Connection) -> rusqlite::Result<()> {
         CREATE TABLE IF NOT EXISTS arena_series(
         owner_id TEXT NOT NULL REFERENCES accounts(id), request_id TEXT NOT NULL,
         request TEXT NOT NULL, result TEXT NOT NULL, created INTEGER NOT NULL,
-        PRIMARY KEY(owner_id,request_id));",
+        PRIMARY KEY(owner_id,request_id));
+        CREATE TABLE IF NOT EXISTS arena_replays(owner_id TEXT NOT NULL REFERENCES accounts(id),match_id TEXT NOT NULL,summary TEXT NOT NULL,replay TEXT NOT NULL,PRIMARY KEY(owner_id,match_id));",
     )
 }
 pub async fn catalog() -> Json<serde_json::Value> {
     Json(json!({"games":[
-        {"id":"galactic-reach","name":"Galactic Reach","href":"/galactic-reach/","mode":"Browser playtest + AI arena","rated":true,"seats":4,"pool":GameKind::GalacticReach.pool(),"description":"Long Reach experiment: explore a larger random galaxy against three AI rivals. Play to 20 Prestige; start a new game."},
-        {"id":"voidwright","name":"Voidwright","href":"/voidwright/","mode":"Server tables + AI arena","rated":true,"seats":2,"pool":GameKind::Voidwright.pool(),"description":"Build a fleet of cards. Play with friends or compare AI players in the rated arena."}
+        {"id":"galactic-reach","name":"Galactic Reach","href":"/galactic-reach/","rules_version":galactic_reach::RULES,"mode":"Browser playtest + AI arena","rated":true,"seats":4,"pool":GameKind::GalacticReach.pool(),"description":"Long Reach experiment: explore a larger random galaxy against three AI rivals. Play to 20 Prestige; start a new game."},
+        {"id":"voidwright","name":"Voidwright","href":"/voidwright/","rules_version":RULES_VERSION,"mode":"Server tables + AI arena","rated":true,"seats":2,"pool":GameKind::Voidwright.pool(),"description":"Build a fleet of cards. Play with friends or compare AI players in the rated arena."}
     ],"policies":[
         {"game":"voidwright","id":"explorer","version":"explorer/1","name":"Explorer","description":"Experiments with random purchases and sometimes passes."},
         {"game":"voidwright","id":"merchant","version":"merchant/1","name":"Merchant","description":"Builds a resource economy, then buys scoring colonies."},
         {"game":"voidwright","id":"kepler","version":"kepler/1","name":"Kepler","description":"Balances resource growth with a small action engine."}
-        ,{"game":"galactic-reach","id":"gr-military","version":"gr-military/2","name":"Vanguard","description":"Builds warships and shipyards, then moves toward rival colonies."}
-        ,{"game":"galactic-reach","id":"gr-economy","version":"gr-economy/2","name":"Architect","description":"Prioritizes production, storage, and terraforming."}
-        ,{"game":"galactic-reach","id":"gr-expansion","version":"gr-expansion/2","name":"Pathfinder","description":"Builds Scouts and seeks new colony sites."}
-        ,{"game":"galactic-reach","id":"gr-wanderer","version":"gr-wanderer/2","name":"Wanderer","description":"Samples useful legal actions with seeded randomness."}
+        ,{"game":"galactic-reach","id":"gr-military","version":"gr-military/3","name":"Vanguard","description":"Builds warships and shipyards, then moves toward rival colonies."}
+        ,{"game":"galactic-reach","id":"gr-economy","version":"gr-economy/3","name":"Architect","description":"Prioritizes production, storage, and terraforming."}
+        ,{"game":"galactic-reach","id":"gr-expansion","version":"gr-expansion/3","name":"Pathfinder","description":"Builds Scouts and seeks new colony sites."}
+        ,{"game":"galactic-reach","id":"gr-wanderer","version":"gr-wanderer/3","name":"Wanderer","description":"Samples useful legal actions with seeded randomness."}
     ],"pool":GameKind::Voidwright.pool()}))
 }
 #[derive(Serialize)]
@@ -182,7 +173,7 @@ pub async fn create_bot(
         "{}/{}",
         input.strategy,
         if input.game == GameKind::GalacticReach {
-            2
+            3
         } else {
             1
         }
@@ -358,6 +349,7 @@ fn simulate_series(
     request: String,
 ) -> ApiResult<serde_json::Value> {
     let mut matches = vec![];
+    let mut replays = vec![];
     let count = input.game.seats();
     for cycle in 0..input.games as usize / count {
         let mut seed = [0u8; 32];
@@ -376,7 +368,7 @@ fn simulate_series(
                 })
                 .collect();
             let ordered_policies: Vec<_> = order.iter().map(|&i| policies[i].clone()).collect();
-            let result = input
+            let (result, replay) = input
                 .game
                 .simulate(&id, seed, &ordered_policies, &agent_seeds)
                 .map_err(internal)?;
@@ -385,6 +377,7 @@ fn simulate_series(
                 total = input.games,
                 "Arena match completed"
             );
+            replays.push(replay);
             matches.push(RatedMatch {
                 id,
                 seats,
@@ -429,6 +422,11 @@ fn simulate_series(
             tx.execute("UPDATE ratings SET elo=?,games=games+1,wins=wins+?,draws=draws+? WHERE account_id=? AND pool=?",params![game.after[i],game.result.scores[i]==top && leaders==1,game.result.scores[i]==top && leaders>1,game.seats[i],input.game.pool()]).map_err(internal)?;
         }
     }
+    for (game, replay) in matches.iter().zip(replays) {
+        if let Some(replay) = replay {
+            replays::store(&tx, owner, input.game.pool(), game, replay)?;
+        }
+    }
     let result = serde_json::to_value(SeriesResult {
         id: input.request_id.clone(),
         pool: input.game.pool().into(),
@@ -463,10 +461,10 @@ pub fn calibrate(
     }
     let game = GameKind::GalacticReach;
     let policies: Vec<String> = [
-        "gr-military/2",
-        "gr-economy/2",
-        "gr-expansion/2",
-        "gr-wanderer/2",
+        "gr-military/3",
+        "gr-economy/3",
+        "gr-expansion/3",
+        "gr-wanderer/3",
     ]
     .into_iter()
     .map(String::from)

@@ -89,11 +89,11 @@
         throw Object.assign(new Error('Another tab or device saved a newer version. Download your local copy or load the latest table.'),{status:409});
       }
       if (local && local.revision === revision) { save=local.save; pending=save; }
-      // Engine storage is in memory; never replace the guest's v4 localStorage keys.
+      // Engine storage is in memory; never replace the guest's v5 localStorage keys.
       const memory = new Map();
       if (save) {
-        memory.set('galactic-reach-save-v4',JSON.stringify(save.state));
-        memory.set('galactic-reach-turn-history-v4',JSON.stringify(save.turnHistory || {pending:null,undo:null}));
+        memory.set('galactic-reach-save-v5',JSON.stringify(save.state));
+        memory.set('galactic-reach-turn-history-v5',JSON.stringify(save.turnHistory || {pending:null,undo:null}));
       }
       const storage = {getItem:k=>memory.get(k) || null,setItem:(k,v)=>memory.set(k,v),removeItem:k=>memory.delete(k)};
       globalThis.createGalacticReach({storage,requireSave:!!save,newTable:leave,paused:()=>conflict,onSave:value=>{

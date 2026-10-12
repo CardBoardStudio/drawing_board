@@ -23,7 +23,7 @@ function createGalacticAdapter(e) {
       ])),
       clusters: state.clusters.map(c => ({ center: c.center, coords: c.coords })),
       fleets: state.fleets, market: state.market, awards: state.awards,
-      activePolicy: state.activePolicy, policyChoices: state.pendingPolicyChoices
+      activePolicy: state.activePolicy, policyChoices: state.pendingPolicyChoices, tradeOffers: state.tradeOffers
     });
   }
   function legalActions(seat) {
@@ -60,6 +60,20 @@ function createGalacticAdapter(e) {
       if (e.researchStationCount(seat) >= 3 && p.relics > 0 && state.relicDeck.length) actions.push({ type: 'exchange_relic' });
     } else if (state.phase === 'operations') {
       actions.push({ type: 'pass' });
+      state.tradeOffers.forEach(offer=>{
+        if (e.tradeResponseAllowed(seat,offer)) {
+          actions.push({type:'trade_reject',offer:offer.id});
+          if (!e.tradeBlockReason(seat,offer)) actions.push({type:'trade_accept',offer:offer.id});
+        }
+        if (offer.status==='open' && offer.from===seat) actions.push({type:'trade_cancel',offer:offer.id});
+      });
+      if (!p.tradeUsed) for (const giveType of e.RESOURCES) for (const getType of e.RESOURCES) {
+        if (giveType===getType) continue;
+        for (let giveAmount=1;giveAmount<=Math.min(5,p.resources[giveType]);giveAmount++) for (let getAmount=1;getAmount<=5;getAmount++) {
+          const terms={giveType,getType,giveAmount,getAmount};
+          if (e.canOfferTrade(seat,terms)) actions.push({type:'trade_offer',...terms});
+        }
+      }
       p.hand.forEach(card => {
         const def = e.ALL_CARDS[card.key], base = { card: card.id, key: card.key };
         const gain = e.cardResources(card);
@@ -108,6 +122,10 @@ function createGalacticAdapter(e) {
     const state = s(), p = state.players[seat], card = p.hand.find(c => c.id === action.card);
     const def = card && e.ALL_CARDS[card.key];
     switch (action.type) {
+      case 'trade_offer': e.offerTrade(seat,action); return;
+      case 'trade_accept': e.respondTrade(seat,action.offer,'accept'); return;
+      case 'trade_reject': e.respondTrade(seat,action.offer,'reject'); return;
+      case 'trade_cancel': e.cancelTrade(seat,action.offer); return;
       case 'pass': e.passOperations(seat); return;
       case 'finish_buy': e.nextBuyPlayer(); return;
       case 'resource': e.addResources(p, action.gain); e.removeHandCard(p, action.card); return;
@@ -152,6 +170,6 @@ function createGalacticAdapter(e) {
     const seat = activeSeat();
     return { active: seat, observation: seat === null ? null : observe(seat), legal: legalActions(seat), scores: scores() };
   }
-  return { rulesVersion: 'galactic-reach/4.9', activeSeat, observe, legalActions, applyAction, scores, snapshot };
+  return { rulesVersion: 'galactic-reach/5.10', activeSeat, observe, legalActions, applyAction, scores, snapshot };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = createGalacticAdapter;

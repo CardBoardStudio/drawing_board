@@ -8,7 +8,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/4.9";
+pub const RULES: &str = "galactic-reach/5.10";
 const ENGINE: &str = include_str!("../../../prototypes/galactic-reach/app.js");
 const ADAPTER: &str = include_str!("../../../prototypes/galactic-reach/adapter.js");
 #[derive(Deserialize)]
@@ -24,7 +24,7 @@ pub struct GalacticReach {
 }
 impl GalacticReach {
     pub fn new(seed: [u8; 32]) -> Result<Self, String> {
-        Self::with_timeout(seed, Duration::from_secs(30))
+        Self::with_timeout(seed, Duration::from_secs(90))
     }
     fn with_timeout(seed: [u8; 32], timeout: Duration) -> Result<Self, String> {
         let runtime = Runtime::new().map_err(|e| e.to_string())?;
@@ -112,18 +112,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/1",
-            Self::Economy => "gr-economy/1",
-            Self::Expansion => "gr-expansion/1",
-            Self::Wanderer => "gr-wanderer/1",
+            Self::Military => "gr-military/2",
+            Self::Economy => "gr-economy/2",
+            Self::Expansion => "gr-expansion/2",
+            Self::Wanderer => "gr-wanderer/2",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/1" => Some(Self::Military),
-            "gr-economy/1" => Some(Self::Economy),
-            "gr-expansion/1" => Some(Self::Expansion),
-            "gr-wanderer/1" => Some(Self::Wanderer),
+            "gr-military/2" => Some(Self::Military),
+            "gr-economy/2" => Some(Self::Economy),
+            "gr-expansion/2" => Some(Self::Expansion),
+            "gr-wanderer/2" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -164,6 +164,50 @@ impl BuiltinAgent {
             "expansion"
         };
         match action["type"].as_str().unwrap_or("") {
+            "trade_accept" => {
+                let offer = view["tradeOffers"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .find(|o| o["id"] == action["offer"])
+                    .unwrap();
+                let give = offer["giveType"].as_str().unwrap();
+                let get = offer["getType"].as_str().unwrap();
+                let received = number(&offer["giveAmount"])
+                    * if number(&me["resources"][give]) < 2.0 {
+                        1.45
+                    } else {
+                        1.0
+                    };
+                let paid = number(&offer["getAmount"])
+                    * if number(&me["resources"][get]) < 2.0 {
+                        1.4
+                    } else {
+                        1.0
+                    };
+                if received >= paid { 130.0 } else { -20.0 }
+            }
+            "trade_reject" => 110.0,
+            "trade_cancel" => -20.0,
+            "trade_offer" => {
+                let give = action["giveType"].as_str().unwrap();
+                let get = action["getType"].as_str().unwrap();
+                let willing = view["players"].as_array().unwrap().iter().any(|p| {
+                    p["id"] != json!(seat)
+                        && p["passed"] == false
+                        && number(&p["resources"][get]) >= 2.0
+                });
+                if action["giveAmount"] == 1
+                    && action["getAmount"] == 1
+                    && number(&me["resources"][give]) >= 3.0
+                    && number(&me["resources"][get]) < 2.0
+                    && willing
+                {
+                    10.0
+                } else {
+                    -20.0
+                }
+            }
             "colonize" => 100.0,
             "build" => match action["kind"].as_str().unwrap_or("") {
                 "research" => 95.0,

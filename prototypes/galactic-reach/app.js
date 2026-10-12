@@ -9,7 +9,8 @@ function createGalacticReach(options = {}) {
   }
   const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
-  const SAVE_FORMAT_VERSION = 4;
+  const SAVE_FORMAT_VERSION = 5;
+  const RULES_REVISION = 10;
   const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
   const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${SAVE_FORMAT_VERSION}`;
   const RESOURCES = ['matter', 'energy', 'biomass', 'data'];
@@ -35,8 +36,8 @@ function createGalacticReach(options = {}) {
   const PLAYER_COLORS = ['#55d9f4', '#ff9f6e', '#a58cff', '#f2cf66'];
   const PLAYER_NAMES = ['You', 'Ember Directorate', 'Violet Assembly', 'Helios Compact'];
   const PLAYER_STRATEGIES = ['human', 'military', 'economy', 'expansion'];
-  const BOARD_RADIUS = 9;
-  const VICTORY_TARGET = 10;
+  const BOARD_RADIUS = 12;
+  const VICTORY_TARGET = 20;
   const AWARD_PRESTIGE = { fleet: 2, reach: 1, occupation: 2 };
   const INFLUENCE_PER_PRESTIGE = 10;
   const CARDS_PER_PRESTIGE = 8;
@@ -57,7 +58,7 @@ function createGalacticReach(options = {}) {
   };
   const SHIP_STATS = {
     scout: { name: 'Scout', move: 3, power: 1, hull: 1, cost: { matter: 1, energy: 1 } },
-    researcher: { name: 'Researcher', move: 1, power: 0, hull: 1, civilian: true, cost: { energy: 1, data: 2 } },
+    researcher: { name: 'Researcher', move: 2, power: 0, hull: 1, civilian: true, cost: { energy: 1, data: 2 } },
     frigate: { name: 'Frigate', move: 2, power: 2, hull: 2, cost: { matter: 2, energy: 1, biomass: 1 } },
     dreadnought: { name: 'Dreadnought', move: 1, power: 4, hull: 3, cost: { matter: 3, energy: 2, biomass: 1, data: 1 } }
   };
@@ -85,7 +86,7 @@ function createGalacticReach(options = {}) {
   };
   const LEGEND_TOOLTIPS = {
     scout: 'Fast explorer. Moves up to 3 hexes, has 1 combat power, reveals worlds by entering them, and is required to colonize.',
-    researcher: 'Slow civilian unit. Moves 1 hex and builds a Research Station when it reaches a probe-marked relic.',
+    researcher: 'Civilian unit. Moves up to 2 hexes and builds a Research Station when it reaches a probe-marked relic.',
     frigate: 'Balanced warship with 2 combat power and 2 hull.',
     dreadnought: 'Heavy warship with 4 combat power and 3 hull.',
     colony: 'Claims a seven-hex world. Colonies must occupy the world’s center hex.',
@@ -195,8 +196,34 @@ function createGalacticReach(options = {}) {
     return shuffled(MILITARY_DECK_LIST);
   }
 
+  function randomInnerCenters(homeCenters) {
+    const candidates = [];
+    const innerRadius = BOARD_RADIUS - 3;
+    for (let q = -innerRadius; q <= innerRadius; q += 1) {
+      for (let r = -innerRadius; r <= innerRadius; r += 1) {
+        if (Math.max(Math.abs(q), Math.abs(r), Math.abs(q+r)) <= innerRadius) candidates.push([q,r]);
+      }
+    }
+    const apart = (a,b) => hexDistance(coordKey(...a), coordKey(...b)) >= 4;
+    // Leave at least one empty hex between worlds. Bound the rejection loop.
+    for (let attempt = 0; attempt < 32; attempt += 1) {
+      const selected = [];
+      for (const candidate of shuffled(candidates)) {
+        if ([...homeCenters, ...selected].every(center => apart(center,candidate))) selected.push(candidate);
+        if (selected.length === 7) return selected;
+      }
+    }
+    // This pre-spaced lattice always has enough room, even with an adversarial RNG.
+    // Shuffle its eligible sites so the fallback is still a fresh layout.
+    return shuffled(candidates.filter(([q,r]) => q % 4 === 0 && r % 4 === 0)
+      .filter(candidate => homeCenters.every(center => apart(center,candidate)))).slice(0,7);
+  }
+
   function generateGalaxy() {
-    const centers = [[-8,0],[0,-8],[8,0],[0,8],[0,0],[-4,0],[4,0],[0,-4],[0,4],[-4,4],[4,-4]];
+    // Seven-hex home worlds touch the rim; the starting shipyards face inward.
+    const edge = BOARD_RADIUS - 1;
+    const homeCenters = [[-edge,0],[0,-edge],[edge,0],[0,edge]];
+    const centers = [...homeCenters, ...randomInnerCenters(homeCenters)];
     const names = ['Asterion','Borealis','Cygnus','Draco','Erebus','Fornax','Gemini','Helios','Icarus','Juno','Kepler'];
     const homes = new Map(HOME_CLUSTER_OWNERS);
     const specials = new Map([[5,'rich'],[6,'gate'],[7,'rich'],[8,'gate'],[10,'rich']]);
@@ -269,7 +296,8 @@ function createGalacticReach(options = {}) {
       selected: null, actionMode: null, actionCardId: null, actionOptions: {}, moveSource: null, reachable: [],
       turnStage: 'waiting', log: [], awards: { fleet: null, reach: null, occupation: null }, winner: null,
       lastCombat: null, relicDeck: shuffled(Object.keys(RELIC_CARDS).flatMap(key => [makeCard(key),makeCard(key),makeCard(key)])), activePolicy: null, policyCycle: 0, pendingCleanup: false,
-      visibilityRevision: 2, rulesRevision: 9
+      tradeOffers: [], nextTradeOfferId: 1,
+      visibilityRevision: 2, rulesRevision: RULES_REVISION
     };
   }
 
@@ -339,7 +367,7 @@ function createGalacticReach(options = {}) {
       const raw = storage.getItem(SAVE_KEY);
       if (!raw) return false;
       const parsed = JSON.parse(raw);
-      if (!parsed || parsed.version !== SAVE_FORMAT_VERSION) return false;
+      if (!parsed || parsed.version !== SAVE_FORMAT_VERSION || parsed.rulesRevision !== RULES_REVISION) return false;
       state = parsed;
       cardSerial = Math.max(1, ...state.players.flatMap(p => [...p.deck, ...p.discard, ...p.hand].map(c => Number(String(c.id).split('-').pop()) || 0)), ...state.market.map(c => Number(String(c.id).split('-').pop()) || 0)) + 1;
       if (!state.visibilityRevision) {
@@ -441,10 +469,8 @@ function createGalacticReach(options = {}) {
 
   function fleetMove(fleet) {
     if (!fleet || !fleetCount(fleet)) return 0;
-    if (fleet.researcher) return 1;
-    if (fleet.dreadnought) return 1;
-    if (fleet.frigate) return 2;
-    return 3;
+    return Math.min(...Object.entries(SHIP_STATS)
+      .filter(([type]) => fleet[type] > 0).map(([,ship]) => ship.move));
   }
 
   function combatShipCount(fleet) {
@@ -867,12 +893,6 @@ function createGalacticReach(options = {}) {
     startOperationsTurn();
   }
 
-  function finishHumanPrep() {
-    if (state.phase !== 'operations' || state.activePlayer !== 0 || state.turnStage !== 'prep') return;
-    state.turnStage = 'action';
-    render();
-  }
-
   function passOperations(playerId) {
     if (state.phase !== 'operations' || state.activePlayer !== playerId) return false;
     const player = state.players[playerId];
@@ -928,7 +948,7 @@ function createGalacticReach(options = {}) {
 
   function playOrder(cardId) {
     const player = state.players[0];
-    if (state.phase !== 'operations' || state.activePlayer !== 0 || state.turnStage !== 'action') return;
+    if (state.phase !== 'operations' || state.activePlayer !== 0 || !['prep','action'].includes(state.turnStage)) return;
     const card = player.hand.find(item => item.id === cardId);
     if (!card) return;
     if (state.actionCardId === cardId && state.actionMode) {
@@ -940,6 +960,7 @@ function createGalacticReach(options = {}) {
     }
     const definition = ALL_CARDS[card.key];
     if (definition.reaction || definition.buyEffect) { toast('That card waits for its printed timing.'); return; }
+    state.turnStage = 'action';
     if (definition.order === 'probe') {
       const cluster = nearestUnscannedRelicCluster(0);
       if (!cluster) { toast('Your probes have already located every alien relic signal.'); return; }
@@ -1050,7 +1071,7 @@ function createGalacticReach(options = {}) {
       if (!fleetCount(fleet)) { toast('Select a hex containing one of your fleets.'); return; }
       if ((fleet.researcher || 0) > 0 && combatShipCount(fleet) > 0) {
         state.moveChoiceSource = key;
-        toast('Choose whether this Move sends the ships or the slower Researcher team.');
+        toast('Choose whether this Move sends the ships or the Researcher team.');
         return;
       }
       prepareHumanMove(key,(fleet.researcher || 0) > 0 ? 'researcher' : 'ships');
@@ -1072,7 +1093,7 @@ function createGalacticReach(options = {}) {
     if (state.actionOptions.tag === 'overdrive') range += 2;
     if (state.actionOptions.tag === 'pathfinder') range += 1;
     state.reachable = reachableFrom(key,0,range,state.actionOptions.tag === 'pathfinder',moving);
-    toast(group === 'researcher' ? 'Researcher teams move 1 hex. Select a highlighted destination.' : 'Scouts explore up to 3 hexes. Select a highlighted destination.');
+    toast(group === 'researcher' ? 'Researcher teams move up to 2 hexes. Select a highlighted destination.' : 'Scouts explore up to 3 hexes. Select a highlighted destination.');
     render();
   }
 
@@ -1519,9 +1540,12 @@ function createGalacticReach(options = {}) {
         const relicGoal = relicTargets.sort((a,b)=>hexDistance(source,a)-hexDistance(source,b))[0];
         const path = relicGoal && pathToCoord(source,relicGoal);
         if (path?.length) {
-          const destination = path[0];
+          const researchers = fleetGroup(fleet,'researcher');
+          const reachable = new Set(reachableFrom(source,playerId,fleetMove(researchers),true,researchers));
+          // Stop at blockers and use both movement points when the path is clear.
+          const destination = path.slice(0,fleetMove(researchers)).filter(coord => reachable.has(coord)).pop();
           const score = 20 - path.length * .1;
-          if (!best || score > best.score) best = { source,destination,score,moveGroup:'researcher' };
+          if (destination && (!best || score > best.score)) best = { source,destination,score,moveGroup:'researcher' };
         }
       }
       if (combatShipCount(fleet)) {
@@ -1548,6 +1572,7 @@ function createGalacticReach(options = {}) {
 
   function runAiOperation() {
     if (state.phase !== 'operations' || state.activePlayer === 0 || state.winner !== null) return;
+    aiRespondToTrades(state.activePlayer);
     const id = state.activePlayer;
     const player = state.players[id];
     const colonizeCard = player.hand.find(card => ALL_CARDS[card.key].order === 'colonize');
@@ -1610,10 +1635,12 @@ function createGalacticReach(options = {}) {
       completeAction(id,`${player.name} pinpointed an alien relic signal.`);
       return;
     }
+    if (aiOfferTrade(id)) return;
     passOperations(id);
   }
 
   function startBuyPhase() {
+    expireTrades();
     state.phase = 'buy';
     state.activePlayer = state.firstPlayer;
     state.players.forEach(player => { player.bought=0; player.buyLimit=1; player.decommissioned=false; player.buyStartDiscardIds=player.discard.map(c=>c.id); });
@@ -1852,46 +1879,101 @@ function createGalacticReach(options = {}) {
     beginRound();
   }
 
+  function canOfferTrade(playerId, terms) {
+    const p = state.players[playerId];
+    return !!p && state.winner === null && state.phase === 'operations' && state.activePlayer === playerId
+      && !p.passed && !p.tradeUsed && (headless || playerId !== 0 || ['prep','action'].includes(state.turnStage))
+      && RESOURCES.includes(terms.giveType) && RESOURCES.includes(terms.getType) && terms.giveType !== terms.getType
+      && [terms.giveAmount,terms.getAmount].every(n=>Number.isInteger(n) && n>=1 && n<=5)
+      && p.resources[terms.giveType] >= terms.giveAmount
+      && state.players.some(other=>other.id!==playerId && !other.passed);
+  }
+
+  function offerTrade(playerId, terms) {
+    if (!canOfferTrade(playerId,terms)) return false;
+    const offer = {id:state.nextTradeOfferId++,from:playerId,round:state.round,status:'open',
+      giveType:terms.giveType,giveAmount:terms.giveAmount,getType:terms.getType,getAmount:terms.getAmount,
+      responses:state.players.map(p=>p.id===playerId?'author':p.passed?'passed':'pending')};
+    state.tradeOffers.push(offer);
+    state.tradeOffers = state.tradeOffers.slice(-40);
+    state.players[playerId].tradeUsed = true;
+    completeAction(playerId,`${state.players[playerId].name} offered ${offer.giveAmount} ${RESOURCE_NAMES[offer.giveType]} for ${offer.getAmount} ${RESOURCE_NAMES[offer.getType]} to all factions.`);
+    return true;
+  }
+
+  function tradeResponseAllowed(playerId, offer) {
+    return !!offer && state.winner === null && state.phase === 'operations' && state.activePlayer === playerId
+      && offer.status === 'open' && offer.round === state.round && offer.from !== playerId
+      && offer.responses[playerId] === 'pending' && !state.players[playerId].passed;
+  }
+
+  function tradeBlockReason(playerId, offer) {
+    if (!tradeResponseAllowed(playerId,offer)) return 'Respond during your Operations turn.';
+    const from=state.players[offer.from], to=state.players[playerId];
+    if (from.resources[offer.giveType]<offer.giveAmount) return 'The offering faction no longer has those resources.';
+    if (to.resources[offer.getType]<offer.getAmount) return `You need ${offer.getAmount} ${RESOURCE_NAMES[offer.getType]} to accept.`;
+    if (totalResources(from)-offer.giveAmount+offer.getAmount>playerCapacity(offer.from)
+      || totalResources(to)-offer.getAmount+offer.giveAmount>playerCapacity(playerId)) return 'The exchange would exceed storage capacity.';
+    return '';
+  }
+
+  function respondTrade(playerId, id, response) {
+    const offer=state.tradeOffers.find(o=>o.id===id);
+    if (!tradeResponseAllowed(playerId,offer) || !['accept','reject'].includes(response)) return false;
+    if (response==='accept') {
+      if (tradeBlockReason(playerId,offer)) return false;
+      const from=state.players[offer.from], to=state.players[playerId];
+      // Recheck live balances, then settle once before any rendering or turn changes.
+      from.resources[offer.giveType]-=offer.giveAmount; to.resources[offer.giveType]+=offer.giveAmount;
+      to.resources[offer.getType]-=offer.getAmount; from.resources[offer.getType]+=offer.getAmount;
+      offer.status='accepted'; offer.acceptedBy=playerId;
+      from.tracks.culture++; to.tracks.culture++;
+      from.tradesWith[playerId]++; to.tradesWith[offer.from]++;
+      if (state.activePolicy?.id==='open_exchange') { addResources(from,{data:1}); addResources(to,{data:1}); }
+      logEvent(`${to.name} accepted ${from.name}’s open offer.`);
+    } else {
+      logEvent(`${state.players[playerId].name} rejected ${state.players[offer.from].name}’s offer.`);
+    }
+    offer.responses[playerId]=response==='accept'?'accepted':'rejected';
+    if (offer.status==='open' && !offer.responses.includes('pending')) offer.status='rejected';
+    render(); saveGame();
+    return true;
+  }
+
+  function cancelTrade(playerId, id) {
+    const offer=state.tradeOffers.find(o=>o.id===id);
+    if (!offer || offer.from!==playerId || offer.status!=='open' || state.activePlayer!==playerId || state.phase!=='operations') return false;
+    offer.status='withdrawn'; logEvent(`${state.players[playerId].name} withdrew an offer.`);
+    render(); saveGame(); return true;
+  }
+
+  function expireTrades() {
+    for (const offer of state.tradeOffers) if (offer.status==='open') offer.status='expired';
+  }
+
+  function aiRespondToTrades(id) {
+    for (const offer of state.tradeOffers) {
+      if (!tradeResponseAllowed(id,offer)) continue;
+      const p=state.players[id];
+      const fair=offer.giveAmount*(p.resources[offer.giveType]<2?1.45:1)>=offer.getAmount*(p.resources[offer.getType]<2?1.4:1);
+      respondTrade(id,offer.id,!tradeBlockReason(id,offer)&&fair?'accept':'reject');
+    }
+  }
+
+  function aiOfferTrade(id) {
+    const p=state.players[id];
+    const giveType=RESOURCES.find(r=>p.resources[r]>=3);
+    const getType=RESOURCES.find(r=>p.resources[r]<2 && state.players.some(o=>o.id!==id && !o.passed && o.resources[r]>=2));
+    return giveType && getType && offerTrade(id,{giveType,getType,giveAmount:1,getAmount:1});
+  }
+
   function submitTrade(event) {
     event.preventDefault();
-    const human = state.players[0];
-    if (state.phase !== 'operations' || state.activePlayer !== 0 || state.turnStage !== 'action' || human.tradeUsed) { toast('Trade is unavailable right now.'); return; }
-    const rivalId = Number($('#trade-rival').value);
-    const giveType = $('#trade-give-type').value;
-    const getType = $('#trade-get-type').value;
-    const giveAmount = Math.max(1,Number($('#trade-give-amount').value));
-    const getAmount = Math.max(1,Number($('#trade-get-amount').value));
-    const rival = state.players[rivalId];
-    human.tradeUsed = true;
-    let accepted = human.resources[giveType] >= giveAmount && rival.resources[getType] >= getAmount;
-    let rejectionReason = '';
-    if (accepted) {
-      const humanFits = totalResources(human) - giveAmount + getAmount <= playerCapacity(0);
-      const rivalFits = totalResources(rival) - getAmount + giveAmount <= playerCapacity(rivalId);
-      if (!humanFits || !rivalFits) {
-        accepted = false;
-        rejectionReason = 'The exchange would exceed a faction’s storage capacity.';
-      }
-    }
-    if (accepted) {
-      const rivalNeed = rival.resources[giveType] < 2 ? 1.45 : 1;
-      const humanNeed = rival.resources[getType] < 2 ? .7 : 1;
-      accepted = giveAmount * rivalNeed >= getAmount * humanNeed * .9;
-    }
-    if (accepted) {
-      human.resources[giveType] -= giveAmount; rival.resources[giveType] += giveAmount;
-      rival.resources[getType] -= getAmount; human.resources[getType] += getAmount;
-      human.tracks.culture += 1;
-      rival.tracks.culture += 1;
-      human.tradesWith[rivalId] += 1;
-      rival.tradesWith[0] += 1;
-      if (state.activePolicy?.id === 'open_exchange') { addResources(human,{ data: 1 }); addResources(rival,{ data: 1 }); }
-      $('#trade-response').textContent = `${rival.name} accepted the exchange.`;
-      completeAction(0,`${rival.name} accepted your trade.`);
-    } else {
-      $('#trade-response').textContent = rejectionReason || `${rival.name} rejected the offer.`;
-      completeAction(0,`${rival.name} rejected your trade offer.`);
-    }
+    const terms={giveType:$('#trade-give-type').value,getType:$('#trade-get-type').value,
+      giveAmount:Number($('#trade-give-amount').value),getAmount:Number($('#trade-get-amount').value)};
+    $('#trade-response').textContent=offerTrade(0,terms)
+      ?'Offer published. Other factions can respond on their turns. First acceptance completes the trade.'
+      :'Choose different resources and whole amounts from 1 to 5 that you can supply. Publish during your action, once per round.';
   }
 
   function showMessage(kicker,title,body) {
@@ -1956,13 +2038,15 @@ function createGalacticReach(options = {}) {
     ];
     $('#symbol-legend').innerHTML = `<strong class="legend-heading">Units &amp; buildings</strong>${entries.map(([type,label]) => {
       const cost = type === 'colony' ? { biomass: 2 } : SHIP_STATS[type]?.cost || STRUCTURES[type]?.cost;
-      return `<span class="tooltip-anchor symbol-legend-item" tabindex="0" data-tooltip="${LEGEND_TOOLTIPS[type]}" aria-label="${label}. ${LEGEND_TOOLTIPS[type]}"><span class="symbol-legend-name">${BOARD_ICONS[type]}${label}</span><span class="symbol-legend-cost">${resourceDots(cost)}</span></span>`;
+      return `<span class="tooltip-anchor symbol-legend-item" tabindex="0" data-tooltip="${LEGEND_TOOLTIPS[type]}" aria-label="${label}. ${LEGEND_TOOLTIPS[type]}"><span class="symbol-legend-name">${BOARD_ICONS[type]}${label}</span><span class="symbol-legend-cost">${resourceDots(cost)}</span><span class="symbol-legend-description">${LEGEND_TOOLTIPS[type]}</span></span>`;
     }).join('')}`;
   }
 
   function renderBoard() {
     const board = $('#galaxy-board');
     if (!board.dataset.built) {
+      board.style.setProperty('--hex-width', `${100/(BOARD_RADIUS*2+1)}%`);
+      board.style.setProperty('--row-overlap', `${-100/(BOARD_RADIUS*2+1)*Math.sqrt(3)/8}%`);
       for (let r=-BOARD_RADIUS;r<=BOARD_RADIUS;r+=1) {
         const row = document.createElement('div'); row.className = 'map-row';
         const qMin = Math.max(-BOARD_RADIUS,-BOARD_RADIUS-r); const qMax = Math.min(BOARD_RADIUS,BOARD_RADIUS-r);
@@ -1972,7 +2056,7 @@ function createGalacticReach(options = {}) {
           const key = coordKey(q,r);
           const button = document.createElement('button');
           button.type='button'; button.className='hex'; button.dataset.coord=key;
-          button.addEventListener('click',()=>humanSelectHex(key));
+          button.addEventListener('click',event=>{humanSelectHex(key);showSectorScan(event.detail===0);});
           button.innerHTML='<span class="hex-fleets"></span><span class="hex-buildings"></span><span class="special"></span>';
           row.appendChild(button);
         }
@@ -2015,7 +2099,7 @@ function createGalacticReach(options = {}) {
 
   function renderScoreboard() {
     $('#score-ribbon').innerHTML = state.players.map((player,id)=>{
-      const active = state.activePlayer===id && !state.winner;
+      const active = state.activePlayer===id && state.winner===null;
       const influence=Object.values(player.tracks).reduce((sum,value)=>sum+value,0);
       return `<article class="score-card ${active?'active':''}" style="--player:${player.color}" title="Colonies: 1 each, plus 1 per two beyond home · Shipyards: 1 per pair · Relics and awards: 1 each · Influence: ${influencePrestige(id)} · Deck: ${deckPrestige(id)}"><div class="score-top"><span class="score-name">${player.name}</span><span class="score-value">${calculatePrestige(id)}</span></div><div class="score-meta"><span>${colonyPlanets(id).length} colonies</span><span>${player.cardsPurchased||0} cards · ${deckPrestige(id)} Prestige</span><span>${strongestFleet(id)} fleet</span></div></article>`;
     }).join('');
@@ -2114,7 +2198,7 @@ function createGalacticReach(options = {}) {
     if(definition.wildcard)resourceGain.data=(resourceGain.data||0)+definition.wildcard;
     const resourceStorageNeeded=resourceGainTotal(resourceGain);
     const canStoreCard=!canResource||remainingResourceCapacity(0)>=resourceStorageNeeded;
-    const canOrder=location==='hand'&&isHumanOps&&state.turnStage==='action'&&definition.order&&!definition.reaction&&!definition.buyEffect;
+    const canOrder=location==='hand'&&isHumanOps&&['prep','action'].includes(state.turnStage)&&definition.order&&!definition.reaction&&!definition.buyEffect;
     const isSelectedOrder=canOrder&&state.actionCardId===card.id&&Boolean(state.actionMode);
     const canBuyEffect=location==='hand'&&state.phase==='buy'&&state.activePlayer===0&&definition.buyEffect&&!(definition.buyEffect==='manipulation'&&state.players[0].marketManipulated);
     return `<article class="game-card ${card.upgraded?'upgraded':''} ${isSelectedOrder?'order-selected':''}" style="--card-accent:${definition.accent}"><span class="card-type">${definition.kind}${card.starter?' · STARTER':''}</span><span class="card-name">${definition.name}${card.upgraded?' II':''}</span><span class="card-effect">${resourceText(definition.text)}${card.upgraded?' Upgraded: gain one extra resource.':''}</span><div class="card-footer"><span>${definition.resource?`<small>Gain</small>${resourceDots(cardResources(card))}`:''}</span><span>${definition.cost?`<small>Buy</small>${resourceDots(definition.cost)}`:''}</span></div>${location==='hand'?`<div class="card-buttons">${canResource?`<button class="button" data-resource-card="${card.id}" ${canStoreCard?'':`disabled title="Needs ${resourceStorageNeeded} open storage"`}>${canStoreCard?'Convert to resources':`Need ${resourceStorageNeeded} storage`}</button>`:''}${canOrder?`<button class="button ${isSelectedOrder?'button-danger':'button-primary'}" data-order-card="${card.id}" aria-pressed="${isSelectedOrder}">${isSelectedOrder?'Cancel order':'Use order'}</button>`:''}${canBuyEffect?`<button class="button button-primary" data-buy-effect="${card.id}">Use in Buy</button>`:''}${definition.reaction&&isHumanOps?'<span class="muted">Automatic reaction</span>':''}</div>`:''}</article>`;
@@ -2133,8 +2217,7 @@ function createGalacticReach(options = {}) {
     $$('[data-order-card]').forEach(button=>button.addEventListener('click',()=>playOrder(button.dataset.orderCard)));
     $$('[data-buy-effect]').forEach(button=>button.addEventListener('click',()=>useBuyEffect(button.dataset.buyEffect)));
     const prep=state.phase==='operations'&&state.activePlayer===0&&state.turnStage==='prep';
-    $('#finish-prep-button').hidden=!prep;
-    $('#hand-help').textContent=prep?'Convert any cards you want, then choose an order.':state.turnStage==='action'&&state.actionMode?`${state.actionOptions.cardName||'Order'} selected. You may still convert cards, cancel it, trade, or pass.`:state.turnStage==='action'?'Convert cards as needed, play one order card, make a Trade action, or pass.':'Your cards remain available through Buy, then all are discarded.';
+    $('#hand-help').textContent=prep?'Use an order directly on a card, or convert cards for resources.':state.turnStage==='action'&&state.actionMode?`${state.actionOptions.cardName||'Order'} selected. You may still convert cards, cancel it, trade, or pass.`:state.turnStage==='action'?'Convert cards as needed, play one order card, make a Trade action, or pass.':'Your cards remain available through Buy, then all are discarded.';
   }
 
   function renderMarket() {
@@ -2177,33 +2260,42 @@ function createGalacticReach(options = {}) {
   }
 
   function renderTrade() {
-    const selects=[$('#trade-give-type'),$('#trade-get-type')];
-    selects.forEach((select,index)=>{
-      if(!select.options.length) select.innerHTML=RESOURCES.map(r=>`<option value="${r}" style="color:var(--${r})" aria-label="${RESOURCE_NAMES[r]}" title="${RESOURCE_NAMES[r]}">●</option>`).join('');
-      select.style.color=`var(--${select.value})`;
-      select.setAttribute('aria-label',`${index===0?'You give':'You receive'}: ${RESOURCE_NAMES[select.value]}`);
-      if(!select.dataset.resourceDots){
-        select.dataset.resourceDots='true';
-        select.addEventListener('change',()=>{
-          select.style.color=`var(--${select.value})`;
-          select.setAttribute('aria-label',`${index===0?'You give':'You receive'}: ${RESOURCE_NAMES[select.value]}`);
-        });
+    ['give','get'].forEach((side,index)=>{
+      const select=$(`#trade-${side}-type`);
+      if (!select.options.length) {
+        select.innerHTML=RESOURCES.map(r=>`<option value="${r}">${RESOURCE_NAMES[r]}</option>`).join('');
+        select.value=RESOURCES[index];
       }
     });
-    if(!$('#trade-rival').options.length)$('#trade-rival').innerHTML=state.players.slice(1).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-    $('#trade-form').querySelector('button').disabled=!(state.phase==='operations'&&state.activePlayer===0&&state.turnStage==='action'&&!state.players[0].tradeUsed);
-    $('#trade-ledger').innerHTML=state.players.slice(1).map(player=>`<div><span>${player.name}</span><strong>${state.players[0].tradesWith[player.id]} trade${state.players[0].tradesWith[player.id]===1?'':'s'}</strong></div>`).join('');
+    $('#trade-form').querySelector('button').disabled=!(state.phase==='operations'&&state.activePlayer===0&&['prep','action'].includes(state.turnStage)&&!state.players[0].tradeUsed);
+    const offers=state.tradeOffers.filter(o=>o.round===state.round || o.status==='open');
+    $('#trade-offers').innerHTML=offers.length?[...offers].reverse().map(o=>{
+      const canRespond=tradeResponseAllowed(0,o), reason=tradeBlockReason(0,o);
+      const status=o.status==='accepted'?`Accepted by ${state.players[o.acceptedBy].name}`:o.status==='open'?'Open to all factions':o.status[0].toUpperCase()+o.status.slice(1);
+      return `<article class="trade-offer"><div class="trade-offer-heading"><strong>${state.players[o.from].name}</strong><span class="offer-status">${status}</span></div>
+        <div class="trade-terms"><span>Offers ${resourceDots({[o.giveType]:o.giveAmount})}</span><span aria-hidden="true">→</span><span>Asks for ${resourceDots({[o.getType]:o.getAmount})}</span></div>
+        <p>${o.responses.map((r,id)=>id===o.from?'':`${state.players[id].name}: ${r==='pending'&&o.status!=='open'?'no response':r}`).filter(Boolean).join(' · ')}</p>
+        ${canRespond?`<div class="trade-offer-actions"><button class="button button-primary" data-trade-accept="${o.id}" ${reason?'disabled':''}>Accept offer</button><button class="button button-ghost" data-trade-reject="${o.id}">Reject offer</button></div>${reason?`<p>${reason}</p>`:''}`:''}
+        ${o.from===0&&o.status==='open'?`<button class="button button-ghost" data-trade-cancel="${o.id}" ${state.activePlayer!==0?'disabled':''}>Withdraw offer</button>`:''}</article>`;
+    }).join(''):'<p class="muted">No offers this round. Publish one to open negotiations.</p>';
+    for (const response of ['accept','reject','cancel']) $$(`[data-trade-${response}]`).forEach(button=>button.addEventListener('click',()=>{
+      const id=Number(button.getAttribute(`data-trade-${response}`));
+      if (response==='cancel') cancelTrade(0,id); else respondTrade(0,id,response);
+    }));
+    const pending=state.tradeOffers.filter(o=>o.status==='open'&&o.from!==0&&o.responses[0]==='pending').length;
+    $('#trade-tab').textContent=pending?`Trade (${pending} open)`:'Trade';
+    $('#trade-ledger').innerHTML=state.players.slice(1).map(player=>`<div><span>${player.name}</span><strong>${state.players[0].tradesWith[player.id]} completed</strong></div>`).join('');
   }
 
   function renderHeader() {
     $('#round-value').textContent=state.round;
     $('#phase-value').textContent=state.phase[0].toUpperCase()+state.phase.slice(1);
     $('#active-value').textContent=state.winner!==null?'Game over':state.phase==='policy'?'All factions':state.phase==='directive'?'Round leader':state.players[state.activePlayer].name;
-    const humanTurn=state.activePlayer===0&&!state.winner;
+    const humanTurn=state.activePlayer===0&&state.winner===null;
     $('#turn-dot').style.background=state.players[state.activePlayer]?.color||'var(--cyan)';
     $('#turn-title').textContent=state.winner!==null?`${state.players[state.winner].name} won`:humanTurn?'Your turn':`${state.players[state.activePlayer].name} is acting`;
     let instruction='';
-    if(state.phase==='operations')instruction=humanTurn?(state.turnStage==='prep'?'Prepare resources, then choose one action.':'Choose one order, Trade action, or pass.'):'Computer rival is evaluating the board…';
+    if(state.phase==='operations')instruction=humanTurn?(state.turnStage==='prep'?'Use an order on a card, convert resources, trade, or pass.':'Choose one order, Trade action, or pass.'):'Computer rival is evaluating the board…';
     else if(state.phase==='buy')instruction=humanTurn?'Buy up to your limit, optionally Decommission, then finish.':'Computer rival is shopping the market…';
     else if(state.phase==='policy')instruction='Commit political capital to a hidden policy ballot.';
     else if(state.phase==='directive')instruction='Choose a primary bonus; every rival gains its lesser benefit.';
@@ -2217,7 +2309,7 @@ function createGalacticReach(options = {}) {
 
   function render() {
     if (headless) return;
-    renderHeader(); renderScoreboard(); renderBoard(); renderResources(); renderInspector(); renderAwards(); renderPolitics(); renderLog(); renderHand(); renderMarket(); renderFleetSummary(); renderTrade();
+    renderHeader(); renderScoreboard(); renderBoard(); renderResources(); renderInspector(); positionSectorScan(); renderAwards(); renderPolitics(); renderLog(); renderHand(); renderMarket(); renderFleetSummary(); renderTrade();
   }
 
   function switchTab(name) {
@@ -2225,7 +2317,43 @@ function createGalacticReach(options = {}) {
     $$('.tab-panel').forEach(panel=>{const active=panel.dataset.panel===name;panel.classList.toggle('active',active);panel.hidden=!active;});
   }
 
+  function positionSectorScan() {
+    const panel=$('#sector-popover');
+    if (!panel?.matches(':popover-open') || !state.selected) return;
+    const hex=$(`.hex[data-coord="${state.selected}"]`);
+    if (!hex) return;
+    const vw=document.documentElement.clientWidth, vh=window.innerHeight, gap=12;
+    panel.style.width=`${Math.min(370,vw-24)}px`;
+    const rect=hex.getBoundingClientRect(), width=panel.offsetWidth, height=panel.offsetHeight;
+    let left=rect.right+gap, top=rect.top;
+    if (left+width>vw-gap) left=rect.left-width-gap;
+    if (left<gap) { left=(vw-width)/2; top=rect.bottom+gap; if(top+height>vh-gap) top=rect.top-height-gap; }
+    panel.style.left=`${Math.max(gap,Math.min(vw-width-gap,left))}px`;
+    panel.style.top=`${Math.max(gap,Math.min(vh-height-gap,top))}px`;
+  }
+
+  function showSectorScan(keyboard=false) {
+    const panel=$('#sector-popover');
+    if (!panel.matches(':popover-open')) panel.showPopover();
+    positionSectorScan();
+    if (keyboard) $('#close-sector-scan').focus();
+  }
+
   function wireUi() {
+    window.addEventListener('resize',positionSectorScan);
+    document.addEventListener('scroll',event=>{if(!$('#sector-popover').contains(event.target))positionSectorScan();},true);
+    $('#open-map-key').addEventListener('click',()=>$('#map-key-dialog').showModal());
+    $('#close-map-key').addEventListener('click',()=>$('#map-key-dialog').close());
+    $('#map-zoom').addEventListener('click',()=>{
+      const stage=$('.board-stage'); const zoomed=stage.classList.toggle('map-zoomed');
+      $('#map-zoom').textContent=zoomed?'Fit map':'Zoom map';
+      $('#map-zoom').setAttribute('aria-pressed',String(zoomed));
+      if (zoomed) {
+        const hex=$(`.hex[data-coord="${state.selected||state.clusters[0].center}"]`);
+        const a=stage.getBoundingClientRect(), b=hex.getBoundingClientRect();
+        stage.scrollLeft+=b.left-a.left-stage.clientWidth/2; stage.scrollTop+=b.top-a.top-stage.clientHeight/2;
+      }
+    });
     renderSymbolLegend();
     $('#undo-turn-button').addEventListener('click',undoLastTurn);
     $('#rules-button').addEventListener('click',()=>$('#rules-dialog').showModal());
@@ -2239,7 +2367,6 @@ function createGalacticReach(options = {}) {
       clearTurnHistory();
       state=newState(); fillMarket(); logEvent('The four factions entered the Reach.'); saveGame(); render(); beginRound();
     });
-    $('#finish-prep-button').addEventListener('click',finishHumanPrep);
     $('#finish-buy-button').addEventListener('click',finishHumanBuy);
     $('#pass-button').addEventListener('click',()=>passOperations(0));
     $('#trade-form').addEventListener('submit',submitTrade);
@@ -2280,7 +2407,8 @@ function createGalacticReach(options = {}) {
       colonizePlanet, buildUpgrade, buildResearchStation, buildShip, getFleet, fleetCount,
       fleetGroup, fleetMove, fleetPower, reachableFrom, executeMove, nearestUnscannedRelicCluster,
       clusterKnown, clusterScanned, relicCoordInCluster, calculatePrestige, colonyPlanets,
-      totalResources, playerCapacity, applyDirective, enactPolicy
+      totalResources, playerCapacity, applyDirective, enactPolicy,
+      canOfferTrade, offerTrade, tradeResponseAllowed, tradeBlockReason, respondTrade, cancelTrade
     });
   }
 

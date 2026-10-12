@@ -163,8 +163,8 @@ pub struct Save {
 }
 fn validate(save: &serde_json::Value) -> ApiResult<()> {
     let s = &save["state"];
-    if s["version"] != 4
-        || s["rulesRevision"] != 9
+    if s["version"] != 5
+        || s["rulesRevision"] != 10
         || s["players"].as_array().is_none_or(|p| p.len() != 4)
         || !s["planets"].is_object()
         || !s["fleets"].is_object()
@@ -260,7 +260,7 @@ mod tests {
             serde_json::Value::Null
         );
         // A realistic size above the normal 16 KiB request limit is accepted here only.
-        let save = json!({"state":{"version":4,"rulesRevision":9,"players":[{},{},{},{}],"planets":{},"fleets":{},"clusters":[],"round":3,"activePlayer":0,"phase":"policy","winner":null,"log":"x".repeat(40000)},"turnHistory":{"pending":null,"undo":null}});
+        let save = json!({"state":{"version":5,"rulesRevision":10,"players":[{},{},{},{}],"planets":{},"fleets":{},"clusters":[],"round":3,"activePlayer":0,"phase":"policy","winner":null,"log":"x".repeat(40000)},"turnHistory":{"pending":null,"undo":null}});
         let body = json!({"revision":0,"save":save});
         assert_eq!(
             call(&a, "POST", &savepath, &other, body.clone()).await.0,

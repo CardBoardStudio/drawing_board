@@ -162,12 +162,12 @@ p { line-height: 1.55; }
 }
 .galaxy-board { width: min(99%, 1220px); padding: 20px 0; }
 .map-row { display: flex; justify-content: flex-start; }
-.map-row + .map-row { margin-top: -1.14%; }
+.map-row + .map-row { margin-top: var(--row-overlap, -.8660254%); }
 .hex {
   --hex-fill: #172130;
   --owner: transparent;
   position: relative;
-  width: 5.2632%;
+  width: var(--hex-width, 4%);
   aspect-ratio: .8660254;
   border: 0;
   padding: 4px;
@@ -449,8 +449,8 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
     grid-template-rows: auto minmax(0,1fr) auto auto;
   }
   .board-toolbar { min-height: 42px; padding: 6px 10px; }
-  .board-stage { min-height: 0; }
-  .galaxy-board { width: min(83%,calc((100vh - 370px) * 1.45),960px); padding: 4px 0; }
+  .board-stage { min-height: 0; container-type: size; }
+  .galaxy-board { width: min(83cqw,calc((100cqh - 8px) * 1.05),960px); padding: 4px 0; }
   .map-legend { gap: 8px 12px; padding: 7px 9px; font-size: 12px; }
   .map-legend .resource-symbol { width: 17px; height: 17px; }
   .symbol-legend { display: grid; grid-template-columns: repeat(9,minmax(0,1fr)); gap: 8px 6px; padding: 8px 9px 10px; }
@@ -621,4 +621,64 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
   .has-saved-table .board-stage { container-type: size; }
   /* The 19 staggered rows need about 0.95 units of height per unit of width. */
   .has-saved-table .galaxy-board { width: min(83cqw, calc((100cqh - 8px) * 1.05), 960px); }
+}
+
+/* Readable resources at every breakpoint, including the compact desktop cockpit. */
+.resource-chip { gap: 6px; min-height: 32px; padding: 5px 8px; }
+.resource-chip strong { font-size: 16px; }
+.resource-symbol, .card-footer .resource-symbol, .inline-resource .resource-symbol { width: 21px; height: 21px; }
+.card-footer .resource-chip { min-height: 30px; padding: 4px 7px; }
+.resource-box { padding: 12px; }
+.resource-box-main { gap: 10px; }
+.resource-name { font-size: 14px; letter-spacing: .025em; }
+.resource-symbol-large { width: 38px; height: 38px; padding: 5px; }
+.resource-box .resource-amount { font-size: 32px; margin-top: 4px; }
+.resource-box p { min-height: 0; font-size: 14px; line-height: 1.5; margin-top: 10px; }
+.capacity { font-size: 14px; }
+.map-tools { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 10px; border: 1px solid var(--line); background: var(--surface); }
+.map-tools .button { min-height: 44px; font-size: 14px; }
+.board-stage.map-zoomed { display: block; overflow: auto; overscroll-behavior: contain; height: 600px; max-height: 75vh; }
+.map-zoomed .galaxy-board { width: 1500px; max-width: none; transform: none; padding: 20px 0; }
+.map-key-dialog { width: min(1000px,calc(100vw - 24px)); }
+.map-key-dialog .dialog-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }
+.map-key-dialog .map-legend { justify-content: flex-start; padding: 20px; gap: 20px; font-size: 16px; color: var(--text); }
+.map-key-dialog .legend-heading { flex-basis: 100%; grid-column: 1 / -1; text-align: left; font-size: 16px; }
+.map-key-dialog .resource-symbol { width: 26px; height: 26px; }
+.map-key-dialog .symbol-legend { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
+.map-key-dialog .symbol-legend-item { min-width: 0; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid var(--line); background: var(--surface-2); }
+.map-key-dialog .symbol-legend-name { min-height: 0; justify-content: flex-start; text-align: left; font-size: 17px; gap: 10px; }
+.map-key-dialog .board-glyph { width: 32px; height: 32px; flex: none; }
+.map-key-dialog .symbol-legend-cost { min-height: 0; }
+.map-key-dialog .resource-dots { justify-content: flex-start; }
+.map-key-dialog .resource-chip { min-height: 34px; padding: 5px 8px; }
+.map-key-dialog .symbol-legend-description { display: block; font-size: 14px; line-height: 1.5; color: var(--muted); }
+.map-key-dialog .tooltip-anchor::after { display: none; }
+.trade-form { grid-template-columns: repeat(4,minmax(0,1fr)) auto; }
+.trade-form label, .trade-form input, .trade-form select { font-size: 16px; }
+.trade-offers { display: grid; gap: 12px; margin: 18px 0; }
+.trade-offer { padding: 16px; border: 1px solid var(--line-bright); background: var(--surface-2); }
+.trade-offer-heading, .trade-terms, .trade-offer-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.trade-offer-heading { justify-content: space-between; }
+.trade-offer p { font-size: 14px; line-height: 1.5; color: var(--muted); }
+.trade-terms { margin-top: 14px; font-size: 16px; }
+.offer-status { color: var(--cyan); font-size: 14px; }
+.trade-offer-actions .button { min-height: 44px; }
+.sector-popover { position: fixed; inset: auto; margin: 0; width: min(370px,calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow: auto; overscroll-behavior: contain; padding: 18px; border: 1px solid var(--cyan); border-radius: 10px; background: #101a2b; box-shadow: 0 16px 60px #000b; color: var(--text); }
+.sector-popover .panel-heading { gap: 12px; align-items: center; }
+.sector-popover .coordinate { margin-left: auto; }
+.sector-popover .icon-button { flex: none; width: 40px; height: 40px; }
+.sector-popover p, .sector-popover .fact { font-size: 15px; line-height: 1.5; }
+.sector-popover .context-actions .button { min-height: 44px; font-size: 15px; }
+@media (min-width:1600px) and (min-height:850px) {
+  .board-column { grid-template-rows: auto minmax(0,1fr) auto; }
+  .board-stage.map-zoomed { height: auto; max-height: none; }
+  .trade-form { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .trade-form .button { grid-column: 1 / -1; }
+}
+@media (max-width:760px) {
+  .map-key-dialog .symbol-legend { grid-template-columns: repeat(2,minmax(0,1fr)); padding: 12px; gap: 8px; }
+  .map-key-dialog .symbol-legend-item { padding: 10px; }
+  .map-key-dialog .symbol-legend-name { flex-wrap: wrap; font-size: 16px; }
+  .trade-form { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .trade-form .button { grid-column: 1 / -1; }
 }

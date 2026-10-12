@@ -18,7 +18,7 @@ impl GameKind {
     fn pool(self) -> &'static str {
         match self {
             Self::Voidwright => "voidwright/1:duel:20-rounds:policies-v1",
-            Self::GalacticReach => "galactic-reach/4.9:four-player:winner:policies-v1",
+            Self::GalacticReach => "galactic-reach/5.10:four-player:winner:policies-v2",
         }
     }
     fn seats(self) -> usize {
@@ -103,16 +103,16 @@ pub fn migrate(db: &Connection) -> rusqlite::Result<()> {
 }
 pub async fn catalog() -> Json<serde_json::Value> {
     Json(json!({"games":[
-        {"id":"galactic-reach","name":"Galactic Reach","href":"/galactic-reach/","mode":"Browser playtest + AI arena","rated":true,"seats":4,"pool":GameKind::GalacticReach.pool(),"description":"Command a faction, explore the galaxy, and outmaneuver three AI rivals. Saved in this browser."},
+        {"id":"galactic-reach","name":"Galactic Reach","href":"/galactic-reach/","mode":"Browser playtest + AI arena","rated":true,"seats":4,"pool":GameKind::GalacticReach.pool(),"description":"Long Reach experiment: explore a larger random galaxy against three AI rivals. Play to 20 Prestige; start a new game."},
         {"id":"voidwright","name":"Voidwright","href":"/voidwright/","mode":"Server tables + AI arena","rated":true,"seats":2,"pool":GameKind::Voidwright.pool(),"description":"Build a fleet of cards. Play with friends or compare AI players in the rated arena."}
     ],"policies":[
         {"game":"voidwright","id":"explorer","version":"explorer/1","name":"Explorer","description":"Experiments with random purchases and sometimes passes."},
         {"game":"voidwright","id":"merchant","version":"merchant/1","name":"Merchant","description":"Builds a resource economy, then buys scoring colonies."},
         {"game":"voidwright","id":"kepler","version":"kepler/1","name":"Kepler","description":"Balances resource growth with a small action engine."}
-        ,{"game":"galactic-reach","id":"gr-military","version":"gr-military/1","name":"Vanguard","description":"Builds warships and shipyards, then moves toward rival colonies."}
-        ,{"game":"galactic-reach","id":"gr-economy","version":"gr-economy/1","name":"Architect","description":"Prioritizes production, storage, and terraforming."}
-        ,{"game":"galactic-reach","id":"gr-expansion","version":"gr-expansion/1","name":"Pathfinder","description":"Builds Scouts and seeks new colony sites."}
-        ,{"game":"galactic-reach","id":"gr-wanderer","version":"gr-wanderer/1","name":"Wanderer","description":"Samples useful legal actions with seeded randomness."}
+        ,{"game":"galactic-reach","id":"gr-military","version":"gr-military/2","name":"Vanguard","description":"Builds warships and shipyards, then moves toward rival colonies."}
+        ,{"game":"galactic-reach","id":"gr-economy","version":"gr-economy/2","name":"Architect","description":"Prioritizes production, storage, and terraforming."}
+        ,{"game":"galactic-reach","id":"gr-expansion","version":"gr-expansion/2","name":"Pathfinder","description":"Builds Scouts and seeks new colony sites."}
+        ,{"game":"galactic-reach","id":"gr-wanderer","version":"gr-wanderer/2","name":"Wanderer","description":"Samples useful legal actions with seeded randomness."}
     ],"pool":GameKind::Voidwright.pool()}))
 }
 #[derive(Serialize)]
@@ -178,7 +178,15 @@ pub async fn create_bot(
 ) -> ApiResult<Json<serde_json::Value>> {
     let u = user(&app, &headers)?;
     let name = clean(&input.name, 32)?;
-    let version = format!("{}/1", input.strategy);
+    let version = format!(
+        "{}/{}",
+        input.strategy,
+        if input.game == GameKind::GalacticReach {
+            2
+        } else {
+            1
+        }
+    );
     input.game.validate_policy(&version)?;
     let mut db = app.store.0.lock().map_err(internal)?;
     let tx = db.transaction().map_err(internal)?;
@@ -372,6 +380,11 @@ fn simulate_series(
                 .game
                 .simulate(&id, seed, &ordered_policies, &agent_seeds)
                 .map_err(internal)?;
+            tracing::info!(
+                completed = matches.len() + 1,
+                total = input.games,
+                "Arena match completed"
+            );
             matches.push(RatedMatch {
                 id,
                 seats,
@@ -430,4 +443,121 @@ fn simulate_series(
     .map_err(internal)?;
     tx.commit().map_err(internal)?;
     Ok::<_, ApiError>(result)
+}
+
+/// Local host maintenance command: use the same authoritative series and Elo
+/// transaction as the API. No session impersonation or client-supplied scores.
+pub fn calibrate(
+    app: &App,
+    owner: &str,
+    games: u8,
+    request_id: &str,
+) -> ApiResult<serde_json::Value> {
+    if uuid::Uuid::parse_str(request_id).is_err()
+        || !(4..=20).contains(&games)
+        || !games.is_multiple_of(4)
+    {
+        return Err(bad(
+            "Use a UUID request ID and 4–20 games in full four-seat rotations.",
+        ));
+    }
+    let game = GameKind::GalacticReach;
+    let policies: Vec<String> = [
+        "gr-military/2",
+        "gr-economy/2",
+        "gr-expansion/2",
+        "gr-wanderer/2",
+    ]
+    .into_iter()
+    .map(String::from)
+    .collect();
+    let bots: Vec<String> = policies
+        .iter()
+        .map(|policy| {
+            format!(
+                "ai:baseline:{}",
+                digest(&format!("{owner}:{}:{policy}", game.pool()))
+            )
+        })
+        .collect();
+    let input = SeriesRequest {
+        request_id: request_id.into(),
+        bots: bots.clone(),
+        game,
+        games,
+    };
+    let request = serde_json::to_string(&input).map_err(internal)?;
+    {
+        let mut db = app.store.0.lock().map_err(internal)?;
+        let tx = db.transaction().map_err(internal)?;
+        let human: bool = tx
+            .query_row(
+                "SELECT EXISTS(SELECT 1 FROM accounts WHERE id=? AND kind='human')",
+                [owner],
+                |r| r.get(0),
+            )
+            .map_err(internal)?;
+        if !human {
+            return Err(bad("Choose an existing human account ID as the owner."));
+        }
+        if let Some(result) = existing(&tx, owner, &input, &request)? {
+            return Ok(result);
+        }
+        let count: usize = tx.query_row("SELECT count(*) FROM accounts a JOIN ratings r ON r.account_id=a.id WHERE a.owner_id=? AND r.pool=?", params![owner,game.pool()], |r|r.get(0)).map_err(internal)?;
+        let mut missing = 0;
+        for id in &bots {
+            let exists: bool = tx
+                .query_row(
+                    "SELECT EXISTS(SELECT 1 FROM ratings WHERE account_id=? AND pool=?)",
+                    params![id, game.pool()],
+                    |r| r.get(0),
+                )
+                .map_err(internal)?;
+            if !exists {
+                missing += 1;
+            }
+        }
+        if count + missing > 12 {
+            return Err(bad(
+                "This lab has no room for four baseline AI accounts (12 per rules pool).",
+            ));
+        }
+        for ((id, policy), name) in bots.iter().zip(&policies).zip([
+            "Military baseline",
+            "Economy baseline",
+            "Expansion baseline",
+            "Wanderer baseline",
+        ]) {
+            tx.execute("INSERT OR IGNORE INTO accounts(id,name,kind,owner_id,policy,created) VALUES(?,?,'ai',?,?,?)",params![id,name,owner,policy,now()]).map_err(internal)?;
+            tx.execute(
+                "INSERT OR IGNORE INTO ratings(account_id,pool) VALUES(?,?)",
+                params![id, game.pool()],
+            )
+            .map_err(internal)?;
+        }
+        tx.commit().map_err(internal)?;
+    }
+    simulate_series(app, owner, input, policies, request)
+}
+
+#[cfg(test)]
+mod calibration_tests {
+    use super::*;
+    #[test]
+    fn calibration_rejects_unknown_owners_and_invalid_rotations() {
+        let app = App {
+            store: Arc::new(Store::open(":memory:").unwrap()),
+            dev_auth: false,
+            preview_code_hash: None,
+            registration_code_hash: None,
+            origin: "http://localhost:3000".into(),
+            nido: Arc::new(
+                nido::Config::new(false, "https://soroban-testnet.stellar.org".into()).unwrap(),
+            ),
+        };
+        let id = uuid::Uuid::new_v4().to_string();
+        assert!(calibrate(&app, "missing", 20, &id).is_err());
+        assert!(calibrate(&app, "missing", 3, &id).is_err());
+        assert!(calibrate(&app, "missing", 20, "invalid").is_err());
+    }
 }

@@ -84,7 +84,7 @@ struct User {
     development: bool,
 }
 fn user(app: &App, headers: &HeaderMap) -> ApiResult<User> {
-    let token = cookie(headers, "drawing_board_session").ok_or(ApiError(
+    let token = cookie(headers, "drawing_board_long_reach_session").ok_or(ApiError(
         StatusCode::UNAUTHORIZED,
         "Sign in to join the table.".into(),
     ))?;
@@ -240,7 +240,7 @@ fn create_test_session(
     let tx = db.transaction().map_err(internal)?;
     tx.execute("DELETE FROM sessions WHERE expires<=?", [now()])
         .map_err(internal)?;
-    if let Some(old) = cookie(headers, "drawing_board_session") {
+    if let Some(old) = cookie(headers, "drawing_board_long_reach_session") {
         tx.execute("DELETE FROM sessions WHERE token_hash=?", [digest(&old)])
             .map_err(internal)?;
     }
@@ -261,10 +261,10 @@ fn create_test_session(
     } else {
         ""
     };
-    Ok(([(header::SET_COOKIE,format!("drawing_board_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400{secure}"))],Json(json!({"ok":true}))).into_response())
+    Ok(([(header::SET_COOKIE,format!("drawing_board_long_reach_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400{secure}"))],Json(json!({"ok":true}))).into_response())
 }
 async fn logout(State(app): State<App>, headers: HeaderMap) -> ApiResult<Response> {
-    if let Some(token) = cookie(&headers, "drawing_board_session") {
+    if let Some(token) = cookie(&headers, "drawing_board_long_reach_session") {
         app.store
             .0
             .lock()
@@ -275,7 +275,7 @@ async fn logout(State(app): State<App>, headers: HeaderMap) -> ApiResult<Respons
     Ok((
         [(
             header::SET_COOKIE,
-            "drawing_board_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
+            "drawing_board_long_reach_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
         )],
         Json(json!({"ok":true})),
     )
@@ -537,6 +537,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if std::env::args().nth(1).as_deref() == Some("bootstrap-admin") {
         match invites::bootstrap(&app) {
             Ok(invite) => println!("{}", invite["url"].as_str().unwrap()),
+            Err(e) => return Err(e.1.into()),
+        }
+        return Ok(());
+    }
+    if std::env::args().nth(1).as_deref() == Some("calibrate-ai") {
+        let args: Vec<String> = std::env::args().skip(2).collect();
+        if args.len() != 3 {
+            return Err("Usage: server calibrate-ai OWNER_ID GAMES REQUEST_UUID".into());
+        }
+        let games: u8 = args[1].parse()?;
+        match arena::calibrate(&app, &args[0], games, &args[2]) {
+            Ok(result) => println!("{}", serde_json::to_string_pretty(&result)?),
             Err(e) => return Err(e.1.into()),
         }
         return Ok(());

@@ -1,56 +1,50 @@
-// Golden state hashes were captured from the unchanged browser rules at cb97f8b.
-// This checks the shared rule extraction against that independent prior version.
+// Mechanic and transport checks for the intentionally incompatible Long Reach rules.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const { createHash } = require('node:crypto');
 const root = path.join(__dirname, '..');
-const adapterSource = fs.readFileSync(path.join(root, 'prototypes/galactic-reach/adapter.js'), 'utf8');
-const source = fs.readFileSync(path.join(root, 'prototypes/galactic-reach/app.js'), 'utf8');
-function random() { let n = 1729; return () => ((n = (Math.imul(n,1664525)+1013904223)>>>0) / 2**32); }
 function engine() {
   const context = vm.createContext({});
-  vm.runInContext(adapterSource + source, context);
-  // Test instrumentation only: capture the private rule port. Never exported to policies.
+  vm.runInContext(fs.readFileSync(path.join(root,'prototypes/galactic-reach/adapter.js'),'utf8') + fs.readFileSync(path.join(root,'prototypes/galactic-reach/app.js'),'utf8'), context);
   const realAdapter = context.createGalacticAdapter;
-  let port;
-  context.createGalacticAdapter = e => { port = e; return realAdapter(e); };
-  const adapter = context.createGalacticReach({ headless: true, random: random() });
-  return { port, adapter };
+  let port, seed=1729;
+  context.createGalacticAdapter = e => {port=e;return realAdapter(e);};
+  const adapter=context.createGalacticReach({headless:true,random:()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32)});
+  return {port,adapter};
 }
-function hash(state) { return createHash('sha256').update(JSON.stringify(state)).digest('hex'); }
-function scenarios(port) {
-  const results = { initial: hash(port.state) };
-  const p = port.state.players[0];
-  p.resources = {matter:20, energy:20, biomass:20, data:20};
-  assert.equal(port.buildShip(0,'-7,0','frigate'),true);
-  assert.equal(port.buildShip(0,'-8,0','researcher'),true);
-  assert.equal(port.buildUpgrade(0,'-8,-1','warehouse'),true);
-  assert.equal(port.buildUpgrade(0,'-8,-1','warehouse'),true);
-  results.builds = hash(port.state);
-  port.state.fleets['0,0'] = {0:{scout:1,researcher:0,frigate:0,dreadnought:0}};
-  assert.equal(port.colonizePlanet(0,'0,0'),true);
-  assert.equal(port.colonizePlanet(0,'0,0'),false);
-  results.colony = hash(port.state);
-  port.state.phase = 'buy';
-  assert.equal(port.buyCard(0,'market',0),true);
-  assert.equal(port.upgradeStarter(0,p.hand.find(c=>c.starter).id),true);
-  results.buy = hash(port.state);
-  return results;
-}
-if (require.main === module) {
-  assert.deepEqual(scenarios(engine().port), JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/galactic-reach-v4.json'),'utf8')));
-  const {port,adapter} = engine();
-  const before = hash(port.state);
-  adapter.legalActions(0); adapter.observe(0);
-  assert.equal(hash(port.state),before,'Legal-action discovery must not mutate rules or resources');
-  const action = adapter.legalActions(0).find(a=>a.type==='resource');
-  if (action) {
-    const forged = JSON.parse(JSON.stringify(action)); forged.gain.data = 100;
-    assert.throws(()=>adapter.applyAction(0,forged),/Illegal action/);
-    assert.equal(hash(port.state),before);
-  }
-  console.log('Galactic Reach: v4 rule conformance and non-mutating legality passed.');
-}
-module.exports = {scenarios,random};
+const {port,adapter}=engine();
+assert.equal(adapter.rulesVersion,'galactic-reach/5.10');
+const before=JSON.stringify(port.state);
+adapter.legalActions(0);adapter.observe(0);
+assert.equal(JSON.stringify(port.state),before,'Observation and legality must not mutate state');
+const action=adapter.legalActions(0).find(a=>a.type==='resource');
+assert(action);
+assert.throws(()=>adapter.applyAction(0,{...action,gain:{data:100}}),/Illegal action/);
+assert.equal(JSON.stringify(port.state),before);
+// Retain direct coverage of construction, upgrades, colonization, and purchases.
+const e=engine().port, home=e.state.clusters[0], p=e.state.players[0];
+p.resources={matter:20,energy:20,biomass:20,data:20};
+assert(e.buildShip(0,home.coords[1],'frigate'));
+assert(e.buildShip(0,home.center,'researcher'));
+assert(e.buildUpgrade(0,home.coords[2],'warehouse'));
+assert(e.buildUpgrade(0,home.coords[2],'warehouse'));
+const center=e.state.clusters[4].center;
+e.state.fleets[center]={0:{scout:1,researcher:0,frigate:0,dreadnought:0}};
+assert(e.colonizePlanet(0,center));assert(!e.colonizePlanet(0,center));
+e.state.phase='buy';assert(e.buyCard(0,'market',0));assert(e.upgradeStarter(0,p.hand.find(c=>c.starter).id));
+// Open offers and free responses use exactly the same rule functions in the arena.
+const t=engine();
+for (const player of t.port.state.players) player.resources={matter:3,energy:3,biomass:0,data:0};
+const offer=t.adapter.legalActions(0).find(a=>a.type==='trade_offer'&&a.giveType==='matter'&&a.getType==='energy'&&a.giveAmount===2&&a.getAmount===1);
+assert(offer);
+t.adapter.applyAction(0,offer); assert.equal(t.adapter.activeSeat(),1);
+assert.equal(t.adapter.observe(1).tradeOffers[0].status,'open');
+const accept=t.adapter.legalActions(1).find(a=>a.type==='trade_accept');assert(accept);
+assert.throws(()=>t.adapter.applyAction(2,accept),/Illegal action/);
+t.adapter.applyAction(1,accept);
+assert.equal(t.adapter.activeSeat(),1,'Responding does not consume an order');
+assert.equal(t.port.state.players[1].resources.matter,5);
+assert.throws(()=>t.adapter.applyAction(1,accept),/Illegal action/,'An accepted offer cannot settle twice');
+assert(!t.adapter.legalActions(1).some(a=>a.type==='trade_accept'));
+console.log('Galactic Reach: mechanics, non-mutating legality, forged commands, shared open trades, and single settlement passed.');

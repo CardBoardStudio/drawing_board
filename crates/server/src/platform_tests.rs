@@ -322,7 +322,7 @@ async fn arena_enforces_ownership_pairs_seats_and_rates_exactly_once() {
             &a,
             "GET",
             "/api/account",
-            "drawing_board_session=forged",
+            "drawing_board_long_reach_session=forged",
             json!({})
         )
         .await

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#070b13">
   <title>Galactic Reach · 6.11 · Long Reach experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=long-reach-6-11">
+  <link rel="stylesheet" href="styles.css?v=long-reach-6-11-replay">
 </head>
 <body>
   <a class="skip-link" href="#console">Skip to player controls</a>
@@ -41,6 +41,7 @@
             <span id="turn-instruction">Please wait…</span>
           </div>
           <button class="button button-danger" id="pass-button" type="button" hidden>Pass for round</button>
+          <button class="button button-ghost" id="report-button" type="button" hidden>Combat report</button>
         </div>
         <div class="board-stage">
           <div class="galaxy-board" id="galaxy-board" aria-label="Interactive galaxy map" aria-describedby="resource-legend symbol-legend"></div>
@@ -51,7 +52,7 @@
       <aside class="command-column">
         <section class="panel resource-panel">
           <div class="panel-heading">
-            <div><div class="eyebrow">YOUR COMMAND</div><h2>Resources</h2></div>
+            <div><div class="eyebrow" id="command-eyebrow">YOUR COMMAND</div><h2>Resources</h2></div>
             <div class="storage-summary">
               <span class="capacity" id="capacity-value">0 of 10 stored</span>
               <div class="capacity-meter" id="capacity-meter" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" aria-label="0 of 10 resource storage used"><span id="capacity-fill"></span></div>
@@ -98,7 +99,7 @@
       <div class="console-body">
         <div class="tab-panel active" id="hand-panel" data-panel="hand" role="tabpanel" aria-labelledby="hand-tab" tabindex="0">
           <div class="section-intro">
-            <div><h2>Your hand</h2><p id="hand-help">Cards may be converted into resources at any time during your Operations turn, or used for their printed order.</p></div>
+            <div><h2 id="hand-title">Your hand</h2><p id="hand-help">Cards may be converted into resources at any time during your Operations turn, or used for their printed order.</p></div>
             <div class="hand-tools"><button class="button" id="skip-colony-build" hidden>Finish without building</button>
               <div class="pile-stats" aria-label="Your card piles">
                 <span>Deck <strong id="deck-count">0</strong></span>
@@ -208,7 +209,8 @@
         <div class="map-legend symbol-legend" id="symbol-legend" aria-label="Ship and building symbol legend"></div>
   </dialog>
 
-  <script src="table.js?v=long-reach-6-11"></script>
-  <script src="app.js?v=long-reach-6-11"></script>
+  <script src="table.js?v=long-reach-6-11-replay"></script>
+  <script src="replay.js?v=long-reach-6-11-replay"></script>
+  <script src="app.js?v=long-reach-6-11-replay"></script>
 </body>
 </html>

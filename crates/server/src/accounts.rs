@@ -17,7 +17,7 @@ fn random_key() -> String {
     rand::rngs::OsRng.fill_bytes(&mut bytes);
     format!("dbk_{}", hex::encode(bytes))
 }
-fn rate_limit(db: &Connection) -> ApiResult<()> {
+pub fn rate_limit(db: &Connection) -> ApiResult<()> {
     // A global bound also limits attempts from clients without cookies. No trust
     // is placed in spoofable proxy headers. Random keys resist offline guessing.
     db.execute("INSERT INTO auth_limits VALUES('accounts',?,1) ON CONFLICT(bucket) DO UPDATE SET attempts=CASE WHEN window=excluded.window THEN attempts+1 ELSE 1 END, window=excluded.window", [now()/60]).map_err(internal)?;

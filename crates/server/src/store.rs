@@ -14,6 +14,7 @@ impl Store {
         CREATE TABLE IF NOT EXISTS login_challenges(token_hash TEXT PRIMARY KEY, account TEXT, message TEXT, expires INTEGER NOT NULL);
         CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, development INTEGER NOT NULL, expires INTEGER NOT NULL);")?;
         crate::accounts::migrate(&db)?;
+        crate::nido::migrate(&db)?;
         crate::arena::migrate(&db)?;
         db.busy_timeout(std::time::Duration::from_secs(5))?;
         Ok(Self(Mutex::new(db)))

@@ -4,7 +4,7 @@ The shared library at `/` links to Galactic Reach at `/galactic-reach/` and Void
 
 ## Account lifecycle
 
-An `accounts` row outlives its sessions. Human accounts use either an enrolled Nido identity or a server-generated random 256-bit recovery key. Display names are not unique and are never credentials. Only SHA-256 hashes of recovery keys and session tokens are stored. New keys are returned once over the authenticated response and are not stored in browser storage. Save them in a password manager: there is no email recovery or password-reset service.
+An `accounts` row outlives its sessions. Human accounts use either a live-verified Nido testnet identity or a server-generated random 256-bit recovery key. Display names are not unique and are never credentials. Only SHA-256 hashes of recovery keys and session tokens are stored. New keys are returned once over the authenticated response and are not stored in browser storage. Save them in a password manager: there is no email recovery or password-reset service.
 
 Registration is open in loopback development. Shared hosts require `ACCOUNT_REGISTRATION_CODE` (at least 24 characters), or the existing preview access code on Render PR previews. Login with an existing recovery key remains available when enrollment closes. Keep enrollment codes outside the repository. Auth requests are globally limited to 120 per minute; this is a small private-playtest limit, not distributed abuse protection.
 

@@ -2,6 +2,7 @@ mod accounts;
 mod arena;
 mod config;
 mod nido;
+mod nido_chain;
 #[cfg(test)]
 mod platform_tests;
 mod store;
@@ -33,8 +34,9 @@ struct App {
     preview_code_hash: Option<[u8; 32]>,
     registration_code_hash: Option<[u8; 32]>,
     origin: String,
-    nido: Arc<nido::TrustedSigners>,
+    nido: Arc<nido::Config>,
 }
+#[derive(Debug)]
 struct ApiError(StatusCode, String);
 type ApiResult<T> = Result<T, ApiError>;
 impl IntoResponse for ApiError {
@@ -135,7 +137,17 @@ async fn protect(State(app): State<App>, request: axum::extract::Request, next: 
             return ApiError(StatusCode::FORBIDDEN, "Origin not allowed.".into()).into_response();
         }
     }
-    let mut response = next.run(request).await;
+    let check = if request.uri().path().starts_with("/api/")
+        && !request.uri().path().starts_with("/api/auth/")
+    {
+        nido::check_session(&app, request.headers()).await
+    } else {
+        Ok(())
+    };
+    let mut response = match check {
+        Ok(()) => next.run(request).await,
+        Err(e) => e.into_response(),
+    };
     response
         .headers_mut()
         .insert(header::CACHE_CONTROL, "no-store".parse().unwrap());
@@ -164,7 +176,7 @@ async fn session(State(app): State<App>, headers: HeaderMap) -> Json<SessionInfo
         }),
         dev_auth: app.dev_auth,
         preview_auth: app.preview_code_hash.is_some(),
-        nido_available: !app.nido.is_empty(),
+        nido_available: app.nido.enabled,
         registration_available: app.dev_auth
             || app.registration_code_hash.is_some()
             || app.preview_code_hash.is_some(),
@@ -549,7 +561,9 @@ mod tests {
             preview_code_hash: None,
             registration_code_hash: None,
             origin: "http://127.0.0.1:3000".into(),
-            nido: Arc::new(Default::default()),
+            nido: Arc::new(
+                nido::Config::new(false, "https://soroban-testnet.stellar.org".into()).unwrap(),
+            ),
         }
     }
     pub(super) async fn call(

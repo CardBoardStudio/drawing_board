@@ -1051,3 +1051,9 @@ main:focus {
 .arena-picker { margin-bottom: 24px; }
 .arena-picker select { max-width: 440px; }
 .series summary { overflow-wrap: anywhere; }
+
+.nido-signin { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:24px; border-color:var(--cyan); }
+.nido-signin > div { min-width:0; }
+.nido-signin .primary { flex-shrink:0; }
+.nido-signin p { max-width:650px; }
+@media (max-width:700px) { .nido-signin { align-items:stretch; flex-direction:column; } }

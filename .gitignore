@@ -33,3 +33,6 @@ trusted-signers.local.json
 
 # Local checkout used to publish the hosted playtest
 /sites/
+
+# Private local HTTPS host: credentials, persistent data, launchd logs
+.local/

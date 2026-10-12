@@ -11,3 +11,8 @@
 !prototypes/galactic-reach/index.html
 !prototypes/galactic-reach/styles.css
 !prototypes/galactic-reach/app.js
+
+!prototypes/lab/
+!prototypes/lab/**
+
+!prototypes/galactic-reach/adapter.js

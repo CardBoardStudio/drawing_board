@@ -13,6 +13,12 @@ impl Store {
         CREATE TABLE IF NOT EXISTS events(game_id TEXT NOT NULL, revision INTEGER NOT NULL, payload TEXT NOT NULL, previous_hash TEXT NOT NULL, hash TEXT NOT NULL, PRIMARY KEY(game_id,revision));
         CREATE TABLE IF NOT EXISTS login_challenges(token_hash TEXT PRIMARY KEY, account TEXT, message TEXT, expires INTEGER NOT NULL);
         CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY, user_id TEXT NOT NULL, name TEXT NOT NULL, development INTEGER NOT NULL, expires INTEGER NOT NULL);")?;
+        crate::accounts::migrate(&db)?;
+        crate::nido::migrate(&db)?;
+        crate::invites::migrate(&db)?;
+        crate::tables::migrate(&db)?;
+        crate::arena::migrate(&db)?;
+        db.busy_timeout(std::time::Duration::from_secs(5))?;
         Ok(Self(Mutex::new(db)))
     }
     pub fn load(db: &Connection, id: &str) -> Result<Game, String> {
@@ -85,6 +91,35 @@ mod tests {
             assert_eq!(
                 Store::load(&store.0.lock().unwrap(), "saved").unwrap(),
                 game
+            );
+        }
+        std::fs::remove_file(path).unwrap();
+    }
+    #[test]
+    fn existing_session_database_migrates_without_changing_identities() {
+        let path = std::env::temp_dir().join(format!(
+            "drawing-board-migration-{}.sqlite",
+            uuid::Uuid::new_v4()
+        ));
+        {
+            let db = Connection::open(&path).unwrap();
+            db.execute_batch("CREATE TABLE sessions(token_hash TEXT PRIMARY KEY,user_id TEXT NOT NULL,name TEXT NOT NULL,development INTEGER NOT NULL,expires INTEGER NOT NULL); INSERT INTO sessions VALUES('hash','nido:existing','Existing pilot',0,9999999999);").unwrap();
+        }
+        for _ in 0..2 {
+            let store = Store::open(path.to_str().unwrap()).unwrap();
+            let db = store.0.lock().unwrap();
+            let row: (String, String) = db
+                .query_row(
+                    "SELECT id,name FROM accounts WHERE id='nido:existing'",
+                    [],
+                    |r| Ok((r.get(0)?, r.get(1)?)),
+                )
+                .unwrap();
+            assert_eq!(row, ("nido:existing".into(), "Existing pilot".into()));
+            assert_eq!(
+                db.query_row("SELECT count(*) FROM sessions", [], |r| r.get::<_, u32>(0))
+                    .unwrap(),
+                1
             );
         }
         std::fs::remove_file(path).unwrap();

@@ -22,7 +22,7 @@ def request(path, body=None, cookie="", origin=ORIGIN):
         headers["Content-Type"] = "application/json"
     req = urllib.request.Request(BASE + path, data=data, headers=headers)
     try:
-        response = urllib.request.urlopen(req, timeout=10)
+        response = urllib.request.urlopen(req, timeout=120)
     except urllib.error.HTTPError as error:
         response = error
     with response:
@@ -51,11 +51,12 @@ for attempt in range(60):
 else:
     raise RuntimeError("The container never became healthy")
 
-for path, content_type in [("/", "text/html"), ("/styles.css", "text/css"), ("/app.js", "javascript"), ("/pkg/web.js", "javascript"), ("/pkg/web_bg.wasm", "application/wasm")]:
+for path, content_type in [("/", "text/html"), ("/galactic-reach/styles.css", "text/css"), ("/galactic-reach/app.js", "javascript"), ("/lab/lab.js", "javascript"), ("/voidwright/", "text/html"), ("/pkg/web.js", "javascript"), ("/pkg/web_bg.wasm", "application/wasm")]:
     status, headers, body = request(path)
     assert status == 200 and content_type in headers["Content-Type"] and len(body) > 100, path
 
-assert b"Galactic Reach" in request("/")[2]
+assert b"Drawing Board" in request("/")[2]
+assert b"Galactic Reach" in request("/galactic-reach/")[2]
 
 session = request("/api/session")[2]
 assert session["preview_auth"] and not session["dev_auth"]
@@ -95,3 +96,48 @@ assert request(path, cookie=bob)[2]["your_turn"]
 assert request("/api/auth/logout", {}, alice)[0] == 200
 assert request(path, cookie=alice)[0] == 401
 print("Container smoke passed: assets, preview access, two-player game, private views, purchase, turn handoff, logout.")
+
+# Persistent identity and authoritative arena through the packaged HTTP surface.
+status, headers, created = request('/api/accounts/register', {'name': 'Arena pilot', 'code': CODE})
+assert status == 200
+account_cookie = http.cookies.SimpleCookie(headers['Set-Cookie'])['drawing_board_session'].value
+account_cookie = f'drawing_board_session={account_cookie}'
+account_id = request('/api/account', cookie=account_cookie)[2]['id']
+key = created['recovery_key']
+assert request('/api/auth/logout', {}, account_cookie)[0] == 200
+status, headers, _ = request('/api/accounts/login', {'recovery_key': key})
+assert status == 200
+account_cookie = 'drawing_board_session=' + http.cookies.SimpleCookie(headers['Set-Cookie'])['drawing_board_session'].value
+assert request('/api/account', cookie=account_cookie)[2]['id'] == account_id
+bots = []
+for strategy in ['explorer', 'kepler']:
+    status, _, bot = request('/api/arena/bots', {'name': strategy, 'strategy': strategy}, account_cookie)
+    assert status == 200
+    bots.append(bot['id'])
+import uuid
+series = {'request_id': str(uuid.uuid4()), 'bots': bots, 'games': 2}
+status, _, result = request('/api/arena/series', series, account_cookie)
+assert status == 200 and len(result['matches']) == 2
+assert request('/api/arena/series', series, account_cookie)[2] == result
+ladder = request('/api/arena', cookie=account_cookie)[2]
+assert all(bot['games'] == 2 for bot in ladder['bots'])
+assert len(ladder['series']) == 1
+print('Platform smoke passed: account recovery, AI accounts, paired matches, persisted Elo, duplicate-safe retry.')
+
+# The packaged binary embeds the exact browser rules; no Node runtime is needed.
+gr_bots = []
+for policy in ['gr-military', 'gr-economy', 'gr-expansion', 'gr-wanderer']:
+    status, _, bot = request('/api/arena/bots', {'name': policy, 'strategy': policy, 'game': 'galactic-reach'}, account_cookie)
+    assert status == 200, bot
+    gr_bots.append(bot['id'])
+gr_series = {'request_id': str(uuid.uuid4()), 'game': 'galactic-reach', 'bots': gr_bots, 'games': 4}
+status, _, gr_result = request('/api/arena/series', gr_series, account_cookie)
+assert status == 200, gr_result
+assert len(gr_result['matches']) == 4
+assert all(m['result']['rules_version'] == 'galactic-reach/4.9' for m in gr_result['matches'])
+assert request('/api/arena/series', gr_series, account_cookie)[2] == gr_result
+gr_ladder = request('/api/arena?game=galactic-reach', cookie=account_cookie)[2]
+assert len(gr_ladder['bots']) == 4 and all(b['games'] == 4 for b in gr_ladder['bots'])
+assert abs(sum(b['elo'] for b in gr_ladder['bots']) - 4800) < 1e-8
+assert request('/api/arena', cookie=account_cookie)[2] == ladder
+print('Second adapter smoke passed: four-player Galactic Reach, seat rotation, separate Elo, exact-once retry.')

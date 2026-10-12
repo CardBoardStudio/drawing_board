@@ -564,7 +564,7 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
 @media (max-width: 760px) {
   .app-shell { padding: 10px; }
   .topbar { grid-template-columns: 1fr; }
-  .header-actions { position: absolute; top: 13px; right: 10px; }
+  .header-actions { position: static; justify-content: flex-start; flex-wrap: wrap; }
   .header-actions .button { padding: 7px 9px; }
   .round-block { grid-column: 1; overflow: auto; }
   .score-ribbon { grid-template-columns: repeat(2,1fr); }
@@ -599,4 +599,26 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
   .rules-grid { grid-template-columns: 1fr; }
   .vote-power { grid-template-columns: 1fr 75px; }
   .vote-power span { grid-column: 1 / -1; }
+}
+
+.table-save-bar { position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:16px 24px; border-bottom:1px solid #27445c; background:#101b2b; color:#dbeaf8; }
+.table-save-bar strong { overflow-wrap:anywhere; }
+.table-save-bar #table-sync { flex:1; min-width:160px; font-size:13px; }
+.app-shell[inert] { opacity:.45; }
+
+@media (max-width: 760px) {
+  .tooltip-anchor::after {
+    position: fixed; left: 16px; right: 16px; bottom: 16px;
+    width: auto; max-width: none; transform: none;
+  }
+  .tooltip-anchor:hover::after, .tooltip-anchor:focus-visible::after,
+  .tooltip-anchor:focus-within::after { transform: none; }
+}
+@media (min-width: 1600px) and (min-height: 850px) {
+  body.has-saved-table { display: flex; flex-direction: column; }
+  .has-saved-table .table-save-bar { flex: none; }
+  .has-saved-table .app-shell { height: auto; flex: 1; min-height: 0; }
+  .has-saved-table .board-stage { container-type: size; }
+  /* The 19 staggered rows need about 0.95 units of height per unit of width. */
+  .has-saved-table .galaxy-board { width: min(83cqw, calc((100cqh - 8px) * 1.05), 960px); }
 }

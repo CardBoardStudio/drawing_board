@@ -1,5 +1,13 @@
-(() => {
-  'use strict';
+// Browser UI and authoritative adapter share these exact rules.
+'use strict';
+function createGalacticReach(options = {}) {
+  const headless = options.headless === true;
+  const random = options.random || Math.random;
+  let storage = options.storage;
+  if (!headless && !storage) {
+    try { storage = globalThis.localStorage; } catch (_) {}
+  }
+  const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
   const SAVE_FORMAT_VERSION = 4;
   const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
@@ -177,7 +185,7 @@
   function shuffled(array) {
     const copy = [...array];
     for (let i = copy.length - 1; i > 0; i -= 1) {
-      const j = Math.floor(Math.random() * (i + 1));
+      const j = Math.floor(random() * (i + 1));
       [copy[i], copy[j]] = [copy[j], copy[i]];
     }
     return copy;
@@ -266,16 +274,20 @@
   }
 
   function saveGame() {
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (_) {}
+    if (headless) return;
+    try { storage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (_) {}
+    options.onSave?.({state, turnHistory});
   }
 
   function saveTurnHistory() {
-    try { localStorage.setItem(TURN_HISTORY_KEY, JSON.stringify(turnHistory)); } catch (_) {}
+    if (headless) return;
+    try { storage.setItem(TURN_HISTORY_KEY, JSON.stringify(turnHistory)); } catch (_) {}
+    options.onSave?.({state, turnHistory});
   }
 
   function loadTurnHistory() {
     try {
-      const raw = localStorage.getItem(TURN_HISTORY_KEY);
+      const raw = storage.getItem(TURN_HISTORY_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object') {
@@ -289,10 +301,11 @@
 
   function clearTurnHistory() {
     turnHistory = { pending: null, undo: null };
-    try { localStorage.removeItem(TURN_HISTORY_KEY); } catch (_) {}
+    try { storage.removeItem(TURN_HISTORY_KEY); } catch (_) {}
   }
 
   function captureHumanTurn(label) {
+    if (headless) return;
     turnHistory.pending = { state: clone(state), cardSerial, label };
     saveTurnHistory();
   }
@@ -323,7 +336,7 @@
 
   function loadGame() {
     try {
-      const raw = localStorage.getItem(SAVE_KEY);
+      const raw = storage.getItem(SAVE_KEY);
       if (!raw) return false;
       const parsed = JSON.parse(raw);
       if (!parsed || parsed.version !== SAVE_FORMAT_VERSION) return false;
@@ -828,11 +841,12 @@
   }
 
   function scheduleAiTurn(phase, action, delay) {
+    if (headless) return;
     clearTimeout(aiTimer);
     const expectedPlayer = state.activePlayer;
     aiTimer = setTimeout(() => {
       aiTimer = null;
-      if (state.phase !== phase || state.activePlayer !== expectedPlayer || state.winner !== null) return;
+      if (options.paused?.() || state.phase !== phase || state.activePlayer !== expectedPlayer || state.winner !== null) return;
       try {
         action();
       } catch (error) {
@@ -968,11 +982,11 @@
     })[0]||null;
   }
 
-  function resolveHumanSpecial(card, definition) {
-    const player = state.players[0];
+  function resolveHumanSpecial(card, definition, playerId = 0) {
+    const player = state.players[playerId];
     if (definition.tag === 'surge') {
       const byCluster = new Map();
-      controlledPlanets(0).forEach(([key,planet]) => {
+      controlledPlanets(playerId).forEach(([key,planet]) => {
         if (planet.occupiedBy !== null) return;
         if (!byCluster.has(planet.cluster)) byCluster.set(planet.cluster, []);
         byCluster.get(planet.cluster).push(planet);
@@ -982,18 +996,18 @@
       best.slice(0,3).forEach(planet => { gain[planet.type] = (gain[planet.type] || 0) + (planet.rich ? 2 : 1); });
       const result = addResources(player,gain);
       removeHandCard(player, card.id);
-      completeAction(0, `You used Industrial Surge on ${Math.min(3,best.length)} planets.${overflowNote(result)}`);
+      completeAction(playerId, `You used Industrial Surge on ${Math.min(3,best.length)} planets.${overflowNote(result)}`);
     } else if (definition.tag === 'foresight') {
       drawCards(player, 3);
       if (player.hand.length) player.discard.push(player.hand.shift());
       removeHandCard(player, card.id);
-      completeAction(0, 'You used Tactical Foresight to reshape your hand.');
+      completeAction(playerId, 'You used Tactical Foresight to reshape your hand.');
     } else if (definition.tag === 'brokerage') {
       const trashTarget = player.discard.find(c => BASIC_CARDS[c.key] && !c.starter);
       if (trashTarget) player.discard.splice(player.discard.indexOf(trashTarget),1);
       drawCards(player,2);
       removeHandCard(player, card.id);
-      completeAction(0, `You used Data Brokerage${trashTarget ? ` and removed ${ALL_CARDS[trashTarget.key].name}` : ''}.`);
+      completeAction(playerId, `You used Data Brokerage${trashTarget ? ` and removed ${ALL_CARDS[trashTarget.key].name}` : ''}.`);
     } else if (definition.tag === 'uplink') {
       const basic = player.discard.find(c => BASIC_CARDS[c.key]);
       if (basic) {
@@ -1001,7 +1015,7 @@
         player.hand.push(basic);
       }
       removeHandCard(player, card.id);
-      completeAction(0, `You activated Command Uplink${basic ? ` and recovered ${ALL_CARDS[basic.key].name}` : ''}.`);
+      completeAction(playerId, `You activated Command Uplink${basic ? ` and recovered ${ALL_CARDS[basic.key].name}` : ''}.`);
     } else if (definition.tag === 'terraform') {
       state.actionMode = 'terraform';
       state.actionCardId = card.id;
@@ -1017,7 +1031,7 @@
         addResources(player,{ data: 1 });
       }
       removeHandCard(player, card.id);
-      completeAction(0, 'You used the Trade Consortium network.');
+      completeAction(playerId, 'You used the Trade Consortium network.');
     }
   }
 
@@ -1263,7 +1277,7 @@
     if (attackerId === 0 || defenderId === 0) showMessage('COMBAT REPORT', nameForCoord(coord), [...summary,outcome].join(' '));
   }
 
-  function colonizePlanet(playerId, coord, options = {}) {
+  function colonizePlanet(playerId, coord, options = {}, dryRun = false) {
     const player = state.players[playerId];
     const planet = state.planets[coord];
     const fleet = getFleet(coord,playerId);
@@ -1272,7 +1286,9 @@
     if (planet.owner !== null && !capture) return false;
     if (planet.owner === null && hasBuilding(planet)) return false;
     const cost = { biomass: capture ? 1 : (options.tag === 'dropColony' ? 1 : 2) };
-    if (!payCost(player,cost)) return false;
+    if (!canAfford(player,cost)) return false;
+    if (dryRun) return true;
+    payCost(player,cost);
     if (options.tag !== 'dropColony') fleet.scout -= 1;
     if (!fleetCount(fleet)) {
       delete state.fleets[coord][playerId];
@@ -1305,7 +1321,7 @@
     return countPlacedShips(playerId,type) < limits[type];
   }
 
-  function buildUpgrade(playerId, coord, type, discountMatter = 0) {
+  function buildUpgrade(playerId, coord, type, discountMatter = 0, dryRun = false) {
     const player = state.players[playerId];
     const planet = state.planets[coord];
     if (type === 'research') return false;
@@ -1314,7 +1330,9 @@
     if (!improving && !canBuildStructureAt(playerId,coord)) return false;
     const policyDiscount = state.activePolicy?.id === 'frontier_grants' && !player.policyBuildDiscountUsed ? 1 : 0;
     const cost = improving ? STRUCTURES[type].upgradeCost : STRUCTURES[type].cost;
-    if (!payCost(player,cost,0,discountMatter + policyDiscount)) return false;
+    if (!canAfford(player,cost,0,discountMatter + policyDiscount)) return false;
+    if (dryRun) return true;
+    payCost(player,cost,0,discountMatter + policyDiscount);
     if (planet.owner === null) {
       planet.owner = playerId;
       planet.originalFounder = null;
@@ -1328,12 +1346,14 @@
     return true;
   }
 
-  function buildResearchStation(playerId, coord) {
+  function buildResearchStation(playerId, coord, dryRun = false) {
     const player = state.players[playerId];
     const planet = state.planets[coord];
     const fleet = getFleet(coord,playerId);
     if (!planet || planet.special !== 'relic' || hasBuilding(planet) || !fleet?.researcher) return false;
-    if (!payCost(player,STRUCTURES.research.cost)) return false;
+    if (!canAfford(player,STRUCTURES.research.cost)) return false;
+    if (dryRun) return true;
+    payCost(player,STRUCTURES.research.cost);
     fleet.researcher -= 1;
     if (!fleetCount(fleet)) {
       delete state.fleets[coord][playerId];
@@ -1357,14 +1377,16 @@
     return true;
   }
 
-  function buildShip(playerId, coord, type, discountEnergy = 0) {
+  function buildShip(playerId, coord, type, discountEnergy = 0, dryRun = false) {
     const player = state.players[playerId];
     const planet = state.planets[coord];
     const fleet = getFleet(coord,playerId);
     if (!planet || planet.owner !== playerId || planet.occupiedBy !== null) return false;
     if (type === 'researcher' ? !canLaunchResearcher(playerId,coord) : planet.upgrade !== 'starbase') return false;
     const policyDiscount = state.activePolicy?.id === 'frontier_grants' && !player.policyBuildDiscountUsed ? 1 : 0;
-    if (fleetCount(fleet) >= 5 || !canPlaceShip(playerId,type) || !payCost(player,SHIP_STATS[type].cost,0,policyDiscount,discountEnergy)) return false;
+    if (fleetCount(fleet) >= 5 || !canPlaceShip(playerId,type) || !canAfford(player,SHIP_STATS[type].cost,0,policyDiscount,discountEnergy)) return false;
+    if (dryRun) return true;
+    payCost(player,SHIP_STATS[type].cost,0,policyDiscount,discountEnergy);
     ensureFleet(coord,playerId)[type] += 1;
     player.tracks.expansion += 1;
     if (policyDiscount) player.policyBuildDiscountUsed = true;
@@ -1634,11 +1656,11 @@
     return true;
   }
 
-  function useBuyEffect(cardId) {
-    const player = state.players[0];
+  function useBuyEffect(cardId, playerId = 0) {
+    const player = state.players[playerId];
     const card = player.hand.find(c=>c.id===cardId);
     const definition = card && ALL_CARDS[card.key];
-    if (!definition?.buyEffect || state.phase !== 'buy' || state.activePlayer !== 0) return;
+    if (!definition?.buyEffect || state.phase !== 'buy' || state.activePlayer !== playerId) return;
     if (definition.buyEffect === 'procurement') player.buyLimit = 2;
     if (definition.buyEffect === 'manipulation' && !player.marketManipulated) {
       player.marketManipulated = true;
@@ -1740,6 +1762,7 @@
     state.phase = 'policy';
     const choices = POLICY_PAIRS[state.policyCycle % POLICY_PAIRS.length];
     state.pendingPolicyChoices = choices.map(policy=>({ ...policy }));
+    if (headless) { state.activePlayer = 0; state.arenaVotes = []; return; }
     const container = $('#policy-choices');
     container.innerHTML = choices.map((policy,index)=>`<label class="choice-card"><input type="radio" name="policy-choice" value="${index}" ${index===0?'checked':''}><span class="choice-kicker">${TRACKS[policy.track].name}</span><strong>${policy.name}</strong><small>${policy.text}</small><em>${state.players[0].tracks[policy.track]} points available</em></label>`).join('');
     const syncLimit = () => {
@@ -1771,6 +1794,11 @@
       player.tracks[track] -= bid;
       totals[choice] += bid;
     });
+    enactPolicy(totals);
+  }
+
+  function enactPolicy(totals) {
+    const choices = state.pendingPolicyChoices;
     let winner = totals[1] > totals[0] ? 1 : 0;
     if (totals[0] === totals[1]) winner = state.firstPlayer % 2;
     state.activePolicy = { ...choices[winner], enactedRound: state.round };
@@ -1783,6 +1811,7 @@
   function startDirectiveChoice() {
     state.phase = 'directive';
     const chooser = state.firstPlayer;
+    if (headless) { state.activePlayer = chooser; return; }
     if (chooser !== 0) {
       const strategy = state.players[chooser].strategy;
       const type = strategy === 'military' ? 'technology' : strategy === 'economy' ? 'economy' : 'expansion';
@@ -1802,7 +1831,7 @@
   function applyDirective(type, chooser) {
     const directive = DIRECTIVES[type];
     state.players.forEach((player,id)=>addResources(player,id===chooser?directive.primary:directive.secondary));
-    if ($('#directive-dialog').open) $('#directive-dialog').close();
+    if (!headless && $('#directive-dialog').open) $('#directive-dialog').close();
     logEvent(`${state.players[chooser].name} chose ${directive.name}; every faction received a benefit.`);
     finishRound();
   }
@@ -1866,6 +1895,7 @@
   }
 
   function showMessage(kicker,title,body) {
+    if (headless) return;
     $('#message-kicker').textContent = kicker;
     $('#message-title').textContent = title;
     $('#message-body').textContent = body;
@@ -1874,6 +1904,7 @@
   }
 
   function toast(message, cost = null, suffix = '') {
+    if (headless) return;
     const existing = document.querySelector('.toast');
     if (existing) existing.remove();
     const node = document.createElement('div');
@@ -2185,6 +2216,7 @@
   }
 
   function render() {
+    if (headless) return;
     renderHeader(); renderScoreboard(); renderBoard(); renderResources(); renderInspector(); renderAwards(); renderPolitics(); renderLog(); renderHand(); renderMarket(); renderFleetSummary(); renderTrade();
   }
 
@@ -2202,6 +2234,7 @@
     $('#discard-button').addEventListener('click',()=>$('#discard-dialog').showModal());
     $('#close-discard').addEventListener('click',()=>$('#discard-dialog').close());
     $('#new-game-button').addEventListener('click',()=>{
+      if (options.newTable) { options.newTable(); return; }
       if(!confirm('Start a new game and replace the current save?'))return;
       clearTurnHistory();
       state=newState(); fillMarket(); logEvent('The four factions entered the Reach.'); saveGame(); render(); beginRound();
@@ -2234,9 +2267,27 @@
     });
   }
 
+  if (headless) {
+    state = newState();
+    fillMarket();
+    beginRound();
+    return createGalacticAdapter({
+      get state() { return state; },
+      clone, ALL_CARDS, BASIC_CARDS, STRUCTURES, SHIP_STATS, DIRECTIVES, RESOURCES,
+      canAfford, cardResources, resourceGainTotal, remainingResourceCapacity, addResources,
+      removeHandCard, passOperations, completeAction, nextBuyPlayer, buyCard, upgradeStarter,
+      decommission, exchangeRelic, researchStationCount, useBuyEffect, resolveHumanSpecial,
+      colonizePlanet, buildUpgrade, buildResearchStation, buildShip, getFleet, fleetCount,
+      fleetGroup, fleetMove, fleetPower, reachableFrom, executeMove, nearestUnscannedRelicCluster,
+      clusterKnown, clusterScanned, relicCoordInCluster, calculatePrestige, colonyPlanets,
+      totalResources, playerCapacity, applyDirective, enactPolicy
+    });
+  }
+
   wireUi();
   loadTurnHistory();
   if (!loadGame()) {
+    if (options.requireSave) throw new Error("The saved table could not be loaded. Your server save has been preserved.");
     clearTurnHistory();
     state=newState();
     fillMarket();
@@ -2247,7 +2298,11 @@
   } else {
     fillMarket();
     render();
-    if (!state.winner && state.activePlayer !== 0 && state.phase === 'operations') scheduleAiTurn('operations', runAiOperation, 650);
-    if (!state.winner && state.activePlayer !== 0 && state.phase === 'buy') scheduleAiTurn('buy', runAiBuy, 650);
+    if (state.winner === null && state.phase === 'policy') startPolicyVote();
+    if (state.winner === null && state.phase === 'directive') startDirectiveChoice();
+    if (state.winner === null && state.activePlayer !== 0 && state.phase === 'operations') scheduleAiTurn('operations', runAiOperation, 650);
+    if (state.winner === null && state.activePlayer !== 0 && state.phase === 'buy') scheduleAiTurn('buy', runAiBuy, 650);
   }
-})();
+ }
+if (typeof module !== 'undefined' && module.exports) module.exports = createGalacticReach;
+else if (typeof document !== 'undefined' && !globalThis.drawingBoardTableBoot) createGalacticReach();

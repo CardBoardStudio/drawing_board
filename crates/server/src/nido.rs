@@ -1,29 +1,57 @@
-//! Nido's message-signing handoff, with explicit trust anchors for private playtests.
-//! A wallet-supplied public key is NEVER an identity authority.
+//! Browser-bound Nido message authentication against live testnet ownership.
+pub use crate::nido_chain::Config;
 use crate::*;
 use axum::{extract::Query, response::Redirect};
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use p256::ecdsa::{Signature, VerifyingKey, signature::Verifier};
-use std::collections::BTreeMap;
+use rusqlite::OptionalExtension;
 
-pub type TrustedSigners = BTreeMap<String, Vec<String>>;
-pub fn load_config() -> Result<TrustedSigners, Box<dyn std::error::Error>> {
-    let Ok(path) = std::env::var("NIDO_SIGNERS_FILE") else {
-        return Ok(BTreeMap::new());
-    };
-    let config: TrustedSigners = serde_json::from_str(&std::fs::read_to_string(path)?)?;
-    for (account, keys) in &config {
-        stellar_strkey::Contract::from_string(account)
-            .map_err(|_| "Invalid Nido contract address in signer configuration")?;
-        if keys.is_empty() {
-            return Err("A trusted Nido account must have a public key".into());
-        }
-        for key in keys {
-            VerifyingKey::from_sec1_bytes(&hex::decode(key)?)
-                .map_err(|_| "Invalid P-256 public key in Nido signer configuration")?;
-        }
+pub fn load_config() -> Result<Config, Box<dyn std::error::Error>> {
+    if std::env::var_os("NIDO_SIGNERS_FILE").is_some() {
+        return Err(
+            "NIDO_SIGNERS_FILE is retired. Remove it to use live Nido testnet verification.".into(),
+        );
     }
-    Ok(config)
+    let enabled = match std::env::var("NIDO_AUTH").as_deref() {
+        Ok("0") => false,
+        Ok("1") | Err(_) => true,
+        _ => return Err("NIDO_AUTH must be 0 or 1".into()),
+    };
+    Config::new(
+        enabled,
+        std::env::var("NIDO_RPC_URL")
+            .unwrap_or_else(|_| "https://soroban-testnet.stellar.org".into()),
+    )
+}
+
+pub fn migrate(db: &rusqlite::Connection) -> rusqlite::Result<()> {
+    db.execute_batch(
+        "CREATE TABLE IF NOT EXISTS nido_login_context(
+        token_hash TEXT PRIMARY KEY REFERENCES login_challenges(token_hash) ON DELETE CASCADE,
+        target TEXT NOT NULL);
+        CREATE TABLE IF NOT EXISTS nido_sessions(
+        token_hash TEXT PRIMARY KEY REFERENCES sessions(token_hash) ON DELETE CASCADE,
+        public_key TEXT NOT NULL, checked_at INTEGER NOT NULL);",
+    )
+}
+
+#[derive(Default, Deserialize)]
+pub struct Start {
+    return_to: Option<String>,
+}
+fn return_target(value: Option<&str>) -> String {
+    let base = url::Url::parse("https://drawing-board.invalid").unwrap();
+    if let Some(value) = value
+        && let Ok(url) = base.join(value)
+        && url.origin() == base.origin()
+        && matches!(
+            url.path(),
+            "/" | "/lab/" | "/voidwright/" | "/galactic-reach/"
+        )
+    {
+        return url[url::Position::BeforePath..].to_string();
+    }
+    "/#account".into()
 }
 fn state_cookie(app: &App, value: &str, age: u32) -> String {
     format!(
@@ -45,16 +73,21 @@ fn url(base: &str, app: &App, pairs: &[(&str, &str)]) -> String {
     }
     url.to_string()
 }
-pub async fn begin(State(app): State<App>, headers: HeaderMap) -> ApiResult<Response> {
-    if app.nido.is_empty() {
+pub async fn begin(
+    State(app): State<App>,
+    headers: HeaderMap,
+    Query(start): Query<Start>,
+) -> ApiResult<Response> {
+    if !app.nido.enabled {
         return Err(ApiError(
             StatusCode::SERVICE_UNAVAILABLE,
-            "Nido sign-in requires the host to configure trusted account keys.".into(),
+            "Nido sign-in is disabled on this host.".into(),
         ));
     }
     let nonce =
         uuid::Uuid::new_v4().simple().to_string() + &uuid::Uuid::new_v4().simple().to_string();
     let db = app.store.0.lock().map_err(internal)?;
+    accounts::rate_limit(&db)?;
     db.execute("DELETE FROM login_challenges WHERE expires<=?", [now()])
         .map_err(internal)?;
     if let Some(old) = cookie(&headers, "drawing_board_nido") {
@@ -67,6 +100,11 @@ pub async fn begin(State(app): State<App>, headers: HeaderMap) -> ApiResult<Resp
     db.execute(
         "INSERT INTO login_challenges(token_hash,expires) VALUES(?,?)",
         rusqlite::params![digest(&nonce), now() + 300],
+    )
+    .map_err(internal)?;
+    db.execute(
+        "INSERT INTO nido_login_context VALUES(?,?)",
+        rusqlite::params![digest(&nonce), return_target(start.return_to.as_deref())],
     )
     .map_err(internal)?;
     Ok((
@@ -83,7 +121,7 @@ pub struct Return {
     nido_sign: Option<String>,
     nido_connect: Option<String>,
 }
-pub async fn callback(
+async fn complete(
     State(app): State<App>,
     headers: HeaderMap,
     Query(input): Query<Return>,
@@ -91,33 +129,35 @@ pub async fn callback(
     let nonce = cookie(&headers, "drawing_board_nido")
         .ok_or(bad("Login expired. Return to the app and try again."))?;
     let hash = digest(&nonce);
-    let mut db = app.store.0.lock().map_err(internal)?;
-    let (account, message, expires): (Option<String>, Option<String>, u64) = db
-        .query_row(
-            "SELECT account,message,expires FROM login_challenges WHERE token_hash=? AND expires>?",
+    let (account, message, expires, target): (Option<String>, Option<String>, u64, String) = {
+        let db = app.store.0.lock().map_err(internal)?;
+        accounts::rate_limit(&db)?;
+        db.query_row(
+            "SELECT account,message,expires,coalesce(target,'/#account') FROM login_challenges LEFT JOIN nido_login_context USING(token_hash) WHERE token_hash=? AND expires>?",
             rusqlite::params![hash, now()],
-            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
-        )
-        .map_err(|_| bad("Login expired. Return to the app and try again."))?;
+            |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?)),
+        ).map_err(|_| bad("Login expired. Please try signing in again."))?
+    };
     if input.nido_sign.is_some() || input.nido_connect.is_some() {
-        db.execute("DELETE FROM login_challenges WHERE token_hash=?", [&hash])
-            .map_err(internal)?;
-        return Ok((
-            [(header::SET_COOKIE, state_cookie(&app, "", 0))],
-            Redirect::to("/"),
-        )
-            .into_response());
+        return Err(bad(
+            "Nido sign-in was canceled. You can try again whenever you’re ready.",
+        ));
     }
     if account.is_none() {
         let account = input.nido_address.as_deref().unwrap_or("").to_uppercase();
-        if !app.nido.contains_key(&account) {
-            return Err(ApiError(StatusCode::FORBIDDEN,"This Nido account is not enrolled in this private playtest. Ask the host to enroll its verified public key.".into()));
-        }
+        stellar_strkey::Contract::from_string(&account)
+            .map_err(|_| bad("Nido returned an invalid wallet address."))?;
+        // Verify eligibility before asking the user for a passkey approval.
+        app.nido.keys(&account).await?;
         let message = format!(
-            "Sign in to Drawing Board\nOrigin: {}\nAccount: {}\nNonce: {}\nExpires: {}\nThis proves your identity only. No transaction or spending permission.",
+            "Sign in to Drawing Board\nOrigin: {}\nNetwork: Test SDF Network ; September 2015\nAccount: {}\nNonce: {}\nExpires: {}\nThis proves your identity only. No transaction or spending permission.",
             app.origin, account, nonce, expires
         );
-        db.execute("UPDATE login_challenges SET account=?,message=? WHERE token_hash=? AND account IS NULL",rusqlite::params![account,message,hash]).map_err(internal)?;
+        let db = app.store.0.lock().map_err(internal)?;
+        let changed = db.execute("UPDATE login_challenges SET account=?,message=? WHERE token_hash=? AND account IS NULL AND expires>?",rusqlite::params![account,message,hash,now()]).map_err(internal)?;
+        if changed != 1 {
+            return Err(bad("Login changed or expired. Please start again."));
+        }
         return Ok(Redirect::to(&url(
             &format!("https://{}.nido.fyi/sign/", account.to_lowercase()),
             &app,
@@ -130,19 +170,25 @@ pub async fn callback(
     if input.kind.as_deref() != Some("message") {
         return Err(bad("Expected a Nido message signature."));
     }
-    let keys = app.nido.get(&account).ok_or(ApiError(
-        StatusCode::FORBIDDEN,
-        "Account enrollment was removed.".into(),
-    ))?;
-    verify(
+    if input
+        .nido_address
+        .as_ref()
+        .is_some_and(|a| a.to_uppercase() != account)
+    {
+        return Err(bad(
+            "The wallet changed during sign-in. Please start again.",
+        ));
+    }
+    // Do not trust a key supplied by the wallet; re-read current authority after approval.
+    let keys = app.nido.keys(&account).await?;
+    let public_key = verify(
         &account,
         &message,
         input.nido_signed.as_deref().unwrap_or(""),
-        keys,
+        &keys,
     )
     .map_err(|e| ApiError(StatusCode::UNAUTHORIZED, e))?;
-    let token =
-        uuid::Uuid::new_v4().simple().to_string() + &uuid::Uuid::new_v4().simple().to_string();
+    let mut db = app.store.0.lock().map_err(internal)?;
     let tx = db.transaction().map_err(internal)?;
     // Consumption and session creation are atomic, preventing callback replay.
     let deleted = tx
@@ -154,35 +200,31 @@ pub async fn callback(
     if deleted != 1 {
         return Err(bad("Login challenge has already been used."));
     }
-    if let Some(old) = cookie(&headers, "drawing_board_session") {
-        tx.execute("DELETE FROM sessions WHERE token_hash=?", [digest(&old)])
-            .map_err(internal)?;
-    }
     tx.execute(
-        "INSERT INTO sessions VALUES(?,?,?,?,?)",
+        "INSERT OR IGNORE INTO accounts(id,name,kind,created) VALUES(?,?,'human',?)",
         rusqlite::params![
-            digest(&token),
             format!("nido:{account}"),
             format!("Pilot {}", &account[account.len().saturating_sub(6)..]),
-            false,
-            now() + 86400
+            now()
         ],
     )
     .map_err(internal)?;
+    let id = format!("nido:{account}");
+    let name: String = tx
+        .query_row("SELECT name FROM accounts WHERE id=?", [&id], |r| r.get(0))
+        .map_err(internal)?;
+    let token = accounts::issue_session(&tx, &headers, &id, &name)?;
+    tx.execute(
+        "INSERT INTO nido_sessions VALUES(?,?,?)",
+        rusqlite::params![digest(&token), public_key, now()],
+    )
+    .map_err(internal)?;
     tx.commit().map_err(internal)?;
-    let mut response = Redirect::to("/").into_response();
+    let mut response = Redirect::to(&target).into_response();
+    let session = accounts::session_response(&app, &token, json!({}));
     response.headers_mut().append(
         header::SET_COOKIE,
-        format!(
-            "drawing_board_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400{}",
-            if app.origin.starts_with("https://") {
-                "; Secure"
-            } else {
-                ""
-            }
-        )
-        .parse()
-        .unwrap(),
+        session.headers()[header::SET_COOKIE].clone(),
     );
     response.headers_mut().append(
         header::SET_COOKIE,
@@ -190,6 +232,76 @@ pub async fn callback(
     );
     Ok(response)
 }
+/// Always bring failures back to the account UI, never leave an opaque JSON page.
+pub async fn callback(
+    State(app): State<App>,
+    headers: HeaderMap,
+    input: Query<Return>,
+) -> Response {
+    match complete(State(app.clone()), headers.clone(), input).await {
+        Ok(response) => response,
+        Err(error) => {
+            if let Some(nonce) = cookie(&headers, "drawing_board_nido")
+                && let Ok(db) = app.store.0.lock()
+            {
+                let _ = db.execute(
+                    "DELETE FROM login_challenges WHERE token_hash=?",
+                    [digest(&nonce)],
+                );
+            }
+            let mut target = url::Url::parse(&app.origin).unwrap();
+            target.set_path("/");
+            target.query_pairs_mut().append_pair("nido_error", &error.1);
+            target.set_fragment(Some("account"));
+            (
+                [(header::SET_COOKIE, state_cookie(&app, "", 0))],
+                Redirect::to(target.as_str()),
+            )
+                .into_response()
+        }
+    }
+}
+
+/// Recheck active wallet sessions at most a minute after key revocation/recovery.
+/// Network failures deny the request; they never extend a cached authorization.
+pub async fn check_session(app: &App, headers: &HeaderMap) -> ApiResult<()> {
+    let Some(token) = cookie(headers, "drawing_board_session") else {
+        return Ok(());
+    };
+    let hash = digest(&token);
+    let row: Option<(String, Option<String>, Option<u64>)> = {
+        let db = app.store.0.lock().map_err(internal)?;
+        db.query_row("SELECT user_id,public_key,checked_at FROM sessions LEFT JOIN nido_sessions USING(token_hash) WHERE token_hash=? AND expires>? AND user_id LIKE 'nido:%'", rusqlite::params![hash,now()], |r| Ok((r.get(0)?,r.get(1)?,r.get(2)?))).optional().map_err(internal)?
+    };
+    let Some((id, key, checked)) = row else {
+        return Ok(());
+    };
+    if app.nido.enabled && key.is_some() && checked.is_some_and(|t| now().saturating_sub(t) < 60) {
+        return Ok(());
+    }
+    let valid = if let Some(key) = key.filter(|_| app.nido.enabled) {
+        match app.nido.keys(id.strip_prefix("nido:").unwrap()).await {
+            Ok(keys) => keys.contains(&key),
+            Err(e) if e.0 == StatusCode::SERVICE_UNAVAILABLE => return Err(e),
+            Err(_) => false,
+        }
+    } else {
+        false
+    };
+    let db = app.store.0.lock().map_err(internal)?;
+    if valid {
+        db.execute(
+            "UPDATE nido_sessions SET checked_at=? WHERE token_hash=?",
+            rusqlite::params![now(), hash],
+        )
+        .map_err(internal)?;
+    } else {
+        db.execute("DELETE FROM sessions WHERE token_hash=?", [hash])
+            .map_err(internal)?;
+    }
+    Ok(())
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Envelope {
@@ -208,7 +320,7 @@ struct ClientData {
     #[serde(default)]
     cross_origin: bool,
 }
-fn verify(account: &str, message: &str, encoded: &str, keys: &[String]) -> Result<(), String> {
+fn verify(account: &str, message: &str, encoded: &str, keys: &[String]) -> Result<String, String> {
     let fail = || "Nido signature verification failed.".to_string();
     if encoded.len() > 16000 {
         return Err(fail());
@@ -232,11 +344,14 @@ fn verify(account: &str, message: &str, encoded: &str, keys: &[String]) -> Resul
         || data.origin != format!("https://{rp}")
         || data.cross_origin
         || URL_SAFE_NO_PAD.decode(data.challenge).map_err(|_| fail())?
-            != Sha256::digest(message).as_slice()
+            != message_challenge(message).as_slice()
     {
         return Err(fail());
     }
-    if auth.len() < 37 || auth[..32] != Sha256::digest(rp).as_slice()[..] || auth[32] & 0x05 != 0x05
+    if auth.len() < 37
+        || auth[..32] != Sha256::digest(rp).as_slice()[..]
+        || auth[32] & 0x05 != 0x05
+        || (auth[32] & 0x10 != 0 && auth[32] & 0x08 == 0)
     {
         return Err(fail());
     }
@@ -245,18 +360,31 @@ fn verify(account: &str, message: &str, encoded: &str, keys: &[String]) -> Resul
     let key = VerifyingKey::from_sec1_bytes(&public).map_err(|_| fail())?;
     let signature = Signature::from_slice(&hex::decode(envelope.signature).map_err(|_| fail())?)
         .map_err(|_| fail())?;
-    key.verify(&signed, &signature).map_err(|_| fail())
+    key.verify(&signed, &signature).map_err(|_| fail())?;
+    Ok(hex::encode(public))
+}
+
+fn message_challenge(message: &str) -> Vec<u8> {
+    Sha256::digest(
+        [
+            b"Nido signed message (v1):\n".as_slice(),
+            message.as_bytes(),
+        ]
+        .concat(),
+    )
+    .to_vec()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use p256::ecdsa::{SigningKey, signature::Signer};
-    fn assertion(message: &str, origin: &str, flags: u8) -> (String, String) {
+    pub(super) fn assertion(message: &str, origin: &str, flags: u8) -> (String, String) {
         let key = SigningKey::from_bytes((&[7u8; 32]).into()).unwrap();
         let public = hex::encode(key.verifying_key().to_encoded_point(false).as_bytes());
-        let client=serde_json::to_vec(&json!({"type":"webauthn.get","origin":origin,"challenge":URL_SAFE_NO_PAD.encode(Sha256::digest(message)),"crossOrigin":false})).unwrap();
-        let mut auth = Sha256::digest("ctest.nido.fyi").to_vec();
+        let client=serde_json::to_vec(&json!({"type":"webauthn.get","origin":origin,"challenge":URL_SAFE_NO_PAD.encode(message_challenge(message)),"crossOrigin":false})).unwrap();
+        let mut auth =
+            Sha256::digest(url::Url::parse(origin).unwrap().host_str().unwrap()).to_vec();
         auth.extend_from_slice(&[flags, 0, 0, 0, 0]);
         let mut signed = auth.clone();
         signed.extend_from_slice(&Sha256::digest(&client));
@@ -285,91 +413,230 @@ mod tests {
     }
     #[test]
     fn requires_user_verification_and_exact_origin() {
-        for (origin, flags) in [("https://evil.example", 5), ("https://ctest.nido.fyi", 1)] {
+        for (origin, flags) in [
+            ("https://evil.example", 5),
+            ("https://ctest.nido.fyi", 1),
+            ("https://ctest.nido.fyi", 0x15),
+        ] {
             let (e, k) = assertion("nonce", origin, flags);
             assert!(verify("CTEST", "nonce", &e, &[k]).is_err());
         }
     }
-    #[tokio::test]
-    async fn callback_is_browser_bound_and_single_use() {
-        let (_, key) = assertion("unused", "https://ctest.nido.fyi", 5);
-        let app = App {
-            store: Arc::new(Store::open(":memory:").unwrap()),
-            dev_auth: false,
-            preview_code_hash: None,
-            origin: "http://127.0.0.1:3000".into(),
-            nido: Arc::new(BTreeMap::from([("CTEST".into(), vec![key])])),
-        };
-        let started = begin(State(app.clone()), HeaderMap::new())
-            .await
-            .ok()
-            .unwrap();
-        let state_cookie = started.headers()[header::SET_COOKIE]
-            .to_str()
-            .unwrap()
-            .split(';')
-            .next()
-            .unwrap()
-            .to_string();
-        let mut headers = HeaderMap::new();
-        headers.insert(header::COOKIE, state_cookie.parse().unwrap());
-        let connect = Return {
-            nido_address: Some("CTEST".into()),
+}
+
+#[cfg(test)]
+mod flow_tests {
+    use super::*;
+    use crate::nido_chain::tests::{account, mock};
+    fn connect() -> Return {
+        Return {
+            nido_address: Some(account()),
             nido_signed: None,
             kind: None,
             nido_sign: None,
             nido_connect: None,
-        };
-        let redirect = callback(State(app.clone()), headers.clone(), Query(connect))
+        }
+    }
+    async fn start(app: &App) -> HeaderMap {
+        let response = begin(
+            State(app.clone()),
+            HeaderMap::new(),
+            Query(Start {
+                return_to: Some("/?game=galactic-reach#arena".into()),
+            }),
+        )
+        .await
+        .ok()
+        .unwrap();
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            header::COOKIE,
+            response.headers()[header::SET_COOKIE]
+                .to_str()
+                .unwrap()
+                .split(';')
+                .next()
+                .unwrap()
+                .parse()
+                .unwrap(),
+        );
+        headers
+    }
+    async fn signed(app: &App, headers: &HeaderMap) -> Return {
+        let response = complete(State(app.clone()), headers.clone(), Query(connect()))
             .await
             .ok()
             .unwrap();
         let location =
-            url::Url::parse(redirect.headers()[header::LOCATION].to_str().unwrap()).unwrap();
-        assert_eq!(location.host_str(), Some("ctest.nido.fyi"));
+            url::Url::parse(response.headers()[header::LOCATION].to_str().unwrap()).unwrap();
         let message = location
             .query_pairs()
             .find(|(k, _)| k == "message")
             .unwrap()
             .1
             .to_string();
-        let (envelope, _) = assertion(&message, "https://ctest.nido.fyi", 5);
-        let signed = || Return {
+        assert!(message.contains(crate::nido_chain::NETWORK));
+        let (proof, _) = super::tests::assertion(
+            &message,
+            &format!("https://{}.nido.fyi", account().to_lowercase()),
+            5,
+        );
+        Return {
             nido_address: None,
-            nido_signed: Some(envelope.clone()),
+            nido_signed: Some(proof),
             kind: Some("message".into()),
             nido_sign: None,
             nido_connect: None,
-        };
-        assert!(
-            callback(State(app.clone()), HeaderMap::new(), Query(signed()))
-                .await
-                .is_err()
+        }
+    }
+    fn app(config: Config) -> App {
+        App {
+            store: Arc::new(Store::open(":memory:").unwrap()),
+            dev_auth: false,
+            preview_code_hash: None,
+            registration_code_hash: None,
+            origin: "https://play.example".into(),
+            nido: Arc::new(config),
+        }
+    }
+    #[test]
+    fn return_targets_cannot_leave_game_pages() {
+        for url in [
+            "https://evil.example/",
+            "//evil.example/",
+            "/api/auth/logout",
+            "javascript:alert(1)",
+            "/\\evil.example/",
+        ] {
+            assert_eq!(return_target(Some(url)), "/#account");
+        }
+        assert_eq!(
+            return_target(Some("/voidwright/#table/123")),
+            "/voidwright/#table/123"
         );
-        let result = callback(State(app.clone()), headers.clone(), Query(signed()))
+    }
+    #[tokio::test]
+    async fn login_is_browser_bound_single_use_persistent_and_revocable() {
+        let (config, state, task) = mock().await;
+        let app = app(config);
+        let headers = start(&app).await;
+        let proof = signed(&app, &headers).await;
+        assert!(
+            complete(
+                State(app.clone()),
+                HeaderMap::new(),
+                Query(Return {
+                    nido_signed: proof.nido_signed.clone(),
+                    ..connect()
+                })
+            )
+            .await
+            .is_err()
+        );
+        let response = complete(State(app.clone()), headers.clone(), Query(proof))
             .await
             .ok()
             .unwrap();
-        assert_eq!(result.status(), StatusCode::SEE_OTHER);
-        assert!(
-            result
-                .headers()
-                .get_all(header::SET_COOKIE)
-                .iter()
-                .any(|h| h.to_str().unwrap().starts_with("drawing_board_session="))
+        assert_eq!(
+            response.headers()[header::LOCATION],
+            "/?game=galactic-reach#arena"
         );
+        let token_cookie = response
+            .headers()
+            .get_all(header::SET_COOKIE)
+            .iter()
+            .find(|h| h.to_str().unwrap().starts_with("drawing_board_session="))
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string();
+        assert!(token_cookie.contains("Secure"));
+        assert!(token_cookie.contains("HttpOnly"));
+        let mut session_headers = HeaderMap::new();
+        session_headers.insert(
+            header::COOKIE,
+            token_cookie.split(';').next().unwrap().parse().unwrap(),
+        );
+        let id = user(&app, &session_headers).ok().unwrap().id;
+        assert_eq!(id, format!("nido:{}", account()));
         assert!(
-            callback(State(app.clone()), headers, Query(signed()))
+            complete(State(app.clone()), headers, Query(connect()))
                 .await
                 .is_err()
         );
-        let count: u32 = app
+        app.store
+            .0
+            .lock()
+            .unwrap()
+            .execute("UPDATE accounts SET name='Renamed pilot' WHERE id=?", [&id])
+            .unwrap();
+        let headers = start(&app).await;
+        let proof = signed(&app, &headers).await;
+        complete(State(app.clone()), headers, Query(proof))
+            .await
+            .ok()
+            .unwrap();
+        let count: i32 = app
             .store
             .0
             .lock()
             .unwrap()
-            .query_row("SELECT COUNT(*) FROM sessions", [], |r| r.get(0))
+            .query_row("SELECT count(*) FROM accounts", [], |r| r.get(0))
             .unwrap();
         assert_eq!(count, 1);
+        assert_eq!(
+            user(&app, &session_headers).ok().unwrap().name,
+            "Renamed pilot"
+        );
+        let calls = state.lock().unwrap().calls;
+        check_session(&app, &session_headers).await.ok().unwrap();
+        assert_eq!(state.lock().unwrap().calls, calls);
+        app.store
+            .0
+            .lock()
+            .unwrap()
+            .execute("UPDATE nido_sessions SET checked_at=0", [])
+            .unwrap();
+        state.lock().unwrap().offline = true;
+        assert!(check_session(&app, &session_headers).await.is_err());
+        state.lock().unwrap().offline = false;
+        state.lock().unwrap().configuration = json!({"latestLedger":100,"error":"revoked"});
+        check_session(&app, &session_headers).await.ok().unwrap();
+        assert!(user(&app, &session_headers).is_err());
+        task.abort();
+    }
+    #[tokio::test]
+    async fn expired_canceled_and_invalid_callbacks_return_to_account() {
+        let (config, _state, task) = mock().await;
+        let app = app(config);
+        for mode in ["missing", "expired", "canceled", "invalid"] {
+            let mut headers = start(&app).await;
+            let mut input = connect();
+            match mode {
+                "missing" => headers = HeaderMap::new(),
+                "expired" => {
+                    app.store
+                        .0
+                        .lock()
+                        .unwrap()
+                        .execute("UPDATE login_challenges SET expires=0", [])
+                        .unwrap();
+                }
+                "canceled" => input.nido_connect = Some("cancelled".into()),
+                _ => input.nido_address = Some("https://evil.example".into()),
+            }
+            let response = callback(State(app.clone()), headers, Query(input)).await;
+            assert_eq!(response.status(), StatusCode::SEE_OTHER);
+            let target = response.headers()[header::LOCATION].to_str().unwrap();
+            assert!(target.starts_with("https://play.example/?nido_error="));
+            assert!(target.ends_with("#account"));
+            assert!(
+                response.headers()[header::SET_COOKIE]
+                    .to_str()
+                    .unwrap()
+                    .contains("Max-Age=0")
+            );
+        }
+        task.abort();
     }
 }

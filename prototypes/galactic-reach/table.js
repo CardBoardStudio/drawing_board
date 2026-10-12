@@ -4,6 +4,7 @@
   if (id === null) return;
   globalThis.drawingBoardTableBoot = true;
   document.addEventListener('DOMContentLoaded', async () => {
+    document.body.classList.add('has-saved-table');
     const shell = document.querySelector('.app-shell');
     shell.inert = true;
     const bar = document.createElement('section');

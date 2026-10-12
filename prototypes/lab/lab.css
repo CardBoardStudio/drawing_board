@@ -1063,5 +1063,4 @@ main:focus {
 .invitation-row:last-child { border-bottom:0; }
 .table-link > div { min-width:0; overflow-wrap:anywhere; }
 .table-link > span { flex-shrink:0; }
-[hidden] { display:none !important; }
 @media (max-width:700px) { .table-link { align-items:flex-start; flex-direction:column; gap:10px; } }

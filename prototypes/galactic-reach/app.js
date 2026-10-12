@@ -3,6 +3,10 @@
 function createGalacticReach(options = {}) {
   const headless = options.headless === true;
   const random = options.random || Math.random;
+  let storage = options.storage;
+  if (!headless && !storage) {
+    try { storage = globalThis.localStorage; } catch (_) {}
+  }
   const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
   const SAVE_FORMAT_VERSION = 4;
@@ -271,17 +275,19 @@ function createGalacticReach(options = {}) {
 
   function saveGame() {
     if (headless) return;
-    try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (_) {}
+    try { storage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (_) {}
+    options.onSave?.({state, turnHistory});
   }
 
   function saveTurnHistory() {
     if (headless) return;
-    try { localStorage.setItem(TURN_HISTORY_KEY, JSON.stringify(turnHistory)); } catch (_) {}
+    try { storage.setItem(TURN_HISTORY_KEY, JSON.stringify(turnHistory)); } catch (_) {}
+    options.onSave?.({state, turnHistory});
   }
 
   function loadTurnHistory() {
     try {
-      const raw = localStorage.getItem(TURN_HISTORY_KEY);
+      const raw = storage.getItem(TURN_HISTORY_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw);
       if (parsed && typeof parsed === 'object') {
@@ -295,7 +301,7 @@ function createGalacticReach(options = {}) {
 
   function clearTurnHistory() {
     turnHistory = { pending: null, undo: null };
-    try { localStorage.removeItem(TURN_HISTORY_KEY); } catch (_) {}
+    try { storage.removeItem(TURN_HISTORY_KEY); } catch (_) {}
   }
 
   function captureHumanTurn(label) {
@@ -330,7 +336,7 @@ function createGalacticReach(options = {}) {
 
   function loadGame() {
     try {
-      const raw = localStorage.getItem(SAVE_KEY);
+      const raw = storage.getItem(SAVE_KEY);
       if (!raw) return false;
       const parsed = JSON.parse(raw);
       if (!parsed || parsed.version !== SAVE_FORMAT_VERSION) return false;
@@ -840,7 +846,7 @@ function createGalacticReach(options = {}) {
     const expectedPlayer = state.activePlayer;
     aiTimer = setTimeout(() => {
       aiTimer = null;
-      if (state.phase !== phase || state.activePlayer !== expectedPlayer || state.winner !== null) return;
+      if (options.paused?.() || state.phase !== phase || state.activePlayer !== expectedPlayer || state.winner !== null) return;
       try {
         action();
       } catch (error) {
@@ -2228,6 +2234,7 @@ function createGalacticReach(options = {}) {
     $('#discard-button').addEventListener('click',()=>$('#discard-dialog').showModal());
     $('#close-discard').addEventListener('click',()=>$('#discard-dialog').close());
     $('#new-game-button').addEventListener('click',()=>{
+      if (options.newTable) { options.newTable(); return; }
       if(!confirm('Start a new game and replace the current save?'))return;
       clearTurnHistory();
       state=newState(); fillMarket(); logEvent('The four factions entered the Reach.'); saveGame(); render(); beginRound();
@@ -2280,6 +2287,7 @@ function createGalacticReach(options = {}) {
   wireUi();
   loadTurnHistory();
   if (!loadGame()) {
+    if (options.requireSave) throw new Error("The saved table could not be loaded. Your server save has been preserved.");
     clearTurnHistory();
     state=newState();
     fillMarket();
@@ -2290,9 +2298,11 @@ function createGalacticReach(options = {}) {
   } else {
     fillMarket();
     render();
-    if (!state.winner && state.activePlayer !== 0 && state.phase === 'operations') scheduleAiTurn('operations', runAiOperation, 650);
-    if (!state.winner && state.activePlayer !== 0 && state.phase === 'buy') scheduleAiTurn('buy', runAiBuy, 650);
+    if (state.winner === null && state.phase === 'policy') startPolicyVote();
+    if (state.winner === null && state.phase === 'directive') startDirectiveChoice();
+    if (state.winner === null && state.activePlayer !== 0 && state.phase === 'operations') scheduleAiTurn('operations', runAiOperation, 650);
+    if (state.winner === null && state.activePlayer !== 0 && state.phase === 'buy') scheduleAiTurn('buy', runAiBuy, 650);
   }
  }
 if (typeof module !== 'undefined' && module.exports) module.exports = createGalacticReach;
-else if (typeof document !== 'undefined') createGalacticReach();
+else if (typeof document !== 'undefined' && !globalThis.drawingBoardTableBoot) createGalacticReach();

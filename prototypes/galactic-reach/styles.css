@@ -600,3 +600,8 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
   .vote-power { grid-template-columns: 1fr 75px; }
   .vote-power span { grid-column: 1 / -1; }
 }
+
+.table-save-bar { position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:16px 24px; border-bottom:1px solid #27445c; background:#101b2b; color:#dbeaf8; }
+.table-save-bar strong { overflow-wrap:anywhere; }
+.table-save-bar #table-sync { flex:1; min-width:160px; font-size:13px; }
+.app-shell[inert] { opacity:.45; }

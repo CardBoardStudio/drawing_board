@@ -1057,3 +1057,11 @@ main:focus {
 .nido-signin .primary { flex-shrink:0; }
 .nido-signin p { max-width:650px; }
 @media (max-width:700px) { .nido-signin { align-items:stretch; flex-direction:column; } }
+
+.guest-link { display:block; margin-top:18px; font-size:12px; }
+.invitation-row { padding:18px 0; border-bottom:1px solid var(--line); overflow-wrap:anywhere; }
+.invitation-row:last-child { border-bottom:0; }
+.table-link > div { min-width:0; overflow-wrap:anywhere; }
+.table-link > span { flex-shrink:0; }
+[hidden] { display:none !important; }
+@media (max-width:700px) { .table-link { align-items:flex-start; flex-direction:column; gap:10px; } }

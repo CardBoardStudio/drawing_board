@@ -1,11 +1,13 @@
 mod accounts;
 mod arena;
 mod config;
+mod invites;
 mod nido;
 mod nido_chain;
 #[cfg(test)]
 mod platform_tests;
 mod store;
+mod tables;
 use axum::{
     Json, Router,
     extract::{Path, State},
@@ -484,6 +486,19 @@ fn router(app: App) -> Router {
             post(accounts::revoke_other_sessions),
         )
         .route("/api/account/rotate-key", post(accounts::rotate_key))
+        .route(
+            "/api/admin/invites",
+            get(invites::list).post(invites::create),
+        )
+        .route("/api/admin/invites/{id}/revoke", post(invites::revoke))
+        .route("/api/invites/inspect", post(invites::inspect))
+        .route("/api/invites/accept", post(invites::accept))
+        .route("/api/tables", get(tables::list).post(tables::create))
+        .route("/api/tables/{id}", get(tables::get))
+        .route(
+            "/api/tables/{id}/save",
+            post(tables::save).layer(axum::extract::DefaultBodyLimit::max(1024 * 1024 + 16384)),
+        )
         .route("/api/catalog", get(arena::catalog))
         .route("/api/arena", get(arena::overview))
         .route("/api/arena/bots", post(arena::create_bot))
@@ -519,6 +534,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         origin: config.origin.clone(),
         nido: Arc::new(nido::load_config()?),
     };
+    if std::env::args().nth(1).as_deref() == Some("bootstrap-admin") {
+        match invites::bootstrap(&app) {
+            Ok(invite) => println!("{}", invite["url"].as_str().unwrap()),
+            Err(e) => return Err(e.1.into()),
+        }
+        return Ok(());
+    }
     let listener = tokio::net::TcpListener::bind(config.bind).await?;
     println!(
         "Drawing Board → {} (development: {}, preview: {})",

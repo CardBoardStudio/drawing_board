@@ -71,6 +71,8 @@ pub struct Register {
     name: String,
     #[serde(default)]
     code: String,
+    #[serde(default)]
+    invite_token: String,
 }
 pub async fn register(
     State(app): State<App>,
@@ -80,7 +82,7 @@ pub async fn register(
     let name = clean(&input.name, 32)?;
     let mut db = app.store.0.lock().map_err(internal)?;
     rate_limit(&db)?;
-    if !app.dev_auth {
+    if !app.dev_auth && input.invite_token.is_empty() {
         let expected = app
             .preview_code_hash
             .or(app.registration_code_hash)
@@ -104,6 +106,9 @@ pub async fn register(
         params![id, name, digest(&key), now()],
     )
     .map_err(internal)?;
+    if !input.invite_token.is_empty() {
+        crate::invites::redeem(&tx, &input.invite_token, &id)?;
+    }
     let token = issue_session(&tx, &headers, &id, &name)?;
     tx.commit().map_err(internal)?;
     Ok(session_response(
@@ -161,7 +166,7 @@ pub async fn profile(
         )
         .map_err(internal)?;
     Ok(Json(
-        json!({"id":u.id,"name":u.name,"development":u.development,"created":created,"has_recovery_key":has_key,"sessions":sessions}),
+        json!({"id":u.id,"name":u.name,"development":u.development,"created":created,"has_recovery_key":has_key,"sessions":sessions,"is_admin":crate::invites::is_admin(&db,&u.id)?}),
     ))
 }
 #[derive(Deserialize)]

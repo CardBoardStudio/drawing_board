@@ -23,11 +23,12 @@
         <nav aria-label="Workspace">
           <a href="#library" data-page="library"
             ><span aria-hidden="true">▦</span> Game library</a
+          ><a href="#tables" data-page="tables"><span aria-hidden="true">▤</span> Your tables</a
           ><a href="#arena" data-page="arena"
             ><span aria-hidden="true">◇</span> AI arena</a
           ><a href="#account" data-page="account"
             ><span aria-hidden="true">◎</span> Your account</a
-          >
+          ><a href="#admin" data-page="admin" id="admin-nav" hidden><span aria-hidden="true">♙</span> Invitations</a>
         </nav>
         <div class="sidebar-note">
           <span class="live-dot"></span> A place for games to begin.
@@ -72,6 +73,12 @@
       ><button id="close-key" class="primary" disabled>
         Continue to the lab →
       </button>
+    </dialog>
+    <dialog id="invite-dialog" aria-labelledby="invite-title">
+      <div class="eyebrow">INVITATION READY</div><h2 id="invite-title">Share a seat in the lab.</h2>
+      <p>Copy this link now. It is shown once; you can revoke it from Invitations.</p>
+      <label for="new-invite">Invite link</label><textarea id="new-invite" readonly rows="3"></textarea>
+      <div class="actions"><button id="copy-invite" class="primary">Copy link</button><button id="close-invite" class="secondary">Done</button></div>
     </dialog>
     <script type="module" src="/lab/lab.js"></script>
   </body>

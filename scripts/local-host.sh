@@ -49,11 +49,15 @@ PY
   stop)
     launchctl bootout "$domain/$label"
     ;;
+  admin-invite)
+    source .local/host.env
+    exec ./target/release/server bootstrap-admin
+    ;;
   status)
     launchctl print "$domain/$label"
     ;;
   *)
-    echo "Usage: $0 {prepare|start|stop|status|serve}" >&2
+    echo "Usage: $0 {prepare|start|stop|status|serve|admin-invite}" >&2
     exit 2
     ;;
 esac

@@ -23,6 +23,7 @@ For two human players on one computer, use separate browser profiles or a privat
 
 - Shared game library, persistent human profiles, recovery-key login, session revocation, and owned AI accounts.
 - Reusable game/player traits, seven reference AI policies across two adapters, authoritative matches with rotating seats, and persistent per-lab Elo. See [game platform](docs/game-platform.md).
+- The current prototype/platform/experiment dependency graph and follow-up PR plan are tracked in the [playtest roadmap](docs/playtest-roadmap.md).
 - Optional local release deployment through Tailscale Funnel. See [local HTTPS hosting](docs/local-hosting.md).
 
 - Yew Rust/WebAssembly UI: lobby, saved tables, private invitations, hand, market, collection, rules, and flight log.

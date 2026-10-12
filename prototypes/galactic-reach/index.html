@@ -112,7 +112,7 @@
       <div class="console-body">
         <div class="tab-panel active" id="hand-panel" data-panel="hand" role="tabpanel" aria-labelledby="hand-tab" tabindex="0">
           <div class="section-intro">
-            <div><h2>Your hand</h2><p id="hand-help">Cards may be used for resources at the start of your Operations turn, or for their printed order.</p></div>
+            <div><h2>Your hand</h2><p id="hand-help">Cards may be converted into resources at any time during your Operations turn, or used for their printed order.</p></div>
             <div class="hand-tools">
               <div class="pile-stats" aria-label="Your card piles">
                 <span>Deck <strong id="deck-count">0</strong></span>
@@ -160,7 +160,7 @@
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
     <div class="rules-grid">
       <section><h3>Round</h3><p>Production → Draw → alternating one-card Operations → Buy → Directive. Every third round also ends with a secret policy vote.</p></section>
-      <section><h3>Cards</h3><p>At the start of your turn, play cards for resources, then use one order. Starter cards cannot be scrapped; upgrade them during Buy to improve them and gain Technology.</p></section>
+      <section><h3>Cards</h3><p>At any time during your Operations turn, convert cards into their shown resources. You may also use one card for its printed order. Starter cards cannot be scrapped; upgrade them during Buy to improve them and gain Technology.</p></section>
       <section><h3>Probes & fog</h3><p>A Probe pinpoints one alien relic, but reveals nothing about its planet or nearby sectors. A Scout explores blindly, moves up to 3 hexes, and reveals a world when it enters.</p></section>
       <section><h3>Control & construction</h3><p>Each home world touches the board edge. Its Colony always occupies the center hex, with the starting Shipyard on an adjacent inward hex. Colonies can only be founded or captured at a world’s center. You may build a structure on any empty planet hex adjacent to your Colony; each hex holds only one building, and structures upgrade in place to level II. During Production, each combat fleet on a planet hex gains its controller 1 of that hex’s resource, even on an unclaimed or enemy world; Researcher-only teams do not collect resources.</p></section>
       <section><h3>Researchers</h3><p>Researchers move 1 hex and do not fight or colonize. Recruit them at your home Colony; an outer level-II structure can also recruit them.</p></section>
@@ -200,6 +200,6 @@
     <div class="discard-scroll"><div class="card-row discard-row" id="discard-row"></div></div>
   </dialog>
 
-  <script src="app.js?v=order-toggle-1"></script>
+  <script src="app.js?v=resources-anytime-1"></script>
 </body>
 </html>

@@ -843,14 +843,17 @@
 
   function playResourceMode(cardId) {
     const player = state.players[0];
-    if (state.phase !== 'operations' || state.activePlayer !== 0 || state.turnStage !== 'prep') return;
+    if (state.phase !== 'operations' || state.activePlayer !== 0 || !['prep','action'].includes(state.turnStage)) return;
     const card = player.hand.find(item => item.id === cardId);
     if (!card) return;
     const definition = ALL_CARDS[card.key];
+    const canceledSelectedOrder = state.actionCardId === cardId;
+    if (canceledSelectedOrder) clearAction();
     addResources(player, cardResources(card));
     if (definition.wildcard) player.resources.data += definition.wildcard;
     removeHandCard(player, cardId);
-    logEvent(`You converted ${definition.name} into resources.`);
+    logEvent(`You converted ${definition.name} into resources.${canceledSelectedOrder ? ' Its selected order was canceled.' : ''}`);
+    if (canceledSelectedOrder) toast('Order canceled and card converted to resources.');
     render();
     saveGame();
   }
@@ -2005,11 +2008,11 @@
   function cardMarkup(card, location) {
     const definition=ALL_CARDS[card.key];
     const isHumanOps=state.phase==='operations'&&state.activePlayer===0;
-    const canResource=location==='hand'&&isHumanOps&&state.turnStage==='prep'&&definition.resource;
+    const canResource=location==='hand'&&isHumanOps&&['prep','action'].includes(state.turnStage)&&definition.resource;
     const canOrder=location==='hand'&&isHumanOps&&state.turnStage==='action'&&definition.order&&!definition.reaction&&!definition.buyEffect;
     const isSelectedOrder=canOrder&&state.actionCardId===card.id&&Boolean(state.actionMode);
     const canBuyEffect=location==='hand'&&state.phase==='buy'&&state.activePlayer===0&&definition.buyEffect&&!(definition.buyEffect==='manipulation'&&state.players[0].marketManipulated);
-    return `<article class="game-card ${card.upgraded?'upgraded':''} ${isSelectedOrder?'order-selected':''}" style="--card-accent:${definition.accent}"><span class="card-type">${definition.kind}${card.starter?' · STARTER':''}</span><span class="card-name">${definition.name}${card.upgraded?' II':''}</span><span class="card-effect">${resourceText(definition.text)}${card.upgraded?' Upgraded: gain one extra resource.':''}</span><div class="card-footer"><span>${definition.resource?`<small>Gain</small>${resourceDots(cardResources(card))}`:''}</span><span>${definition.cost?`<small>Buy</small>${resourceDots(definition.cost)}`:''}</span></div>${location==='hand'?`<div class="card-buttons">${canResource?`<button class="button" data-resource-card="${card.id}">Take resources</button>`:''}${canOrder?`<button class="button ${isSelectedOrder?'button-danger':'button-primary'}" data-order-card="${card.id}" aria-pressed="${isSelectedOrder}">${isSelectedOrder?'Cancel order':'Use order'}</button>`:''}${canBuyEffect?`<button class="button button-primary" data-buy-effect="${card.id}">Use in Buy</button>`:''}${definition.reaction&&isHumanOps?'<span class="muted">Automatic reaction</span>':''}</div>`:''}</article>`;
+    return `<article class="game-card ${card.upgraded?'upgraded':''} ${isSelectedOrder?'order-selected':''}" style="--card-accent:${definition.accent}"><span class="card-type">${definition.kind}${card.starter?' · STARTER':''}</span><span class="card-name">${definition.name}${card.upgraded?' II':''}</span><span class="card-effect">${resourceText(definition.text)}${card.upgraded?' Upgraded: gain one extra resource.':''}</span><div class="card-footer"><span>${definition.resource?`<small>Gain</small>${resourceDots(cardResources(card))}`:''}</span><span>${definition.cost?`<small>Buy</small>${resourceDots(definition.cost)}`:''}</span></div>${location==='hand'?`<div class="card-buttons">${canResource?`<button class="button" data-resource-card="${card.id}">Convert to resources</button>`:''}${canOrder?`<button class="button ${isSelectedOrder?'button-danger':'button-primary'}" data-order-card="${card.id}" aria-pressed="${isSelectedOrder}">${isSelectedOrder?'Cancel order':'Use order'}</button>`:''}${canBuyEffect?`<button class="button button-primary" data-buy-effect="${card.id}">Use in Buy</button>`:''}${definition.reaction&&isHumanOps?'<span class="muted">Automatic reaction</span>':''}</div>`:''}</article>`;
   }
 
   function renderHand() {
@@ -2026,7 +2029,7 @@
     $$('[data-buy-effect]').forEach(button=>button.addEventListener('click',()=>useBuyEffect(button.dataset.buyEffect)));
     const prep=state.phase==='operations'&&state.activePlayer===0&&state.turnStage==='prep';
     $('#finish-prep-button').hidden=!prep;
-    $('#hand-help').textContent=prep?'Convert any cards you want, then choose an order.':state.turnStage==='action'&&state.actionMode?`${state.actionOptions.cardName||'Order'} selected. Cancel it to choose another order, trade, or pass.`:state.turnStage==='action'?'Play one order card, make a Trade action, or pass.':'Your cards remain available through Buy, then all are discarded.';
+    $('#hand-help').textContent=prep?'Convert any cards you want, then choose an order.':state.turnStage==='action'&&state.actionMode?`${state.actionOptions.cardName||'Order'} selected. You may still convert cards, cancel it, trade, or pass.`:state.turnStage==='action'?'Convert cards as needed, play one order card, make a Trade action, or pass.':'Your cards remain available through Buy, then all are discarded.';
   }
 
   function renderMarket() {

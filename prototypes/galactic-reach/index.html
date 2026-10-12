@@ -59,8 +59,8 @@
           <div class="panel-heading">
             <div><div class="eyebrow">YOUR COMMAND</div><h2>Resources</h2></div>
             <div class="storage-summary">
-              <span class="capacity" id="capacity-value">0 of 15 stored</span>
-              <div class="capacity-meter" id="capacity-meter" role="progressbar" aria-valuemin="0" aria-valuemax="15" aria-valuenow="0" aria-label="0 of 15 resource storage used"><span id="capacity-fill"></span></div>
+              <span class="capacity" id="capacity-value">0 of 10 stored</span>
+              <div class="capacity-meter" id="capacity-meter" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" aria-label="0 of 10 resource storage used"><span id="capacity-fill"></span></div>
             </div>
           </div>
           <div class="resource-grid" id="resource-grid"></div>
@@ -160,7 +160,7 @@
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
     <div class="rules-grid">
       <section><h3>Round</h3><p>Production → Draw → alternating one-card Operations → Buy → Directive. Every third round also ends with a secret policy vote.</p></section>
-      <section><h3>Cards</h3><p>At any time during your Operations turn, convert cards into their shown resources. You may also use one card for its printed order. Starter cards cannot be scrapped; upgrade them during Buy to improve them and gain Technology.</p></section>
+      <section><h3>Cards &amp; storage</h3><p>At any time during your Operations turn, convert cards into their shown resources. You may also use one card for its printed order. You can store 10 resources, plus 5 per Warehouse level; automatic gains beyond that limit are lost. Starter cards cannot be scrapped; upgrade them during Buy to improve them and gain Technology.</p></section>
       <section><h3>Probes & fog</h3><p>A Probe pinpoints one alien relic, but reveals nothing about its planet or nearby sectors. A Scout explores blindly, moves up to 3 hexes, and reveals a world when it enters.</p></section>
       <section><h3>Control & construction</h3><p>Each home world touches the board edge. Its Colony always occupies the center hex, with the starting Shipyard on an adjacent inward hex. Colonies can only be founded or captured at a world’s center. You may build a structure on any empty planet hex adjacent to your Colony; each hex holds only one building, and structures upgrade in place to level II. During Production, each combat fleet on a planet hex gains its controller 1 of that hex’s resource, even on an unclaimed or enemy world; Researcher-only teams do not collect resources.</p></section>
       <section><h3>Researchers</h3><p>Researchers move 1 hex and do not fight or colonize. Recruit them at your home Colony; an outer level-II structure can also recruit them.</p></section>
@@ -200,6 +200,6 @@
     <div class="discard-scroll"><div class="card-row discard-row" id="discard-row"></div></div>
   </dialog>
 
-  <script src="app.js?v=resources-anytime-1"></script>
+  <script src="app.js?v=storage-cap-1"></script>
 </body>
 </html>

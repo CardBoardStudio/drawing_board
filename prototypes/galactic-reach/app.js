@@ -261,7 +261,7 @@
       selected: null, actionMode: null, actionCardId: null, actionOptions: {}, moveSource: null, reachable: [],
       turnStage: 'waiting', log: [], awards: { fleet: null, reach: null, occupation: null }, winner: null,
       lastCombat: null, relicDeck: shuffled(Object.keys(RELIC_CARDS).flatMap(key => [makeCard(key),makeCard(key),makeCard(key)])), activePolicy: null, policyCycle: 0, pendingCleanup: false,
-      visibilityRevision: 2, rulesRevision: 8
+      visibilityRevision: 2, rulesRevision: 9
     };
   }
 
@@ -390,6 +390,14 @@
         clearTurnHistory();
         saveGame();
       }
+      if ((state.rulesRevision || 0) < 9) {
+        const trimmed = state.players.map((_,playerId) => trimResourcesToCapacity(playerId));
+        const removed = trimmed.reduce((sum,value) => sum + value,0);
+        state.rulesRevision = 9;
+        if (removed) logEvent(`Storage limits restored; ${removed} excess resource${removed === 1 ? '' : 's'} were removed.`);
+        clearTurnHistory();
+        saveGame();
+      }
       return true;
     } catch (_) { return false; }
   }
@@ -508,7 +516,45 @@
   }
 
   function addResources(player, gain) {
-    RESOURCES.forEach(resource => { player.resources[resource] += gain[resource] || 0; });
+    const playerId = state.players.indexOf(player);
+    let available = playerId >= 0 ? Math.max(0, playerCapacity(playerId) - totalResources(player)) : Infinity;
+    const result = { added: {}, lost: {}, totalAdded: 0, totalLost: 0 };
+    RESOURCES.forEach(resource => {
+      const requested = Math.max(0, Number(gain?.[resource]) || 0);
+      const added = Math.min(requested, available);
+      const lost = requested - added;
+      if (added) player.resources[resource] += added;
+      if (added) result.added[resource] = added;
+      if (lost) result.lost[resource] = lost;
+      result.totalAdded += added;
+      result.totalLost += lost;
+      available -= added;
+    });
+    return result;
+  }
+
+  function resourceGainTotal(gain) {
+    return RESOURCES.reduce((sum,resource) => sum + Math.max(0,Number(gain?.[resource]) || 0),0);
+  }
+
+  function remainingResourceCapacity(playerId) {
+    return Math.max(0,playerCapacity(playerId) - totalResources(state.players[playerId]));
+  }
+
+  function trimResourcesToCapacity(playerId) {
+    const player = state.players[playerId];
+    let excess = Math.max(0,totalResources(player) - playerCapacity(playerId));
+    const removed = excess;
+    [...RESOURCES].sort((a,b)=>player.resources[b]-player.resources[a]).forEach(resource=>{
+      const amount = Math.min(excess,player.resources[resource]);
+      player.resources[resource] -= amount;
+      excess -= amount;
+    });
+    return removed;
+  }
+
+  function overflowNote(result) {
+    return result.totalLost ? ` ${result.totalLost} overflow resource${result.totalLost === 1 ? '' : 's'} were lost.` : '';
   }
 
   function cardResources(card) {
@@ -715,18 +761,20 @@
   }
 
   function produceAll() {
+    const gains = state.players.map(()=>({ matter: 0, energy: 0, biomass: 0, data: 0 }));
     state.players.forEach((player, playerId) => {
       controlledPlanets(playerId).forEach(([,planet]) => {
         if (planet.occupiedBy !== null) return;
-        player.resources[planet.type] += ownerProductionAmount(planet);
+        gains[playerId][planet.type] += ownerProductionAmount(planet);
       });
     });
     Object.entries(state.planets).forEach(([coord,planet]) => {
       fleetControllersAt(coord).forEach(playerId => {
-        state.players[playerId].resources[planet.type] += 1;
+        gains[playerId][planet.type] += 1;
       });
     });
-    logEvent('Controlled planets produced normally; every combat fleet on a planet hex also secured 1 local resource.');
+    const overflow = state.players.map((player,playerId)=>addResources(player,gains[playerId])).reduce((sum,result)=>sum+result.totalLost,0);
+    logEvent(`Controlled planets produced normally; every combat fleet on a planet hex also secured 1 local resource.${overflow ? ` ${overflow} overflow resource${overflow === 1 ? '' : 's'} were lost.` : ''}`);
   }
 
   function resetRoundFlags() {
@@ -847,10 +895,16 @@
     const card = player.hand.find(item => item.id === cardId);
     if (!card) return;
     const definition = ALL_CARDS[card.key];
+    const gain = cardResources(card);
+    if (definition.wildcard) gain.data = (gain.data || 0) + definition.wildcard;
+    const requiredStorage = resourceGainTotal(gain);
+    if (remainingResourceCapacity(0) < requiredStorage) {
+      toast(`You need ${requiredStorage} open storage to convert that card.`);
+      return;
+    }
     const canceledSelectedOrder = state.actionCardId === cardId;
     if (canceledSelectedOrder) clearAction();
-    addResources(player, cardResources(card));
-    if (definition.wildcard) player.resources.data += definition.wildcard;
+    addResources(player, gain);
     removeHandCard(player, cardId);
     logEvent(`You converted ${definition.name} into resources.${canceledSelectedOrder ? ' Its selected order was canceled.' : ''}`);
     if (canceledSelectedOrder) toast('Order canceled and card converted to resources.');
@@ -924,9 +978,11 @@
         byCluster.get(planet.cluster).push(planet);
       });
       const best = [...byCluster.values()].sort((a,b) => b.length - a.length)[0] || [];
-      best.slice(0,3).forEach(planet => { player.resources[planet.type] += planet.rich ? 2 : 1; });
+      const gain = {};
+      best.slice(0,3).forEach(planet => { gain[planet.type] = (gain[planet.type] || 0) + (planet.rich ? 2 : 1); });
+      const result = addResources(player,gain);
       removeHandCard(player, card.id);
-      completeAction(0, `You used Industrial Surge on ${Math.min(3,best.length)} planets.`);
+      completeAction(0, `You used Industrial Surge on ${Math.min(3,best.length)} planets.${overflowNote(result)}`);
     } else if (definition.tag === 'foresight') {
       drawCards(player, 3);
       if (player.hand.length) player.discard.push(player.hand.shift());
@@ -956,9 +1012,9 @@
       const scarce = [...RESOURCES].sort((a,b) => player.resources[a] - player.resources[b])[0];
       if (player.resources[abundant] >= 2) {
         player.resources[abundant] -= 2;
-        player.resources[scarce] += 1;
+        addResources(player,{ [scarce]: 1 });
       } else {
-        player.resources.data += 1;
+        addResources(player,{ data: 1 });
       }
       removeHandCard(player, card.id);
       completeAction(0, 'You used the Trade Consortium network.');
@@ -1197,9 +1253,11 @@
       outcome = `${state.players[attackerId].name} seized the hex.`;
     }
     if (destroyedCount) {
-      if (useReaction(attackerId,'salvage')) state.players[attackerId].resources.matter += Math.min(3,destroyedCount);
-      if (useReaction(defenderId,'salvage')) state.players[defenderId].resources.matter += Math.min(3,destroyedCount);
+      if (useReaction(attackerId,'salvage')) addResources(state.players[attackerId],{ matter: Math.min(3,destroyedCount) });
+      if (useReaction(defenderId,'salvage')) addResources(state.players[defenderId],{ matter: Math.min(3,destroyedCount) });
     }
+    const capacityLoss = trimResourcesToCapacity(attackerId) + trimResourcesToCapacity(defenderId);
+    if (capacityLoss) summary.push(`${capacityLoss} resource${capacityLoss === 1 ? '' : 's'} were lost when storage capacity fell.`);
     state.lastCombat = { attackerId, defenderId, coord, summary, outcome, system: 'military-deck' };
     logEvent(`${state.players[attackerId].name} attacked ${state.players[defenderId].name} at ${nameForCoord(coord)}. ${outcome}`);
     if (attackerId === 0 || defenderId === 0) showMessage('COMBAT REPORT', nameForCoord(coord), [...summary,outcome].join(' '));
@@ -1349,7 +1407,8 @@
       let index = cards.findIndex(card => (ALL_CARDS[card.key].resource[missing]||0) > 0);
       if (index < 0) index = 0;
       const [card] = cards.splice(index,1);
-      addResources(player,cardResources(card));
+      const result = addResources(player,cardResources(card));
+      if (!result.totalAdded) break;
       removeHandCard(player,card.id);
     }
   }
@@ -1514,9 +1573,11 @@
     const special = player.hand.find(card => ALL_CARDS[card.key].tag === 'surge');
     if (special) {
       const worlds = controlledPlanets(id).filter(([,p])=>p.occupiedBy===null).slice(0,3).map(([,p])=>p);
-      worlds.forEach(planet=>{ player.resources[planet.type] += planet.rich?2:1; });
+      const gain = {};
+      worlds.forEach(planet=>{ gain[planet.type]=(gain[planet.type]||0)+(planet.rich?2:1); });
+      const result = addResources(player,gain);
       aiPlayCard(player,special);
-      completeAction(id,`${player.name} triggered an Industrial Surge.`);
+      completeAction(id,`${player.name} triggered an Industrial Surge.${overflowNote(result)}`);
       return;
     }
     const remainingProbe = player.hand.find(card => ALL_CARDS[card.key].order === 'probe');
@@ -1774,6 +1835,15 @@
     const rival = state.players[rivalId];
     human.tradeUsed = true;
     let accepted = human.resources[giveType] >= giveAmount && rival.resources[getType] >= getAmount;
+    let rejectionReason = '';
+    if (accepted) {
+      const humanFits = totalResources(human) - giveAmount + getAmount <= playerCapacity(0);
+      const rivalFits = totalResources(rival) - getAmount + giveAmount <= playerCapacity(rivalId);
+      if (!humanFits || !rivalFits) {
+        accepted = false;
+        rejectionReason = 'The exchange would exceed a faction’s storage capacity.';
+      }
+    }
     if (accepted) {
       const rivalNeed = rival.resources[giveType] < 2 ? 1.45 : 1;
       const humanNeed = rival.resources[getType] < 2 ? .7 : 1;
@@ -1786,11 +1856,11 @@
       rival.tracks.culture += 1;
       human.tradesWith[rivalId] += 1;
       rival.tradesWith[0] += 1;
-      if (state.activePolicy?.id === 'open_exchange') { human.resources.data += 1; rival.resources.data += 1; }
+      if (state.activePolicy?.id === 'open_exchange') { addResources(human,{ data: 1 }); addResources(rival,{ data: 1 }); }
       $('#trade-response').textContent = `${rival.name} accepted the exchange.`;
       completeAction(0,`${rival.name} accepted your trade.`);
     } else {
-      $('#trade-response').textContent = `${rival.name} rejected the offer.`;
+      $('#trade-response').textContent = rejectionReason || `${rival.name} rejected the offer.`;
       completeAction(0,`${rival.name} rejected your trade offer.`);
     }
   }
@@ -2009,10 +2079,14 @@
     const definition=ALL_CARDS[card.key];
     const isHumanOps=state.phase==='operations'&&state.activePlayer===0;
     const canResource=location==='hand'&&isHumanOps&&['prep','action'].includes(state.turnStage)&&definition.resource;
+    const resourceGain=cardResources(card);
+    if(definition.wildcard)resourceGain.data=(resourceGain.data||0)+definition.wildcard;
+    const resourceStorageNeeded=resourceGainTotal(resourceGain);
+    const canStoreCard=!canResource||remainingResourceCapacity(0)>=resourceStorageNeeded;
     const canOrder=location==='hand'&&isHumanOps&&state.turnStage==='action'&&definition.order&&!definition.reaction&&!definition.buyEffect;
     const isSelectedOrder=canOrder&&state.actionCardId===card.id&&Boolean(state.actionMode);
     const canBuyEffect=location==='hand'&&state.phase==='buy'&&state.activePlayer===0&&definition.buyEffect&&!(definition.buyEffect==='manipulation'&&state.players[0].marketManipulated);
-    return `<article class="game-card ${card.upgraded?'upgraded':''} ${isSelectedOrder?'order-selected':''}" style="--card-accent:${definition.accent}"><span class="card-type">${definition.kind}${card.starter?' · STARTER':''}</span><span class="card-name">${definition.name}${card.upgraded?' II':''}</span><span class="card-effect">${resourceText(definition.text)}${card.upgraded?' Upgraded: gain one extra resource.':''}</span><div class="card-footer"><span>${definition.resource?`<small>Gain</small>${resourceDots(cardResources(card))}`:''}</span><span>${definition.cost?`<small>Buy</small>${resourceDots(definition.cost)}`:''}</span></div>${location==='hand'?`<div class="card-buttons">${canResource?`<button class="button" data-resource-card="${card.id}">Convert to resources</button>`:''}${canOrder?`<button class="button ${isSelectedOrder?'button-danger':'button-primary'}" data-order-card="${card.id}" aria-pressed="${isSelectedOrder}">${isSelectedOrder?'Cancel order':'Use order'}</button>`:''}${canBuyEffect?`<button class="button button-primary" data-buy-effect="${card.id}">Use in Buy</button>`:''}${definition.reaction&&isHumanOps?'<span class="muted">Automatic reaction</span>':''}</div>`:''}</article>`;
+    return `<article class="game-card ${card.upgraded?'upgraded':''} ${isSelectedOrder?'order-selected':''}" style="--card-accent:${definition.accent}"><span class="card-type">${definition.kind}${card.starter?' · STARTER':''}</span><span class="card-name">${definition.name}${card.upgraded?' II':''}</span><span class="card-effect">${resourceText(definition.text)}${card.upgraded?' Upgraded: gain one extra resource.':''}</span><div class="card-footer"><span>${definition.resource?`<small>Gain</small>${resourceDots(cardResources(card))}`:''}</span><span>${definition.cost?`<small>Buy</small>${resourceDots(definition.cost)}`:''}</span></div>${location==='hand'?`<div class="card-buttons">${canResource?`<button class="button" data-resource-card="${card.id}" ${canStoreCard?'':`disabled title="Needs ${resourceStorageNeeded} open storage"`}>${canStoreCard?'Convert to resources':`Need ${resourceStorageNeeded} storage`}</button>`:''}${canOrder?`<button class="button ${isSelectedOrder?'button-danger':'button-primary'}" data-order-card="${card.id}" aria-pressed="${isSelectedOrder}">${isSelectedOrder?'Cancel order':'Use order'}</button>`:''}${canBuyEffect?`<button class="button button-primary" data-buy-effect="${card.id}">Use in Buy</button>`:''}${definition.reaction&&isHumanOps?'<span class="muted">Automatic reaction</span>':''}</div>`:''}</article>`;
   }
 
   function renderHand() {

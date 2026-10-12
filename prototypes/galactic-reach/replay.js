@@ -110,7 +110,7 @@
     const controls = document.createElement('section');
     controls.className = 'replay-controls';
     controls.setAttribute('aria-label', 'Replay stepping');
-    controls.innerHTML = `<div class="replay-transport"><button class="button button-ghost" id="replay-start" type="button" aria-label="Go to start" disabled>|←</button><button class="button button-ghost" id="replay-prev" type="button" aria-label="Previous decision" disabled>← <span class="replay-word">Previous</span></button><button class="button button-primary" id="replay-play" type="button" aria-pressed="false" disabled>Play</button><button class="button button-ghost" id="replay-next" type="button" aria-label="Next decision" disabled><span class="replay-word">Next</span> →</button><button class="button button-ghost" id="replay-end" type="button" aria-label="Go to final result" disabled>→|</button></div><label class="replay-scrub"><span>Decision <output id="replay-position">0 / 0</output></span><input id="replay-step" type="range" min="0" max="0" value="0" step="1" disabled></label>`;
+    controls.innerHTML = `<div class="replay-transport"><button class="button button-ghost" id="replay-prev" type="button" aria-label="Previous decision" disabled>← <span class="replay-word">Previous</span></button><button class="button button-primary" id="replay-play" type="button" aria-pressed="false" disabled>Play</button><button class="button button-ghost" id="replay-next" type="button" aria-label="Next decision" disabled><span class="replay-word">Next</span> →</button></div><label class="replay-scrub"><span>Decision <output id="replay-position">0 / 0</output></span><input id="replay-step" type="range" min="0" max="0" value="0" step="1" disabled></label>`;
     shell.before(meta, controls);
     const $ = selector => document.querySelector(selector);
     const library = document.querySelector('.header-actions a');
@@ -164,8 +164,8 @@
       $('#replay-position').value = `${index} / ${last}`;
       $('#replay-step').value = index;
       $('#replay-step').setAttribute('aria-valuetext', `Decision ${index} of ${last}, round ${raw.round}`);
-      $('#replay-start').disabled = $('#replay-prev').disabled = index === 0;
-      $('#replay-end').disabled = $('#replay-next').disabled = index === last;
+      $('#replay-prev').disabled = index === 0;
+      $('#replay-next').disabled = index === last;
       $('#replay-round').value = String(analysis.rounds.get(raw.round) ?? 0);
     }
     function stop() { clearInterval(timer); timer = null; $('#replay-play').textContent = 'Play'; $('#replay-play').setAttribute('aria-pressed', 'false'); }
@@ -174,10 +174,8 @@
       show();
       if (index === last) stop();
     }
-    $('#replay-start').addEventListener('click', () => { stop(); seek(0); });
     $('#replay-prev').addEventListener('click', () => { stop(); seek(index - 1); });
     $('#replay-next').addEventListener('click', () => { stop(); seek(index + 1); });
-    $('#replay-end').addEventListener('click', () => { stop(); seek(last); });
     $('#replay-step').addEventListener('input', event => { stop(); seek(event.target.value); });
     $('#replay-round').addEventListener('change', event => { stop(); seek(event.target.value); });
     $('#replay-view').addEventListener('change', show);
@@ -186,11 +184,6 @@
       if (index === last) seek(0);
       $('#replay-play').textContent = 'Pause'; $('#replay-play').setAttribute('aria-pressed', 'true');
       timer = setInterval(() => seek(index + 1), 750);
-    });
-    document.addEventListener('keydown', event => {
-      if (event.target.closest('input, select, textarea, [role="tab"]') || document.querySelector('dialog[open]')) return;
-      if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
-      event.preventDefault(); stop(); seek(index + (event.key === 'ArrowRight' ? 1 : -1));
     });
     shell.inert = false;
     show();

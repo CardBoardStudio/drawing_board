@@ -618,4 +618,7 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
   body.has-saved-table { display: flex; flex-direction: column; }
   .has-saved-table .table-save-bar { flex: none; }
   .has-saved-table .app-shell { height: auto; flex: 1; min-height: 0; }
+  .has-saved-table .board-stage { container-type: size; }
+  /* The 19 staggered rows need about 0.95 units of height per unit of width. */
+  .has-saved-table .galaxy-board { width: min(83cqw, calc((100cqh - 8px) * 1.05), 960px); }
 }

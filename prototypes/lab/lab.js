@@ -298,6 +298,11 @@ $("#download-key").addEventListener("click", () => {
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
+$(".skip").addEventListener("click", (event) => {
+  event.preventDefault();
+  $("#main").focus();
+  $("#main").scrollIntoView();
+});
 window.addEventListener("hashchange", () => {
   if (catalog) {
     render();

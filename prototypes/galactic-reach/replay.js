@@ -65,7 +65,7 @@
       if (action.type === 'colonize' && state.players[seat].hand.find(card => card.id === action.card)?.upgraded) pending = { playerId: seat, colony: action.coord };
       if (action.type === 'colony_build' || action.type === 'finish_colony_build') pending = null;
       if (action.type === 'buy') bought[seat] += 1;
-      const before = state.log || [];
+      const before = [...(state.log || [])];
       state = applyChanges(state, frame.changes);
       const offer = action.type === 'trade_accept' && state.tradeOffers.find(o => o.id === action.offer);
       if (offer && offer.status === 'accepted' && offer.acceptedBy === seat) { trades[seat][offer.from] += 1; trades[offer.from][seat] += 1; }

@@ -77,6 +77,7 @@ for (let index = 0; index <= frames.length; index++) {
   assert.deepEqual(step.tradesWith, truths[index].tradesWith, `Completed trades at decision ${index}`);
   assert.deepEqual(step.cardsPurchased, truths[index].cardsPurchased, `Purchased cards at decision ${index}`);
   assert.equal(step.log.length, raw.log.length);
+  if (index > 0 && raw.log[0] !== views[index - 1].log[0]) assert.equal(step.log[0], renameFactions(raw.log[0], names, frames[index - 1].seat), `Newest log line at decision ${index}`);
   view.replayState(raw, { names, cardsPurchased: step.cardsPurchased, tradesWith: step.tradesWith, pendingColonyBuild: step.pendingColonyBuild, decision: step.decision });
   raw.players.forEach((player, seat) => assert.equal(view.calculatePrestige(seat), player.prestige, `Prestige for seat ${seat} at decision ${index}`));
   if (step.decision) {

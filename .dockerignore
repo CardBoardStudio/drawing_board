@@ -6,3 +6,8 @@
 !crates/**
 !scripts/
 !scripts/build-web.sh
+!prototypes/
+!prototypes/galactic-reach/
+!prototypes/galactic-reach/index.html
+!prototypes/galactic-reach/styles.css
+!prototypes/galactic-reach/app.js

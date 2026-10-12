@@ -30,3 +30,6 @@ dist/
 *.sqlite*
 .lavish/
 trusted-signers.local.json
+
+# Local checkout used to publish the hosted playtest
+/sites/

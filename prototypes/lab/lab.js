@@ -14,6 +14,9 @@ let session,
   tables = [],
   busy = false,
   pendingSeries;
+let arenaGame = new URLSearchParams(location.search).get("game") === "galactic-reach" ? "galactic-reach" : "voidwright";
+const arenaInfo = () => catalog.games.find(g => g.id === arenaGame);
+const arenaPolicies = () => catalog.policies.filter(p => p.game === arenaGame);
 const page = () =>
   ["arena", "account"].includes(location.hash.slice(1))
     ? location.hash.slice(1)
@@ -47,7 +50,7 @@ async function refresh() {
   if (session.user)
     [profile, arena, tables] = await Promise.all([
       api("/api/account"),
-      api("/api/arena"),
+      api(`/api/arena?game=${arenaGame}`),
       api("/api/games"),
     ]);
   else {
@@ -97,8 +100,8 @@ function libraryView() {
 }
 function roster() {
   if (!arena.bots.length)
-    return `<div class="empty"><span aria-hidden="true">◇</span><h3>Give a strategy a seat.</h3><p>Start with Explorer, Merchant, and Kepler: three approaches to the same game.</p><button class="primary" id="starter-roster">Create reference roster →</button></div>`;
-  return `<div class="table-wrap"><table><thead><tr><th>AI PLAYER</th><th>ELO</th><th>RECORD</th></tr></thead><tbody>${arena.bots.map((b) => `<tr><td><div class="bot-name"><span class="bot-glyph" aria-hidden="true">◇</span><div>${esc(b.name)}<small>${esc(b.policy)}</small><button class="practice-link" data-practice="${esc(b.id)}">Practice ↗</button></div></div></td><td><span class="rating">${Math.round(b.elo)}</span><div class="rating-bar" aria-hidden="true"><i style="width:${Math.max(5, Math.min(100, (b.elo - 800) / 8))}%"></i></div></td><td>${b.wins}W · ${b.draws}D · ${b.games - b.wins - b.draws}L<small>${b.games < 20 ? `${b.games}/20 · Provisional` : `${b.games} games`}</small></td></tr>`).join("")}</tbody></table></div>`;
+    return `<div class="empty"><span aria-hidden="true">◇</span><h3>Give a strategy a seat.</h3><p>Start with ${arenaPolicies().map(p => esc(p.name)).join(", ")}: different approaches to the same game.</p><button class="primary" id="starter-roster">Create reference roster →</button></div>`;
+  return `<div class="table-wrap"><table><thead><tr><th>AI PLAYER</th><th>ELO</th><th>RECORD</th></tr></thead><tbody>${arena.bots.map((b) => `<tr><td><div class="bot-name"><span class="bot-glyph" aria-hidden="true">◇</span><div>${esc(b.name)}<small>${esc(b.policy)}</small>${arenaGame === "voidwright" ? `<button class="practice-link" data-practice="${esc(b.id)}">Practice ↗</button>` : ""}</div></div></td><td><span class="rating">${Math.round(b.elo)}</span><div class="rating-bar" aria-hidden="true"><i style="width:${Math.max(5, Math.min(100, (b.elo - 800) / 8))}%"></i></div></td><td>${b.wins}W · ${b.draws}D · ${b.games - b.wins - b.draws}L<small>${b.games < 20 ? `${b.games}/20 · Provisional` : `${b.games} games`}</small></td></tr>`).join("")}</tbody></table></div>`;
 }
 const botName = (id) =>
   arena.bots.find((b) => b.id === id)?.name || "AI player";
@@ -108,7 +111,7 @@ function history() {
   return arena.series
     .map(
       (s) =>
-        `<details class="series"><summary>${esc(botName(s.matches[0].seats[0]))} vs ${esc(botName(s.matches[0].seats[1]))}<br><span>${s.matches.length} games · ${new Date(s.created * 1000).toLocaleString()} · Complete</span></summary>${s.matches.map((m, i) => `<div class="result"><span>${i + 1}. ${esc(botName(m.seats[0]))} / ${esc(botName(m.seats[1]))}<br>${m.after.map((r, j) => `${esc(botName(m.seats[j]))}: ${Math.round(r)} (${r - m.before[j] >= 0 ? "+" : ""}${(r - m.before[j]).toFixed(1)})`).join(" · ")}</span><strong>${m.result.scores.join(" : ")}</strong></div>`).join("")}</details>`,
+        `<details class="series"><summary>${s.matches[0].seats.map(id => esc(botName(id))).join(" / ")}<br><span>${s.matches.length} games · ${new Date(s.created * 1000).toLocaleString()} · Complete</span></summary>${s.matches.map((m, i) => `<div class="result"><span>${i + 1}. ${m.seats.map(id => esc(botName(id))).join(" / ")}<br>${m.after.map((r, j) => `${esc(botName(m.seats[j]))}: ${Math.round(r)} (${r - m.before[j] >= 0 ? "+" : ""}${(r - m.before[j]).toFixed(1)})`).join(" · ")}</span><strong>${m.result.scores.join(" : ")}</strong></div>`).join("")}</details>`,
     )
     .join("");
 }
@@ -117,19 +120,20 @@ function arenaView() {
     "STRATEGY, MEET EVIDENCE.",
     "The AI arena.",
     "Give your AI players an identity. Let them play. Find the challenge that fits.",
-    "VOIDWRIGHT / DUELS",
+    `${arenaInfo().name.toUpperCase()} / ${arenaInfo().seats} PLAYERS`,
   );
+  intro += `<div class="panel arena-picker"><label for="arena-game">Arena game</label><select id="arena-game">${catalog.games.filter(g => g.rated).map(g => `<option value="${esc(g.id)}" ${g.id === arenaGame ? "selected" : ""}>${esc(g.name)} · ${g.seats} players</option>`).join("")}</select><p class="form-note">Each game has its own AI players, match history, and Elo ladder.</p></div>`;
   if (!profile)
     return (
       intro +
-      `<section class="panel"><div class="empty"><span aria-hidden="true">◇</span><h3>Your own strategy lab.</h3><p>Sign in to create AI accounts, run paired matches, and keep a persistent Elo ladder.</p><a href="#account" class="primary">Open your account →</a></div></section><div class="cards">${catalog.policies.map((p) => `<div class="panel"><div class="eyebrow">${esc(p.version)}</div><h2>${esc(p.name)}</h2><p>${esc(p.description)}</p></div>`).join("")}</div>`
+      `<section class="panel"><div class="empty"><span aria-hidden="true">◇</span><h3>Your own strategy lab.</h3><p>Sign in to create AI accounts, run paired matches, and keep a persistent Elo ladder.</p><a href="#account" class="primary">Open your account →</a></div></section><div class="cards">${arenaPolicies().map((p) => `<div class="panel"><div class="eyebrow">${esc(p.version)}</div><h2>${esc(p.name)}</h2><p>${esc(p.description)}</p></div>`).join("")}</div>`
     );
-  const games = arena.bots.reduce((n, b) => n + b.games, 0) / 2;
+  const games = arena.bots.reduce((n, b) => n + b.games, 0) / arenaInfo().seats;
   const top = arena.bots.find((b) => b.games > 0);
   return (
     intro +
-    `<div class="stat-grid"><div class="stat"><span>YOUR AI PLAYERS</span><strong>${arena.bots.length.toString().padStart(2, "0")}</strong><small>${12 - arena.bots.length} seats available</small></div><div class="stat"><span>COMPLETED MATCHES</span><strong>${games.toString().padStart(2, "0")}</strong><small>Paired starts</small></div><div class="stat"><span>HIGHEST RATING</span><strong>${top ? Math.round(top.elo) : "—"}</strong><small>${top ? "In your lab" : "Awaiting matches"}</small></div></div>
-  <div class="split"><div><section class="panel"><div class="panel-heading"><h2>Your AI ladder</h2><span class="badge cyan">Elo · K 32</span></div>${roster()}<p class="hint"><strong>Difficulty is measured, not assigned.</strong><br>Everyone starts at 1200. Ratings compare players in your lab using 20-round Voidwright duels. The first 20 games are provisional; a rating is not a universal difficulty level. Practice games against you are unrated.</p></section><section class="panel" style="margin-top:20px"><div class="panel-heading"><h2>Recent series</h2><small>LAST 10</small></div>${history()}</section></div><div><section class="panel"><div class="eyebrow">PUT THEM TO THE TEST</div><h2>Run a series</h2><p>Each pair uses the same shuffle seed and swaps starting seats.</p>${arena.bots.length >= 2 ? `<form id="series-form"><label for="bot-a">First challenger</label><select id="bot-a" name="a">${arena.bots.map((b) => `<option value="${esc(b.id)}">${esc(b.name)}</option>`).join("")}</select><label for="bot-b">Second challenger</label><select id="bot-b" name="b">${arena.bots.map((b, i) => `<option value="${esc(b.id)}" ${i === 1 ? "selected" : ""}>${esc(b.name)}</option>`).join("")}</select><label for="series-games">Games in series</label><select id="series-games" name="games"><option value="2">2 games · quick comparison</option><option value="10" selected>10 games · exploration</option><option value="20">20 games · calibration</option></select><button class="primary">Run paired matches →</button><p class="form-note">Ratings update only after the whole series completes. Usually a few seconds.</p></form>` : '<p class="hint">Create at least two AI accounts to start a series.</p>'}</section><section class="panel" style="margin-top:20px"><h2>Create an AI player</h2><form id="bot-form"><label for="bot-name">Player name</label><input id="bot-name" name="name" required maxlength="32" placeholder="e.g. Kepler Mk II"><label for="bot-strategy">Strategy</label><select id="bot-strategy" name="strategy">${catalog.policies.map((p) => `<option value="${p.id}">${esc(p.name)} · ${esc(p.version)}</option>`).join("")}</select><p id="policy-description" class="form-note">${esc(catalog.policies[0].description)}</p><button class="primary" ${arena.bots.length >= 12 ? "disabled" : ""}>Create AI account +</button></form></section></div></div>`
+    `<div class="stat-grid"><div class="stat"><span>YOUR AI PLAYERS</span><strong>${arena.bots.length.toString().padStart(2, "0")}</strong><small>${12 - arena.bots.length} seats available</small></div><div class="stat"><span>COMPLETED MATCHES</span><strong>${games.toString().padStart(2, "0")}</strong><small>Rotated starting seats</small></div><div class="stat"><span>HIGHEST RATING</span><strong>${top ? Math.round(top.elo) : "—"}</strong><small>${top ? "In your lab" : "Awaiting matches"}</small></div></div>
+  <div class="split"><div><section class="panel"><div class="panel-heading"><h2>Your AI ladder</h2><span class="badge cyan">Elo · K 32</span></div>${roster()}<p class="hint"><strong>Difficulty is measured, not assigned.</strong><br>Everyone starts at 1200. Ratings compare players in your lab ${arenaGame === "voidwright" ? "using 20-round Voidwright duels" : "using four-faction Galactic Reach matches to its normal victory target"}. The first 20 games are provisional; a rating is not a universal difficulty level. ${arenaGame === "voidwright" ? "Practice games against you are unrated." : "A sole winner earns a win; every other faction records a loss. Guest browser games are unrated."}</p></section><section class="panel" style="margin-top:20px"><div class="panel-heading"><h2>Recent series</h2><small>LAST 10</small></div>${history()}</section></div><div><section class="panel"><div class="eyebrow">PUT THEM TO THE TEST</div><h2>Run a series</h2><p>Each group of ${arenaInfo().seats} matches uses the same game seed and rotates every AI through every starting seat.</p>${arena.bots.length >= arenaInfo().seats ? `<form id="series-form">${Array.from({length: arenaInfo().seats}, (_, i) => `<label for="bot-${i}">Challenger ${i + 1}</label><select id="bot-${i}" name="seat${i}">${arena.bots.map((b, j) => `<option value="${esc(b.id)}" ${j === i ? "selected" : ""}>${esc(b.name)}</option>`).join("")}</select>`).join("")}<label for="series-games">Games in series</label><select id="series-games" name="games">${(arenaInfo().seats === 2 ? [2,10,20] : [4,8,12]).map(n => `<option value="${n}">${n} games · ${n / arenaInfo().seats} full seat rotation${n > arenaInfo().seats ? "s" : ""}</option>`).join("")}</select><button class="primary">Run matches →</button><p class="form-note">Ratings update only after the whole series completes. ${arenaGame === "voidwright" ? "Usually a few seconds." : "Four-faction series may take a minute."}</p></form>` : `<p class="hint">Create at least ${arenaInfo().seats} AI accounts to start a series.</p>`}</section><section class="panel" style="margin-top:20px"><h2>Create an AI player</h2><form id="bot-form"><label for="bot-name">Player name</label><input id="bot-name" name="name" required maxlength="32" placeholder="Name your new challenger"><label for="bot-strategy">Strategy</label><select id="bot-strategy" name="strategy">${arenaPolicies().map((p) => `<option value="${p.id}">${esc(p.name)} · ${esc(p.version)}</option>`).join("")}</select><p id="policy-description" class="form-note">${esc(arenaPolicies()[0].description)}</p><button class="primary" ${arena.bots.length >= 12 ? "disabled" : ""}>Create AI account +</button></form></section></div></div>`
   );
 }
 function accountView() {
@@ -141,7 +145,7 @@ function accountView() {
         "Your tables, your AI players, and your account settings.",
         "SIGNED IN",
       ) +
-      `<div class="split"><section class="panel"><div class="eyebrow">PLAYER PROFILE</div><h2>Your identity</h2><form id="profile-form"><label for="profile-name">Display name</label><input name="name" id="profile-name" value="${esc(profile.name)}" required maxlength="32"><button class="primary">Save display name</button></form><hr class="divider"><div class="detail-list"><div><span>Sign-in method</span><b>${profile.has_recovery_key ? "Private recovery key" : profile.development ? "Temporary playtest identity" : "Nido wallet"}</b></div><div><span>Active browser sessions</span><b>${profile.sessions}</b></div><div><span>AI players in your lab</span><b>${arena.bots.length}</b></div></div><small class="mono">${esc(profile.id)}</small>${profile.development ? '<p class="hint">This is a temporary identity. To keep a recoverable account, sign out and create an account with a recovery key.</p>' : ""}</section><section class="panel"><div class="eyebrow">ACCOUNT ACCESS</div><h2>Keep your seat secure.</h2><p>Sessions expire after 24 hours. ${profile.has_recovery_key ? "Use your saved recovery key to return to this same account." : "Return with your usual sign-in method."}</p><button class="secondary" id="revoke">Sign out other sessions</button>${profile.has_recovery_key ? `<hr class="divider"><h3>Replace your recovery key</h3><p>Your old key will stop working and all other sessions will be signed out. Save the new key before leaving this page.</p><button class="secondary" id="rotate">Replace recovery key</button>` : ""}<hr class="divider"><button class="secondary" id="logout">Sign out of this browser</button></section></div>`
+      `<div class="split"><section class="panel"><div class="eyebrow">PLAYER PROFILE</div><h2>Your identity</h2><form id="profile-form"><label for="profile-name">Display name</label><input name="name" id="profile-name" value="${esc(profile.name)}" required maxlength="32"><button class="primary">Save display name</button></form><hr class="divider"><div class="detail-list"><div><span>Sign-in method</span><b>${profile.has_recovery_key ? "Private recovery key" : profile.development ? "Temporary playtest identity" : "Nido wallet"}</b></div><div><span>Active browser sessions</span><b>${profile.sessions}</b></div><div><span>AI players in your lab</span><b>${arena.bots.length} (${esc(arenaInfo().name)})</b></div></div><small class="mono">${esc(profile.id)}</small>${profile.development ? '<p class="hint">This is a temporary identity. To keep a recoverable account, sign out and create an account with a recovery key.</p>' : ""}</section><section class="panel"><div class="eyebrow">ACCOUNT ACCESS</div><h2>Keep your seat secure.</h2><p>Sessions expire after 24 hours. ${profile.has_recovery_key ? "Use your saved recovery key to return to this same account." : "Return with your usual sign-in method."}</p><button class="secondary" id="revoke">Sign out other sessions</button>${profile.has_recovery_key ? `<hr class="divider"><h3>Replace your recovery key</h3><p>Your old key will stop working and all other sessions will be signed out. Save the new key before leaving this page.</p><button class="secondary" id="rotate">Replace recovery key</button>` : ""}<hr class="divider"><button class="secondary" id="logout">Sign out of this browser</button></section></div>`
     );
   return (
     head(
@@ -192,6 +196,15 @@ function onClick(id, work) {
   $(id)?.addEventListener("click", () => action(work));
 }
 function bind() {
+  $("#arena-game")?.addEventListener("change", e => {
+    if (busy) { e.target.value = arenaGame; return; }
+    arenaGame = e.target.value;
+    const url = new URL(location.href);
+    url.searchParams.set("game", arenaGame);
+    window.history.replaceState(null, "", url);
+    pendingSeries = undefined;
+    action(async () => {});
+  });
   for (const button of document.querySelectorAll("[data-practice]"))
     button.addEventListener("click", () =>
       action(async () => {
@@ -220,17 +233,18 @@ function bind() {
     );
   });
   onForm("#bot-form", async (body) => {
-    await api("/api/arena/bots", body);
+    await api("/api/arena/bots", { ...body, game: arenaGame });
     notice("AI account created. Run matches to calibrate its rating.");
   });
   $("#bot-strategy")?.addEventListener("change", (e) => {
-    $("#policy-description").textContent = catalog.policies.find(
+    $("#policy-description").textContent = arenaPolicies().find(
       (p) => p.id === e.target.value,
     ).description;
   });
   onForm("#series-form", async (body) => {
-    if (body.a === body.b) throw new Error("Choose two different AI players.");
-    const signature = JSON.stringify([body.a, body.b, Number(body.games)]);
+    const bots = Array.from({length: arenaInfo().seats}, (_, i) => body[`seat${i}`]);
+    if (new Set(bots).size !== bots.length) throw new Error("Choose a different AI player for each seat.");
+    const signature = JSON.stringify([arenaGame, bots, Number(body.games)]);
     if (pendingSeries?.signature !== signature)
       pendingSeries = { signature, request_id: crypto.randomUUID() };
     notice(
@@ -238,16 +252,17 @@ function bind() {
     );
     await api("/api/arena/series", {
       request_id: pendingSeries.request_id,
-      bots: [body.a, body.b],
+      bots,
+      game: arenaGame,
       games: Number(body.games),
     });
     pendingSeries = undefined;
     notice(`${body.games} matches complete. Your ladder is up to date.`);
   });
   onClick("#starter-roster", async () => {
-    for (const p of catalog.policies)
-      await api("/api/arena/bots", { name: p.name, strategy: p.id });
-    notice("Your three reference players are ready.");
+    for (const p of arenaPolicies())
+      await api("/api/arena/bots", { name: p.name, strategy: p.id, game: arenaGame });
+    notice("Your reference players are ready.");
   });
   onClick("#logout", async () => {
     await api("/api/auth/logout", {});

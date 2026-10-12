@@ -323,7 +323,7 @@ async fn create_game(
             let db = app.store.0.lock().map_err(internal)?;
             let name = db
                 .query_row(
-                    "SELECT name FROM accounts WHERE id=? AND owner_id=? AND kind='ai'",
+                    "SELECT name FROM accounts WHERE id=? AND owner_id=? AND kind='ai' AND policy IN ('explorer/1','merchant/1','kepler/1')",
                     rusqlite::params![id, u.id],
                     |r| r.get::<_, String>(0),
                 )

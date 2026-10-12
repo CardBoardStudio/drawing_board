@@ -6,7 +6,8 @@ The first vertical slice keeps game rules independent of HTTP, storage, identity
 | --- | --- | --- |
 | `game-core` | Game adapter, player AI interface, bounded match runner, Elo | Serde; no game or transport dependency |
 | `game` | Voidwright rules, views, adapter, versioned reference policies | `game-core`, Serde, pinned ChaCha RNG |
-| `server` | Accounts, Nido, sessions, authorization, tables, AI arena, SQLite, static delivery | `game-core`, `game`, Axum, SQLite, P-256 |
+| `galactic-reach` | Browser rules embedded in bounded QuickJS, adapter, four reference policies | `game-core`, existing JavaScript rules; no HTTP or database |
+| `server` | Accounts, Nido, sessions, authorization, tables, AI arena, SQLite, static delivery | `game-core`, `game`, `galactic-reach`, Axum, SQLite, P-256 |
 | `web` | Browser interface compiled to WebAssembly | `game` for wire types and catalog; Yew for rendering |
 
 ## A move
@@ -25,7 +26,7 @@ Each event is linked to its predecessor using a domain-separated SHA-256 hash. T
 
 ## Growing the testing bed
 
-Next useful additions are versioned card/ruleset definitions, saved setup presets, structured playtest notes, deterministic replay tooling, and balance simulations. The shared `GameAdapter` / `PlayerAgent` contract now drives Voidwright practice and arena matches. A game catalog exposes the two frontends, while table transport and the arena constructor remain Voidwright-specific. Extract Galactic Reach’s browser rules into an authoritative adapter before admitting it to ratings. See [accounts and the game platform](game-platform.md) for extension points, rating isolation, and current limits.
+Next useful additions are versioned card/ruleset definitions, saved setup presets, structured playtest notes, deterministic replay tooling, and balance simulations. The shared `GameAdapter` / `PlayerAgent` contract drives both Voidwright and Galactic Reach through the same match runner. The arena selects each game’s constructor, seat count, policies, and rating pool; account storage, seat rotations, match recording, and rating transactions are shared. Human table transport remains Voidwright-specific. Galactic Reach’s guest UI and authoritative adapter call the same JavaScript rule primitives; no second port of its rules is maintained. See [accounts and the game platform](game-platform.md) for extension points, rating isolation, and current limits.
 
 ## Soroban and ZKP path
 

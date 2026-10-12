@@ -1,6 +1,9 @@
 use crate::tests::{app, call};
 use crate::*;
 
+// These integration tests intentionally occupy the process-wide arena workers.
+static ARENA_TEST: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
+
 fn session_cookie(headers: &HeaderMap) -> String {
     headers[header::SET_COOKIE]
         .to_str()
@@ -214,6 +217,7 @@ async fn public_enrollment_requires_code_and_limits_requests() {
 }
 #[tokio::test]
 async fn arena_enforces_ownership_pairs_seats_and_rates_exactly_once() {
+    let _serial = ARENA_TEST.lock().await;
     let a = app(true);
     let (owner, _) = register_account(&a, "Owner").await;
     let (other, _) = register_account(&a, "Other").await;
@@ -389,4 +393,193 @@ async fn arena_enforces_ownership_pairs_seats_and_rates_exactly_once() {
         call(&a, "GET", "/api/arena", &owner, json!({})).await.2,
         ladder
     );
+}
+
+#[tokio::test]
+async fn galactic_reach_uses_shared_accounts_rotations_and_isolated_ratings() {
+    let _serial = ARENA_TEST.lock().await;
+    let a = app(true);
+    let (owner, _) = register_account(&a, "Four factions").await;
+    let (other, _) = register_account(&a, "Other lab").await;
+    let mut bots = vec![];
+    for strategy in ["gr-military", "gr-economy", "gr-expansion", "gr-wanderer"] {
+        let (status, _, result) = call(
+            &a,
+            "POST",
+            "/api/arena/bots",
+            &owner,
+            json!({"name":strategy,"strategy":strategy,"game":"galactic-reach"}),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK, "{result}");
+        bots.push(result["id"].as_str().unwrap().to_string());
+    }
+    let request = json!({"request_id":uuid::Uuid::new_v4().to_string(),"game":"galactic-reach","bots":bots,"games":4});
+    assert_eq!(
+        call(&a, "POST", "/api/arena/series", &other, request.clone())
+            .await
+            .0,
+        StatusCode::FORBIDDEN
+    );
+    let mut bad = request.clone();
+    bad["games"] = json!(2);
+    assert_eq!(
+        call(&a, "POST", "/api/arena/series", &owner, bad).await.0,
+        StatusCode::BAD_REQUEST
+    );
+    let mut bad = request.clone();
+    bad["bots"][3] = bad["bots"][0].clone();
+    assert_eq!(
+        call(&a, "POST", "/api/arena/series", &owner, bad).await.0,
+        StatusCode::BAD_REQUEST
+    );
+    assert_eq!(
+        call(
+            &a,
+            "POST",
+            "/api/arena/bots",
+            &owner,
+            json!({"name":"Wrong game","strategy":"kepler","game":"galactic-reach"})
+        )
+        .await
+        .0,
+        StatusCode::BAD_REQUEST
+    );
+    assert_eq!(call(&a,"POST","/api/arena/series",&owner,json!({"request_id":uuid::Uuid::new_v4().to_string(),"bots":[bots[0],bots[1]],"games":2})).await.0, StatusCode::BAD_REQUEST);
+    assert_eq!(
+        call(
+            &a,
+            "POST",
+            "/api/games",
+            &owner,
+            json!({"name":"Wrong rival","practice":true,"opponent_id":bots[0],"round_limit":20})
+        )
+        .await
+        .0,
+        StatusCode::FORBIDDEN
+    );
+    let (status, _, result) = call(&a, "POST", "/api/arena/series", &owner, request.clone()).await;
+    assert_eq!(status, StatusCode::OK, "{result}");
+    assert_eq!(result["matches"].as_array().unwrap().len(), 4);
+    for (rotation, m) in result["matches"].as_array().unwrap().iter().enumerate() {
+        assert_eq!(m["seed"], result["matches"][0]["seed"]);
+        assert_eq!(m["result"]["rules_version"], galactic_reach::RULES);
+        assert_eq!(
+            m["result"]["scores"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|s| s.as_f64().unwrap())
+                .sum::<f64>(),
+            1.0
+        );
+        for seat in 0..4 {
+            let index = (seat + rotation) % 4;
+            assert_eq!(m["seats"][seat], bots[index]);
+            assert_eq!(
+                m["agent_seeds"][seat],
+                result["matches"][0]["agent_seeds"][index]
+            );
+        }
+        let total: f64 = m["after"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|v| v.as_f64().unwrap())
+            .sum();
+        assert!((total - 4800.0).abs() < 1e-8);
+    }
+    assert_eq!(
+        call(&a, "POST", "/api/arena/series", &owner, request)
+            .await
+            .2,
+        result
+    );
+    let ladder = call(
+        &a,
+        "GET",
+        "/api/arena?game=galactic-reach",
+        &owner,
+        json!({}),
+    )
+    .await
+    .2;
+    assert_eq!(ladder["series"].as_array().unwrap().len(), 1);
+    assert!(
+        ladder["bots"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|b| b["games"] == 4)
+    );
+    let void = call(&a, "GET", "/api/arena", &owner, json!({})).await.2;
+    assert!(void["bots"].as_array().unwrap().is_empty());
+    assert!(void["series"].as_array().unwrap().is_empty());
+    assert!(
+        call(
+            &a,
+            "GET",
+            "/api/arena?game=galactic-reach",
+            &other,
+            json!({})
+        )
+        .await
+        .2["bots"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    // Replay the second adapter from the exact same stored data used by Voidwright.
+    use galactic_reach::{BuiltinAgent, GalacticReach, Strategy};
+    use game_core::{PlayerAgent, run_match};
+    let m = &result["matches"][0];
+    let mut game = GalacticReach::new(
+        hex::decode(m["seed"].as_str().unwrap())
+            .unwrap()
+            .try_into()
+            .unwrap(),
+    )
+    .unwrap();
+    let mut agents: Vec<Box<dyn PlayerAgent<GalacticReach>>> = (0..4)
+        .map(|i| {
+            Box::new(BuiltinAgent::new(
+                Strategy::parse(m["result"]["policies"][i].as_str().unwrap()).unwrap(),
+                hex::decode(m["agent_seeds"][i].as_str().unwrap())
+                    .unwrap()
+                    .try_into()
+                    .unwrap(),
+            )) as Box<dyn PlayerAgent<GalacticReach>>
+        })
+        .collect();
+    assert_eq!(
+        serde_json::to_value(run_match(&mut game, &mut agents, 10000).unwrap()).unwrap(),
+        m["result"]
+    );
+}
+
+#[tokio::test]
+async fn stored_series_retry_preserves_exact_elo_precision() {
+    let a = app(true);
+    let (cookie, _) = register_account(&a, "Precision").await;
+    let owner = call(&a, "GET", "/api/account", &cookie, json!({})).await.2["id"]
+        .as_str()
+        .unwrap()
+        .to_string();
+    let id = uuid::Uuid::new_v4().to_string();
+    let input = json!({"request_id":id,"bots":["a","b"],"games":2});
+    // Preserve the legacy request encoding and a real rating observed in a four-seat match.
+    let encoded = format!("{{\"request_id\":\"{id}\",\"bots\":[\"a\",\"b\"],\"games\":2}}");
+    let expected = json!({"after":[1201.8796342134885,1198.1203657865115]});
+    a.store
+        .0
+        .lock()
+        .unwrap()
+        .execute(
+            "INSERT INTO arena_series VALUES(?,?,?,?,?)",
+            rusqlite::params![owner, id, encoded, expected.to_string(), now()],
+        )
+        .unwrap();
+    let (status, _, result) = call(&a, "POST", "/api/arena/series", &cookie, input).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(result, expected);
 }

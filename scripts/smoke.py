@@ -22,7 +22,7 @@ def request(path, body=None, cookie="", origin=ORIGIN):
         headers["Content-Type"] = "application/json"
     req = urllib.request.Request(BASE + path, data=data, headers=headers)
     try:
-        response = urllib.request.urlopen(req, timeout=10)
+        response = urllib.request.urlopen(req, timeout=120)
     except urllib.error.HTTPError as error:
         response = error
     with response:
@@ -123,3 +123,21 @@ ladder = request('/api/arena', cookie=account_cookie)[2]
 assert all(bot['games'] == 2 for bot in ladder['bots'])
 assert len(ladder['series']) == 1
 print('Platform smoke passed: account recovery, AI accounts, paired matches, persisted Elo, duplicate-safe retry.')
+
+# The packaged binary embeds the exact browser rules; no Node runtime is needed.
+gr_bots = []
+for policy in ['gr-military', 'gr-economy', 'gr-expansion', 'gr-wanderer']:
+    status, _, bot = request('/api/arena/bots', {'name': policy, 'strategy': policy, 'game': 'galactic-reach'}, account_cookie)
+    assert status == 200, bot
+    gr_bots.append(bot['id'])
+gr_series = {'request_id': str(uuid.uuid4()), 'game': 'galactic-reach', 'bots': gr_bots, 'games': 4}
+status, _, gr_result = request('/api/arena/series', gr_series, account_cookie)
+assert status == 200, gr_result
+assert len(gr_result['matches']) == 4
+assert all(m['result']['rules_version'] == 'galactic-reach/4.9' for m in gr_result['matches'])
+assert request('/api/arena/series', gr_series, account_cookie)[2] == gr_result
+gr_ladder = request('/api/arena?game=galactic-reach', cookie=account_cookie)[2]
+assert len(gr_ladder['bots']) == 4 and all(b['games'] == 4 for b in gr_ladder['bots'])
+assert abs(sum(b['elo'] for b in gr_ladder['bots']) - 4800) < 1e-8
+assert request('/api/arena', cookie=account_cookie)[2] == ladder
+print('Second adapter smoke passed: four-player Galactic Reach, seat rotation, separate Elo, exact-once retry.')

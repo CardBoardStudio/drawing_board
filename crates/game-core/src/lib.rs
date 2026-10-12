@@ -86,9 +86,50 @@ pub fn elo_pair(ratings: [f64; 2], scores: [f64; 2]) -> Result<[f64; 2], String>
     Ok([ratings[0] + change, ratings[1] - change])
 }
 
+/// Multiplayer Elo: average the pairwise K=32 changes against every opponent,
+/// computed simultaneously from pre-match ratings. Total rating stays constant.
+/// Two seats give exactly the same result as `elo_pair`.
+pub fn elo_multiplayer(ratings: &[f64], scores: &[f64]) -> Result<Vec<f64>, String> {
+    if ratings.len() < 2 || ratings.len() != scores.len() {
+        return Err("Ratings and scores need the same number of seats, at least two.".into());
+    }
+    let mut result = ratings.to_vec();
+    for i in 0..ratings.len() {
+        for j in i + 1..ratings.len() {
+            let pair = elo_pair([ratings[i], ratings[j]], [scores[i], scores[j]])?;
+            let change = (pair[0] - ratings[i]) / (ratings.len() - 1) as f64;
+            result[i] += change;
+            result[j] -= change;
+        }
+    }
+    Ok(result)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn multiplayer_elo_is_simultaneous_and_conserves_ratings() {
+        assert_eq!(
+            elo_multiplayer(&[1200.0; 2], &[3.0, 1.0]).unwrap(),
+            elo_pair([1200.0; 2], [3.0, 1.0]).unwrap()
+        );
+        let ratings = [1000.0, 1100.0, 1300.0, 1400.0];
+        let scores = [1.0, 0.0, 0.0, 0.0];
+        let result = elo_multiplayer(&ratings, &scores).unwrap();
+        assert!((result.iter().sum::<f64>() - 4800.0).abs() < 1e-9);
+        assert!(result[0] > ratings[0]);
+        let reversed = elo_multiplayer(
+            &ratings.into_iter().rev().collect::<Vec<_>>(),
+            &scores.into_iter().rev().collect::<Vec<_>>(),
+        )
+        .unwrap();
+        for (a, b) in result.iter().zip(reversed.iter().rev()) {
+            assert!((a - b).abs() < 1e-9);
+        }
+        assert!(elo_multiplayer(&[1200.0], &[1.0]).is_err());
+        assert!(elo_multiplayer(&[1200.0; 4], &[1.0, f64::NAN, 0.0, 0.0]).is_err());
+    }
     #[test]
     fn elo_handles_wins_draws_and_upsets() {
         assert_eq!(elo_pair([1200.0; 2], [3.0, 1.0]).unwrap(), [1216.0, 1184.0]);

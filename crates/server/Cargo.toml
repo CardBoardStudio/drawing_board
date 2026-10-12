@@ -24,6 +24,7 @@ p256 = { version = "0.13", features = ["ecdsa"] }
 stellar-strkey = "0.0.13"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+galactic-reach.workspace = true
 
 [dev-dependencies]
 tower = { version = "0.5", features = ["util"] }

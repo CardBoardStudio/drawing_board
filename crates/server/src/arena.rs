@@ -1,10 +1,91 @@
 //! Owner-scoped AI laboratories. Only completed authoritative simulations affect Elo.
 use crate::*;
 use game::agents::{BuiltinAgent, Strategy};
-use game_core::{MatchResult, PlayerAgent, elo_pair, run_match};
+use game_core::{MatchResult, PlayerAgent, elo_multiplayer, run_match};
 use rusqlite::{Connection, OptionalExtension, params};
 
-const POOL: &str = "voidwright/1:duel:20-rounds:policies-v1";
+#[derive(Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum GameKind {
+    #[default]
+    Voidwright,
+    GalacticReach,
+}
+impl GameKind {
+    fn is_default(&self) -> bool {
+        *self == Self::Voidwright
+    }
+    fn pool(self) -> &'static str {
+        match self {
+            Self::Voidwright => "voidwright/1:duel:20-rounds:policies-v1",
+            Self::GalacticReach => "galactic-reach/4.9:four-player:winner:policies-v1",
+        }
+    }
+    fn seats(self) -> usize {
+        if self == Self::Voidwright { 2 } else { 4 }
+    }
+    fn validate_policy(self, version: &str) -> ApiResult<()> {
+        match self {
+            Self::Voidwright => {
+                strategy(version)?;
+            }
+            Self::GalacticReach => {
+                galactic_reach::Strategy::parse(version)
+                    .ok_or_else(|| bad("Choose a Galactic Reach policy."))?;
+            }
+        }
+        Ok(())
+    }
+    fn simulate(
+        self,
+        id: &str,
+        seed: [u8; 32],
+        policies: &[String],
+        agent_seeds: &[[u8; 32]],
+    ) -> Result<MatchResult, String> {
+        match self {
+            Self::Voidwright => {
+                let mut game = Game::new(
+                    id.into(),
+                    "AI arena".into(),
+                    "a".into(),
+                    "Seat one".into(),
+                    seed,
+                    20,
+                )?;
+                game.join("b".into(), "Seat two".into(), true)?;
+                game.apply("a", Command::Start)?;
+                let mut agents: Vec<Box<dyn PlayerAgent<Game>>> = policies
+                    .iter()
+                    .zip(agent_seeds)
+                    .map(|(p, seed)| {
+                        Ok(Box::new(BuiltinAgent::new(
+                            strategy(p).map_err(|_| "Invalid Voidwright policy")?,
+                            *seed,
+                        )) as Box<dyn PlayerAgent<Game>>)
+                    })
+                    .collect::<Result<_, String>>()?;
+                run_match(&mut game, &mut agents, 10000)
+            }
+            Self::GalacticReach => {
+                use galactic_reach::{BuiltinAgent, GalacticReach, Strategy};
+                let mut game = GalacticReach::new(seed)?;
+                let mut agents: Vec<Box<dyn PlayerAgent<GalacticReach>>> = policies
+                    .iter()
+                    .zip(agent_seeds)
+                    .map(|(p, seed)| {
+                        Ok(Box::new(BuiltinAgent::new(
+                            Strategy::parse(p).ok_or("Invalid Galactic Reach policy")?,
+                            *seed,
+                        ))
+                            as Box<dyn PlayerAgent<GalacticReach>>)
+                    })
+                    .collect::<Result<_, String>>()?;
+                run_match(&mut game, &mut agents, 10000)
+            }
+        }
+    }
+}
 static WORKERS: tokio::sync::Semaphore = tokio::sync::Semaphore::const_new(2);
 
 pub fn migrate(db: &Connection) -> rusqlite::Result<()> {
@@ -22,13 +103,17 @@ pub fn migrate(db: &Connection) -> rusqlite::Result<()> {
 }
 pub async fn catalog() -> Json<serde_json::Value> {
     Json(json!({"games":[
-        {"id":"galactic-reach","name":"Galactic Reach","href":"/galactic-reach/","mode":"Browser playtest","rated":false,"description":"Command a faction, explore the galaxy, and outmaneuver three AI rivals. Saved in this browser."},
-        {"id":"voidwright","name":"Voidwright","href":"/voidwright/","mode":"Server tables + AI arena","rated":true,"description":"Build a fleet of cards. Play with friends or compare AI players in the rated arena."}
+        {"id":"galactic-reach","name":"Galactic Reach","href":"/galactic-reach/","mode":"Browser playtest + AI arena","rated":true,"seats":4,"pool":GameKind::GalacticReach.pool(),"description":"Command a faction, explore the galaxy, and outmaneuver three AI rivals. Saved in this browser."},
+        {"id":"voidwright","name":"Voidwright","href":"/voidwright/","mode":"Server tables + AI arena","rated":true,"seats":2,"pool":GameKind::Voidwright.pool(),"description":"Build a fleet of cards. Play with friends or compare AI players in the rated arena."}
     ],"policies":[
-        {"id":"explorer","version":"explorer/1","name":"Explorer","description":"Experiments with random purchases and sometimes passes."},
-        {"id":"merchant","version":"merchant/1","name":"Merchant","description":"Builds a resource economy, then buys scoring colonies."},
-        {"id":"kepler","version":"kepler/1","name":"Kepler","description":"Balances resource growth with a small action engine."}
-    ],"pool":POOL}))
+        {"game":"voidwright","id":"explorer","version":"explorer/1","name":"Explorer","description":"Experiments with random purchases and sometimes passes."},
+        {"game":"voidwright","id":"merchant","version":"merchant/1","name":"Merchant","description":"Builds a resource economy, then buys scoring colonies."},
+        {"game":"voidwright","id":"kepler","version":"kepler/1","name":"Kepler","description":"Balances resource growth with a small action engine."}
+        ,{"game":"galactic-reach","id":"gr-military","version":"gr-military/1","name":"Vanguard","description":"Builds warships and shipyards, then moves toward rival colonies."}
+        ,{"game":"galactic-reach","id":"gr-economy","version":"gr-economy/1","name":"Architect","description":"Prioritizes production, storage, and terraforming."}
+        ,{"game":"galactic-reach","id":"gr-expansion","version":"gr-expansion/1","name":"Pathfinder","description":"Builds Scouts and seeks new colony sites."}
+        ,{"game":"galactic-reach","id":"gr-wanderer","version":"gr-wanderer/1","name":"Wanderer","description":"Samples useful legal actions with seeded randomness."}
+    ],"pool":GameKind::Voidwright.pool()}))
 }
 #[derive(Serialize)]
 struct Bot {
@@ -40,15 +125,22 @@ struct Bot {
     wins: u32,
     draws: u32,
 }
+#[derive(Default, Deserialize)]
+pub struct ArenaQuery {
+    #[serde(default)]
+    game: GameKind,
+}
 pub async fn overview(
     State(app): State<App>,
+    axum::extract::Query(query): axum::extract::Query<ArenaQuery>,
     headers: HeaderMap,
 ) -> ApiResult<Json<serde_json::Value>> {
     let u = user(&app, &headers)?;
+    let pool = query.game.pool();
     let db = app.store.0.lock().map_err(internal)?;
     let mut query = db.prepare("SELECT a.id,a.name,a.policy,r.elo,r.games,r.wins,r.draws FROM accounts a JOIN ratings r ON r.account_id=a.id WHERE a.owner_id=? AND r.pool=? ORDER BY r.elo DESC,a.created,a.id").map_err(internal)?;
     let bots = query
-        .query_map(params![u.id, POOL], |r| {
+        .query_map(params![u.id, pool], |r| {
             Ok(Bot {
                 id: r.get(0)?,
                 name: r.get(1)?,
@@ -63,19 +155,21 @@ pub async fn overview(
         .collect::<Result<Vec<_>, _>>()
         .map_err(internal)?;
     let mut query = db
-        .prepare("SELECT result FROM arena_series WHERE owner_id=? ORDER BY rowid DESC LIMIT 10")
+        .prepare("SELECT result FROM arena_series WHERE owner_id=? AND json_extract(result,'$.pool')=? ORDER BY rowid DESC LIMIT 10")
         .map_err(internal)?;
     let series = query
-        .query_map([u.id], |r| r.get::<_, String>(0))
+        .query_map(params![u.id, pool], |r| r.get::<_, String>(0))
         .map_err(internal)?
         .map(|r| serde_json::from_str::<serde_json::Value>(&r.map_err(internal)?).map_err(internal))
         .collect::<ApiResult<Vec<_>>>()?;
-    Ok(Json(json!({"pool":POOL,"bots":bots,"series":series})))
+    Ok(Json(json!({"pool":pool,"bots":bots,"series":series})))
 }
 #[derive(Deserialize)]
 pub struct NewBot {
     name: String,
-    strategy: Strategy,
+    strategy: String,
+    #[serde(default)]
+    game: GameKind,
 }
 pub async fn create_bot(
     State(app): State<App>,
@@ -84,12 +178,14 @@ pub async fn create_bot(
 ) -> ApiResult<Json<serde_json::Value>> {
     let u = user(&app, &headers)?;
     let name = clean(&input.name, 32)?;
+    let version = format!("{}/1", input.strategy);
+    input.game.validate_policy(&version)?;
     let mut db = app.store.0.lock().map_err(internal)?;
     let tx = db.transaction().map_err(internal)?;
     let count: u32 = tx
         .query_row(
-            "SELECT count(*) FROM accounts WHERE owner_id=?",
-            [&u.id],
+            "SELECT count(*) FROM accounts a JOIN ratings r ON r.account_id=a.id WHERE a.owner_id=? AND r.pool=?",
+            params![u.id, input.game.pool()],
             |r| r.get(0),
         )
         .map_err(internal)?;
@@ -99,12 +195,12 @@ pub async fn create_bot(
     let id = format!("ai:{}", uuid::Uuid::new_v4());
     tx.execute(
         "INSERT INTO accounts(id,name,kind,owner_id,policy,created) VALUES(?,?,'ai',?,?,?)",
-        params![id, name, u.id, input.strategy.version(), now()],
+        params![id, name, u.id, version, now()],
     )
     .map_err(internal)?;
     tx.execute(
         "INSERT INTO ratings(account_id,pool) VALUES(?,?)",
-        params![id, POOL],
+        params![id, input.game.pool()],
     )
     .map_err(internal)?;
     tx.commit().map_err(internal)?;
@@ -113,18 +209,20 @@ pub async fn create_bot(
 #[derive(Clone, Serialize, Deserialize)]
 pub struct SeriesRequest {
     request_id: String,
-    bots: [String; 2],
+    bots: Vec<String>,
+    #[serde(default, skip_serializing_if = "GameKind::is_default")]
+    game: GameKind,
     games: u8,
 }
 #[derive(Serialize, Deserialize)]
 struct RatedMatch {
     id: String,
-    seats: [String; 2],
+    seats: Vec<String>,
     seed: String,
-    agent_seeds: [String; 2],
+    agent_seeds: Vec<String>,
     result: MatchResult,
-    before: [f64; 2],
-    after: [f64; 2],
+    before: Vec<f64>,
+    after: Vec<f64>,
 }
 #[derive(Serialize, Deserialize)]
 struct SeriesResult {
@@ -173,12 +271,18 @@ pub async fn run_series(
 ) -> ApiResult<Json<serde_json::Value>> {
     let u = user(&app, &headers)?;
     if uuid::Uuid::parse_str(&input.request_id).is_err()
-        || input.bots[0] == input.bots[1]
+        || input.bots.len() != input.game.seats()
+        || input
+            .bots
+            .iter()
+            .collect::<std::collections::HashSet<_>>()
+            .len()
+            != input.bots.len()
         || !(2..=20).contains(&input.games)
-        || !input.games.is_multiple_of(2)
+        || !input.games.is_multiple_of(input.game.seats() as u8)
     {
         return Err(bad(
-            "Choose two distinct AI accounts and an even number of games from 2 to 20, with a UUID request ID.",
+            "Choose distinct AI accounts for every seat and 2–20 games in complete seat rotations, with a UUID request ID.",
         ));
     }
     let request = serde_json::to_string(&input).map_err(internal)?;
@@ -201,7 +305,8 @@ pub async fn run_series(
                     StatusCode::FORBIDDEN,
                     "Choose AI accounts from your own lab.".into(),
                 ))?;
-            policies.push(strategy(&version)?);
+            input.game.validate_policy(&version)?;
+            policies.push(version);
         }
         let bucket = format!("arena:{}", u.id);
         db.execute("INSERT INTO auth_limits VALUES(?,?,1) ON CONFLICT(bucket) DO UPDATE SET attempts=CASE WHEN window=excluded.window THEN attempts+1 ELSE 1 END,window=excluded.window",params![bucket,now()/60]).map_err(internal)?;
@@ -241,54 +346,40 @@ fn simulate_series(
     app: &App,
     owner: &str,
     input: SeriesRequest,
-    policies: Vec<Strategy>,
+    policies: Vec<String>,
     request: String,
 ) -> ApiResult<serde_json::Value> {
     let mut matches = vec![];
-    for pair in 0..input.games / 2 {
+    let count = input.game.seats();
+    for cycle in 0..input.games as usize / count {
         let mut seed = [0u8; 32];
         rand::rngs::OsRng.fill_bytes(&mut seed);
-        for reverse in [false, true] {
-            let order = if reverse { [1, 0] } else { [0, 1] };
-            let seats = order.map(|i| input.bots[i].clone());
+        for rotation in 0..count {
+            let order: Vec<_> = (0..count).map(|seat| (seat + rotation) % count).collect();
+            let seats = order.iter().map(|&i| input.bots[i].clone()).collect();
             let id = uuid::Uuid::new_v4().to_string();
-            let mut game = Game::new(
-                id.clone(),
-                "AI arena".into(),
-                seats[0].clone(),
-                "Seat one".into(),
-                seed,
-                20,
-            )
-            .map_err(internal)?;
-            game.join(seats[1].clone(), "Seat two".into(), true)
-                .map_err(internal)?;
-            game.apply(&seats[0], Command::Start).map_err(internal)?;
-            let agent_seeds = order.map(|i| {
-                let mut agent_seed = seed;
-                agent_seed[0] ^= i as u8 + 1;
-                agent_seed[1] ^= pair;
-                hex::encode(agent_seed)
-            });
-            let mut agents: Vec<Box<dyn PlayerAgent<Game>>> = order
+            let agent_seeds: Vec<_> = order
                 .iter()
                 .map(|&i| {
                     let mut agent_seed = seed;
                     agent_seed[0] ^= i as u8 + 1;
-                    agent_seed[1] ^= pair;
-                    Box::new(BuiltinAgent::new(policies[i], agent_seed))
-                        as Box<dyn PlayerAgent<Game>>
+                    agent_seed[1] ^= cycle as u8;
+                    agent_seed
                 })
                 .collect();
-            let result = run_match(&mut game, &mut agents, 10000).map_err(internal)?;
+            let ordered_policies: Vec<_> = order.iter().map(|&i| policies[i].clone()).collect();
+            let result = input
+                .game
+                .simulate(&id, seed, &ordered_policies, &agent_seeds)
+                .map_err(internal)?;
             matches.push(RatedMatch {
                 id,
                 seats,
                 seed: hex::encode(seed),
-                agent_seeds,
+                agent_seeds: agent_seeds.iter().map(hex::encode).collect(),
                 result,
-                before: [0.0; 2],
-                after: [0.0; 2],
+                before: vec![0.0; count],
+                after: vec![0.0; count],
             });
         }
     }
@@ -299,24 +390,35 @@ fn simulate_series(
         return Ok(result);
     }
     for game in &mut matches {
-        for i in 0..2 {
+        for i in 0..count {
             game.before[i] = tx
                 .query_row(
                     "SELECT elo FROM ratings WHERE account_id=? AND pool=?",
-                    params![game.seats[i], POOL],
+                    params![game.seats[i], input.game.pool()],
                     |r| r.get(0),
                 )
                 .map_err(internal)?;
         }
-        game.after = elo_pair(game.before, [game.result.scores[0], game.result.scores[1]])
-            .map_err(internal)?;
-        for i in 0..2 {
-            tx.execute("UPDATE ratings SET elo=?,games=games+1,wins=wins+?,draws=draws+? WHERE account_id=? AND pool=?",params![game.after[i],game.result.scores[i]>game.result.scores[1-i],game.result.scores[i]==game.result.scores[1-i],game.seats[i],POOL]).map_err(internal)?;
+        game.after = elo_multiplayer(&game.before, &game.result.scores).map_err(internal)?;
+        let top = game
+            .result
+            .scores
+            .iter()
+            .copied()
+            .fold(f64::NEG_INFINITY, f64::max);
+        let leaders = game
+            .result
+            .scores
+            .iter()
+            .filter(|&&score| score == top)
+            .count();
+        for i in 0..count {
+            tx.execute("UPDATE ratings SET elo=?,games=games+1,wins=wins+?,draws=draws+? WHERE account_id=? AND pool=?",params![game.after[i],game.result.scores[i]==top && leaders==1,game.result.scores[i]==top && leaders>1,game.seats[i],input.game.pool()]).map_err(internal)?;
         }
     }
     let result = serde_json::to_value(SeriesResult {
         id: input.request_id.clone(),
-        pool: POOL.into(),
+        pool: input.game.pool().into(),
         created: now(),
         matches,
     })

@@ -1047,3 +1047,7 @@ dialog > .primary {
 main:focus {
   outline: none;
 }
+
+.arena-picker { margin-bottom: 24px; }
+.arena-picker select { max-width: 440px; }
+.series summary { overflow-wrap: anywhere; }

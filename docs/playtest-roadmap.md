@@ -44,4 +44,4 @@ Make the local/Tailscale test service repeatable: documented port selection, iso
 - At least one replay can be opened, stepped backward and forward, jumped by round, and taken to the final Elo view on desktop and mobile.
 - The existing stable and 5.10 local services remain playable throughout the experiment.
 
-The companion tracking issue records the remaining decisions and links the next implementation work: [Playtest roadmap after PR #5](https://github.com/CardBoardStudio/drawing_board/issues/1).
+The companion tracking issue records the remaining decisions and links the next implementation work: [Playtest roadmap after PR #5](https://github.com/CardBoardStudio/drawing_board/issues/6).

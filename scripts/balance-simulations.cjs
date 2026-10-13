@@ -41,8 +41,8 @@ function makeGame(seed, seatStrategies, fleetProduction) {
   );
   source = replaceOrFail(
     source,
-    "state.players[playerId].resources[planet.type] += 1;",
-    "state.players[playerId].resources[planet.type] += 1; state.sim.fleetIncome[playerId] += 1;",
+    "gains[playerId][planet.type] += 1;",
+    "gains[playerId][planet.type] += 1; state.sim.fleetIncome[playerId] += 1;",
     'fleet-income instrumentation'
   );
   if (!fleetProduction) {
@@ -50,7 +50,7 @@ function makeGame(seed, seatStrategies, fleetProduction) {
       source,
       `    Object.entries(state.planets).forEach(([coord,planet]) => {
       fleetControllersAt(coord).forEach(playerId => {
-        state.players[playerId].resources[planet.type] += 1; state.sim.fleetIncome[playerId] += 1;
+        gains[playerId][planet.type] += 1; state.sim.fleetIncome[playerId] += 1;
       });
     });`,
       '',

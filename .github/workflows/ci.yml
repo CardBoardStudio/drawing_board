@@ -34,6 +34,19 @@ jobs:
           name: drawing-board-web
           path: dist/
           retention-days: 7
+  javascript:
+    name: Galactic Reach JavaScript checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node --check prototypes/galactic-reach/app.js
+      - run: node scripts/test-galactic-reach.cjs
+      - name: Balance harness smoke run
+        run: node scripts/balance-simulations.cjs 1 > /dev/null
   container:
     name: Preview container smoke
     needs: check

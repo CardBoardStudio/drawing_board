@@ -8,7 +8,10 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/4.9";
+pub const RULES: &str = "galactic-reach/6.11";
+mod legacy_v2;
+mod replay;
+pub use replay::Trace;
 const ENGINE: &str = include_str!("../../../prototypes/galactic-reach/app.js");
 const ADAPTER: &str = include_str!("../../../prototypes/galactic-reach/adapter.js");
 #[derive(Deserialize)]
@@ -21,12 +24,25 @@ struct Snapshot {
 pub struct GalacticReach {
     context: Context,
     snapshot: Snapshot,
+    rules: &'static str,
+    trace: Option<Trace>,
 }
 impl GalacticReach {
     pub fn new(seed: [u8; 32]) -> Result<Self, String> {
-        Self::with_timeout(seed, Duration::from_secs(30))
+        Self::with_timeout(seed, Duration::from_secs(90))
     }
     fn with_timeout(seed: [u8; 32], timeout: Duration) -> Result<Self, String> {
+        Self::initialize(seed, timeout, RULES)
+    }
+    pub fn with_rules(seed: [u8; 32], rules: &str) -> Result<Self, String> {
+        let rules = match rules {
+            RULES => RULES,
+            "galactic-reach/5.10" => "galactic-reach/5.10",
+            _ => return Err("Unsupported rules version.".into()),
+        };
+        Self::initialize(seed, Duration::from_secs(90), rules)
+    }
+    fn initialize(seed: [u8; 32], timeout: Duration, rules: &'static str) -> Result<Self, String> {
         let runtime = Runtime::new().map_err(|e| e.to_string())?;
         runtime.set_memory_limit(64 * 1024 * 1024);
         runtime.set_max_stack_size(1024 * 1024);
@@ -41,15 +57,43 @@ impl GalacticReach {
                     "gameRandom",
                     rquickjs::Function::new(ctx.clone(), move || rng.borrow_mut().r#gen::<f64>())?,
                 )?;
-                ctx.eval::<(), _>(ADAPTER)?;
-                ctx.eval::<(), _>(ENGINE)?;
+                ctx.eval::<(), _>(if rules == RULES {
+                    ADAPTER
+                } else {
+                    include_str!("../rules/v5-adapter.js")
+                })?;
+                ctx.eval::<(), _>(include_str!("../rules/replay-view.js"))?;
+                ctx.eval::<(), _>(if rules == RULES {
+                    ENGINE
+                } else {
+                    include_str!("../rules/v5-app.js")
+                })?;
                 ctx.eval::<(), _>(
                     "globalThis.game = createGalacticReach({headless: true, random: gameRandom});",
                 )
             })
             .map_err(|e| format!("Galactic Reach initialization failed: {e}"))?;
         let snapshot = Self::read_snapshot(&context)?;
-        Ok(Self { context, snapshot })
+        Ok(Self {
+            context,
+            snapshot,
+            rules,
+            trace: None,
+        })
+    }
+    pub fn start_trace(&mut self) -> Result<(), String> {
+        self.trace = Some(Trace::new(self.replay_view()?));
+        Ok(())
+    }
+    pub fn take_trace(&mut self) -> Option<Trace> {
+        self.trace.take()
+    }
+    fn replay_view(&self) -> Result<Value, String> {
+        let json = self
+            .context
+            .with(|ctx| ctx.eval::<String, _>("JSON.stringify(game.replayView())"))
+            .map_err(|e| e.to_string())?;
+        serde_json::from_str(&json).map_err(|e| e.to_string())
     }
     fn read_snapshot(context: &Context) -> Result<Snapshot, String> {
         let json = context
@@ -62,7 +106,7 @@ impl GameAdapter for GalacticReach {
     type Observation = Value;
     type Action = Value;
     fn rules_version(&self) -> &str {
-        RULES
+        self.rules
     }
     fn active_seat(&self) -> Option<usize> {
         self.snapshot.active
@@ -95,6 +139,12 @@ impl GameAdapter for GalacticReach {
             .with(|ctx| ctx.eval::<(), _>(format!("game.applyAction({seat}, {});", action)))
             .map_err(|e| format!("Galactic Reach action failed: {e}"))?;
         self.snapshot = Self::read_snapshot(&self.context)?;
+        if self.trace.is_some() {
+            let view = self.replay_view()?;
+            if let Some(trace) = self.trace.as_mut() {
+                trace.push(seat, action, view);
+            }
+        }
         Ok(())
     }
     fn scores(&self) -> Option<Vec<f64>> {
@@ -112,18 +162,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/1",
-            Self::Economy => "gr-economy/1",
-            Self::Expansion => "gr-expansion/1",
-            Self::Wanderer => "gr-wanderer/1",
+            Self::Military => "gr-military/3",
+            Self::Economy => "gr-economy/3",
+            Self::Expansion => "gr-expansion/3",
+            Self::Wanderer => "gr-wanderer/3",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/1" => Some(Self::Military),
-            "gr-economy/1" => Some(Self::Economy),
-            "gr-expansion/1" => Some(Self::Expansion),
-            "gr-wanderer/1" => Some(Self::Wanderer),
+            "gr-military/3" => Some(Self::Military),
+            "gr-economy/3" => Some(Self::Economy),
+            "gr-expansion/3" => Some(Self::Expansion),
+            "gr-wanderer/3" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -164,8 +214,52 @@ impl BuiltinAgent {
             "expansion"
         };
         match action["type"].as_str().unwrap_or("") {
+            "trade_accept" => {
+                let offer = view["tradeOffers"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .find(|o| o["id"] == action["offer"])
+                    .unwrap();
+                let give = offer["giveType"].as_str().unwrap();
+                let get = offer["getType"].as_str().unwrap();
+                let received = number(&offer["giveAmount"])
+                    * if number(&me["resources"][give]) < 2.0 {
+                        1.45
+                    } else {
+                        1.0
+                    };
+                let paid = number(&offer["getAmount"])
+                    * if number(&me["resources"][get]) < 2.0 {
+                        1.4
+                    } else {
+                        1.0
+                    };
+                if received >= paid { 130.0 } else { -20.0 }
+            }
+            "trade_reject" => 110.0,
+            "trade_cancel" => -20.0,
+            "trade_offer" => {
+                let give = action["giveType"].as_str().unwrap();
+                let get = action["getType"].as_str().unwrap();
+                let willing = view["players"].as_array().unwrap().iter().any(|p| {
+                    p["id"] != json!(seat)
+                        && p["passed"] == false
+                        && number(&p["resources"][get]) >= 2.0
+                });
+                if action["giveAmount"] == 1
+                    && action["getAmount"] == 1
+                    && number(&me["resources"][give]) >= 3.0
+                    && number(&me["resources"][get]) < 2.0
+                    && willing
+                {
+                    10.0
+                } else {
+                    -20.0
+                }
+            }
             "colonize" => 100.0,
-            "build" => match action["kind"].as_str().unwrap_or("") {
+            "build" | "colony_build" => match action["kind"].as_str().unwrap_or("") {
                 "research" => 95.0,
                 "starbase" => {
                     if military {
@@ -334,6 +428,17 @@ impl PlayerAgent<GalacticReach> for BuiltinAgent {
     }
 }
 
+/// Immutable policy versions used to verify historical match replays.
+pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<GalacticReach>>, String> {
+    if let Some(strategy) = Strategy::parse(version) {
+        return Ok(Box::new(BuiltinAgent::new(strategy, seed)));
+    }
+    if let Some(strategy) = legacy_v2::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v2::BuiltinAgent::new(strategy, seed)));
+    }
+    Err("Unsupported Galactic Reach policy version.".into())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -392,7 +497,8 @@ mod tests {
         assert_eq!(result, play());
         assert_eq!(result.rules_version, RULES);
         assert_eq!(result.scores.len(), 4);
-        assert_eq!(result.scores.iter().sum::<f64>(), 1.0);
+        assert_eq!(result.scores.iter().copied().fold(0.0, f64::max), 3.0);
+        assert!(result.scores.iter().all(|s| (0.0..=3.0).contains(s)));
     }
     #[test]
     fn execution_deadline_interrupts_javascript() {

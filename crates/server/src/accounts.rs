@@ -44,7 +44,7 @@ pub fn issue_session(
 ) -> ApiResult<String> {
     db.execute("DELETE FROM sessions WHERE expires<=?", [now()])
         .map_err(internal)?;
-    if let Some(old) = cookie(headers, "drawing_board_session") {
+    if let Some(old) = cookie(headers, "drawing_board_long_reach_v6_session") {
         db.execute("DELETE FROM sessions WHERE token_hash=?", [digest(&old)])
             .map_err(internal)?;
     }
@@ -64,7 +64,7 @@ pub fn session_response(app: &App, token: &str, body: serde_json::Value) -> Resp
     } else {
         ""
     };
-    ([(header::SET_COOKIE, format!("drawing_board_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400{secure}"))],Json(body)).into_response()
+    ([(header::SET_COOKIE, format!("drawing_board_long_reach_v6_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400{secure}"))],Json(body)).into_response()
 }
 #[derive(Deserialize)]
 pub struct Register {
@@ -193,7 +193,7 @@ pub async fn revoke_other_sessions(
     headers: HeaderMap,
 ) -> ApiResult<Json<serde_json::Value>> {
     let u = user(&app, &headers)?;
-    let token = cookie(&headers, "drawing_board_session").unwrap_or_default();
+    let token = cookie(&headers, "drawing_board_long_reach_v6_session").unwrap_or_default();
     app.store
         .0
         .lock()

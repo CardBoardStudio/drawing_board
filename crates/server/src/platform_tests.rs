@@ -322,7 +322,7 @@ async fn arena_enforces_ownership_pairs_seats_and_rates_exactly_once() {
             &a,
             "GET",
             "/api/account",
-            "drawing_board_session=forged",
+            "drawing_board_long_reach_v6_session=forged",
             json!({})
         )
         .await
@@ -461,18 +461,58 @@ async fn galactic_reach_uses_shared_accounts_rotations_and_isolated_ratings() {
     let (status, _, result) = call(&a, "POST", "/api/arena/series", &owner, request.clone()).await;
     assert_eq!(status, StatusCode::OK, "{result}");
     assert_eq!(result["matches"].as_array().unwrap().len(), 4);
+    let matches = call(&a, "GET", "/api/arena/matches", &owner, json!({}))
+        .await
+        .2;
+    assert_eq!(matches["matches"].as_array().unwrap().len(), 4);
+    assert!(
+        matches["matches"]
+            .as_array()
+            .unwrap()
+            .windows(2)
+            .all(|w| w[0]["metrics"]["interest"].as_u64() >= w[1]["metrics"]["interest"].as_u64())
+    );
+    assert_eq!(
+        call(&a, "GET", "/api/arena/matches", &other, json!({}))
+            .await
+            .2["matches"],
+        json!([])
+    );
+    let replay_path = format!(
+        "/api/arena/replays/{}",
+        result["matches"][0]["id"].as_str().unwrap()
+    );
+    assert_eq!(
+        call(&a, "POST", &replay_path, &other, json!({})).await.0,
+        StatusCode::NOT_FOUND
+    );
+    assert_eq!(
+        call(&a, "POST", &replay_path, "", json!({})).await.0,
+        StatusCode::UNAUTHORIZED
+    );
+    let replay = call(&a, "POST", &replay_path, &owner, json!({})).await.2;
+    assert_eq!(
+        replay["frames"].as_array().unwrap().len(),
+        result["matches"][0]["result"]["decisions"]
+            .as_u64()
+            .unwrap() as usize
+    );
+    assert_eq!(replay["match"]["rules_version"], galactic_reach::RULES);
+    assert_eq!(
+        call(&a, "POST", &replay_path, &owner, json!({})).await.2,
+        replay
+    );
     for (rotation, m) in result["matches"].as_array().unwrap().iter().enumerate() {
         assert_eq!(m["seed"], result["matches"][0]["seed"]);
         assert_eq!(m["result"]["rules_version"], galactic_reach::RULES);
-        assert_eq!(
-            m["result"]["scores"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .map(|s| s.as_f64().unwrap())
-                .sum::<f64>(),
-            1.0
-        );
+        let scores: Vec<f64> = m["result"]["scores"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|s| s.as_f64().unwrap())
+            .collect();
+        assert_eq!(scores.iter().copied().fold(0.0, f64::max), 3.0);
+        assert!(scores.iter().all(|s| (0.0..=3.0).contains(s)));
         for seat in 0..4 {
             let index = (seat + rotation) % 4;
             assert_eq!(m["seats"][seat], bots[index]);

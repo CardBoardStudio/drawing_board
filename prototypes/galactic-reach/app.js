@@ -2,6 +2,8 @@
 'use strict';
 function createGalacticReach(options = {}) {
   const headless = options.headless === true;
+  // Replay viewer: the live table's renderers over recorded observer states. No rules run.
+  const replayMode = options.replay === true;
   const random = options.random || Math.random;
   let storage = options.storage;
   if (!headless && !storage) {
@@ -9,7 +11,8 @@ function createGalacticReach(options = {}) {
   }
   const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
-  const SAVE_FORMAT_VERSION = 4;
+  const SAVE_FORMAT_VERSION = 6;
+  const RULES_REVISION = 11;
   const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
   const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${SAVE_FORMAT_VERSION}`;
   const RESOURCES = ['matter', 'energy', 'biomass', 'data'];
@@ -35,8 +38,8 @@ function createGalacticReach(options = {}) {
   const PLAYER_COLORS = ['#55d9f4', '#ff9f6e', '#a58cff', '#f2cf66'];
   const PLAYER_NAMES = ['You', 'Ember Directorate', 'Violet Assembly', 'Helios Compact'];
   const PLAYER_STRATEGIES = ['human', 'military', 'economy', 'expansion'];
-  const BOARD_RADIUS = 9;
-  const VICTORY_TARGET = 10;
+  const BOARD_RADIUS = 12;
+  const VICTORY_TARGET = 20;
   const AWARD_PRESTIGE = { fleet: 2, reach: 1, occupation: 2 };
   const INFLUENCE_PER_PRESTIGE = 10;
   const CARDS_PER_PRESTIGE = 8;
@@ -56,9 +59,9 @@ function createGalacticReach(options = {}) {
     technology: { name: 'Technology', short: 'TEC', detail: '+1 per starter card upgraded' }
   };
   const SHIP_STATS = {
-    scout: { name: 'Scout', move: 3, power: 1, hull: 1, cost: { matter: 1, energy: 1 } },
+    scout: { name: 'Scout', move: 2, power: 1, hull: 1, cost: { matter: 1, energy: 1 } },
     researcher: { name: 'Researcher', move: 1, power: 0, hull: 1, civilian: true, cost: { energy: 1, data: 2 } },
-    frigate: { name: 'Frigate', move: 2, power: 2, hull: 2, cost: { matter: 2, energy: 1, biomass: 1 } },
+    frigate: { name: 'Frigate', move: 1, power: 2, hull: 2, cost: { matter: 2, energy: 1, biomass: 1 } },
     dreadnought: { name: 'Dreadnought', move: 1, power: 4, hull: 3, cost: { matter: 3, energy: 2, biomass: 1, data: 1 } }
   };
   const MILITARY_CARDS = {
@@ -84,10 +87,10 @@ function createGalacticReach(options = {}) {
     research: { name: 'Research Station', code: 'R', cost: { matter: 1, energy: 1, data: 2 }, upgradeCost: { energy: 2, data: 3 } }
   };
   const LEGEND_TOOLTIPS = {
-    scout: 'Fast explorer. Moves up to 3 hexes, has 1 combat power, reveals worlds by entering them, and is required to colonize.',
-    researcher: 'Slow civilian unit. Moves 1 hex and builds a Research Station when it reaches a probe-marked relic.',
-    frigate: 'Balanced warship with 2 combat power and 2 hull.',
-    dreadnought: 'Heavy warship with 4 combat power and 3 hull.',
+    scout: 'Fast explorer. Base movement 2; Move II adds 1. It has 1 combat power, reveals worlds by entering them, and is required to colonize.',
+    researcher: 'Civilian unit. Base movement 1; Move II adds 1. It builds a Research Station when it reaches a probe-marked relic.',
+    frigate: 'Base movement 1 (2 with Move II), with 2 combat power and 2 hull.',
+    dreadnought: 'Base movement 1 (2 with Move II), with 4 combat power and 3 hull.',
     colony: 'Claims a seven-hex world. Colonies must occupy the world’s center hex.',
     harvester: 'Adds 1 resource to this planet’s production.',
     starbase: 'Commissions ships and contributes 3–4 defensive combat power.',
@@ -171,8 +174,11 @@ function createGalacticReach(options = {}) {
   let state;
   let aiTimer = null;
   let turnHistory = { pending: null, undo: null };
+  // Whose command panels (resources, tracks, hand) are shown. Live play is always seat 0.
+  let viewSeat = 0;
 
   const $ = (selector) => document.querySelector(selector);
+  const esc = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const $$ = (selector) => [...document.querySelectorAll(selector)];
   const coordKey = (q, r) => `${q},${r}`;
   const parseCoord = (key) => key.split(',').map(Number);
@@ -195,8 +201,34 @@ function createGalacticReach(options = {}) {
     return shuffled(MILITARY_DECK_LIST);
   }
 
+  function randomInnerCenters(homeCenters) {
+    const candidates = [];
+    const innerRadius = BOARD_RADIUS - 3;
+    for (let q = -innerRadius; q <= innerRadius; q += 1) {
+      for (let r = -innerRadius; r <= innerRadius; r += 1) {
+        if (Math.max(Math.abs(q), Math.abs(r), Math.abs(q+r)) <= innerRadius) candidates.push([q,r]);
+      }
+    }
+    const apart = (a,b) => hexDistance(coordKey(...a), coordKey(...b)) >= 4;
+    // Leave at least one empty hex between worlds. Bound the rejection loop.
+    for (let attempt = 0; attempt < 32; attempt += 1) {
+      const selected = [];
+      for (const candidate of shuffled(candidates)) {
+        if ([...homeCenters, ...selected].every(center => apart(center,candidate))) selected.push(candidate);
+        if (selected.length === 7) return selected;
+      }
+    }
+    // This pre-spaced lattice always has enough room, even with an adversarial RNG.
+    // Shuffle its eligible sites so the fallback is still a fresh layout.
+    return shuffled(candidates.filter(([q,r]) => q % 4 === 0 && r % 4 === 0)
+      .filter(candidate => homeCenters.every(center => apart(center,candidate)))).slice(0,7);
+  }
+
   function generateGalaxy() {
-    const centers = [[-8,0],[0,-8],[8,0],[0,8],[0,0],[-4,0],[4,0],[0,-4],[0,4],[-4,4],[4,-4]];
+    // Seven-hex home worlds touch the rim; the starting shipyards face inward.
+    const edge = BOARD_RADIUS - 1;
+    const homeCenters = [[-edge,0],[0,-edge],[edge,0],[0,edge]];
+    const centers = [...homeCenters, ...randomInnerCenters(homeCenters)];
     const names = ['Asterion','Borealis','Cygnus','Draco','Erebus','Fornax','Gemini','Helios','Icarus','Juno','Kepler'];
     const homes = new Map(HOME_CLUSTER_OWNERS);
     const specials = new Map([[5,'rich'],[6,'gate'],[7,'rich'],[8,'gate'],[10,'rich']]);
@@ -269,7 +301,8 @@ function createGalacticReach(options = {}) {
       selected: null, actionMode: null, actionCardId: null, actionOptions: {}, moveSource: null, reachable: [],
       turnStage: 'waiting', log: [], awards: { fleet: null, reach: null, occupation: null }, winner: null,
       lastCombat: null, relicDeck: shuffled(Object.keys(RELIC_CARDS).flatMap(key => [makeCard(key),makeCard(key),makeCard(key)])), activePolicy: null, policyCycle: 0, pendingCleanup: false,
-      visibilityRevision: 2, rulesRevision: 9
+      tradeOffers: [], nextTradeOfferId: 1, pendingColonyBuild: null,
+      visibilityRevision: 2, rulesRevision: RULES_REVISION
     };
   }
 
@@ -339,7 +372,7 @@ function createGalacticReach(options = {}) {
       const raw = storage.getItem(SAVE_KEY);
       if (!raw) return false;
       const parsed = JSON.parse(raw);
-      if (!parsed || parsed.version !== SAVE_FORMAT_VERSION) return false;
+      if (!parsed || parsed.version !== SAVE_FORMAT_VERSION || parsed.rulesRevision !== RULES_REVISION) return false;
       state = parsed;
       cardSerial = Math.max(1, ...state.players.flatMap(p => [...p.deck, ...p.discard, ...p.hand].map(c => Number(String(c.id).split('-').pop()) || 0)), ...state.market.map(c => Number(String(c.id).split('-').pop()) || 0)) + 1;
       if (!state.visibilityRevision) {
@@ -441,10 +474,8 @@ function createGalacticReach(options = {}) {
 
   function fleetMove(fleet) {
     if (!fleet || !fleetCount(fleet)) return 0;
-    if (fleet.researcher) return 1;
-    if (fleet.dreadnought) return 1;
-    if (fleet.frigate) return 2;
-    return 3;
+    return Math.min(...Object.entries(SHIP_STATS)
+      .filter(([type]) => fleet[type] > 0).map(([,ship]) => ship.move));
   }
 
   function combatShipCount(fleet) {
@@ -568,6 +599,88 @@ function createGalacticReach(options = {}) {
 
   function overflowNote(result) {
     return result.totalLost ? ` ${result.totalLost} overflow resource${result.totalLost === 1 ? '' : 's'} were lost.` : '';
+  }
+
+  function movementRange(fleet, cardOrOptions = {}) {
+    const tag = cardOrOptions.tag || ALL_CARDS[cardOrOptions.key]?.tag;
+    return fleetMove(fleet) + (cardOrOptions.upgraded ? 1 : 0) + (tag === 'overdrive' ? 2 : tag === 'pathfinder' ? 1 : 0);
+  }
+
+  function upgradedOrderText(card) {
+    return {move:'+1 movement on this order.',probe:'Reveal an entire unexplored seven-hex world.',construct:'Reduce one chosen resource in the construction cost by 1.',colonize:'After colonizing, optionally pay for one adjacent building.'}[card.key] || '';
+  }
+
+  function discountedCost(cost, resource = null) {
+    const result={...cost};
+    if (RESOURCES.includes(resource) && result[resource]) result[resource]=Math.max(0,result[resource]-1);
+    return result;
+  }
+
+  function constructionCost(playerId, coord, kind, resource = null, fullCost = false) {
+    const planet=state.planets[coord];
+    const improving=planet?.owner===playerId && planet?.upgrade===kind;
+    const base=SHIP_STATS[kind]?.cost || (improving?STRUCTURES[kind]?.upgradeCost:STRUCTURES[kind]?.cost) || {};
+    const cost=discountedCost(base,resource);
+    if (!fullCost && kind!=='research' && state.activePolicy?.id==='frontier_grants' && !state.players[playerId].policyBuildDiscountUsed) cost.matter=Math.max(0,(cost.matter||0)-1);
+    return cost;
+  }
+
+  function constructAt(playerId, coord, kind, resource = null, dryRun = false, fullCost = false) {
+    if (resource!==null && !RESOURCES.includes(resource)) return false;
+    if (kind==='research') return buildResearchStation(playerId,coord,dryRun,resource);
+    if (STRUCTURES[kind]) return buildUpgrade(playerId,coord,kind,0,dryRun,resource,fullCost);
+    if (SHIP_STATS[kind]) return buildShip(playerId,coord,kind,0,dryRun,resource);
+    return false;
+  }
+
+  function resolveProbe(playerId, card) {
+    const cluster=nearestUnscannedRelicCluster(playerId,!!card.upgraded);
+    if (!cluster) return false;
+    if (card.upgraded) revealClusterAt(cluster.center,playerId);
+    else cluster.scannedBy.push(playerId);
+    return cluster;
+  }
+
+  function canColonyBuild(playerId, coord, kind) {
+    const pending=state.pendingColonyBuild;
+    return !!pending && pending.playerId===playerId && state.activePlayer===playerId && state.phase==='operations'
+      && state.winner===null && kind!=='research' && !!STRUCTURES[kind]
+      && adjacentKeys(pending.colony).includes(coord) && canBuildStructureAt(playerId,coord)
+      && constructAt(playerId,coord,kind,null,true,true);
+  }
+
+  function finishColonyBuild(playerId, coord = null, kind = null) {
+    if (state.pendingColonyBuild?.playerId!==playerId || state.activePlayer!==playerId || state.phase!=='operations') return false;
+    if (coord!==null) {
+      if (!canColonyBuild(playerId,coord,kind) || !constructAt(playerId,coord,kind,null,false,true)) return false;
+      logEvent(`${state.players[playerId].name} paid for an additional ${STRUCTURES[kind].name} after colonizing.`);
+    }
+    state.pendingColonyBuild=null;
+    completeAction(playerId,coord===null?`${state.players[playerId].name} finished colonizing without an additional building.`:null);
+    return true;
+  }
+
+  function aiColonyBuild(playerId) {
+    const colony=state.pendingColonyBuild?.colony;
+    if (!colony) return;
+    const kinds=state.players[playerId].strategy==='military'?['starbase','harvester','warehouse']:['harvester','warehouse','starbase'];
+    for (const kind of kinds) for (const coord of adjacentKeys(colony)) if (canColonyBuild(playerId,coord,kind)) { finishColonyBuild(playerId,coord,kind); return; }
+    finishColonyBuild(playerId);
+  }
+
+  function applyColonizeOrder(playerId, coord, card) {
+    if (!card || !state.players[playerId].hand.some(c=>c.id===card.id)) return false;
+    if (!colonizePlanet(playerId,coord,{tag:ALL_CARDS[card.key].tag})) return false;
+    removeHandCard(state.players[playerId],card.id);
+    if (!card.upgraded) { completeAction(playerId,`${state.players[playerId].name} completed a colonization operation.`); return true; }
+    clearAction();
+    state.pendingColonyBuild={playerId,colony:coord};
+    state.turnStage='bonus-build'; state.actionMode='colony-build';
+    state.reachable=adjacentKeys(coord).filter(key=>canBuildStructureAt(playerId,key));
+    logEvent(`${state.players[playerId].name} may build once beside its new Colony at full cost.`);
+    render(); saveGame();
+    if (!headless && playerId!==0) aiColonyBuild(playerId);
+    return true;
   }
 
   function cardResources(card) {
@@ -867,14 +980,8 @@ function createGalacticReach(options = {}) {
     startOperationsTurn();
   }
 
-  function finishHumanPrep() {
-    if (state.phase !== 'operations' || state.activePlayer !== 0 || state.turnStage !== 'prep') return;
-    state.turnStage = 'action';
-    render();
-  }
-
   function passOperations(playerId) {
-    if (state.phase !== 'operations' || state.activePlayer !== playerId) return false;
+    if (state.phase !== 'operations' || state.activePlayer !== playerId || state.pendingColonyBuild) return false;
     const player = state.players[playerId];
     if (!player || player.passed) return false;
     if (playerId === 0) completeHumanTurn();
@@ -895,6 +1002,7 @@ function createGalacticReach(options = {}) {
   }
 
   function completeAction(playerId, message) {
+    state.pendingColonyBuild = null;
     if (playerId === 0) completeHumanTurn();
     if (message) logEvent(message);
     clearAction();
@@ -905,7 +1013,7 @@ function createGalacticReach(options = {}) {
 
   function playResourceMode(cardId) {
     const player = state.players[0];
-    if (state.phase !== 'operations' || state.activePlayer !== 0 || !['prep','action'].includes(state.turnStage)) return;
+    if (state.phase !== 'operations' || state.activePlayer !== 0 || !['prep','action','bonus-build'].includes(state.turnStage)) return;
     const card = player.hand.find(item => item.id === cardId);
     if (!card) return;
     const definition = ALL_CARDS[card.key];
@@ -928,7 +1036,7 @@ function createGalacticReach(options = {}) {
 
   function playOrder(cardId) {
     const player = state.players[0];
-    if (state.phase !== 'operations' || state.activePlayer !== 0 || state.turnStage !== 'action') return;
+    if (state.phase !== 'operations' || state.activePlayer !== 0 || !['prep','action'].includes(state.turnStage)) return;
     const card = player.hand.find(item => item.id === cardId);
     if (!card) return;
     if (state.actionCardId === cardId && state.actionMode) {
@@ -940,12 +1048,12 @@ function createGalacticReach(options = {}) {
     }
     const definition = ALL_CARDS[card.key];
     if (definition.reaction || definition.buyEffect) { toast('That card waits for its printed timing.'); return; }
+    state.turnStage = 'action';
     if (definition.order === 'probe') {
-      const cluster = nearestUnscannedRelicCluster(0);
-      if (!cluster) { toast('Your probes have already located every alien relic signal.'); return; }
-      cluster.scannedBy.push(0);
+      const cluster=resolveProbe(0,card);
+      if (!cluster) { toast(card.upgraded?'Every world has already been revealed.':'Your probes have already located every alien relic signal.'); return; }
       removeHandCard(player,cardId);
-      completeAction(0,`Your Probe pinpointed an alien relic in the ${cluster.name} region. The surrounding world remains unknown.`);
+      completeAction(0,card.upgraded?`Probe II revealed all seven sectors of ${cluster.name}.`:`Your Probe pinpointed an alien relic in the ${cluster.name} region.`);
       return;
     }
     if (definition.order === 'special') {
@@ -954,7 +1062,7 @@ function createGalacticReach(options = {}) {
     }
     state.actionMode = definition.order;
     state.actionCardId = cardId;
-    state.actionOptions = { tag: definition.tag || null, cardName: definition.name };
+    state.actionOptions = { tag: definition.tag || null, cardName: definition.name, upgraded: !!card.upgraded, discountResource: card.upgraded && definition.order==='construct'?'matter':null };
     state.moveSource = null;
     state.reachable = [];
     toast(definition.order === 'move' ? 'Select one of your fleets or Researcher teams.' : definition.order === 'construct' ? 'Select an empty planet hex adjacent to your Colony, an existing structure, or a relic occupied by your Researcher.' : 'Select an eligible planet containing your Scout.');
@@ -970,14 +1078,14 @@ function createGalacticReach(options = {}) {
     return cluster?.coords.find(coord => state.planets[coord]?.special === 'relic') || null;
   }
 
-  function nearestUnscannedRelicCluster(playerId) {
+  function nearestUnscannedRelicCluster(playerId, revealWorld = false) {
     const origins=[...new Set([
       ...controlledPlanets(playerId).map(([coord])=>coord),
       ...Object.entries(state.fleets).filter(([,group])=>fleetCount(group[playerId])).map(([coord])=>coord)
     ])];
-    return state.clusters.filter(cluster=>relicCoordInCluster(cluster)&&!clusterScanned(cluster,playerId)).sort((a,b)=>{
-      const da=Math.min(...origins.map(origin=>hexDistance(origin,relicCoordInCluster(a))));
-      const db=Math.min(...origins.map(origin=>hexDistance(origin,relicCoordInCluster(b))));
+    return state.clusters.filter(cluster=>revealWorld?!clusterKnown(cluster,playerId):relicCoordInCluster(cluster)&&!clusterScanned(cluster,playerId)).sort((a,b)=>{
+      const da=Math.min(...origins.map(origin=>hexDistance(origin,relicCoordInCluster(a)||a.center)));
+      const db=Math.min(...origins.map(origin=>hexDistance(origin,relicCoordInCluster(b)||b.center)));
       return da-db||a.id-b.id;
     })[0]||null;
   }
@@ -1050,7 +1158,7 @@ function createGalacticReach(options = {}) {
       if (!fleetCount(fleet)) { toast('Select a hex containing one of your fleets.'); return; }
       if ((fleet.researcher || 0) > 0 && combatShipCount(fleet) > 0) {
         state.moveChoiceSource = key;
-        toast('Choose whether this Move sends the ships or the slower Researcher team.');
+        toast('Choose whether this Move sends the ships or the Researcher team.');
         return;
       }
       prepareHumanMove(key,(fleet.researcher || 0) > 0 ? 'researcher' : 'ships');
@@ -1068,11 +1176,9 @@ function createGalacticReach(options = {}) {
     state.moveChoiceSource = null;
     state.moveSource = key;
     state.actionOptions.moveGroup = group;
-    let range = fleetMove(moving);
-    if (state.actionOptions.tag === 'overdrive') range += 2;
-    if (state.actionOptions.tag === 'pathfinder') range += 1;
+    const range = movementRange(moving,state.actionOptions);
     state.reachable = reachableFrom(key,0,range,state.actionOptions.tag === 'pathfinder',moving);
-    toast(group === 'researcher' ? 'Researcher teams move 1 hex. Select a highlighted destination.' : 'Scouts explore up to 3 hexes. Select a highlighted destination.');
+    toast(`This ${group==='researcher'?'Researcher team':'fleet'} can move up to ${range} hexes. Select a highlighted destination.`);
     render();
   }
 
@@ -1321,15 +1427,15 @@ function createGalacticReach(options = {}) {
     return countPlacedShips(playerId,type) < limits[type];
   }
 
-  function buildUpgrade(playerId, coord, type, discountMatter = 0, dryRun = false) {
+  function buildUpgrade(playerId, coord, type, discountMatter = 0, dryRun = false, discountResource = null, fullCost = false) {
     const player = state.players[playerId];
     const planet = state.planets[coord];
     if (type === 'research') return false;
     if (!planet || planet.occupiedBy !== null) return false;
     const improving = planet.owner === playerId && planet.upgrade === type && (planet.upgradeLevel || 1) < 2;
     if (!improving && !canBuildStructureAt(playerId,coord)) return false;
-    const policyDiscount = state.activePolicy?.id === 'frontier_grants' && !player.policyBuildDiscountUsed ? 1 : 0;
-    const cost = improving ? STRUCTURES[type].upgradeCost : STRUCTURES[type].cost;
+    const policyDiscount = !fullCost && state.activePolicy?.id === 'frontier_grants' && !player.policyBuildDiscountUsed ? 1 : 0;
+    const cost = discountedCost(improving ? STRUCTURES[type].upgradeCost : STRUCTURES[type].cost,discountResource);
     if (!canAfford(player,cost,0,discountMatter + policyDiscount)) return false;
     if (dryRun) return true;
     payCost(player,cost,0,discountMatter + policyDiscount);
@@ -1346,14 +1452,14 @@ function createGalacticReach(options = {}) {
     return true;
   }
 
-  function buildResearchStation(playerId, coord, dryRun = false) {
+  function buildResearchStation(playerId, coord, dryRun = false, discountResource = null) {
     const player = state.players[playerId];
     const planet = state.planets[coord];
     const fleet = getFleet(coord,playerId);
     if (!planet || planet.special !== 'relic' || hasBuilding(planet) || !fleet?.researcher) return false;
-    if (!canAfford(player,STRUCTURES.research.cost)) return false;
+    if (!canAfford(player,discountedCost(STRUCTURES.research.cost,discountResource))) return false;
     if (dryRun) return true;
-    payCost(player,STRUCTURES.research.cost);
+    payCost(player,discountedCost(STRUCTURES.research.cost,discountResource));
     fleet.researcher -= 1;
     if (!fleetCount(fleet)) {
       delete state.fleets[coord][playerId];
@@ -1377,16 +1483,16 @@ function createGalacticReach(options = {}) {
     return true;
   }
 
-  function buildShip(playerId, coord, type, discountEnergy = 0, dryRun = false) {
+  function buildShip(playerId, coord, type, discountEnergy = 0, dryRun = false, discountResource = null) {
     const player = state.players[playerId];
     const planet = state.planets[coord];
     const fleet = getFleet(coord,playerId);
     if (!planet || planet.owner !== playerId || planet.occupiedBy !== null) return false;
     if (type === 'researcher' ? !canLaunchResearcher(playerId,coord) : planet.upgrade !== 'starbase') return false;
     const policyDiscount = state.activePolicy?.id === 'frontier_grants' && !player.policyBuildDiscountUsed ? 1 : 0;
-    if (fleetCount(fleet) >= 5 || !canPlaceShip(playerId,type) || !canAfford(player,SHIP_STATS[type].cost,0,policyDiscount,discountEnergy)) return false;
+    if (fleetCount(fleet) >= 5 || !canPlaceShip(playerId,type) || !canAfford(player,discountedCost(SHIP_STATS[type].cost,discountResource),0,policyDiscount,discountEnergy)) return false;
     if (dryRun) return true;
-    payCost(player,SHIP_STATS[type].cost,0,policyDiscount,discountEnergy);
+    payCost(player,discountedCost(SHIP_STATS[type].cost,discountResource),0,policyDiscount,discountEnergy);
     ensureFleet(coord,playerId)[type] += 1;
     player.tracks.expansion += 1;
     if (policyDiscount) player.policyBuildDiscountUsed = true;
@@ -1395,11 +1501,8 @@ function createGalacticReach(options = {}) {
 
   function contextBuild(kind, coord) {
     if (state.actionMode !== 'construct' || state.activePlayer !== 0) return;
-    const player = state.players[0];
-    let success = false;
-    if (kind === 'research') success = buildResearchStation(0,coord);
-    else if (STRUCTURES[kind]) success = buildUpgrade(0,coord,kind);
-    if (SHIP_STATS[kind]) success = buildShip(0,coord,kind);
+    const discount=state.actionOptions.upgraded?state.actionOptions.discountResource:null;
+    const success=constructAt(0,coord,kind,discount);
     if (!success) { toast('That build is not currently legal or affordable.'); return; }
     const label = STRUCTURES[kind]?.name || SHIP_STATS[kind].name;
     discardActionCard(0);
@@ -1408,9 +1511,8 @@ function createGalacticReach(options = {}) {
 
   function contextColonize(coord) {
     if (state.actionMode !== 'colonize' || state.activePlayer !== 0) return;
-    if (!colonizePlanet(0,coord,state.actionOptions)) { toast('You need an eligible Scout on the world’s center hex and the required resources.'); return; }
-    discardActionCard(0);
-    completeAction(0,`You completed a colonization operation at ${nameForCoord(coord)}.`);
+    const card=state.players[0].hand.find(c=>c.id===state.actionCardId);
+    if (!applyColonizeOrder(0,coord,card)) toast('You need an eligible Scout on the world’s center hex and the required resources.');
   }
 
   function contextTerraform(coord) {
@@ -1508,7 +1610,7 @@ function createGalacticReach(options = {}) {
     return path;
   }
 
-  function chooseAiMove(playerId) {
+  function chooseAiMove(playerId, card = {}) {
     const military = state.players[playerId].strategy === 'military';
     const fleets = Object.entries(state.fleets).filter(([,group]) => fleetCount(group[playerId]));
     let best = null;
@@ -1519,16 +1621,19 @@ function createGalacticReach(options = {}) {
         const relicGoal = relicTargets.sort((a,b)=>hexDistance(source,a)-hexDistance(source,b))[0];
         const path = relicGoal && pathToCoord(source,relicGoal);
         if (path?.length) {
-          const destination = path[0];
+          const researchers = fleetGroup(fleet,'researcher');
+          const reachable = new Set(reachableFrom(source,playerId,movementRange(researchers,card),true,researchers));
+          // Stop at blockers and use both movement points when the path is clear.
+          const destination = path.slice(0,movementRange(researchers,card)).filter(coord => reachable.has(coord)).pop();
           const score = 20 - path.length * .1;
-          if (!best || score > best.score) best = { source,destination,score,moveGroup:'researcher' };
+          if (destination && (!best || score > best.score)) best = { source,destination,score,moveGroup:'researcher' };
         }
       }
       if (combatShipCount(fleet)) {
         const path = nearestGoal(source,playerId,military);
         if (!path?.length) return;
         const ships = fleetGroup(fleet,'ships');
-        const range = fleetMove(ships);
+        const range = movementRange(ships,card);
         let destination = source;
         for (let i=0;i<Math.min(range,path.length);i+=1) {
           const candidate = path[i];
@@ -1548,6 +1653,8 @@ function createGalacticReach(options = {}) {
 
   function runAiOperation() {
     if (state.phase !== 'operations' || state.activePlayer === 0 || state.winner !== null) return;
+    if (state.pendingColonyBuild) { aiColonyBuild(state.activePlayer); return; }
+    aiRespondToTrades(state.activePlayer);
     const id = state.activePlayer;
     const player = state.players[id];
     const colonizeCard = player.hand.find(card => ALL_CARDS[card.key].order === 'colonize');
@@ -1558,17 +1665,16 @@ function createGalacticReach(options = {}) {
       const capture = planet.owner !== null;
       const cost = { biomass: capture ? 1 : definition.tag === 'dropColony' ? 1 : 2 };
       aiUseResources(player,colonizeCard.id,cost);
-      if (colonizePlanet(id,target,{tag:definition.tag})) {
-        aiPlayCard(player,colonizeCard);
-        completeAction(id,`${player.name} completed a colonization operation.`);
+      if (applyColonizeOrder(id,target,colonizeCard)) {
         return;
       }
     }
     const constructCard = player.hand.find(card => ALL_CARDS[card.key].order === 'construct');
     const build = chooseAiBuild(id);
     if (constructCard && build) {
-      aiUseResources(player,constructCard.id,build.cost);
-      let built = build.kind === 'research' ? buildResearchStation(id,build.coord) : STRUCTURES[build.kind] ? buildUpgrade(id,build.coord,build.kind) : buildShip(id,build.coord,build.kind);
+      const discount=constructCard.upgraded?[...RESOURCES].filter(r=>build.cost[r]>0).sort((a,b)=>((build.cost[b]||0)-player.resources[b])-((build.cost[a]||0)-player.resources[a]))[0]||null:null;
+      aiUseResources(player,constructCard.id,constructionCost(id,build.coord,build.kind,discount));
+      const built=constructAt(id,build.coord,build.kind,discount);
       if (built) {
         aiPlayCard(player,constructCard);
         completeAction(id,`${player.name} built ${STRUCTURES[build.kind]?.name || SHIP_STATS[build.kind].name} at ${nameForCoord(build.coord)}.`);
@@ -1576,15 +1682,15 @@ function createGalacticReach(options = {}) {
       }
     }
     const probe = player.hand.find(card => ALL_CARDS[card.key].order === 'probe');
-    const unknown = nearestUnscannedRelicCluster(id);
+    const unknown = probe && nearestUnscannedRelicCluster(id,probe.upgraded);
     if (probe && unknown && Object.values(state.fleets).some(group=>group[id]?.researcher)) {
-      unknown.scannedBy.push(id);
+      resolveProbe(id,probe);
       aiPlayCard(player,probe);
       completeAction(id,`${player.name} pinpointed an alien relic signal.`);
       return;
     }
     const moveCard = player.hand.find(card => ALL_CARDS[card.key].order === 'move');
-    const move = chooseAiMove(id);
+    const move = chooseAiMove(id,moveCard);
     if (moveCard && move && move.destination !== move.source) {
       const definition = ALL_CARDS[moveCard.key];
       executeMove(id,move.source,move.destination,{tag:definition.tag,moveGroup:move.moveGroup});
@@ -1603,17 +1709,19 @@ function createGalacticReach(options = {}) {
       return;
     }
     const remainingProbe = player.hand.find(card => ALL_CARDS[card.key].order === 'probe');
-    const remainingUnknown = nearestUnscannedRelicCluster(id);
+    const remainingUnknown = remainingProbe && nearestUnscannedRelicCluster(id,remainingProbe.upgraded);
     if (remainingProbe && remainingUnknown) {
-      remainingUnknown.scannedBy.push(id);
+      resolveProbe(id,remainingProbe);
       aiPlayCard(player,remainingProbe);
       completeAction(id,`${player.name} pinpointed an alien relic signal.`);
       return;
     }
+    if (aiOfferTrade(id)) return;
     passOperations(id);
   }
 
   function startBuyPhase() {
+    expireTrades();
     state.phase = 'buy';
     state.activePlayer = state.firstPlayer;
     state.players.forEach(player => { player.bought=0; player.buyLimit=1; player.decommissioned=false; player.buyStartDiscardIds=player.discard.map(c=>c.id); });
@@ -1852,46 +1960,101 @@ function createGalacticReach(options = {}) {
     beginRound();
   }
 
+  function canOfferTrade(playerId, terms) {
+    const p = state.players[playerId];
+    return !!p && state.winner === null && state.phase === 'operations' && state.activePlayer === playerId
+      && !p.passed && !p.tradeUsed && !state.pendingColonyBuild && (headless || playerId !== 0 || ['prep','action'].includes(state.turnStage))
+      && RESOURCES.includes(terms.giveType) && RESOURCES.includes(terms.getType) && terms.giveType !== terms.getType
+      && [terms.giveAmount,terms.getAmount].every(n=>Number.isInteger(n) && n>=1 && n<=5)
+      && p.resources[terms.giveType] >= terms.giveAmount
+      && state.players.some(other=>other.id!==playerId && !other.passed);
+  }
+
+  function offerTrade(playerId, terms) {
+    if (!canOfferTrade(playerId,terms)) return false;
+    const offer = {id:state.nextTradeOfferId++,from:playerId,round:state.round,status:'open',
+      giveType:terms.giveType,giveAmount:terms.giveAmount,getType:terms.getType,getAmount:terms.getAmount,
+      responses:state.players.map(p=>p.id===playerId?'author':p.passed?'passed':'pending')};
+    state.tradeOffers.push(offer);
+    state.tradeOffers = state.tradeOffers.slice(-40);
+    state.players[playerId].tradeUsed = true;
+    completeAction(playerId,`${state.players[playerId].name} offered ${offer.giveAmount} ${RESOURCE_NAMES[offer.giveType]} for ${offer.getAmount} ${RESOURCE_NAMES[offer.getType]} to all factions.`);
+    return true;
+  }
+
+  function tradeResponseAllowed(playerId, offer) {
+    return !!offer && state.winner === null && state.phase === 'operations' && state.activePlayer === playerId
+      && offer.status === 'open' && offer.round === state.round && offer.from !== playerId
+      && offer.responses[playerId] === 'pending' && !state.players[playerId].passed;
+  }
+
+  function tradeBlockReason(playerId, offer) {
+    if (!tradeResponseAllowed(playerId,offer)) return 'Respond during your Operations turn.';
+    const from=state.players[offer.from], to=state.players[playerId];
+    if (from.resources[offer.giveType]<offer.giveAmount) return 'The offering faction no longer has those resources.';
+    if (to.resources[offer.getType]<offer.getAmount) return `You need ${offer.getAmount} ${RESOURCE_NAMES[offer.getType]} to accept.`;
+    if (totalResources(from)-offer.giveAmount+offer.getAmount>playerCapacity(offer.from)
+      || totalResources(to)-offer.getAmount+offer.giveAmount>playerCapacity(playerId)) return 'The exchange would exceed storage capacity.';
+    return '';
+  }
+
+  function respondTrade(playerId, id, response) {
+    const offer=state.tradeOffers.find(o=>o.id===id);
+    if (!tradeResponseAllowed(playerId,offer) || !['accept','reject'].includes(response)) return false;
+    if (response==='accept') {
+      if (tradeBlockReason(playerId,offer)) return false;
+      const from=state.players[offer.from], to=state.players[playerId];
+      // Recheck live balances, then settle once before any rendering or turn changes.
+      from.resources[offer.giveType]-=offer.giveAmount; to.resources[offer.giveType]+=offer.giveAmount;
+      to.resources[offer.getType]-=offer.getAmount; from.resources[offer.getType]+=offer.getAmount;
+      offer.status='accepted'; offer.acceptedBy=playerId;
+      from.tracks.culture++; to.tracks.culture++;
+      from.tradesWith[playerId]++; to.tradesWith[offer.from]++;
+      if (state.activePolicy?.id==='open_exchange') { addResources(from,{data:1}); addResources(to,{data:1}); }
+      logEvent(`${to.name} accepted ${from.name}’s open offer.`);
+    } else {
+      logEvent(`${state.players[playerId].name} rejected ${state.players[offer.from].name}’s offer.`);
+    }
+    offer.responses[playerId]=response==='accept'?'accepted':'rejected';
+    if (offer.status==='open' && !offer.responses.includes('pending')) offer.status='rejected';
+    render(); saveGame();
+    return true;
+  }
+
+  function cancelTrade(playerId, id) {
+    const offer=state.tradeOffers.find(o=>o.id===id);
+    if (!offer || offer.from!==playerId || offer.status!=='open' || state.activePlayer!==playerId || state.phase!=='operations') return false;
+    offer.status='withdrawn'; logEvent(`${state.players[playerId].name} withdrew an offer.`);
+    render(); saveGame(); return true;
+  }
+
+  function expireTrades() {
+    for (const offer of state.tradeOffers) if (offer.status==='open') offer.status='expired';
+  }
+
+  function aiRespondToTrades(id) {
+    for (const offer of state.tradeOffers) {
+      if (!tradeResponseAllowed(id,offer)) continue;
+      const p=state.players[id];
+      const fair=offer.giveAmount*(p.resources[offer.giveType]<2?1.45:1)>=offer.getAmount*(p.resources[offer.getType]<2?1.4:1);
+      respondTrade(id,offer.id,!tradeBlockReason(id,offer)&&fair?'accept':'reject');
+    }
+  }
+
+  function aiOfferTrade(id) {
+    const p=state.players[id];
+    const giveType=RESOURCES.find(r=>p.resources[r]>=3);
+    const getType=RESOURCES.find(r=>p.resources[r]<2 && state.players.some(o=>o.id!==id && !o.passed && o.resources[r]>=2));
+    return giveType && getType && offerTrade(id,{giveType,getType,giveAmount:1,getAmount:1});
+  }
+
   function submitTrade(event) {
     event.preventDefault();
-    const human = state.players[0];
-    if (state.phase !== 'operations' || state.activePlayer !== 0 || state.turnStage !== 'action' || human.tradeUsed) { toast('Trade is unavailable right now.'); return; }
-    const rivalId = Number($('#trade-rival').value);
-    const giveType = $('#trade-give-type').value;
-    const getType = $('#trade-get-type').value;
-    const giveAmount = Math.max(1,Number($('#trade-give-amount').value));
-    const getAmount = Math.max(1,Number($('#trade-get-amount').value));
-    const rival = state.players[rivalId];
-    human.tradeUsed = true;
-    let accepted = human.resources[giveType] >= giveAmount && rival.resources[getType] >= getAmount;
-    let rejectionReason = '';
-    if (accepted) {
-      const humanFits = totalResources(human) - giveAmount + getAmount <= playerCapacity(0);
-      const rivalFits = totalResources(rival) - getAmount + giveAmount <= playerCapacity(rivalId);
-      if (!humanFits || !rivalFits) {
-        accepted = false;
-        rejectionReason = 'The exchange would exceed a faction’s storage capacity.';
-      }
-    }
-    if (accepted) {
-      const rivalNeed = rival.resources[giveType] < 2 ? 1.45 : 1;
-      const humanNeed = rival.resources[getType] < 2 ? .7 : 1;
-      accepted = giveAmount * rivalNeed >= getAmount * humanNeed * .9;
-    }
-    if (accepted) {
-      human.resources[giveType] -= giveAmount; rival.resources[giveType] += giveAmount;
-      rival.resources[getType] -= getAmount; human.resources[getType] += getAmount;
-      human.tracks.culture += 1;
-      rival.tracks.culture += 1;
-      human.tradesWith[rivalId] += 1;
-      rival.tradesWith[0] += 1;
-      if (state.activePolicy?.id === 'open_exchange') { addResources(human,{ data: 1 }); addResources(rival,{ data: 1 }); }
-      $('#trade-response').textContent = `${rival.name} accepted the exchange.`;
-      completeAction(0,`${rival.name} accepted your trade.`);
-    } else {
-      $('#trade-response').textContent = rejectionReason || `${rival.name} rejected the offer.`;
-      completeAction(0,`${rival.name} rejected your trade offer.`);
-    }
+    const terms={giveType:$('#trade-give-type').value,getType:$('#trade-get-type').value,
+      giveAmount:Number($('#trade-give-amount').value),getAmount:Number($('#trade-get-amount').value)};
+    $('#trade-response').textContent=offerTrade(0,terms)
+      ?'Offer published. Other factions can respond on their turns. First acceptance completes the trade.'
+      :'Choose different resources and whole amounts from 1 to 5 that you can supply. Publish during your action, once per round.';
   }
 
   function showMessage(kicker,title,body) {
@@ -1956,13 +2119,27 @@ function createGalacticReach(options = {}) {
     ];
     $('#symbol-legend').innerHTML = `<strong class="legend-heading">Units &amp; buildings</strong>${entries.map(([type,label]) => {
       const cost = type === 'colony' ? { biomass: 2 } : SHIP_STATS[type]?.cost || STRUCTURES[type]?.cost;
-      return `<span class="tooltip-anchor symbol-legend-item" tabindex="0" data-tooltip="${LEGEND_TOOLTIPS[type]}" aria-label="${label}. ${LEGEND_TOOLTIPS[type]}"><span class="symbol-legend-name">${BOARD_ICONS[type]}${label}</span><span class="symbol-legend-cost">${resourceDots(cost)}</span></span>`;
+      return `<span class="tooltip-anchor symbol-legend-item" tabindex="0" data-tooltip="${LEGEND_TOOLTIPS[type]}" aria-label="${label}. ${LEGEND_TOOLTIPS[type]}"><span class="symbol-legend-name">${BOARD_ICONS[type]}${label}</span><span class="symbol-legend-cost">${resourceDots(cost)}</span><span class="symbol-legend-description">${LEGEND_TOOLTIPS[type]}</span></span>`;
     }).join('')}`;
+  }
+
+  // Replays reveal every faction's information, so fog never applies there.
+  function knownToViewer(cluster) {
+    return replayMode || clusterKnown(cluster,viewSeat);
+  }
+
+  function selectHex(key) {
+    if (!replayMode) { humanSelectHex(key); return; }
+    state.selected = key;
+    options.onSelect?.(key);
+    render();
   }
 
   function renderBoard() {
     const board = $('#galaxy-board');
     if (!board.dataset.built) {
+      board.style.setProperty('--hex-width', `${100/(BOARD_RADIUS*2+1)}%`);
+      board.style.setProperty('--row-overlap', `${-100/(BOARD_RADIUS*2+1)*Math.sqrt(3)/8}%`);
       for (let r=-BOARD_RADIUS;r<=BOARD_RADIUS;r+=1) {
         const row = document.createElement('div'); row.className = 'map-row';
         const qMin = Math.max(-BOARD_RADIUS,-BOARD_RADIUS-r); const qMax = Math.min(BOARD_RADIUS,BOARD_RADIUS-r);
@@ -1972,7 +2149,7 @@ function createGalacticReach(options = {}) {
           const key = coordKey(q,r);
           const button = document.createElement('button');
           button.type='button'; button.className='hex'; button.dataset.coord=key;
-          button.addEventListener('click',()=>humanSelectHex(key));
+          button.addEventListener('click',event=>{selectHex(key);showSectorScan(event.detail===0);});
           button.innerHTML='<span class="hex-fleets"></span><span class="hex-buildings"></span><span class="special"></span>';
           row.appendChild(button);
         }
@@ -1984,8 +2161,8 @@ function createGalacticReach(options = {}) {
       const key = hex.dataset.coord;
       const planet = state.planets[key];
       const cluster = planet ? state.clusters[planet.cluster] : null;
-      const known = clusterKnown(cluster,0);
-      const scanned = clusterScanned(cluster,0);
+      const known = knownToViewer(cluster);
+      const scanned = clusterScanned(cluster,viewSeat);
       const relicSignal = Boolean(planet?.special === 'relic' && (scanned || planet.researchStationOwner !== null));
       hex.className = `hex ${planet ? (known ? planet.type : relicSignal ? 'fog scanned relic-signal' : 'space unknown-world') : 'space'}`;
       if (state.selected === key) hex.classList.add('selected');
@@ -1995,10 +2172,10 @@ function createGalacticReach(options = {}) {
       const owners = new Set();
       if (known && planet?.owner !== null && planet?.owner !== undefined) owners.add(planet.owner);
       if (planet?.researchStationOwner !== null && planet?.researchStationOwner !== undefined) owners.add(planet.researchStationOwner);
-      Object.entries(state.fleets[key]||{}).forEach(([fleetOwner,fleet])=>{if(fleetCount(fleet)&&(known||Number(fleetOwner)===0))owners.add(Number(fleetOwner));});
+      Object.entries(state.fleets[key]||{}).forEach(([fleetOwner,fleet])=>{if(fleetCount(fleet)&&(known||Number(fleetOwner)===viewSeat))owners.add(Number(fleetOwner));});
       const owner = [...owners][0];
       hex.style.setProperty('--owner',owner===undefined?'transparent':PLAYER_COLORS[owner]);
-      fleets.innerHTML = known || getFleet(key,0) ? fleetSymbolsAt(key) : '';
+      fleets.innerHTML = known || getFleet(key,viewSeat) ? fleetSymbolsAt(key) : '';
       if (planet) {
         buildings.innerHTML = known || planet.researchStationOwner !== null ? buildingSymbols(planet) : '';
         special.textContent = known ? (planet.special==='rich'?'★':planet.special==='relic'?'◈':planet.special==='gate'?'⇄':'') : (relicSignal?'◈':'');
@@ -2015,16 +2192,19 @@ function createGalacticReach(options = {}) {
 
   function renderScoreboard() {
     $('#score-ribbon').innerHTML = state.players.map((player,id)=>{
-      const active = state.activePlayer===id && !state.winner;
+      const active = state.activePlayer===id && state.winner===null;
       const influence=Object.values(player.tracks).reduce((sum,value)=>sum+value,0);
-      return `<article class="score-card ${active?'active':''}" style="--player:${player.color}" title="Colonies: 1 each, plus 1 per two beyond home · Shipyards: 1 per pair · Relics and awards: 1 each · Influence: ${influencePrestige(id)} · Deck: ${deckPrestige(id)}"><div class="score-top"><span class="score-name">${player.name}</span><span class="score-value">${calculatePrestige(id)}</span></div><div class="score-meta"><span>${colonyPlanets(id).length} colonies</span><span>${player.cardsPurchased||0} cards · ${deckPrestige(id)} Prestige</span><span>${strongestFleet(id)} fleet</span></div></article>`;
+      const elo = state.replayElo?.[id];
+      const eloText = elo ? `<span class="score-elo">Elo ${Math.round(elo.before)} → ${Math.round(elo.after)} (${elo.after>=elo.before?'+':''}${(elo.after-elo.before).toFixed(1)})</span>` : '';
+      return `<article class="score-card ${active?'active':''} ${replayMode&&id===viewSeat?'viewing':''}" style="--player:${player.color}" title="Colonies: 1 each, plus 1 per two beyond home · Shipyards: 1 per pair · Relics and awards: 1 each · Influence: ${influencePrestige(id)} · Deck: ${deckPrestige(id)}"><div class="score-top"><span class="score-name">${esc(player.name)}</span><span class="score-value">${calculatePrestige(id)}</span></div><div class="score-meta"><span>${colonyPlanets(id).length} colonies</span><span>${player.cardsPurchased||0} cards · ${deckPrestige(id)} Prestige</span><span>${strongestFleet(id)} fleet</span>${eloText}</div></article>`;
     }).join('');
   }
 
   function renderResources() {
-    const player = state.players[0];
+    const player = state.players[viewSeat];
     const stored = totalResources(player);
-    const capacity = playerCapacity(0);
+    const capacity = playerCapacity(viewSeat);
+    if (replayMode) $('#command-eyebrow').textContent = `${player.name.toUpperCase()} · COMMAND`;
     $('#capacity-value').textContent = `${stored} of ${capacity} stored`;
     $('#capacity-meter').setAttribute('aria-valuenow', stored);
     $('#capacity-meter').setAttribute('aria-valuemax', capacity);
@@ -2037,27 +2217,48 @@ function createGalacticReach(options = {}) {
     const key = state.selected;
     const title = $('#inspect-title'); const coordinate = $('#inspect-coordinate'); const detail = $('#inspect-detail'); const facts = $('#inspect-facts'); const actions = $('#context-actions');
     actions.innerHTML='';
+    const discount=!replayMode&&state.actionMode==='construct'&&state.actionOptions.upgraded?state.actionOptions.discountResource:null;
+    $('#construction-discount-row').hidden=discount===null;
+    if(discount!==null) $('#construction-discount').value=discount;
+    const buildButton=(label,kind)=>actionButton(label,()=>contextBuild(kind,key),constructAt(0,key,kind,discount,true),constructionCost(0,key,kind,discount));
     if (!key) { title.textContent='Select a hex'; coordinate.textContent='—'; detail.textContent='Choose a planet or space hex to inspect fleets, control, and possible actions.'; facts.innerHTML=''; return; }
     const planet = state.planets[key]; const fleets = state.fleets[key]||{};
     coordinate.textContent=key;
     if (planet) {
       const cluster = state.clusters[planet.cluster];
-      if (!clusterKnown(cluster,0)) {
-        const relicSignal = planet.special === 'relic' && (clusterScanned(cluster,0) || planet.researchStationOwner !== null);
+      if (!knownToViewer(cluster)) {
+        const relicSignal = planet.special === 'relic' && (clusterScanned(cluster,viewSeat) || planet.researchStationOwner !== null);
         title.textContent = relicSignal ? 'Alien relic signal' : 'Uncharted space';
         detail.textContent = relicSignal ? 'Your Probe pinpointed this Rosetta Stone. The planet and all surrounding sectors remain unknown.' : 'A Scout can enter this region blindly to reveal its seven-sector world.';
-        facts.innerHTML = relicSignal ? `<div class="fact"><span>Signal</span><strong>Rosetta Stone</strong></div><div class="fact"><span>Research</span><strong>${planet.researchStationOwner===null?'No station':`${state.players[planet.researchStationOwner].name} station`}</strong></div>` : '<div class="fact"><span>Status</span><strong>Unknown</strong></div>';
-        if (relicSignal && state.phase==='operations' && state.activePlayer===0 && state.turnStage==='action' && state.actionMode==='construct' && !hasBuilding(planet) && getFleet(key,0)?.researcher) actions.appendChild(actionButton('Establish Research Station',()=>contextBuild('research',key),canAfford(state.players[0],STRUCTURES.research.cost),STRUCTURES.research.cost));
+        facts.innerHTML = relicSignal ? `<div class="fact"><span>Signal</span><strong>Rosetta Stone</strong></div><div class="fact"><span>Research</span><strong>${planet.researchStationOwner===null?'No station':`${esc(state.players[planet.researchStationOwner].name)} station`}</strong></div>` : '<div class="fact"><span>Status</span><strong>Unknown</strong></div>';
+        if (relicSignal && state.phase==='operations' && state.activePlayer===0 && state.turnStage==='action' && state.actionMode==='construct' && !hasBuilding(planet) && getFleet(key,0)?.researcher) actions.appendChild(buildButton('Establish Research Station','research'));
         return;
       }
       title.textContent=planet.name;
-      const owner = planet.owner===null?'Unclaimed':state.players[planet.owner].name;
-      detail.innerHTML=`${resourceDot(planet.type,'resource-dot-large')} planet · ${owner}${planet.occupiedBy!==null?` · Occupied by ${state.players[planet.occupiedBy].name}`:''}`;
-      const fleetIncome = fleetControllersAt(key).map(playerId => `${state.players[playerId].name} +${resourceDots({ [planet.type]: 1 })}`).join(' · ');
-      facts.innerHTML=`<div class="fact"><span>World hex</span><strong>${isColonySite(key)?'Center · Colony site':'Outer'}</strong></div><div class="fact"><span>Owner production</span><strong>${planet.owner===null?'Unclaimed':resourceDots({ [planet.type]: ownerProductionAmount(planet) })}</strong></div><div class="fact"><span>Fleet production</span><strong>${fleetIncome||'No combat fleet'}</strong></div><div class="fact"><span>Building</span><strong>${buildingLabel(planet)}</strong></div>${planet.special==='relic'?`<div class="fact"><span>Rosetta Stone</span><strong>${planet.researchStationOwner===null?'Awaiting research':`${state.players[planet.researchStationOwner].name} station`}</strong></div>`:''}${Object.entries(fleets).filter(([,f])=>fleetCount(f)).map(([owner,f])=>`<div class="fact"><span>${state.players[owner].name}</span><strong>${formatFleet(f)}</strong></div>`).join('')}`;
+      const owner = planet.owner===null?'Unclaimed':esc(state.players[planet.owner].name);
+      detail.innerHTML=`${resourceDot(planet.type,'resource-dot-large')} planet · ${owner}${planet.occupiedBy!==null?` · Occupied by ${esc(state.players[planet.occupiedBy].name)}`:''}`;
+      const fleetIncome = fleetControllersAt(key).map(playerId => `${esc(state.players[playerId].name)} +${resourceDots({ [planet.type]: 1 })}`).join(' · ');
+      facts.innerHTML=`<div class="fact"><span>World hex</span><strong>${isColonySite(key)?'Center · Colony site':'Outer'}</strong></div><div class="fact"><span>Owner production</span><strong>${planet.owner===null?'Unclaimed':resourceDots({ [planet.type]: ownerProductionAmount(planet) })}</strong></div><div class="fact"><span>Fleet production</span><strong>${fleetIncome||'No combat fleet'}</strong></div><div class="fact"><span>Building</span><strong>${buildingLabel(planet)}</strong></div>${planet.special==='relic'?`<div class="fact"><span>Rosetta Stone</span><strong>${planet.researchStationOwner===null?'Awaiting research':`${esc(state.players[planet.researchStationOwner].name)} station`}</strong></div>`:''}${Object.entries(fleets).filter(([,f])=>fleetCount(f)).map(([owner,f])=>`<div class="fact"><span>${esc(state.players[owner].name)}</span><strong>${formatFleet(f)}</strong></div>`).join('')}`;
     } else {
       title.textContent='Empty Space'; detail.textContent='Fleets may move, fight, and retreat here.';
-      facts.innerHTML=Object.entries(fleets).filter(([,f])=>fleetCount(f)).map(([owner,f])=>`<div class="fact"><span>${state.players[owner].name}</span><strong>${formatFleet(f)}</strong></div>`).join('')||'<div class="fact"><span>Status</span><strong>Vacant</strong></div>';
+      facts.innerHTML=Object.entries(fleets).filter(([,f])=>fleetCount(f)).map(([owner,f])=>`<div class="fact"><span>${esc(state.players[owner].name)}</span><strong>${formatFleet(f)}</strong></div>`).join('')||'<div class="fact"><span>Status</span><strong>Vacant</strong></div>';
+    }
+    if (replayMode) {
+      // Recorded decisions replace the live action buttons.
+      const pending = state.pendingColonyBuild;
+      const notes = [];
+      if (pending && state.reachable.includes(key)) notes.push(['Colonize II', `${esc(state.players[pending.playerId].name)} may build here at full cost`]);
+      if (state.replayDecision?.coords?.includes(key)) notes.push(['This decision', esc(state.replayDecision.text)]);
+      if (state.lastCombat?.coord === key) notes.push(['Last combat', esc(state.lastCombat.outcome)]);
+      facts.insertAdjacentHTML('beforeend', notes.map(([label,text])=>`<div class="fact"><span>${label}</span><strong>${text}</strong></div>`).join(''));
+      return;
+    }
+    if(state.pendingColonyBuild?.playerId===0) {
+      for(const kind of Object.keys(STRUCTURES).filter(k=>k!=='research')) {
+        if(adjacentKeys(state.pendingColonyBuild.colony).includes(key) && canBuildStructureAt(0,key))
+          actions.appendChild(actionButton(`Build ${STRUCTURES[kind].name}`,()=>finishColonyBuild(0,key,kind),canColonyBuild(0,key,kind),constructionCost(0,key,kind,null,true)));
+      }
+      actions.appendChild(actionButton('Finish without building',()=>finishColonyBuild(0)));
     }
     if (state.phase==='operations' && state.activePlayer===0 && state.turnStage==='action') {
       if (state.actionMode==='move' && state.moveChoiceSource===key) {
@@ -2065,12 +2266,12 @@ function createGalacticReach(options = {}) {
         actions.appendChild(actionButton('Move Ships',()=>prepareHumanMove(key,'ships')));
       }
       if (state.actionMode==='construct' && planet && planet.occupiedBy===null) {
-        if (canBuildStructureAt(0,key)) Object.keys(STRUCTURES).filter(kind=>kind!=='research').forEach(kind=>actions.appendChild(actionButton(`Build ${STRUCTURES[kind].name}`,()=>contextBuild(kind,key),canAfford(state.players[0],STRUCTURES[kind].cost),STRUCTURES[kind].cost)));
-        if (planet.owner===0 && planet.upgrade && (planet.upgradeLevel||1)<2) actions.appendChild(actionButton(`Upgrade ${STRUCTURES[planet.upgrade].name} to II`,()=>contextBuild(planet.upgrade,key),canAfford(state.players[0],STRUCTURES[planet.upgrade].upgradeCost),STRUCTURES[planet.upgrade].upgradeCost));
-        if (canLaunchResearcher(0,key)) actions.appendChild(actionButton('Recruit Researcher',()=>contextBuild('researcher',key),canAfford(state.players[0],SHIP_STATS.researcher.cost)&&fleetCount(getFleet(key,0))<5&&canPlaceShip(0,'researcher'),SHIP_STATS.researcher.cost));
-        if (planet.upgrade==='starbase') Object.keys(SHIP_STATS).filter(kind=>kind!=='researcher').forEach(kind=>actions.appendChild(actionButton(`Commission ${SHIP_STATS[kind].name}`,()=>contextBuild(kind,key),canAfford(state.players[0],SHIP_STATS[kind].cost)&&fleetCount(getFleet(key,0))<5&&canPlaceShip(0,kind),SHIP_STATS[kind].cost)));
+        if (canBuildStructureAt(0,key)) Object.keys(STRUCTURES).filter(kind=>kind!=='research').forEach(kind=>actions.appendChild(buildButton(`Build ${STRUCTURES[kind].name}`,kind)));
+        if (planet.owner===0 && planet.upgrade && (planet.upgradeLevel||1)<2) actions.appendChild(buildButton(`Upgrade ${STRUCTURES[planet.upgrade].name} to II`,planet.upgrade));
+        if (canLaunchResearcher(0,key)) actions.appendChild(buildButton('Recruit Researcher','researcher'));
+        if (planet.upgrade==='starbase') Object.keys(SHIP_STATS).filter(kind=>kind!=='researcher').forEach(kind=>actions.appendChild(buildButton(`Commission ${SHIP_STATS[kind].name}`,kind)));
       }
-      if (state.actionMode==='construct' && planet?.special==='relic' && !hasBuilding(planet) && getFleet(key,0)?.researcher) actions.appendChild(actionButton('Establish Research Station',()=>contextBuild('research',key),canAfford(state.players[0],STRUCTURES.research.cost),STRUCTURES.research.cost));
+      if (state.actionMode==='construct' && planet?.special==='relic' && !hasBuilding(planet) && getFleet(key,0)?.researcher) actions.appendChild(buildButton('Establish Research Station','research'));
       if (state.actionMode==='colonize' && planet) {
         const capture=planet.owner!==null&&planet.owner!==0&&planet.occupiedBy===0;
         const eligible=isColonySite(key)&&((planet.owner===null&&!hasBuilding(planet))||capture)&&getFleet(key,0)?.scout>0;
@@ -2091,11 +2292,11 @@ function createGalacticReach(options = {}) {
       ['Galactic Reach',state.awards.reach,`Most colonized clusters · minimum ${AWARD_THRESHOLDS.reach} · ${AWARD_PRESTIGE.reach} Prestige`],
       ['Occupation Mandate',state.awards.occupation,`Most conquest-marked Colonies · minimum ${AWARD_THRESHOLDS.occupation} · ${AWARD_PRESTIGE.occupation} Prestige`]
     ];
-    $('#award-list').innerHTML=rows.map(([name,owner,desc])=>`<div class="award"><strong>${name}</strong><span>${owner===null?'Unclaimed':state.players[owner].name}</span><small>${desc}</small></div>`).join('');
+    $('#award-list').innerHTML=rows.map(([name,owner,desc])=>`<div class="award"><strong>${name}</strong><span>${owner===null?'Unclaimed':esc(state.players[owner].name)}</span><small>${desc}</small></div>`).join('');
   }
 
   function renderPolitics() {
-    const player=state.players[0];
+    const player=state.players[viewSeat];
     $('#track-grid').innerHTML=Object.entries(TRACKS).map(([key,track])=>`<div class="track"><span>${track.short}</span><strong>${player.tracks[key]}</strong><small>${track.name}<br>${track.detail}</small></div>`).join('');
     $('#policy-status').textContent=state.activePolicy?.name||'No policy enacted';
     const policyText=state.activePolicy?.text||'Every third round, secretly spend track points to vote between two policies.';
@@ -2103,45 +2304,52 @@ function createGalacticReach(options = {}) {
   }
 
   function renderLog() {
-    $('#game-log').innerHTML=state.log.slice(0,18).map(item=>`<li>${item}</li>`).join('');
+    $('#game-log').innerHTML=state.log.slice(0,18).map(item=>`<li>${replayMode?esc(item):item}</li>`).join('');
   }
 
   function cardMarkup(card, location) {
     const definition=ALL_CARDS[card.key];
-    const isHumanOps=state.phase==='operations'&&state.activePlayer===0;
-    const canResource=location==='hand'&&isHumanOps&&['prep','action'].includes(state.turnStage)&&definition.resource;
+    const isHumanOps=!replayMode&&state.phase==='operations'&&state.activePlayer===0;
+    const canResource=location==='hand'&&isHumanOps&&['prep','action','bonus-build'].includes(state.turnStage)&&definition.resource;
     const resourceGain=cardResources(card);
     if(definition.wildcard)resourceGain.data=(resourceGain.data||0)+definition.wildcard;
     const resourceStorageNeeded=resourceGainTotal(resourceGain);
     const canStoreCard=!canResource||remainingResourceCapacity(0)>=resourceStorageNeeded;
-    const canOrder=location==='hand'&&isHumanOps&&state.turnStage==='action'&&definition.order&&!definition.reaction&&!definition.buyEffect;
+    const canOrder=location==='hand'&&isHumanOps&&['prep','action'].includes(state.turnStage)&&definition.order&&!definition.reaction&&!definition.buyEffect;
     const isSelectedOrder=canOrder&&state.actionCardId===card.id&&Boolean(state.actionMode);
-    const canBuyEffect=location==='hand'&&state.phase==='buy'&&state.activePlayer===0&&definition.buyEffect&&!(definition.buyEffect==='manipulation'&&state.players[0].marketManipulated);
-    return `<article class="game-card ${card.upgraded?'upgraded':''} ${isSelectedOrder?'order-selected':''}" style="--card-accent:${definition.accent}"><span class="card-type">${definition.kind}${card.starter?' · STARTER':''}</span><span class="card-name">${definition.name}${card.upgraded?' II':''}</span><span class="card-effect">${resourceText(definition.text)}${card.upgraded?' Upgraded: gain one extra resource.':''}</span><div class="card-footer"><span>${definition.resource?`<small>Gain</small>${resourceDots(cardResources(card))}`:''}</span><span>${definition.cost?`<small>Buy</small>${resourceDots(definition.cost)}`:''}</span></div>${location==='hand'?`<div class="card-buttons">${canResource?`<button class="button" data-resource-card="${card.id}" ${canStoreCard?'':`disabled title="Needs ${resourceStorageNeeded} open storage"`}>${canStoreCard?'Convert to resources':`Need ${resourceStorageNeeded} storage`}</button>`:''}${canOrder?`<button class="button ${isSelectedOrder?'button-danger':'button-primary'}" data-order-card="${card.id}" aria-pressed="${isSelectedOrder}">${isSelectedOrder?'Cancel order':'Use order'}</button>`:''}${canBuyEffect?`<button class="button button-primary" data-buy-effect="${card.id}">Use in Buy</button>`:''}${definition.reaction&&isHumanOps?'<span class="muted">Automatic reaction</span>':''}</div>`:''}</article>`;
+    const canBuyEffect=location==='hand'&&!replayMode&&state.phase==='buy'&&state.activePlayer===0&&definition.buyEffect&&!(definition.buyEffect==='manipulation'&&state.players[0].marketManipulated);
+    return `<article class="game-card ${card.upgraded?'upgraded':''} ${isSelectedOrder?'order-selected':''}" style="--card-accent:${definition.accent}"><span class="card-type">${definition.kind}${card.starter?' · STARTER':''}</span><span class="card-name">${definition.name}${card.upgraded?' II':''}</span><span class="card-effect">${resourceText(definition.text)}${card.upgraded?` II: ${upgradedOrderText(card)} Conversion gains one extra resource.`:''}</span><div class="card-footer"><span>${definition.resource?`<small>Gain</small>${resourceDots(cardResources(card))}`:''}</span><span>${definition.cost?`<small>Buy</small>${resourceDots(definition.cost)}`:''}</span></div>${location==='hand'?`<div class="card-buttons">${canResource?`<button class="button" data-resource-card="${card.id}" ${canStoreCard?'':`disabled title="Needs ${resourceStorageNeeded} open storage"`}>${canStoreCard?'Convert to resources':`Need ${resourceStorageNeeded} storage`}</button>`:''}${canOrder?`<button class="button ${isSelectedOrder?'button-danger':'button-primary'}" data-order-card="${card.id}" aria-pressed="${isSelectedOrder}">${isSelectedOrder?'Cancel order':'Use order'}</button>`:''}${canBuyEffect?`<button class="button button-primary" data-buy-effect="${card.id}">Use in Buy</button>`:''}${definition.reaction&&isHumanOps?'<span class="muted">Automatic reaction</span>':''}</div>`:''}</article>`;
   }
 
   function renderHand() {
-    const player=state.players[0];
+    const player=state.players[viewSeat];
+    // Replays record pile sizes, not the order or contents of deck and discard.
+    const discardCount=replayMode?player.discardCount:player.discard.length;
     $('#hand-count').textContent=player.hand.length;
-    $('#deck-count').textContent=player.deck.length;
+    $('#deck-count').textContent=replayMode?player.deckCount:player.deck.length;
     $('#hand-pile-count').textContent=player.hand.length;
-    $('#discard-count').textContent=player.discard.length;
-    $('#discard-dialog-count').textContent=player.discard.length;
-    $('#hand-row').innerHTML=player.hand.length?player.hand.map(card=>cardMarkup(card,'hand')).join(''):'<p class="muted">Your hand is empty.</p>';
-    $('#discard-row').innerHTML=player.discard.length?[...player.discard].reverse().map(card=>cardMarkup(card,'discard')).join(''):'<p class="muted discard-empty">Your discard pile is empty.</p>';
+    $('#discard-count').textContent=discardCount;
+    $('#discard-dialog-count').textContent=discardCount;
+    $('#hand-row').innerHTML=player.hand.length?player.hand.map(card=>cardMarkup(card,'hand')).join(''):`<p class="muted">${replayMode?`${esc(player.name)}’s hand is empty.`:'Your hand is empty.'}</p>`;
+    $('#discard-row').innerHTML=replayMode?'<p class="muted discard-empty">Replays record discard pile size, not its cards.</p>':player.discard.length?[...player.discard].reverse().map(card=>cardMarkup(card,'discard')).join(''):'<p class="muted discard-empty">Your discard pile is empty.</p>';
     $$('[data-resource-card]').forEach(button=>button.addEventListener('click',()=>playResourceMode(button.dataset.resourceCard)));
     $$('[data-order-card]').forEach(button=>button.addEventListener('click',()=>playOrder(button.dataset.orderCard)));
     $$('[data-buy-effect]').forEach(button=>button.addEventListener('click',()=>useBuyEffect(button.dataset.buyEffect)));
     const prep=state.phase==='operations'&&state.activePlayer===0&&state.turnStage==='prep';
-    $('#finish-prep-button').hidden=!prep;
-    $('#hand-help').textContent=prep?'Convert any cards you want, then choose an order.':state.turnStage==='action'&&state.actionMode?`${state.actionOptions.cardName||'Order'} selected. You may still convert cards, cancel it, trade, or pass.`:state.turnStage==='action'?'Convert cards as needed, play one order card, make a Trade action, or pass.':'Your cards remain available through Buy, then all are discarded.';
+    $('#skip-colony-build').hidden=replayMode || !state.pendingColonyBuild || state.activePlayer!==0;
+    if (replayMode) {
+      $('#hand-title').textContent=`${player.name}’s hand`;
+      $('#hand-help').textContent=state.pendingColonyBuild?.playerId===viewSeat?'Colonize II: this faction may build once beside its new Colony at full cost, or finish without building.':'Every card this faction holds at this decision. Upgraded starter cards are marked II.';
+      return;
+    }
+    $('#hand-help').textContent=state.pendingColonyBuild&&state.activePlayer===0?'Colonize II: choose an adjacent hex for one building at full cost, convert cards if needed, or finish without building.':prep?'Use an order directly on a card, or convert cards for resources.':state.turnStage==='action'&&state.actionMode?`${state.actionOptions.cardName||'Order'} selected. You may still convert cards, cancel it, trade, or pass.`:state.turnStage==='action'?'Convert cards as needed, play one order card, make a Trade action, or pass.':'Your cards remain available through Buy, then all are discarded.';
   }
 
   function renderMarket() {
-    const humanBuy=state.phase==='buy'&&state.activePlayer===0;
-    $('#market-help').textContent=`Buy one card during your Buy turn. Every ${CARDS_PER_PRESTIGE} purchased cards grant 1 Prestige. Purchased: ${state.players[0].cardsPurchased||0} · Deck Prestige: ${deckPrestige(0)}.`;
+    const humanBuy=!replayMode&&state.phase==='buy'&&state.activePlayer===0;
+    $('#market-help').textContent=replayMode?`Every ${CARDS_PER_PRESTIGE} purchased cards grant 1 Prestige. ${state.players[viewSeat].name} purchased: ${state.players[viewSeat].cardsPurchased||0} · Deck Prestige: ${deckPrestige(viewSeat)}.`:`Buy one card during your Buy turn. Every ${CARDS_PER_PRESTIGE} purchased cards grant 1 Prestige. Purchased: ${state.players[0].cardsPurchased||0} · Deck Prestige: ${deckPrestige(0)}.`;
     $('#basic-market').innerHTML=Object.entries(BASIC_CARDS).map(([key,def])=>`<span class="tooltip-anchor basic-market-item" data-tooltip="${BASIC_TOOLTIPS[key]}"><button class="button" data-buy-basic="${key}" aria-label="${def.name}. ${BASIC_TOOLTIPS[key]}" ${!humanBuy||state.players[0].bought>=state.players[0].buyLimit||!canAfford(state.players[0],def.cost,state.players[0].buyDiscountData)?'disabled':''}><span>${def.name}</span>${resourceDots(def.cost)}</button></span>`).join('');
-    $('#market-row').innerHTML=state.market.map((card,index)=>{
+    $('#market-row').innerHTML=replayMode?'<p class="muted">Replays record purchases in the game log, not the advanced market row.</p>':state.market.map((card,index)=>{
       const def=ALL_CARDS[card.key];
       const disabled=!humanBuy||state.players[0].bought>=state.players[0].buyLimit||!canAfford(state.players[0],def.cost,state.players[0].buyDiscountData);
       return `<button class="game-card" style="--card-accent:${def.accent}" data-buy-market="${index}" ${disabled?'disabled':''}><span class="card-type">${def.kind}</span><span class="card-name">${def.name}</span><span class="card-effect">${resourceText(def.text)}</span><span class="card-footer"><small>Buy</small>${resourceDots(def.cost)}</span></button>`;
@@ -2149,11 +2357,12 @@ function createGalacticReach(options = {}) {
     $$('[data-buy-basic]').forEach(button=>button.addEventListener('click',()=>{if(buyCard(0,'basic',button.dataset.buyBasic)){render();saveGame();}}));
     $$('[data-buy-market]').forEach(button=>button.addEventListener('click',()=>{if(buyCard(0,'market',Number(button.dataset.buyMarket))){render();saveGame();}}));
     $('#finish-buy-button').hidden=!humanBuy;
+    if (replayMode) { $('#decommission-area').innerHTML=''; return; }
     const eligible=state.players[0].discard.filter(card=>state.players[0].buyStartDiscardIds.includes(card.id)&&!card.starter);
     $('#decommission-area').innerHTML=humanBuy?`<div class="decommission-list"><strong>Decommission ${resourceDots({ data: 1 })}</strong>${eligible.length?eligible.map(card=>`<button class="button" data-trash="${card.id}" ${state.players[0].decommissioned||state.players[0].resources.data<1?'disabled':''}>${ALL_CARDS[card.key].name}</button>`).join(''):'<span class="muted">No eligible discarded cards</span>'}</div>`:'';
     $$('[data-trash]').forEach(button=>button.addEventListener('click',()=>{if(decommission(0,button.dataset.trash)){render();saveGame();}}));
     const upgradeable=[...state.players[0].hand,...state.players[0].discard].filter(card=>card.starter&&!card.upgraded);
-    if(humanBuy) $('#decommission-area').insertAdjacentHTML('beforeend',`<div class="decommission-list upgrade-list"><strong>Upgrade starter ${resourceDots({ data: 1 })}</strong>${upgradeable.length?upgradeable.map(card=>`<button class="button" data-upgrade-card="${card.id}" ${state.players[0].resources.data<1?'disabled':''}>${ALL_CARDS[card.key].name} → II</button>`).join(''):'<span class="muted">All starter cards upgraded</span>'}</div>`);
+    if(humanBuy) $('#decommission-area').insertAdjacentHTML('beforeend',`<div class="decommission-list upgrade-list"><strong>Upgrade starter ${resourceDots({ data: 1 })}</strong>${upgradeable.length?upgradeable.map(card=>`<button class="button" data-upgrade-card="${card.id}" ${state.players[0].resources.data<1?'disabled':''}>${ALL_CARDS[card.key].name} → II · ${upgradedOrderText(card)}</button>`).join(''):'<span class="muted">All starter cards upgraded</span>'}</div>`);
     $$('[data-upgrade-card]').forEach(button=>button.addEventListener('click',()=>{if(upgradeStarter(0,button.dataset.upgradeCard)){render();saveGame();}}));
     const stationCount=researchStationCount(0);
     if(humanBuy) $('#decommission-area').insertAdjacentHTML('beforeend',`<div class="decommission-list upgrade-list"><strong>Relic research ${stationCount}/3 stations</strong>${stationCount>=3&&state.players[0].relics>0&&state.relicDeck.length?`<button class="button button-primary" data-exchange-relic>Exchange 1 Relic for a relic-deck card</button>`:`<span class="muted">${stationCount<3?'Establish three Research Stations to unlock exchanges.':state.players[0].relics<1?'No basic Relics available.':'The relic deck is empty.'}</span>`}</div>`);
@@ -2164,10 +2373,10 @@ function createGalacticReach(options = {}) {
     $('#fleet-summary').innerHTML=state.players.map((player,id)=>{
       const totals={scout:0,researcher:0,frigate:0,dreadnought:0};
       Object.values(state.fleets).forEach(group=>Object.keys(totals).forEach(type=>{totals[type]+=group[id]?.[type]||0;}));
-      return `<div class="fleet-faction" style="--player:${player.color}"><strong>${player.name}</strong><span>${totals.scout} Scouts · ${totals.researcher} Researchers · ${totals.frigate} Frigates · ${totals.dreadnought} Dreadnoughts<br>${researchStationCount(id)} Research Stations · ${strongestFleet(id)} strongest-fleet power</span></div>`;
+      return `<div class="fleet-faction" style="--player:${player.color}"><strong>${esc(player.name)}</strong><span>${totals.scout} Scouts · ${totals.researcher} Researchers · ${totals.frigate} Frigates · ${totals.dreadnought} Dreadnoughts<br>${researchStationCount(id)} Research Stations · ${strongestFleet(id)} strongest-fleet power</span></div>`;
     }).join('');
     const player=state.players[0];
-    $('#military-deck-count').textContent=`${player.militaryDeck.length} ready · ${player.militaryDiscard.length} used`;
+    $('#military-deck-count').textContent=replayMode?'Every faction uses this deck':`${player.militaryDeck.length} ready · ${player.militaryDiscard.length} used`;
     const counts=MILITARY_DECK_LIST.reduce((result,key)=>{result[key]=(result[key]||0)+1;return result;},{});
     $('#military-card-grid').innerHTML=Object.entries(counts).map(([key,count])=>{
       const card=MILITARY_CARDS[key];
@@ -2177,47 +2386,154 @@ function createGalacticReach(options = {}) {
   }
 
   function renderTrade() {
-    const selects=[$('#trade-give-type'),$('#trade-get-type')];
-    selects.forEach((select,index)=>{
-      if(!select.options.length) select.innerHTML=RESOURCES.map(r=>`<option value="${r}" style="color:var(--${r})" aria-label="${RESOURCE_NAMES[r]}" title="${RESOURCE_NAMES[r]}">●</option>`).join('');
-      select.style.color=`var(--${select.value})`;
-      select.setAttribute('aria-label',`${index===0?'You give':'You receive'}: ${RESOURCE_NAMES[select.value]}`);
-      if(!select.dataset.resourceDots){
-        select.dataset.resourceDots='true';
-        select.addEventListener('change',()=>{
-          select.style.color=`var(--${select.value})`;
-          select.setAttribute('aria-label',`${index===0?'You give':'You receive'}: ${RESOURCE_NAMES[select.value]}`);
-        });
+    ['give','get'].forEach((side,index)=>{
+      const select=$(`#trade-${side}-type`);
+      if (!select.options.length) {
+        select.innerHTML=RESOURCES.map(r=>`<option value="${r}">${RESOURCE_NAMES[r]}</option>`).join('');
+        select.value=RESOURCES[index];
       }
     });
-    if(!$('#trade-rival').options.length)$('#trade-rival').innerHTML=state.players.slice(1).map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
-    $('#trade-form').querySelector('button').disabled=!(state.phase==='operations'&&state.activePlayer===0&&state.turnStage==='action'&&!state.players[0].tradeUsed);
-    $('#trade-ledger').innerHTML=state.players.slice(1).map(player=>`<div><span>${player.name}</span><strong>${state.players[0].tradesWith[player.id]} trade${state.players[0].tradesWith[player.id]===1?'':'s'}</strong></div>`).join('');
+    $('#trade-form').hidden=replayMode;
+    $('#trade-form').querySelector('button').disabled=!(!replayMode&&state.phase==='operations'&&state.activePlayer===0&&['prep','action'].includes(state.turnStage)&&!state.players[0].tradeUsed);
+    const offers=state.tradeOffers.filter(o=>o.round===state.round || o.status==='open');
+    $('#trade-offers').innerHTML=offers.length?[...offers].reverse().map(o=>{
+      const canRespond=!replayMode&&tradeResponseAllowed(0,o), reason=canRespond&&tradeBlockReason(0,o);
+      const status=o.status==='accepted'?`Accepted by ${esc(state.players[o.acceptedBy].name)}`:o.status==='open'?'Open to all factions':o.status[0].toUpperCase()+o.status.slice(1);
+      return `<article class="trade-offer"><div class="trade-offer-heading"><strong>${esc(state.players[o.from].name)}</strong><span class="offer-status">${status}</span></div>
+        <div class="trade-terms"><span>Offers ${resourceDots({[o.giveType]:o.giveAmount})}</span><span aria-hidden="true">→</span><span>Asks for ${resourceDots({[o.getType]:o.getAmount})}</span></div>
+        <p>${o.responses.map((r,id)=>id===o.from?'':`${esc(state.players[id].name)}: ${r==='pending'&&o.status!=='open'?'no response':r}`).filter(Boolean).join(' · ')}</p>
+        ${canRespond?`<div class="trade-offer-actions"><button class="button button-primary" data-trade-accept="${o.id}" ${reason?'disabled':''}>Accept offer</button><button class="button button-ghost" data-trade-reject="${o.id}">Reject offer</button></div>${reason?`<p>${reason}</p>`:''}`:''}
+        ${!replayMode&&o.from===0&&o.status==='open'?`<button class="button button-ghost" data-trade-cancel="${o.id}" ${state.activePlayer!==0?'disabled':''}>Withdraw offer</button>`:''}</article>`;
+    }).join(''):'<p class="muted">No offers this round. Publish one to open negotiations.</p>';
+    for (const response of ['accept','reject','cancel']) $$(`[data-trade-${response}]`).forEach(button=>button.addEventListener('click',()=>{
+      const id=Number(button.getAttribute(`data-trade-${response}`));
+      if (response==='cancel') cancelTrade(0,id); else respondTrade(0,id,response);
+    }));
+    const pending=state.tradeOffers.filter(o=>o.status==='open'&&(replayMode||o.from!==0&&o.responses[0]==='pending')).length;
+    $('#trade-tab').textContent=pending?`Trade (${pending} open)`:'Trade';
+    $('#trade-ledger').innerHTML=state.players.filter(player=>player.id!==viewSeat).map(player=>`<div><span>${esc(player.name)}</span><strong>${state.players[viewSeat].tradesWith[player.id]} completed</strong></div>`).join('');
   }
 
   function renderHeader() {
     $('#round-value').textContent=state.round;
     $('#phase-value').textContent=state.phase[0].toUpperCase()+state.phase.slice(1);
     $('#active-value').textContent=state.winner!==null?'Game over':state.phase==='policy'?'All factions':state.phase==='directive'?'Round leader':state.players[state.activePlayer].name;
-    const humanTurn=state.activePlayer===0&&!state.winner;
+    if (replayMode) { renderReplayDecision(); return; }
+    const humanTurn=state.activePlayer===0&&state.winner===null;
     $('#turn-dot').style.background=state.players[state.activePlayer]?.color||'var(--cyan)';
     $('#turn-title').textContent=state.winner!==null?`${state.players[state.winner].name} won`:humanTurn?'Your turn':`${state.players[state.activePlayer].name} is acting`;
     let instruction='';
-    if(state.phase==='operations')instruction=humanTurn?(state.turnStage==='prep'?'Prepare resources, then choose one action.':'Choose one order, Trade action, or pass.'):'Computer rival is evaluating the board…';
+    if(state.phase==='operations')instruction=humanTurn?(state.turnStage==='prep'?'Use an order on a card, convert resources, trade, or pass.':'Choose one order, Trade action, or pass.'):'Computer rival is evaluating the board…';
     else if(state.phase==='buy')instruction=humanTurn?'Buy up to your limit, optionally Decommission, then finish.':'Computer rival is shopping the market…';
     else if(state.phase==='policy')instruction='Commit political capital to a hidden policy ballot.';
     else if(state.phase==='directive')instruction='Choose a primary bonus; every rival gains its lesser benefit.';
     else instruction='Resolving automatic bookkeeping…';
-    $('#turn-instruction').textContent=instruction;
+    $('#turn-instruction').textContent=state.pendingColonyBuild?.playerId===0?'Colonize II: choose an adjacent building at full cost, or finish without building.':instruction;
     $('#pass-button').hidden=!(state.phase==='operations'&&humanTurn&&(state.turnStage==='prep'||state.turnStage==='action'));
     const undoButton=$('#undo-turn-button');
     undoButton.disabled=!turnHistory.undo;
     undoButton.title=turnHistory.undo?`Restore the start of your ${turnHistory.undo.label}`:'Available after you complete a turn';
   }
 
+  // Names a recorded decision with the same labels as the live table's buttons.
+  // `before` is the replay observer state the decision was made from.
+  function describeDecision(seat, action, before, names) {
+    const place = coord => `${before.planets[coord]?.name || 'Empty space'} (${coord})`;
+    const amount = (n, type) => `${n} ${RESOURCE_NAMES[type]}`;
+    const gains = gain => RESOURCES.filter(type => gain?.[type]).map(type => amount(gain[type],type)).join(', ');
+    const held = before.players[seat]?.hand?.find(card => card.id === action.card);
+    const cardName = (fallback) => held ? `${ALL_CARDS[held.key].name}${held.upgraded ? ' II' : ''}` : ALL_CARDS[action.key]?.name || fallback;
+    const order = `Use order · ${cardName('Order')}`;
+    const offer = before.tradeOffers?.find(o => o.id === action.offer);
+    switch (action.type) {
+      case 'pass': return { text: 'Pass for round' };
+      case 'resource': return { text: `Convert to resources · ${cardName('Card')} → ${gains(action.gain)}` };
+      case 'move': return { text: `${order} · ${action.moveGroup === 'researcher' ? 'Move Researchers' : 'Move Ships'} from ${place(action.source)} to ${place(action.destination)}`, coords: [action.source, action.destination], source: action.source };
+      case 'build': {
+        const planet = before.planets[action.coord];
+        const label = action.kind === 'research' ? 'Establish Research Station'
+          : STRUCTURES[action.kind] ? (planet?.owner === seat && planet.upgrade === action.kind ? `Upgrade ${STRUCTURES[action.kind].name} to II` : `Build ${STRUCTURES[action.kind].name}`)
+          : action.kind === 'researcher' ? 'Recruit Researcher' : `Commission ${SHIP_STATS[action.kind]?.name || action.kind}`;
+        const discount = action.discountResource ? ` · Construct II: −1 ${RESOURCE_NAMES[action.discountResource]}` : '';
+        return { text: `${order} · ${label} at ${place(action.coord)}${discount}`, coords: [action.coord] };
+      }
+      case 'colonize': {
+        const planet = before.planets[action.coord];
+        const capture = planet?.owner !== null && planet?.owner !== undefined && planet.owner !== seat;
+        return { text: `${order} · ${capture ? 'Capture planet' : 'Found Colony'} at ${place(action.coord)}`, coords: [action.coord] };
+      }
+      case 'colony_build': return { text: `Colonize II · Build ${STRUCTURES[action.kind]?.name || action.kind} at ${place(action.coord)} at full cost`, coords: [action.coord] };
+      case 'finish_colony_build': return { text: 'Colonize II · Finish without building' };
+      case 'probe': return { text: `${order} · Locate an alien relic` };
+      case 'terraform': return { text: `${order} · Terraform ${place(action.coord)}`, coords: [action.coord] };
+      case 'special': return { text: order };
+      case 'trade_offer': return { text: `Publish open offer · Offers ${amount(action.giveAmount,action.giveType)} → Asks for ${amount(action.getAmount,action.getType)}` };
+      case 'trade_accept': return { text: `Accept offer${offer ? ` from ${names[offer.from]}` : ''}` };
+      case 'trade_reject': return { text: `Reject offer${offer ? ` from ${names[offer.from]}` : ''}` };
+      case 'trade_cancel': return { text: 'Withdraw offer' };
+      case 'buy': return { text: `Buy ${ALL_CARDS[action.key]?.name || 'a card'}${action.source === 'market' ? ' from the market' : ''}` };
+      case 'finish_buy': return { text: 'Finish Buy' };
+      case 'upgrade': return { text: `Upgrade starter · ${cardName('a starter card')} → II` };
+      case 'buy_effect': return { text: `Use in Buy · ${cardName('Card')}` };
+      case 'decommission': return { text: `Decommission · ${cardName('a discarded card')}` };
+      case 'exchange_relic': return { text: 'Exchange 1 Relic for a relic-deck card' };
+      case 'directive': return { text: `Choose the council directive · ${DIRECTIVES[action.directive]?.name || action.directive}` };
+      case 'vote': {
+        const policy = POLICY_PAIRS.flat().find(p => p.track === action.track);
+        return { text: `Cast hidden ballot · ${policy?.name || 'Policy'} with ${action.bid} ${TRACKS[action.track]?.name || ''} influence` };
+      }
+      default: return { text: String(action.type || 'Decision') };
+    }
+  }
+
+  // Fills the live state shape from a recorded observer state. Fields replays do not
+  // record (market, deck order, military decks) stay empty and their panels say so.
+  function replayState(view, extra) {
+    const pending = extra.pendingColonyBuild || null;
+    const decision = extra.decision || null;
+    state = {
+      round: view.round, phase: view.phase, activePlayer: view.active ?? 0, winner: view.winner ?? null, firstPlayer: 0,
+      players: view.players.map((p, id) => ({ ...p, id, name: extra.names[id], color: PLAYER_COLORS[id], cardsPurchased: extra.cardsPurchased[id], tradesWith: extra.tradesWith[id] })),
+      planets: view.planets, clusters: view.clusters, fleets: view.fleets, awards: view.awards, activePolicy: view.policy || null,
+      log: view.log || [], lastCombat: view.lastCombat || null, tradeOffers: view.tradeOffers || [], market: [],
+      selected: extra.selected || null, actionMode: null, actionOptions: {}, turnStage: 'waiting', pendingColonyBuild: pending,
+      moveSource: decision?.source || null, reachable: [], replayDecision: decision, replayElo: extra.elo || null
+    };
+    if (pending) state.reachable = adjacentKeys(pending.colony).filter(key => canBuildStructureAt(pending.playerId,key));
+    else if (decision?.coords) state.reachable = decision.coords.filter(key => key !== decision.source);
+    return state;
+  }
+
+  function renderReplayDecision() {
+    const decision = state.replayDecision;
+    const seat = decision ? decision.seat : state.activePlayer;
+    $('#turn-dot').style.background = state.players[seat]?.color || 'var(--cyan)';
+    $('#turn-title').textContent = state.winner !== null ? `${state.players[state.winner].name} won` : decision ? state.players[decision.seat].name : 'Opening position';
+    const pending = state.pendingColonyBuild ? ` Colonize II: ${state.players[state.pendingColonyBuild.playerId].name} may build once beside its new Colony at full cost.` : '';
+    $('#turn-instruction').textContent = `${decision ? decision.text : 'Before the first decision.'}${pending}`;
+    $('#pass-button').hidden = true;
+    const report = $('#report-button');
+    report.hidden = !(state.winner !== null || decision?.combat);
+    report.textContent = state.winner !== null ? 'Final standings' : 'Combat report';
+  }
+
+  function showReplayReport() {
+    if (state.winner === null) {
+      const combat = state.lastCombat;
+      if (combat) showMessage('COMBAT REPORT', nameForCoord(combat.coord), [...combat.summary,combat.outcome].join(' '));
+      return;
+    }
+    const standings = state.players.map((player,id) => ({ player, id, prestige: calculatePrestige(id), colonies: colonyPlanets(id).length, resources: totalResources(player) }))
+      .sort((a,b) => b.prestige-a.prestige || b.colonies-a.colonies || b.resources-a.resources);
+    showMessage('GAME COMPLETE', `${state.players[state.winner].name} wins`, standings.map(({player,id,prestige,colonies,resources},rank) => {
+      const elo = state.replayElo?.[id];
+      return `${rank+1}. ${player.name}: ${prestige} Prestige · ${colonies} Colonies · ${resources} stored resources${elo ? ` · Elo ${Math.round(elo.before)} → ${Math.round(elo.after)}` : ''}`;
+    }).join('\n'));
+  }
+
   function render() {
     if (headless) return;
-    renderHeader(); renderScoreboard(); renderBoard(); renderResources(); renderInspector(); renderAwards(); renderPolitics(); renderLog(); renderHand(); renderMarket(); renderFleetSummary(); renderTrade();
+    renderHeader(); renderScoreboard(); renderBoard(); renderResources(); renderInspector(); positionSectorScan(); renderAwards(); renderPolitics(); renderLog(); renderHand(); renderMarket(); renderFleetSummary(); renderTrade();
   }
 
   function switchTab(name) {
@@ -2225,12 +2541,49 @@ function createGalacticReach(options = {}) {
     $$('.tab-panel').forEach(panel=>{const active=panel.dataset.panel===name;panel.classList.toggle('active',active);panel.hidden=!active;});
   }
 
+  function positionSectorScan() {
+    const panel=$('#sector-popover');
+    if (!panel?.matches(':popover-open') || !state.selected) return;
+    const hex=$(`.hex[data-coord="${state.selected}"]`);
+    if (!hex) return;
+    const vw=document.documentElement.clientWidth, vh=window.innerHeight, gap=12;
+    panel.style.width=`${Math.min(370,vw-24)}px`;
+    const rect=hex.getBoundingClientRect(), width=panel.offsetWidth, height=panel.offsetHeight;
+    let left=rect.right+gap, top=rect.top;
+    if (left+width>vw-gap) left=rect.left-width-gap;
+    if (left<gap) { left=(vw-width)/2; top=rect.bottom+gap; if(top+height>vh-gap) top=rect.top-height-gap; }
+    panel.style.left=`${Math.max(gap,Math.min(vw-width-gap,left))}px`;
+    panel.style.top=`${Math.max(gap,Math.min(vh-height-gap,top))}px`;
+  }
+
+  function showSectorScan(keyboard=false) {
+    const panel=$('#sector-popover');
+    if (!panel.matches(':popover-open')) panel.showPopover();
+    positionSectorScan();
+    if (keyboard) $('#close-sector-scan').focus();
+  }
+
   function wireUi() {
+    window.addEventListener('resize',positionSectorScan);
+    document.addEventListener('scroll',event=>{if(!$('#sector-popover').contains(event.target))positionSectorScan();},true);
+    $('#open-map-key').addEventListener('click',()=>$('#map-key-dialog').showModal());
+    $('#close-map-key').addEventListener('click',()=>$('#map-key-dialog').close());
+    $('#map-zoom').addEventListener('click',()=>{
+      const stage=$('.board-stage'); const zoomed=stage.classList.toggle('map-zoomed');
+      $('#map-zoom').textContent=zoomed?'Fit map':'Zoom map';
+      $('#map-zoom').setAttribute('aria-pressed',String(zoomed));
+      if (zoomed) {
+        const hex=$(`.hex[data-coord="${state.selected||state.clusters[0].center}"]`);
+        const a=stage.getBoundingClientRect(), b=hex.getBoundingClientRect();
+        stage.scrollLeft+=b.left-a.left-stage.clientWidth/2; stage.scrollTop+=b.top-a.top-stage.clientHeight/2;
+      }
+    });
     renderSymbolLegend();
     $('#undo-turn-button').addEventListener('click',undoLastTurn);
     $('#rules-button').addEventListener('click',()=>$('#rules-dialog').showModal());
     $('#close-rules').addEventListener('click',()=>$('#rules-dialog').close());
     $('#message-continue').addEventListener('click',()=>$('#message-dialog').close());
+    $('#report-button').addEventListener('click',showReplayReport);
     $('#discard-button').addEventListener('click',()=>$('#discard-dialog').showModal());
     $('#close-discard').addEventListener('click',()=>$('#discard-dialog').close());
     $('#new-game-button').addEventListener('click',()=>{
@@ -2239,7 +2592,8 @@ function createGalacticReach(options = {}) {
       clearTurnHistory();
       state=newState(); fillMarket(); logEvent('The four factions entered the Reach.'); saveGame(); render(); beginRound();
     });
-    $('#finish-prep-button').addEventListener('click',finishHumanPrep);
+    $('#skip-colony-build').addEventListener('click',()=>finishColonyBuild(0));
+    $('#construction-discount').addEventListener('change',event=>{state.actionOptions.discountResource=event.target.value;render();saveGame();});
     $('#finish-buy-button').addEventListener('click',finishHumanBuy);
     $('#pass-button').addEventListener('click',()=>passOperations(0));
     $('#trade-form').addEventListener('submit',submitTrade);
@@ -2280,8 +2634,22 @@ function createGalacticReach(options = {}) {
       colonizePlanet, buildUpgrade, buildResearchStation, buildShip, getFleet, fleetCount,
       fleetGroup, fleetMove, fleetPower, reachableFrom, executeMove, nearestUnscannedRelicCluster,
       clusterKnown, clusterScanned, relicCoordInCluster, calculatePrestige, colonyPlanets,
-      totalResources, playerCapacity, applyDirective, enactPolicy
+      totalResources, playerCapacity, applyDirective, enactPolicy,
+      movementRange, constructionCost, constructAt, resolveProbe, applyColonizeOrder, canColonyBuild, finishColonyBuild,
+      canOfferTrade, offerTrade, tradeResponseAllowed, tradeBlockReason, respondTrade, cancelTrade
     });
+  }
+
+  if (replayMode) {
+    wireUi();
+    // Stepping from the replay toolbar must not dismiss the Sector Scan.
+    const scan = $('#sector-popover');
+    scan.popover = 'manual';
+    document.addEventListener('keydown', event => { if (event.key === 'Escape' && scan.matches(':popover-open')) scan.hidePopover(); });
+    return {
+      describe: describeDecision,
+      show(view, extra) { viewSeat = extra.viewSeat ?? 0; replayState(view, extra); render(); }
+    };
   }
 
   wireUi();

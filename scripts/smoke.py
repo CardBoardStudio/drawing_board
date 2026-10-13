@@ -35,10 +35,10 @@ def login(name):
     status, headers, _ = request("/api/auth/preview", {"name": name, "code": CODE})
     assert status == 200, status
     cookie = http.cookies.SimpleCookie(headers["Set-Cookie"])
-    session = cookie["drawing_board_session"]
+    session = cookie["drawing_board_long_reach_session"]
     assert session["httponly"] and session["secure"] and session["samesite"] == "Lax"
     # The runner connects to loopback HTTP; Render terminates HTTPS in deployment.
-    return f"drawing_board_session={session.value}"
+    return f"drawing_board_long_reach_session={session.value}"
 
 
 for attempt in range(60):
@@ -100,14 +100,14 @@ print("Container smoke passed: assets, preview access, two-player game, private 
 # Persistent identity and authoritative arena through the packaged HTTP surface.
 status, headers, created = request('/api/accounts/register', {'name': 'Arena pilot', 'code': CODE})
 assert status == 200
-account_cookie = http.cookies.SimpleCookie(headers['Set-Cookie'])['drawing_board_session'].value
-account_cookie = f'drawing_board_session={account_cookie}'
+account_cookie = http.cookies.SimpleCookie(headers['Set-Cookie'])['drawing_board_long_reach_session'].value
+account_cookie = f'drawing_board_long_reach_session={account_cookie}'
 account_id = request('/api/account', cookie=account_cookie)[2]['id']
 key = created['recovery_key']
 assert request('/api/auth/logout', {}, account_cookie)[0] == 200
 status, headers, _ = request('/api/accounts/login', {'recovery_key': key})
 assert status == 200
-account_cookie = 'drawing_board_session=' + http.cookies.SimpleCookie(headers['Set-Cookie'])['drawing_board_session'].value
+account_cookie = 'drawing_board_long_reach_session=' + http.cookies.SimpleCookie(headers['Set-Cookie'])['drawing_board_long_reach_session'].value
 assert request('/api/account', cookie=account_cookie)[2]['id'] == account_id
 bots = []
 for strategy in ['explorer', 'kepler']:
@@ -134,7 +134,7 @@ gr_series = {'request_id': str(uuid.uuid4()), 'game': 'galactic-reach', 'bots': 
 status, _, gr_result = request('/api/arena/series', gr_series, account_cookie)
 assert status == 200, gr_result
 assert len(gr_result['matches']) == 4
-assert all(m['result']['rules_version'] == 'galactic-reach/4.9' for m in gr_result['matches'])
+assert all(m['result']['rules_version'] == 'galactic-reach/6.11' for m in gr_result['matches'])
 assert request('/api/arena/series', gr_series, account_cookie)[2] == gr_result
 gr_ladder = request('/api/arena?game=galactic-reach', cookie=account_cookie)[2]
 assert len(gr_ladder['bots']) == 4 and all(b['games'] == 4 for b in gr_ladder['bots'])

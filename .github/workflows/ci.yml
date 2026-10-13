@@ -26,6 +26,8 @@ jobs:
           path: .tools
           key: wasm-bindgen-cli-${{ runner.os }}-${{ runner.arch }}-0.2.114
       - run: node scripts/test-galactic-reach.cjs
+      - run: node scripts/test-long-reach.cjs
+      - run: node scripts/test-replay-view.cjs
       - run: cargo fmt --all --check
       - run: cargo test --workspace --locked
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings

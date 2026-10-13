@@ -28,7 +28,7 @@ For each such idea:
 5. Start a new game on the experiment preview. Because it has a different origin, its browser save is separate from the stable preview's save.
 6. Continue the existing game only on the stable preview. Never redirect the stable URL to an experiment.
 
-Keep one rules hypothesis per experimental pull request so testers can compare, abandon, or combine ideas deliberately.
+Keep one rules hypothesis per experimental pull request so testers can compare, abandon, or combine ideas deliberately. When several already-requested pieces must ship together to make a usable test surface, document the internal review slices and follow-up PRs in [the playtest roadmap](playtest-roadmap.md); PR #5 is the current example.
 
 ## Adopting or rejecting an experiment
 

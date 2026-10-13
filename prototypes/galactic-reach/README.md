@@ -14,6 +14,15 @@ Then open <http://127.0.0.1:8000>.
 
 The prototype has no build step or external runtime dependencies. Game state and the one-turn undo snapshot are stored in browser `localStorage`; use **New game** to reset the current game.
 
+## Checks
+
+CI runs these with Node and no packages:
+
+```sh
+node scripts/test-galactic-reach.cjs           # round-end dialogs and save migrations against the real app.js
+node scripts/balance-simulations.cjs 1         # AI-vs-AI balance harness; raise the count for a full report
+```
+
 ## Current scope
 
 - Interactive galaxy map with movement, construction, colonization, production, trade, combat, and conquest.

@@ -260,10 +260,7 @@ mod tests {
             .unwrap()
             .collect::<Result<_, _>>()
             .unwrap();
-        assert_eq!(
-            versions,
-            vec!["galactic-reach/5.10", "galactic-reach/4.9"]
-        );
+        assert_eq!(versions, vec!["galactic-reach/5.10", "galactic-reach/4.9"]);
         let v4 = json!({"state":{
             "version":4,"rulesRevision":9,"players":[{},{},{},{}],
             "planets":{},"fleets":{},"clusters":[],"round":1,

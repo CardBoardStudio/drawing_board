@@ -12,7 +12,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const formatVersion = Number(source.match(/const SAVE_FORMAT_VERSION = (\d+);/)[1]);
 const SAVE_KEY = `galactic-reach-save-v${formatVersion}`;
 const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${formatVersion}`;
-const CURRENT_RULES_REVISION = Number(source.match(/visibilityRevision: 2, rulesRevision: (\d+)/)[1]);
+const CURRENT_RULES_REVISION = Number(source.match(/const RULES_REVISION = (\d+);/)[1]);
 
 function seededRandom(seed) {
   let value = seed >>> 0;

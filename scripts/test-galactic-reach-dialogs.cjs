@@ -320,7 +320,9 @@ test('a save from an incompatible rules revision is replaced by a current game',
   assert.equal(state.visibilityRevision, 2);
   assert.equal(state.round, 1);
   assert.equal(state.phase, 'operations');
-  assert.equal(storage.getItem(TURN_HISTORY_KEY), null, 'the reset clears the undo snapshot');
+  const history = JSON.parse(storage.getItem(TURN_HISTORY_KEY));
+  assert.equal(history.undo, null, 'the reset clears the previous undo snapshot');
+  assert.ok(history.pending, 'the new Operations turn records its own pending snapshot');
 });
 
 let failed = 0;

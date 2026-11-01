@@ -65,6 +65,7 @@ struct App {
     title: String,
     join: String,
     rounds: u16,
+    setup: GameSetup,
     tab: String,
     help: bool,
     _poll: gloo_timers::callback::Interval,
@@ -79,6 +80,9 @@ enum Msg {
     Title(String),
     JoinInput(String),
     Rounds(String),
+    Market(MarketPreset),
+    ToggleCard(Card),
+    Starter(StartingDeck),
     Login,
     Logged(Result<Value, String>),
     Logout,
@@ -122,6 +126,7 @@ impl Component for App {
             title: "First contact".into(),
             join: "".into(),
             rounds: 20,
+            setup: GameSetup::default(),
             tab: "market".into(),
             help: false,
             _poll: poll,
@@ -178,6 +183,15 @@ impl Component for App {
             Msg::Title(v) => self.title = v,
             Msg::JoinInput(v) => self.join = v,
             Msg::Rounds(v) => self.rounds = v.parse().unwrap_or(20),
+            Msg::Market(preset) => self.setup.market = preset.cards(),
+            Msg::ToggleCard(card) => {
+                if self.setup.market.contains(&card) {
+                    self.setup.market.retain(|c| *c != card);
+                } else if self.setup.market.len() < MARKET_SIZE {
+                    self.setup.market.push(card);
+                }
+            }
+            Msg::Starter(deck) => self.setup.starting_deck = deck,
             Msg::Login => {
                 if self.busy {
                     return false;
@@ -232,12 +246,17 @@ impl Component for App {
                 if self.busy {
                     return false;
                 }
+                if let Err(error) = self.setup.validate() {
+                    self.error = Some(error);
+                    return true;
+                }
                 self.busy = true;
                 self.error = None;
                 let input = CreateGame {
                     name: self.title.clone(),
                     practice,
                     round_limit: self.rounds,
+                    setup: self.setup.clone(),
                 };
                 let link = ctx.link().clone();
                 spawn_local(async move {
@@ -377,10 +396,71 @@ impl App {
         let i = c.info();
         html! {<div class={classes!("card","display-card",kind_class(i.kind))}><div class="card-top"><span>{kind_name(i.kind)}</span><b>{i.cost}</b></div><div class="card-art"><span>{&i.icon}</span></div><h3>{&i.name}</h3><p>{&i.text}</p><div class="flavor">{&i.flavor}</div></div>}
     }
+    fn setup_picker(&self, ctx: &Context<Self>) -> Html {
+        let count = self.setup.market.len();
+        html! {
+            <section class="panel setup-picker" aria-label="Deck and market selection">
+                <div class="section-heading">
+                    <div><div class="eyebrow">{"BUILD YOUR EXPEDITION"}</div><h2>{"Choose your decks"}</h2></div>
+                    <span class="pill">{format!("{count} / {MARKET_SIZE} PILES")}</span>
+                </div>
+                <h3>{"01 / Shared market"}</h3>
+                <p>{"Pick a set, or choose six fleet and technology piles. Resources and colonies are always included. Remove a selected card to make room for another."}</p>
+                <div class="preset-row" aria-label="Market presets">
+                    {for MarketPreset::ALL.into_iter().map(|preset| html! {
+                        <button class="button" disabled={self.busy}
+                            aria-pressed={(self.setup.market_name()==preset.name()).to_string()}
+                            onclick={ctx.link().callback(move |_| Msg::Market(preset))}>{preset.name()}</button>
+                    })}
+                    <span class="small" role="status">{format!("{} · {count} of {MARKET_SIZE} selected", self.setup.market_name())}</span>
+                </div>
+                <div class="selection-grid">
+                    {for Card::ALL.into_iter().filter(|c| c.info().kind==Kind::Action).map(|card| {
+                        let info = card.info();
+                        let selected = self.setup.market.contains(&card);
+                        let new = MarketPreset::DeepSpace.cards().contains(&card);
+                        html! {
+                            <button class={classes!("selection-card", selected.then_some("chosen"))}
+                                aria-label={format!("{} {}", if selected {"Remove"} else {"Select"}, info.name)}
+                                aria-pressed={selected.to_string()}
+                                disabled={self.busy || (!selected && count>=MARKET_SIZE)}
+                                onclick={ctx.link().callback(move |_| Msg::ToggleCard(card))}>
+                                <span class="selection-top"><span>{info.icon}</span><span>{format!("{} credits", info.cost)}</span><span class="selection-check">{if selected {"✓"} else {"+"}}</span></span>
+                                <b>{info.name}if new {<small class="new-card">{"NEW"}</small>}</b>
+                                <span class="selection-effect">{info.text}</span>
+                            </button>
+                        }
+                    })}
+                </div>
+                <div class="starter-heading"><h3>{"02 / Starting deck"}</h3><p>{"Everyone starts with the same ten-card preset, including Kepler. Starting cards are separate from the market supply."}</p></div>
+                <div class="starter-grid" aria-label="Starting deck presets">
+                    {for StartingDeck::ALL.into_iter().map(|deck| html! {
+                        <button class={classes!("starter-choice", (self.setup.starting_deck==deck).then_some("chosen"))}
+                            disabled={self.busy} aria-pressed={(self.setup.starting_deck==deck).to_string()}
+                            onclick={ctx.link().callback(move |_| Msg::Starter(deck))}>
+                            <b>{deck.name()}</b><span>{deck.description()}</span>
+                        </button>
+                    })}
+                </div>
+            </section>
+        }
+    }
+    fn setup_summary(&self, g: &GameView) -> Html {
+        html! {
+            <details class="match-setup" open={g.status==Status::Lobby}>
+                <summary>{format!("Match setup · {} · {} starting deck", g.setup.market_name(), g.setup.starting_deck.name())}</summary>
+                <p>{g.setup.starting_deck.description()}{" for every player. Setup is fixed for this match."}</p>
+                <div class="setup-piles">{for g.setup.market.iter().map(|card| {
+                    let info = card.info();
+                    html! {<span title={info.text}>{info.name}</span>}
+                })}</div>
+            </details>
+        }
+    }
     fn lobby_view(&self, ctx: &Context<Self>) -> Html {
         html! {<main class="lobby"><div class="page-heading"><div><div class="eyebrow">{"YOUR WORKBENCH"}</div><h1>{"Let’s play something "}<em>{"new."}</em></h1><p>{"One idea. A table of possibilities. Every playtest makes it better."}</p></div><span class="pill">{"● LAB ONLINE"}</span></div>
-        <section class="game-feature"><div class="feature-copy"><div class="eyebrow">{"001 / DECK-BUILDING STRATEGY"}</div><h2>{"VOIDWRIGHT"}</h2><p>{"A new frontier. An empire in your hand."}</p><p class="feature-description">{"Turn a handful of credits into a thriving interstellar civilization. Recruit ships, build an engine, and stake your claim among the stars."}</p><div class="feature-meta"><span>{"◷ 20–40 min"}</span><span>{"♙ 2–4 players"}</span><span>{"12 unique cards"}</span></div><div class="tag">{"PROTOTYPE / RULESET 01"}</div></div><div class="feature-art"><div class="planet small-planet"/><div class="mini-card left-mini">{self.decorative_card(Card::Freighter)}</div><div class="mini-card right-mini">{self.decorative_card(Card::Colony)}</div><span class="coordinates">{"SECTOR 07 / OUTER REACH"}</span></div></section>
-        <div class="lobby-grid"><section class="panel create-panel"><div class="section-heading"><h2>{"Set up a playtest"}</h2><span>{"↗"}</span></div><label for="title">{"Table name"}</label><input id="title" maxlength="60" value={self.title.clone()} oninput={ctx.link().callback(|e:InputEvent|Msg::Title(e.target_unchecked_into::<HtmlInputElement>().value()))}/><label for="rounds">{"Maximum rounds per player"}</label><input id="rounds" type="number" min="10" max="50" value={self.rounds.to_string()} oninput={ctx.link().callback(|e:InputEvent|Msg::Rounds(e.target_unchecked_into::<HtmlInputElement>().value()))}/><div class="button-row"><button class="button primary" disabled={self.busy||self.title.trim().is_empty()} onclick={ctx.link().callback(|_|Msg::Create(true))}>{"Practice with Kepler →"}</button><button class="button" disabled={self.busy||self.title.trim().is_empty()} onclick={ctx.link().callback(|_|Msg::Create(false))}>{"Host a table"}</button></div><p class="small">{"Practice with a bot, or invite friends to a private table."}</p></section><section class="panel"><div class="section-heading"><h2>{"An invitation to explore"}</h2><span>{"⌁"}</span></div><p>{"Got a seat waiting? Paste your table link or code."}</p><label for="join">{"Table invitation"}</label><input id="join" placeholder="Paste a table link or code" value={self.join.clone()} oninput={ctx.link().callback(|e:InputEvent|Msg::JoinInput(e.target_unchecked_into::<HtmlInputElement>().value()))}/><button class="button" disabled={self.busy||self.join.trim().is_empty()} onclick={ctx.link().callback(|_|Msg::Join)}>{"Join playtest →"}</button><p class="small">{"Everyone signs in with their own identity. Hands stay private."}</p></section></div>
+        <section class="game-feature"><div class="feature-copy"><div class="eyebrow">{"001 / DECK-BUILDING STRATEGY"}</div><h2>{"VOIDWRIGHT"}</h2><p>{"A new frontier. An empire in your hand."}</p><p class="feature-description">{"Turn a handful of credits into a thriving interstellar civilization. Recruit ships, build an engine, and stake your claim among the stars."}</p><div class="feature-meta"><span>{"◷ 20–40 min"}</span><span>{"♙ 2–4 players"}</span><span>{format!("{} unique cards", Card::ALL.len())}</span></div><div class="tag">{"PROTOTYPE / RULESET 02"}</div></div><div class="feature-art"><div class="planet small-planet"/><div class="mini-card left-mini">{self.decorative_card(Card::Freighter)}</div><div class="mini-card right-mini">{self.decorative_card(Card::Colony)}</div><span class="coordinates">{"SECTOR 07 / OUTER REACH"}</span></div></section>
+        {self.setup_picker(ctx)}<div class="lobby-grid"><section class="panel create-panel"><div class="section-heading"><h2>{"Set up a playtest"}</h2><span>{"↗"}</span></div><label for="title">{"Table name"}</label><input id="title" maxlength="60" value={self.title.clone()} oninput={ctx.link().callback(|e:InputEvent|Msg::Title(e.target_unchecked_into::<HtmlInputElement>().value()))}/><label for="rounds">{"Maximum rounds per player"}</label><input id="rounds" type="number" min="10" max="50" value={self.rounds.to_string()} oninput={ctx.link().callback(|e:InputEvent|Msg::Rounds(e.target_unchecked_into::<HtmlInputElement>().value()))}/><div class="button-row"><button class="button primary" disabled={self.busy||self.title.trim().is_empty()||self.setup.validate().is_err()} onclick={ctx.link().callback(|_|Msg::Create(true))}>{"Practice with Kepler →"}</button><button class="button" disabled={self.busy||self.title.trim().is_empty()||self.setup.validate().is_err()} onclick={ctx.link().callback(|_|Msg::Create(false))}>{"Host a table"}</button></div><p class="small">{"Your selected market and starting deck apply to practice and multiplayer."}</p></section><section class="panel"><div class="section-heading"><h2>{"An invitation to explore"}</h2><span>{"⌁"}</span></div><p>{"Got a seat waiting? Paste your table link or code."}</p><label for="join">{"Table invitation"}</label><input id="join" placeholder="Paste a table link or code" value={self.join.clone()} oninput={ctx.link().callback(|e:InputEvent|Msg::JoinInput(e.target_unchecked_into::<HtmlInputElement>().value()))}/><button class="button" disabled={self.busy||self.join.trim().is_empty()} onclick={ctx.link().callback(|_|Msg::Join)}>{"Join playtest →"}</button><p class="small">{"Everyone signs in with their own identity. Hands stay private."}</p></section></div>
         <section class="saved"><div class="section-heading"><h2>{"Your playtests"}<span class="count">{self.games.len()}</span></h2><span class="small">{"AUTOMATICALLY SAVED"}</span></div>{if self.games.is_empty(){html!{<div class="empty"><span>{"⌑"}</span><p>{"A blank slate. Your first expedition is waiting."}</p></div>}}else{html!{<div class="saved-list">{for self.games.iter().map(|g|{let id=g.id.clone();html!{<button class="saved-game" disabled={self.busy} onclick={ctx.link().callback(move |_|Msg::Open(id.clone()))}><span class="saved-icon">{"⟁"}</span><span><b>{&g.name}</b><small>{format!("Voidwright · {} players · Round {}",g.players,g.round)}</small></span><span class="pill">{status_name(g.status)}</span><span>{"↗"}</span></button>}})}</div>}}}</section></main>}
     }
     fn table_view(&self, ctx: &Context<Self>, g: &GameView) -> Html {
@@ -396,12 +476,12 @@ impl App {
             g.id
         );
         html! {<main class="table-page"><div class="table-heading"><div><button class="back" onclick={ctx.link().callback(|_|Msg::Home)}>{"← All playtests"}</button><h1>{"VOIDWRIGHT"}<span>{&g.name}</span></h1></div><div class="table-meta"><span class="pill">{status_name(g.status)}</span><span>{format!("ROUND {:02} / {}",g.round.min(g.round_limit),g.round_limit)}</span></div></div>
-        if g.status==Status::Lobby {<section class="waiting panel"><div class="eyebrow">{"ASSEMBLING YOUR CREW"}</div><h2>{"Good games start with good company."}</h2><p>{"Share this invitation with up to three friends. Each person opens it in their own browser and signs in."}</p><label for="invite">{"Table invitation · select to copy"}</label><input id="invite" readonly=true value={invitation}/><div class="crew">{for g.players.iter().map(|p|html!{<span class="pill">{"● "}{&p.name}</span>})}</div><button class="button primary" disabled={!g.host||g.players.len()<2||self.busy} onclick={ctx.link().callback(|_|Msg::Command(Command::Start))}>{if g.host{"Launch expedition →"}else{"Waiting for the host to launch"}}</button></section>}
+        {self.setup_summary(g)}if g.status==Status::Lobby {<section class="waiting panel"><div class="eyebrow">{"ASSEMBLING YOUR CREW"}</div><h2>{"Good games start with good company."}</h2><p>{"Share this invitation with up to three friends. Each person opens it in their own browser and signs in."}</p><label for="invite">{"Table invitation · select to copy"}</label><input id="invite" readonly=true value={invitation}/><div class="crew">{for g.players.iter().map(|p|html!{<span class="pill">{"● "}{&p.name}</span>})}</div><button class="button primary" disabled={!g.host||g.players.len()<2||self.busy} onclick={ctx.link().callback(|_|Msg::Command(Command::Start))}>{if g.host{"Launch expedition →"}else{"Waiting for the host to launch"}}</button></section>}
         if g.status==Status::Finished {<section class="finish"><span>{"✺"}</span><div><div class="eyebrow">{"EXPEDITION COMPLETE"}</div><h2>{format!("{} {}",g.winners.join(" & "),if g.winners.len()>1{"share the frontier."}else{"claims the frontier."})}</h2><p>{"Every deck tells a story. Take what you learned into the next playtest."}</p></div><button class="button primary" onclick={ctx.link().callback(|_|Msg::Home)}>{"Back to the lab →"}</button></section>}
         <div class="table-layout"><div class="play-area"><div class="players">{for g.players.iter().enumerate().map(|(i,p)|html!{<div class={classes!("player",(i==g.active && g.status==Status::Active).then_some("active-player"))}><div class="avatar">{if p.bot{"K".to_string()}else{p.name.chars().next().unwrap_or('?').to_uppercase().to_string()}}</div><div><b>{&p.name}{if p.is_you{" (you)"}else{""}}</b><small>{format!("{} in hand · {} in deck",p.hand,p.deck)}</small></div><div class="score"><b>{p.influence}</b><small>{"INFLUENCE"}</small></div></div>})}</div>
         if g.status!=Status::Lobby {<div class="turnbar"><div><span class="status-dot"/><b>{if g.status==Status::Finished{"Final standings".into()}else if g.your_turn{"Your turn, commander".into()}else{format!("{} is commanding",g.players[g.active].name)}}</b><small>{if g.phase==Phase::Action{"ACTION PHASE"}else{"BUY PHASE"}}</small></div><div class="resources"><span><b>{g.actions}</b>{" Actions"}</span><span><b>{g.buys}</b>{" Buys"}</span><span class="credit-stat"><b>{g.credits}</b>{" Credits"}</span></div></div>
         <div class="market-heading"><div class="tabs"><button class={classes!((self.tab=="market").then_some("selected"))} onclick={ctx.link().callback(|_|Msg::Tab("market".into()))}>{"Supply market"}</button><button class={classes!((self.tab=="deck").then_some("selected"))} onclick={ctx.link().callback(|_|Msg::Tab("deck".into()))}>{"Your collection"}<span>{mine.cards}</span></button></div><span class="small">{if self.tab=="market"{"SHARED SUPPLY"}else{"ALL YOUR CARDS · NO DRAW ORDER"}}</span></div>
-        {if self.tab=="market"{html!{<><div class="market-caption"><h3>{"Fleet & technology"}</h3><span>{"Build your engine."}</span></div><div class="card-grid">{for Card::ALL.into_iter().filter(|c|c.info().kind==Kind::Action).map(|c|self.market_card(ctx,g,c))}</div><div class="market-caption"><h3>{"Resources & colonies"}</h3><span>{"Power your fleet. Grow your influence."}</span></div><div class="base-grid">{for Card::ALL.into_iter().filter(|c|c.info().kind!=Kind::Action).map(|c|self.market_card(ctx,g,c))}</div></>}}else{html!{<div class="collection">{for g.collection.iter().map(|(c,n)|{let info=c.info();html!{<div class="collection-row"><span class={classes!("collection-icon",kind_class(info.kind))}>{info.icon}</span><div><b>{info.name}</b><small>{info.text}</small></div><b>{format!("×{n}")}</b></div>}})}</div>}}}
+        {if self.tab=="market"{html!{<><div class="market-caption"><h3>{"Fleet & technology"}</h3><span>{"Build your engine."}</span></div><div class="card-grid">{for Card::ALL.into_iter().filter(|c|c.info().kind==Kind::Action && g.supply.contains_key(c)).map(|c|self.market_card(ctx,g,c))}</div><div class="market-caption"><h3>{"Resources & colonies"}</h3><span>{"Power your fleet. Grow your influence."}</span></div><div class="base-grid">{for Card::ALL.into_iter().filter(|c|c.info().kind!=Kind::Action && g.supply.contains_key(c)).map(|c|self.market_card(ctx,g,c))}</div></>}}else{html!{<div class="collection">{for g.collection.iter().map(|(c,n)|{let info=c.info();html!{<div class="collection-row"><span class={classes!("collection-icon",kind_class(info.kind))}>{info.icon}</span><div><b>{info.name}</b><small>{info.text}</small></div><b>{format!("×{n}")}</b></div>}})}</div>}}}
         <section class="hand-section"><div class="section-heading"><div><h2>{"Your hand"}<span class="count">{g.hand.len()}</span></h2><p class="small">{if g.your_turn && g.phase==Phase::Action{"Play an action, then generate credits to buy cards."}else if g.your_turn{"Acquire cards from the supply, then end your turn."}else{"Your hand is private. Plan your next move."}}</p></div><div class="button-row"><button class="button" disabled={!g.your_turn||self.busy||g.hand.iter().all(|c|c.credits()==0)} onclick={ctx.link().callback(|_|Msg::Command(Command::PlayResources))}>{"Play all resources"}</button><button class="button primary" disabled={!g.your_turn||self.busy} onclick={ctx.link().callback(|_|Msg::Command(Command::EndTurn))}>{if self.busy{"Updating…"}else{"End turn →"}}</button></div></div><div class="hand-cards">{for g.hand.iter().enumerate().map(|(index,&c)|{let i=c.info();let enabled=g.your_turn&&!self.busy&&(i.kind==Kind::Resource || (i.kind==Kind::Action&&g.phase==Phase::Action&&g.actions>0));html!{<button class={classes!("hand-card",kind_class(i.kind))} disabled={!enabled} onclick={ctx.link().callback(move |_|Msg::Command(Command::Play{index}))} title={i.text.clone()}><span>{&i.icon}</span><b>{&i.name}</b><small>{&i.text}</small><em>{if i.kind==Kind::Colony{"Scores at game end"}else if enabled{"Click to play ↗"}else{"In your hand"}}</em></button>}})}</div><div class="deck-counts"><span>{format!("▤ Draw pile: {}",mine.deck)}</span><span>{format!("↻ Discard: {}",mine.discard)}</span><span>{format!("◇ Played: {}",mine.played.len())}</span><span>{format!("Scrapped: {}",g.trash.len())}</span></div></section>}
         </div><aside class="activity"><div class="section-heading"><h2>{"Flight log"}</h2><span class="status-dot"/></div><p class="small">{"Every move, a little history."}</p><div class="log" aria-live="polite">{for g.log.iter().rev().map(|e|html!{<div class="log-entry"><span>{format!("{:02}",e.revision)}</span><p>{&e.text}</p></div>})}</div><div class="log-note"><span>{"✳"}</span><b>{"Built through play."}</b><p>{"Try an unexpected combination. The best strategies start as experiments."}</p></div></aside></div></main>}
     }

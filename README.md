@@ -19,13 +19,14 @@ For two human players on one computer, use separate browser profiles or a privat
 
 - Yew Rust/WebAssembly UI: lobby, saved tables, private invitations, hand, market, collection, rules, and flight log.
 - Axum HTTP server with SQLite persistence, cookie sessions, membership checks, origin protection, and revision-checked commands.
-- Deterministic Rust rules engine, 12 cards, 2–4 players, practice bot, configurable 10–50-round cap, shared supply, reshuffles, and final scoring.
+- Deterministic Rust rules engine, 18 cards, 2–4 players, practice bot, configurable 10–50-round cap, shared supply, reshuffles, and final scoring.
+- Choose six market piles from twelve action cards, use one of three market presets, and pick a shared starting deck for the table; see [cards and deck selection](docs/cards.md).
 - Nido wallet challenge/signature authentication for explicitly enrolled playtest accounts; see [Nido setup](docs/nido-auth.md).
 - Atomic snapshots and private, hash-linked command records for future replay tooling. These records are not a ZKP or a trustless consensus system.
 
 ## Rules
 
-Each player starts with 7 Credits and 3 Outposts, shuffled, and draws 5. Each turn grants 1 action and 1 buy. Play actions first. Playing any resource, playing all resources, or buying a card moves to the buy phase. Spend credits on supply cards; acquired cards go to discard. End the turn to discard the remaining hand and played cards, then draw 5, shuffling the discard pile if necessary. Unspent resources, actions, and buys expire.
+Each player starts with the host's ten-card preset, shuffled, and draws 5. Classic (the default) has 7 Credits and 3 Outposts; Explorer substitutes one Credit for a Survey vessel; Industrial substitutes two Credits for two Reactors. Everyone, including Kepler, uses the same preset. Each turn grants 1 action and 1 buy. Play actions first. Playing any resource, playing all resources, or buying a card moves to the buy phase. Spend credits on supply cards; acquired cards go to discard. End the turn to discard the remaining hand and played cards, then draw 5, shuffling the discard pile if necessary. Unspent resources, actions, and buys expire.
 
 Colonies cannot be played; they score influence across your entire collection: Outpost 1, Colony 3, Metropolis 6. Influence is public in this prototype. The game finishes at the end of the turn when the Metropolis pile is empty, any 3 supply piles are empty, or all players have completed the configured number of turns. Most influence wins; tied players share victory. Salvage Drone automatically scraps a Credit from the remaining hand, otherwise an Outpost, if available.
 

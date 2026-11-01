@@ -294,6 +294,7 @@ async fn create_game(
         u.name,
         seed,
         input.round_limit,
+        input.setup,
     )
     .map_err(bad)?;
     let mut records = vec![Record {
@@ -693,6 +694,66 @@ mod tests {
             );
             previous = hash;
         }
+    }
+    #[tokio::test]
+    async fn setup_is_validated_persisted_and_shared_with_joining_players() {
+        let a = app(true);
+        let alice = login(&a, "Alice").await;
+        let bob = login(&a, "Bob").await;
+        let mut setup = GameSetup {
+            market: MarketPreset::DeepSpace.cards(),
+            starting_deck: StartingDeck::Industrial,
+        };
+        setup.market[0] = Card::Scout;
+        for invalid in [
+            vec![Card::Scout; 6],
+            vec![
+                Card::Credit,
+                Card::Relay,
+                Card::Freighter,
+                Card::Laboratory,
+                Card::Exchange,
+                Card::Salvager,
+            ],
+            vec![Card::Relay],
+        ] {
+            assert_eq!(call(&a, "POST", "/api/games", &alice,
+                json!({"name":"Invalid","practice":false,"round_limit":10,"setup":{"market":invalid}})).await.0, StatusCode::BAD_REQUEST);
+        }
+        let (status, _, game) = call(
+            &a,
+            "POST",
+            "/api/games",
+            &alice,
+            json!({"name":"Custom","practice":false,"round_limit":10,"setup":setup}),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        let id = game["id"].as_str().unwrap();
+        let path = format!("/api/games/{id}");
+        let (status, _, joined) = call(&a, "POST", &format!("{path}/join"), &bob, json!({})).await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(joined["setup"], serde_json::to_value(&setup).unwrap());
+        assert_eq!(
+            Store::load(&a.store.0.lock().unwrap(), id).unwrap().setup,
+            setup
+        );
+        let (status, _, started) = call(
+            &a,
+            "POST",
+            &format!("{path}/commands"),
+            &alice,
+            json!({"revision":joined["revision"],"command":{"type":"start"}}),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK);
+        assert_eq!(started["supply"].as_object().unwrap().len(), 12);
+        assert!(started["supply"].get("surveyor").is_none());
+        assert_eq!(started["collection"]["reactor"], 2);
+        assert_eq!(
+            call(&a, "GET", &path, &bob, json!({})).await.2["collection"]["reactor"],
+            2
+        );
     }
     #[tokio::test]
     async fn logout_invalidates_server_session() {

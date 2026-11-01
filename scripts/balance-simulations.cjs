@@ -35,7 +35,7 @@ function makeGame(seed, seatStrategies, fleetProduction) {
   );
   source = replaceOrFail(
     source,
-    "if ($('#directive-dialog').open) $('#directive-dialog').close();",
+    "if (!headless && $('#directive-dialog').open) $('#directive-dialog').close();",
     "",
     'directive dialog'
   );
@@ -136,8 +136,12 @@ function makeGame(seed, seatStrategies, fleetProduction) {
     fleetPower: id => strongestFleet(id),
     stations: id => researchStationCount(id)
   };
-})();`;
-  source = source.replace(/\n  wireUi\(\);[\s\S]*?\n\}\)\(\);\s*$/, `\n${bootstrap}`);
+  return globalThis.__gr;
+}`;
+  source = source.replace(
+    /\n  if \(headless\) \{[\s\S]*$/,
+    `\n${bootstrap}\nglobalThis.__gr = createGalacticReach({ headless: true });`
+  );
 
   const math = Object.create(Math);
   math.random = seededRandom(seed);

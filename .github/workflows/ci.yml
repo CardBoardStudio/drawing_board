@@ -45,11 +45,12 @@ jobs:
           node-version: 24
       - run: node --check prototypes/galactic-reach/app.js
       - run: node scripts/test-galactic-reach.cjs
+      - run: node scripts/test-galactic-reach-dialogs.cjs
       - name: Balance harness smoke run
         run: node scripts/balance-simulations.cjs 1 > /dev/null
   container:
     name: Preview container smoke
-    needs: check
+    needs: [check, javascript]
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:

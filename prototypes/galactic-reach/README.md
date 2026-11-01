@@ -19,7 +19,8 @@ The prototype has no build step or external runtime dependencies. Game state and
 CI runs these with Node and no packages:
 
 ```sh
-node scripts/test-galactic-reach.cjs           # round-end dialogs and save migrations against the real app.js
+node scripts/test-galactic-reach.cjs           # adapter conformance and non-mutating legal-action discovery
+node scripts/test-galactic-reach-dialogs.cjs   # round-end dialogs and save migrations against the real app.js
 node scripts/balance-simulations.cjs 1         # AI-vs-AI balance harness; raise the count for a full report
 ```
 

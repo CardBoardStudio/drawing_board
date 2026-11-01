@@ -307,47 +307,20 @@ test('a save from an older format version is replaced by a new game', () => {
   assert.equal(state.rulesRevision, CURRENT_RULES_REVISION);
 });
 
-test('the rulesRevision ladder upgrades a pre-revision save to the current rules', () => {
+test('a save from an incompatible rules revision is replaced by a current game', () => {
   const { storage } = playToRoundOneDirective();
   const legacy = JSON.parse(storage.getItem(SAVE_KEY));
-  Object.assign(legacy, { phase: 'operations', activePlayer: 0, turnStage: 'prep' });
-  delete legacy.rulesRevision;
-  delete legacy.visibilityRevision;
-  Object.values(legacy.fleets).forEach(group => Object.values(group).forEach(fleet => { delete fleet.researcher; }));
-  Object.values(legacy.planets).forEach(planet => { delete planet.researchStationOwner; });
-  legacy.players.forEach(player => {
-    delete player.cardsPurchased;
-    player.militaryDeck = [];
-  });
-  legacy.players[0].resources = { matter: 9, energy: 6, biomass: 5, data: 5 };
-  // Before rev 7, Ember's home Shipyard sat on a non-Energy planet.
-  const ember = legacy.clusters[1].coords;
-  const shipyard = ember[6];
-  const other = ember.find((coord, index) => index !== 0 && index !== 6 && legacy.planets[coord].type !== 'energy');
-  const energyCount = planets => ember.filter(coord => planets[coord].type === 'energy').length;
-  const energyBefore = energyCount(legacy.planets);
-  [legacy.planets[shipyard].type, legacy.planets[other].type] = [legacy.planets[other].type, legacy.planets[shipyard].type];
-  assert.notEqual(legacy.planets[shipyard].type, 'energy');
-  const relicCount = legacy.relicDeck.length;
+  legacy.rulesRevision = CURRENT_RULES_REVISION - 1;
   writeSave(storage, legacy);
 
   const game = boot(storage);
   const state = game.saved();
   assert.equal(state.rulesRevision, CURRENT_RULES_REVISION);
+  assert.equal(state.version, formatVersion);
   assert.equal(state.visibilityRevision, 2);
-  Object.values(state.fleets).forEach(group => Object.values(group).forEach(fleet => assert.equal(typeof fleet.researcher, 'number')));
-  Object.values(state.planets).forEach(planet => assert.notEqual(planet.researchStationOwner, undefined));
-  state.players.forEach(player => {
-    assert.equal(player.cardsPurchased, 0);
-    assert.ok(player.militaryDeck.length > 0, 'rev 4 dealt a military deck');
-  });
-  assert.equal(state.planets[shipyard].type, 'energy');
-  assert.equal(energyCount(state.planets), energyBefore, 'rev 7 swapped planet types rather than adding Energy');
-  assert.ok(state.relicDeck.length >= relicCount, 'rev 3 kept the relic deck');
-  const stored = Object.values(state.players[0].resources).reduce((sum, value) => sum + value, 0);
-  assert.equal(stored, 10);
-  assert.match(state.log[0], /Storage limits restored; 15 excess resources were removed\./);
-  assert.equal(storage.getItem(TURN_HISTORY_KEY), null, 'migrations clear the undo snapshot');
+  assert.equal(state.round, 1);
+  assert.equal(state.phase, 'operations');
+  assert.equal(storage.getItem(TURN_HISTORY_KEY), null, 'the reset clears the undo snapshot');
 });
 
 let failed = 0;

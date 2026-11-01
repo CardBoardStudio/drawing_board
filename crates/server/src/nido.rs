@@ -55,7 +55,7 @@ fn return_target(value: Option<&str>) -> String {
 }
 fn state_cookie(app: &App, value: &str, age: u32) -> String {
     format!(
-        "drawing_board_nido={value}; HttpOnly; SameSite=Lax; Path=/api/auth/nido; Max-Age={age}{}",
+        "drawing_board_long_reach_v6_nido={value}; HttpOnly; SameSite=Lax; Path=/api/auth/nido; Max-Age={age}{}",
         if app.origin.starts_with("https://") {
             "; Secure"
         } else {
@@ -90,7 +90,7 @@ pub async fn begin(
     accounts::rate_limit(&db)?;
     db.execute("DELETE FROM login_challenges WHERE expires<=?", [now()])
         .map_err(internal)?;
-    if let Some(old) = cookie(&headers, "drawing_board_nido") {
+    if let Some(old) = cookie(&headers, "drawing_board_long_reach_v6_nido") {
         db.execute(
             "DELETE FROM login_challenges WHERE token_hash=?",
             [digest(&old)],
@@ -126,7 +126,7 @@ async fn complete(
     headers: HeaderMap,
     Query(input): Query<Return>,
 ) -> ApiResult<Response> {
-    let nonce = cookie(&headers, "drawing_board_nido")
+    let nonce = cookie(&headers, "drawing_board_long_reach_v6_nido")
         .ok_or(bad("Login expired. Return to the app and try again."))?;
     let hash = digest(&nonce);
     let (account, message, expires, target): (Option<String>, Option<String>, u64, String) = {
@@ -241,7 +241,7 @@ pub async fn callback(
     match complete(State(app.clone()), headers.clone(), input).await {
         Ok(response) => response,
         Err(error) => {
-            if let Some(nonce) = cookie(&headers, "drawing_board_nido")
+            if let Some(nonce) = cookie(&headers, "drawing_board_long_reach_v6_nido")
                 && let Ok(db) = app.store.0.lock()
             {
                 let _ = db.execute(
@@ -265,7 +265,7 @@ pub async fn callback(
 /// Recheck active wallet sessions at most a minute after key revocation/recovery.
 /// Network failures deny the request; they never extend a cached authorization.
 pub async fn check_session(app: &App, headers: &HeaderMap) -> ApiResult<()> {
-    let Some(token) = cookie(headers, "drawing_board_session") else {
+    let Some(token) = cookie(headers, "drawing_board_long_reach_v6_session") else {
         return Ok(());
     };
     let hash = digest(&token);
@@ -545,7 +545,11 @@ mod flow_tests {
             .headers()
             .get_all(header::SET_COOKIE)
             .iter()
-            .find(|h| h.to_str().unwrap().starts_with("drawing_board_session="))
+            .find(|h| {
+                h.to_str()
+                    .unwrap()
+                    .starts_with("drawing_board_long_reach_v6_session=")
+            })
             .unwrap()
             .to_str()
             .unwrap()

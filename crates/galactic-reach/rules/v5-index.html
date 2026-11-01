@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070b13">
+  <title>Galactic Reach · Long Reach experiment</title>
+  <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
+  <link rel="stylesheet" href="styles.css?v=long-reach-1">
+</head>
+<body>
+  <a class="skip-link" href="#console">Skip to player controls</a>
+  <div class="starfield" aria-hidden="true"></div>
+  <main class="app-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <div class="eyebrow">LONG REACH EXPERIMENT · 20 PRESTIGE</div>
+        <h1>Galactic Reach <small style="font-size:14px">Rules 5.10</small></h1>
+      </div>
+      <div class="round-block" aria-live="polite">
+        <div><span class="label">Round</span><strong id="round-value">1</strong></div>
+        <div><span class="label">Phase</span><strong id="phase-value">Production</strong></div>
+        <div><span class="label">Active</span><strong id="active-value">You</strong></div>
+      </div>
+      <div class="header-actions">
+        <a class="button button-ghost" href="/" style="text-decoration:none">Game library</a>
+        <button class="button button-ghost" id="undo-turn-button" type="button" disabled title="Available after you complete a turn">Undo turn</button>
+        <button class="button button-ghost" id="rules-button" type="button">Rules</button>
+        <button class="button button-ghost" id="new-game-button" type="button">New game</button>
+      </div>
+    </header>
+
+    <section class="score-ribbon" id="score-ribbon" aria-label="Player standings"></section>
+
+    <section class="game-layout">
+      <div class="board-column">
+        <div class="board-toolbar">
+          <div>
+            <span class="status-dot" id="turn-dot"></span>
+            <strong id="turn-title">Preparing the galaxy</strong>
+            <span id="turn-instruction">Please wait…</span>
+          </div>
+          <button class="button button-danger" id="pass-button" type="button" hidden>Pass for round</button>
+        </div>
+        <div class="board-stage">
+          <div class="galaxy-board" id="galaxy-board" aria-label="Interactive galaxy map" aria-describedby="resource-legend symbol-legend"></div>
+        </div>
+        <div class="map-tools"><button class="button button-ghost" type="button" id="open-map-key">Map key · resources, units &amp; costs</button><button class="button button-ghost" type="button" id="map-zoom" aria-pressed="false">Zoom map</button></div>
+      </div>
+
+      <aside class="command-column">
+        <section class="panel resource-panel">
+          <div class="panel-heading">
+            <div><div class="eyebrow">YOUR COMMAND</div><h2>Resources</h2></div>
+            <div class="storage-summary">
+              <span class="capacity" id="capacity-value">0 of 10 stored</span>
+              <div class="capacity-meter" id="capacity-meter" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" aria-label="0 of 10 resource storage used"><span id="capacity-fill"></span></div>
+            </div>
+          </div>
+          <div class="resource-grid" id="resource-grid"></div>
+        </section>
+
+
+
+        <section class="panel objective-panel">
+          <div class="panel-heading">
+            <div><div class="eyebrow">PRESTIGE RACE</div><h2>Public awards</h2></div>
+            <strong>20 to win</strong>
+          </div>
+          <div id="award-list" class="award-list"></div>
+        </section>
+
+        <section class="panel politics-panel">
+          <div class="panel-heading">
+            <div><div class="eyebrow">POLITICAL CAPITAL</div><h2>Influence tracks</h2></div>
+            <span class="capacity" id="policy-status">No policy enacted</span>
+          </div>
+          <div class="track-grid" id="track-grid"></div>
+          <p class="muted policy-summary" id="policy-summary">Every third round, secretly spend track points to vote between two policies.</p>
+        </section>
+
+        <section class="panel log-panel">
+          <div class="panel-heading">
+            <div><div class="eyebrow">COMMS FEED</div><h2>Game log</h2></div>
+          </div>
+          <ol id="game-log" class="game-log" aria-live="polite"></ol>
+        </section>
+      </aside>
+    </section>
+
+    <section class="console" id="console">
+      <div class="console-tabs" role="tablist" aria-label="Player controls">
+        <button class="console-tab active" id="hand-tab" type="button" data-tab="hand" role="tab" aria-selected="true" aria-controls="hand-panel" tabindex="0">Hand <span id="hand-count">0</span></button>
+        <button class="console-tab" id="market-tab" type="button" data-tab="market" role="tab" aria-selected="false" aria-controls="market-panel" tabindex="-1">Market</button>
+        <button class="console-tab" id="trade-tab" type="button" data-tab="trade" role="tab" aria-selected="false" aria-controls="trade-panel" tabindex="-1">Trade</button>
+        <button class="console-tab" id="fleet-tab" type="button" data-tab="fleet" role="tab" aria-selected="false" aria-controls="fleet-panel" tabindex="-1">Fleet</button>
+      </div>
+      <div class="console-body">
+        <div class="tab-panel active" id="hand-panel" data-panel="hand" role="tabpanel" aria-labelledby="hand-tab" tabindex="0">
+          <div class="section-intro">
+            <div><h2>Your hand</h2><p id="hand-help">Cards may be converted into resources at any time during your Operations turn, or used for their printed order.</p></div>
+            <div class="hand-tools">
+              <div class="pile-stats" aria-label="Your card piles">
+                <span>Deck <strong id="deck-count">0</strong></span>
+                <span>Hand <strong id="hand-pile-count">0</strong></span>
+                <button id="discard-button" type="button" title="Browse your discard pile">Discard <strong id="discard-count">0</strong></button>
+              </div>
+            </div>
+          </div>
+          <div class="card-row" id="hand-row"></div>
+        </div>
+        <div class="tab-panel" id="market-panel" data-panel="market" role="tabpanel" aria-labelledby="market-tab" tabindex="0" hidden>
+          <div class="section-intro">
+            <div><h2>Acquisition market</h2><p id="market-help">Buy one card during your Buy turn. Every eight purchased cards grant 1 Prestige.</p></div>
+            <button class="button button-primary" id="finish-buy-button" type="button" hidden>Finish Buy</button>
+          </div>
+          <div class="basic-market" id="basic-market"></div>
+          <div class="card-row market-row" id="market-row"></div>
+          <div class="decommission" id="decommission-area"></div>
+        </div>
+        <div class="tab-panel" id="trade-panel" data-panel="trade" role="tabpanel" aria-labelledby="trade-tab" tabindex="0" hidden>
+          <div class="section-intro"><div><h2>Trade channel</h2><p>Publish one open offer per round as your action. Each other faction can accept or reject on its turn, without spending an action. First acceptance settles the trade. Offers expire when Operations end; resources must still be available when accepted.</p></div></div>
+          <form id="trade-form" class="trade-form">
+            <label>You give<select id="trade-give-type"></select></label>
+            <label>Amount<input id="trade-give-amount" type="number" min="1" max="5" value="1"></label>
+            <label>You receive<select id="trade-get-type"></select></label>
+            <label>Amount<input id="trade-get-amount" type="number" min="1" max="5" value="1"></label>
+            <button class="button button-primary" type="submit">Publish open offer</button>
+          </form>
+          <div class="trade-response" id="trade-response" role="status"></div>
+          <div id="trade-offers" class="trade-offers" aria-label="Open trade offers"></div>
+          <div class="trade-ledger" id="trade-ledger" aria-label="Completed trades by rival"></div>
+        </div>
+        <div class="tab-panel" id="fleet-panel" data-panel="fleet" role="tabpanel" aria-labelledby="fleet-tab" tabindex="0" hidden>
+          <div class="section-intro"><div><h2>Fleet manifest</h2><p>Scouts move fast and colonize. Researchers move up to two hexes toward probe-marked relics.</p></div></div>
+          <div class="fleet-summary" id="fleet-summary"></div>
+          <div class="military-deck-heading"><div><h3>Your military deck</h3><p>Each side reveals one tactic per volley. Used tactics reshuffle when the deck empties.</p></div><strong id="military-deck-count">12 ready · 0 used</strong></div>
+          <div class="military-card-grid" id="military-card-grid"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="rules-dialog">
+    <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
+    <div class="rules-grid">
+      <section><h3>Round</h3><p>Production → Draw → alternating one-card Operations → Buy → Directive. Every third round also ends with a secret policy vote.</p></section>
+      <section><h3>Cards &amp; storage</h3><p>At any time during your Operations turn, convert cards into their shown resources. You may also use one card for its printed order. You can store 10 resources, plus 5 per Warehouse level; automatic gains beyond that limit are lost. Starter cards cannot be scrapped; upgrade them during Buy to improve them and gain Technology.</p></section>
+      <section><h3>Probes & fog</h3><p>A Probe pinpoints one alien relic, but reveals nothing about its planet or nearby sectors. A Scout explores blindly, moves up to 3 hexes, and reveals a world when it enters.</p></section>
+      <section><h3>Control & construction</h3><p>The radius-12 board has 469 hexes. Four home worlds touch the outer edge; seven inner worlds are placed randomly each new game, with at least one empty hex between worlds. Each home Colony occupies its world’s center hex, with the starting Shipyard on an adjacent inward hex. Colonies can only be founded or captured at a world’s center. You may build a structure on any empty planet hex adjacent to your Colony; each hex holds only one building, and structures upgrade in place to level II. During Production, each combat fleet on a planet hex gains its controller 1 of that hex’s resource, even on an unclaimed or enemy world; Researcher-only teams do not collect resources.</p></section>
+      <section><h3>Researchers</h3><p>Researchers move up to 2 hexes and do not fight or colonize. Recruit them at your home Colony; an outer level-II structure can also recruit them.</p></section>
+      <section><h3>Military deck</h3><p>Combat lasts up to three volleys. Each side gets 1 base hit per 4 fleet power, rounded up, then reveals one tactic for added hits, shields, piercing, or withdrawal. Used tactics reshuffle when the deck is empty.</p></section>
+      <section><h3>Conquest</h3><p>Occupy an enemy planet, then later use Colonize with a Scout and 1 Biomass. Captured worlds receive a conquest marker.</p></section>
+      <section><h3>Open trades</h3><p>Publish one offer per round as your Operations action. Every other faction may accept or reject during its turn for free. The first valid acceptance completes the trade and grants both parties 1 Culture. Both sides must still have the resources and storage when accepting. Offers expire when Operations ends; you can withdraw your open offer on your turn.</p></section>
+      <section><h3>Victory</h3><p>Reach 20 Prestige. Each Colony is worth 1, plus 1 more for every two Colonies beyond your home world. Each Relic and the Galactic Reach award are worth 1; Fleet Supremacy and Occupation Mandate are worth 2; every pair of Shipyards is worth 1; every 10 unspent influence is worth 1; and every eight purchased cards are worth 1. Finish the round, then compare Prestige, Colonies, and stored resources.</p></section>
+      <section><h3>Relics</h3><p>A Researcher on a Rosetta Stone can establish a Research Station and recover a 1-Prestige Relic. After you control three such stations, exchange basic Relics one-for-one for powerful relic-deck cards during Buy.</p></section>
+    </div>
+  </dialog>
+
+  <dialog id="directive-dialog" class="choice-dialog">
+    <div class="dialog-heading"><div><div class="eyebrow">END OF ROUND</div><h2>Choose the council directive</h2><p>You receive the primary benefit. Every rival receives the linked lesser benefit.</p></div></div>
+    <div class="choice-grid" id="directive-choices"></div>
+  </dialog>
+
+  <dialog id="policy-dialog" class="choice-dialog">
+    <div class="dialog-heading"><div><div class="eyebrow">SECRET BALLOT</div><h2>Choose a policy and voting power</h2><p>Your bid stays hidden until all factions have committed. Spent track points are removed.</p></div></div>
+    <form id="policy-form">
+      <div class="choice-grid" id="policy-choices"></div>
+      <label class="vote-power">Voting power <input id="vote-power" type="number" min="0" value="0"><span id="vote-limit">0 available</span></label>
+      <button class="button button-primary button-wide" type="submit">Cast hidden ballot</button>
+    </form>
+  </dialog>
+
+  <dialog id="message-dialog">
+    <div class="dialog-heading"><div><div class="eyebrow" id="message-kicker">EVENT</div><h2 id="message-title">Title</h2></div></div>
+    <p id="message-body"></p>
+    <div id="message-details" class="message-details"></div>
+    <button class="button button-primary button-wide" id="message-continue" type="button">Continue</button>
+  </dialog>
+
+  <dialog id="discard-dialog" class="pile-dialog">
+    <div class="dialog-heading">
+      <div><div class="eyebrow">YOUR CARDS</div><h2>Discard pile <span id="discard-dialog-count">0</span></h2><p>Most recently discarded cards appear first.</p></div>
+      <button class="icon-button" id="close-discard" type="button" aria-label="Close discard pile">×</button>
+    </div>
+    <div class="discard-scroll"><div class="card-row discard-row" id="discard-row"></div></div>
+  </dialog>
+
+        <section class="panel inspector-panel sector-popover" id="sector-popover" popover="auto" role="dialog" aria-labelledby="inspect-title">
+          <div class="panel-heading">
+            <div><div class="eyebrow">SECTOR SCAN</div><h2 id="inspect-title">Select a hex</h2></div>
+            <span class="coordinate" id="inspect-coordinate">—</span><button class="icon-button" id="close-sector-scan" type="button" aria-label="Close sector scan" popovertarget="sector-popover" popovertargetaction="hide">×</button>
+          </div>
+          <p id="inspect-detail" class="muted">Choose a planet or space hex to inspect fleets, control, and possible actions.</p>
+          <div id="inspect-facts" class="fact-list"></div>
+          <div id="context-actions" class="context-actions"></div>
+        </section>
+
+  <dialog id="map-key-dialog" class="map-key-dialog">
+    <div class="dialog-heading"><div><div class="eyebrow">GALACTIC REACH</div><h2>Map key</h2></div><button class="icon-button" id="close-map-key" type="button" aria-label="Close map key">×</button></div>
+        <div class="map-legend" id="resource-legend" aria-label="Map legend">
+          <span><i class="resource-swatch matter"></i>Matter</span>
+          <span><i class="resource-swatch energy"></i>Energy</span>
+          <span><i class="resource-swatch biomass"></i>Biomass</span>
+          <span><i class="resource-swatch data"></i>Data</span>
+          <span>★ Rich</span><span>◈ Located relic</span><span>⇄ Gate</span><span>Fog hides unvisited worlds</span>
+        </div>
+        <div class="map-legend symbol-legend" id="symbol-legend" aria-label="Ship and building symbol legend"></div>
+  </dialog>
+
+  <script src="table.js?v=long-reach-1"></script>
+  <script src="app.js?v=long-reach-1"></script>
+</body>
+</html>

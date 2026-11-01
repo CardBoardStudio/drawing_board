@@ -131,6 +131,17 @@ mod tests {
         assert!(elo_multiplayer(&[1200.0; 4], &[1.0, f64::NAN, 0.0, 0.0]).is_err());
     }
     #[test]
+    fn placement_elo_rewards_second_and_handles_exact_ties() {
+        let out = elo_multiplayer(&[1200.0; 4], &[3.0, 2.0, 1.0, 0.0]).unwrap();
+        assert!((out[0] - 1216.0).abs() < 1e-9);
+        assert!((out[1] - 1205.3333333333).abs() < 1e-8);
+        assert!((out[2] - 1194.6666666667).abs() < 1e-8);
+        assert!((out[3] - 1184.0).abs() < 1e-9);
+        let tied = elo_multiplayer(&[1200.0; 4], &[3.0, 2.0, 2.0, 0.0]).unwrap();
+        assert_eq!(tied[1], tied[2]);
+        assert!((out.iter().sum::<f64>() - 4800.0).abs() < 1e-9);
+    }
+    #[test]
     fn elo_handles_wins_draws_and_upsets() {
         assert_eq!(elo_pair([1200.0; 2], [3.0, 1.0]).unwrap(), [1216.0, 1184.0]);
         assert_eq!(elo_pair([1200.0; 2], [1.0; 2]).unwrap(), [1200.0; 2]);

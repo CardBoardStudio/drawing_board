@@ -17,12 +17,13 @@ For two human players on one computer, use separate browser profiles or a privat
 
 ## Additional prototypes
 
-[`prototypes/galactic-reach`](prototypes/galactic-reach) contains **Galactic Reach**, a self-contained browser prototype for a four-faction strategy game. It currently supports one human player against three computer-controlled factions and saves progress in the browser. The shared library links to it at `/galactic-reach/`; Voidwright is at `/voidwright/`. Existing Galactic Reach saves remain compatible on the same origin. See the prototype README for local play instructions and scope.
+[`prototypes/galactic-reach`](prototypes/galactic-reach) contains **Galactic Reach**, a self-contained browser prototype for a four-faction strategy game. It currently supports one human player against three computer-controlled factions and saves progress in the browser. The shared library links to it at `/galactic-reach/`; Voidwright is at `/voidwright/`. Rules 6.11 uses new v6 browser keys, while 4.9 and 5.10 account tables retain their archived engines. See the prototype README for local play instructions and scope.
 
 ## Included
 
 - Shared game library, persistent human profiles, recovery-key login, session revocation, and owned AI accounts.
 - Reusable game/player traits, seven reference AI policies across two adapters, authoritative matches with rotating seats, and persistent per-lab Elo. See [game platform](docs/game-platform.md).
+- The current prototype/platform/experiment dependency graph and follow-up PR plan are tracked in the [playtest roadmap](docs/playtest-roadmap.md).
 - Optional local release deployment through Tailscale Funnel. See [local HTTPS hosting](docs/local-hosting.md).
 
 - Yew Rust/WebAssembly UI: lobby, saved tables, private invitations, hand, market, collection, rules, and flight log.
@@ -43,6 +44,8 @@ Colonies cannot be played; they score influence across your entire collection: O
 ```sh
 node scripts/test-galactic-reach.cjs
 node scripts/test-galactic-reach-dialogs.cjs
+node scripts/test-long-reach.cjs
+node scripts/test-replay-view.cjs
 cargo test --workspace --locked
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
@@ -73,7 +76,7 @@ For a shared deployment, serve through HTTPS, set `APP_ORIGIN` to its exact publ
 
 The server currently knows the decks and controls shuffle entropy. Other players cannot retrieve your hand or draw order through the API, but this is **not** cryptographic privacy from the server. There is no Soroban deployment or ZKP implementation yet. [Architecture and migration notes](docs/architecture.md) explain what can be reused and what needs a different protocol.
 
-Both Voidwright and Galactic Reach implement the shared game/AI contract and run authoritative, rated matches in the arena. Choose a game there to create its AI roster and run a series. Galactic Reach reuses its browser rules inside the server; its guest-play UI and existing v4 saves remain unchanged. Human server tables and the Practice action currently belong to Voidwright. There is not yet a visual card editor or arbitrary game plugin system. Polling updates the table every 1.8 seconds. The prototype does not yet provide spectators, disconnect timeouts, game deletion, turn timers, or public matchmaking. Nido sign-in currently supports single-passkey admin authority on the pinned testnet implementation.
+Both Voidwright and Galactic Reach implement the shared game/AI contract and run authoritative, rated matches in the arena. Choose a game there to create its AI roster and run a series. Galactic Reach reuses its browser rules inside the server and retains archived v4/v5 engines for old tables and replays. Human server tables and the Practice action currently belong to Voidwright. There is not yet a visual card editor or arbitrary game plugin system. Polling updates the table every 1.8 seconds. The prototype does not yet provide spectators, disconnect timeouts, game deletion, turn timers, or public matchmaking. Nido sign-in currently supports single-passkey admin authority on the pinned testnet implementation.
 
 ## Pull request previews
 

@@ -35,7 +35,7 @@ function makeGame(seed, seatStrategies, fleetProduction) {
   );
   source = replaceOrFail(
     source,
-    "if ($('#directive-dialog').open) $('#directive-dialog').close();",
+    "if (!headless && $('#directive-dialog').open) $('#directive-dialog').close();",
     "",
     'directive dialog'
   );

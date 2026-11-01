@@ -9,6 +9,7 @@ use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
 pub const RULES: &str = "galactic-reach/6.11";
+mod legacy_v1;
 mod legacy_v2;
 mod replay;
 pub use replay::Trace;
@@ -37,6 +38,7 @@ impl GalacticReach {
     pub fn with_rules(seed: [u8; 32], rules: &str) -> Result<Self, String> {
         let rules = match rules {
             RULES => RULES,
+            "galactic-reach/4.9" => "galactic-reach/4.9",
             "galactic-reach/5.10" => "galactic-reach/5.10",
             _ => return Err("Unsupported rules version.".into()),
         };
@@ -57,16 +59,16 @@ impl GalacticReach {
                     "gameRandom",
                     rquickjs::Function::new(ctx.clone(), move || rng.borrow_mut().r#gen::<f64>())?,
                 )?;
-                ctx.eval::<(), _>(if rules == RULES {
-                    ADAPTER
-                } else {
-                    include_str!("../rules/v5-adapter.js")
+                ctx.eval::<(), _>(match rules {
+                    RULES => ADAPTER,
+                    "galactic-reach/5.10" => include_str!("../rules/v5-adapter.js"),
+                    _ => include_str!("../rules/v4-adapter.js"),
                 })?;
                 ctx.eval::<(), _>(include_str!("../rules/replay-view.js"))?;
-                ctx.eval::<(), _>(if rules == RULES {
-                    ENGINE
-                } else {
-                    include_str!("../rules/v5-app.js")
+                ctx.eval::<(), _>(match rules {
+                    RULES => ENGINE,
+                    "galactic-reach/5.10" => include_str!("../rules/v5-app.js"),
+                    _ => include_str!("../rules/v4-app.js"),
                 })?;
                 ctx.eval::<(), _>(
                     "globalThis.game = createGalacticReach({headless: true, random: gameRandom});",
@@ -433,6 +435,9 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
     if let Some(strategy) = Strategy::parse(version) {
         return Ok(Box::new(BuiltinAgent::new(strategy, seed)));
     }
+    if let Some(strategy) = legacy_v1::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v1::BuiltinAgent::new(strategy, seed)));
+    }
     if let Some(strategy) = legacy_v2::Strategy::parse(version) {
         return Ok(Box::new(legacy_v2::BuiltinAgent::new(strategy, seed)));
     }
@@ -443,6 +448,16 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
 mod tests {
     use super::*;
     use game_core::run_match;
+    #[test]
+    fn archived_rules_and_policies_still_load() {
+        for rules in ["galactic-reach/4.9", "galactic-reach/5.10"] {
+            let game = GalacticReach::with_rules([19; 32], rules).unwrap();
+            assert_eq!(game.rules_version(), rules);
+        }
+        for policy in ["gr-military/1", "gr-economy/2"] {
+            assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
+        }
+    }
     #[test]
     fn adapter_enforces_seats_actions_and_private_observations() {
         let mut g = GalacticReach::new([3; 32]).unwrap();

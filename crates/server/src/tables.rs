@@ -17,7 +17,7 @@ pub fn migrate(db: &Connection) -> rusqlite::Result<()> {
         .iter()
         .any(|c| c == "rules_version");
     if !has_rules {
-        db.execute_batch("ALTER TABLE solo_tables ADD COLUMN rules_version TEXT NOT NULL DEFAULT 'galactic-reach/5.10';
+        db.execute_batch("ALTER TABLE solo_tables ADD COLUMN rules_version TEXT NOT NULL DEFAULT 'galactic-reach/4.9';
         UPDATE solo_tables SET rules_version='galactic-reach/' || json_extract(state,'$.state.version') || '.' || json_extract(state,'$.state.rulesRevision') WHERE state IS NOT NULL;")?;
     }
     Ok(())
@@ -107,6 +107,7 @@ pub async fn create(
                 practice: input.practice,
                 round_limit: input.round_limit,
                 opponent_id: None,
+                setup: GameSetup::default(),
             }),
         )
         .await?;
@@ -179,7 +180,8 @@ pub struct Save {
 }
 fn validate(save: &serde_json::Value) -> ApiResult<()> {
     let s = &save["state"];
-    if !((s["version"] == 5 && s["rulesRevision"] == 10)
+    if !((s["version"] == 4 && s["rulesRevision"] == 9)
+        || (s["version"] == 5 && s["rulesRevision"] == 10)
         || (s["version"] == 6 && s["rulesRevision"] == 11))
         || s["players"].as_array().is_none_or(|p| p.len() != 4)
         || !s["planets"].is_object()
@@ -258,7 +260,16 @@ mod tests {
             .unwrap()
             .collect::<Result<_, _>>()
             .unwrap();
-        assert_eq!(versions, vec!["galactic-reach/5.10"; 2]);
+        assert_eq!(
+            versions,
+            vec!["galactic-reach/5.10", "galactic-reach/4.9"]
+        );
+        let v4 = json!({"state":{
+            "version":4,"rulesRevision":9,"players":[{},{},{},{}],
+            "planets":{},"fleets":{},"clusters":[],"round":1,
+            "activePlayer":0,"phase":"operations","winner":null
+        }});
+        validate(&v4).unwrap();
     }
     async fn account(a: &App, name: &str) -> String {
         let (s, h, _) = call(

@@ -19,7 +19,7 @@ impl GameKind {
     }
     fn pool(self) -> &'static str {
         match self {
-            Self::Voidwright => "voidwright/1:duel:20-rounds:policies-v1",
+            Self::Voidwright => "voidwright/2:duel:20-rounds:policies-v1",
             Self::GalacticReach => "galactic-reach/6.11:four-player:placement:policies-v3",
         }
     }
@@ -54,6 +54,7 @@ impl GameKind {
                     "Seat one".into(),
                     seed,
                     20,
+                    GameSetup::default(),
                 )?;
                 game.join("b".into(), "Seat two".into(), true)?;
                 game.apply("a", Command::Start)?;

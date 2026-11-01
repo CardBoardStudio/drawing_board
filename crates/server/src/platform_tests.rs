@@ -344,6 +344,7 @@ async fn arena_enforces_ownership_pairs_seats_and_rates_exactly_once() {
         "A".into(),
         seed,
         20,
+        GameSetup::default(),
     )
     .unwrap();
     replay.join("b".into(), "B".into(), true).unwrap();

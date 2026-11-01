@@ -1932,6 +1932,14 @@ function createGalacticReach(options = {}) {
     if (!$('#directive-dialog').open) $('#directive-dialog').showModal();
   }
 
+  // The ballot and directive must be answered before the round can end, so a closed or
+  // reloaded dialog reopens instead of leaving the game parked in that phase.
+  function resumePendingChoice() {
+    if (state.winner !== null) return;
+    if (state.phase === 'policy') startPolicyVote();
+    else if (state.phase === 'directive') startDirectiveChoice();
+  }
+
   function plainResourceText(resources) {
     return RESOURCES.filter(type=>resources[type]).map(type=>`${resources[type]} ${RESOURCE_NAMES[type]}`).join(', ');
   }
@@ -2597,6 +2605,11 @@ function createGalacticReach(options = {}) {
     $('#finish-buy-button').addEventListener('click',finishHumanBuy);
     $('#pass-button').addEventListener('click',()=>passOperations(0));
     $('#trade-form').addEventListener('submit',submitTrade);
+    [['#policy-dialog','policy'],['#directive-dialog','directive']].forEach(([selector,phase])=>{
+      const dialog=$(selector);
+      dialog.addEventListener('cancel',event=>event.preventDefault());
+      dialog.addEventListener('close',()=>{ if(state.phase===phase) resumePendingChoice(); });
+    });
     $('#policy-form').addEventListener('submit',event=>{
       event.preventDefault();
       const choice=Number(event.currentTarget.elements['policy-choice'].value||0);
@@ -2666,8 +2679,7 @@ function createGalacticReach(options = {}) {
   } else {
     fillMarket();
     render();
-    if (state.winner === null && state.phase === 'policy') startPolicyVote();
-    if (state.winner === null && state.phase === 'directive') startDirectiveChoice();
+    resumePendingChoice();
     if (state.winner === null && state.activePlayer !== 0 && state.phase === 'operations') scheduleAiTurn('operations', runAiOperation, 650);
     if (state.winner === null && state.activePlayer !== 0 && state.phase === 'buy') scheduleAiTurn('buy', runAiBuy, 650);
   }

@@ -4,14 +4,14 @@ This repository has three related pull requests with deliberately different jobs
 
 | Pull request | Lane | Purpose | State |
 | --- | --- | --- | --- |
-| [#3](https://github.com/CardBoardStudio/drawing_board/pull/3) | Stable prototype | Galactic Reach browser game, local rivals, board rules, and guest saves | Existing prototype lane |
-| [#4](https://github.com/CardBoardStudio/drawing_board/pull/4) | Platform foundation | Shared library, accounts, invitations, saved tables, two game adapters, AI arena, and owner-scoped Elo | Foundation for account-backed playtests |
-| [#5](https://github.com/CardBoardStudio/drawing_board/pull/5) | Breaking experiment | Galactic Reach 6.11 rules, pinned table versions, placement Elo, calibration, ranked games, and step-through replays | Current playtest |
+| [#3](https://github.com/CardBoardStudio/drawing_board/pull/3) | Stable prototype | Galactic Reach browser game, local rivals, board rules, and guest saves | Merged to `main` |
+| [#4](https://github.com/CardBoardStudio/drawing_board/pull/4) | Platform foundation | Shared library, accounts, invitations, saved tables, two game adapters, AI arena, and owner-scoped Elo | Merged into the stable lane |
+| [#5](https://github.com/CardBoardStudio/drawing_board/pull/5) | Breaking experiment | Galactic Reach 6.11 rules, pinned table versions, placement Elo, calibration, ranked games, and step-through replays | Adoption candidate |
 
-PR #5 is intentionally stacked on #4. It is an integration experiment because the new rules, table versioning, arena pool, and replay browser need the account and arena foundation together. The work inside #5 is organized into four review slices:
+PR #5 targets the stable lane after #4. It is an integration experiment because the new rules, table versioning, arena pool, and replay browser need the account and arena foundation together. The work inside #5 is organized into four review slices:
 
 1. **Rules and player experience** — the larger randomized map, 20-Prestige target, movement minimums, upgraded starter orders, open offers, larger resource/key UI, direct card orders, and hex-anchored Sector Scan.
-2. **Versioned saved tables** — `galactic-reach/6.11` uses save format 6 and rules revision 11. Existing 5.10 tables retain their engine and open from the archived asset bundle. A table displays its pinned version and rejects a cross-version save.
+2. **Versioned saved tables** — `galactic-reach/6.11` uses save format 6 and rules revision 11. Existing 4.9 and 5.10 tables retain their engines and open from archived asset bundles. A table displays its pinned version and rejects a cross-version save.
 3. **Arena calibration and placement Elo** — four version-3 policies run authoritative 20-game calibrations. Final standings use Prestige, colonies, and stored resources; pairwise Elo therefore reflects second, third, and fourth place as well as first.
 4. **Interestingness and replay** — completed AI games are ranked by lead changes, battles, and finish closeness. The replay view exposes the board, resources, hands, log, action frames, round jumps, autoplay, and final Elo changes. Replays are owner-scoped and verified against the recorded result before caching.
 
@@ -39,7 +39,7 @@ Make the local/Tailscale test service repeatable: documented port selection, iso
 
 - CI passes for formatting, tests, Clippy, Wasm, release build, container smoke, and browser assets.
 - A new account can create a 6.11 table and sees its version in the shelf, table bar, and game header.
-- The same account can reopen a 5.10 table and the loader keeps it on the archived 5.10 engine.
+- The same account can reopen 4.9 and 5.10 tables and the loader keeps each on its archived engine.
 - The arena shows separate 5.10 and 6.11 pools, 20 games per calibrated profile, placement-based Elo, and the ranked replay list.
 - At least one replay can be opened, stepped backward and forward, jumped by round, and taken to the final Elo view on desktop and mobile.
 - The existing stable and 5.10 local services remain playable throughout the experiment.

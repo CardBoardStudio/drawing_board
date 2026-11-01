@@ -98,11 +98,17 @@ impl PlayerAgent<Game> for BuiltinAgent {
         let find = |action: &Command| legal.iter().position(|c| c == action);
         // All profiles play their available engine before choosing acquisitions.
         for card in [
+            Card::CommandBridge,
             Card::Relay,
             Card::Laboratory,
             Card::Exchange,
+            Card::Surveyor,
+            Card::Fabricator,
+            Card::Observatory,
+            Card::Wormhole,
             Card::Scout,
             Card::Salvager,
+            Card::MiningRig,
             Card::Freighter,
         ] {
             if let Some(index) = view.hand.iter().position(|c| *c == card)
@@ -130,10 +136,18 @@ impl PlayerAgent<Game> for BuiltinAgent {
                 Card::Metropolis,
                 Card::Fusion,
                 Card::Laboratory,
+                Card::CommandBridge,
                 Card::Colony,
+                Card::Observatory,
                 Card::Freighter,
+                Card::Exchange,
+                Card::Surveyor,
+                Card::Wormhole,
+                Card::Fabricator,
+                Card::MiningRig,
                 Card::Reactor,
                 Card::Relay,
+                Card::Salvager,
                 Card::Scout,
             ],
         };
@@ -163,6 +177,7 @@ mod tests {
             "A".into(),
             [9; 32],
             20,
+            GameSetup::default(),
         )
         .unwrap();
         g.join("b".into(), "B".into(), true).unwrap();

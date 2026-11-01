@@ -17,7 +17,7 @@ For two human players on one computer, use separate browser profiles or a privat
 
 ## Additional prototypes
 
-[`prototypes/galactic-reach`](prototypes/galactic-reach) contains **Galactic Reach**, a self-contained browser prototype for a four-faction strategy game. It currently supports one human player against three computer-controlled factions and saves progress in the browser. The shared library links to it at `/galactic-reach/`; Voidwright is at `/voidwright/`. Existing Galactic Reach saves remain compatible on the same origin. See the prototype README for local play instructions and scope.
+[`prototypes/galactic-reach`](prototypes/galactic-reach) contains **Galactic Reach**, a self-contained browser prototype for a four-faction strategy game. It currently supports one human player against three computer-controlled factions and saves progress in the browser. The shared library links to it at `/galactic-reach/`; Voidwright is at `/voidwright/`. Rules 6.11 uses new v6 browser keys, while 4.9 and 5.10 account tables retain their archived engines. See the prototype README for local play instructions and scope.
 
 ## Included
 
@@ -28,13 +28,14 @@ For two human players on one computer, use separate browser profiles or a privat
 
 - Yew Rust/WebAssembly UI: lobby, saved tables, private invitations, hand, market, collection, rules, and flight log.
 - Axum HTTP server with SQLite persistence, cookie sessions, membership checks, origin protection, and revision-checked commands.
-- Deterministic Rust rules engine, 12 cards, 2–4 players, practice bot, configurable 10–50-round cap, shared supply, reshuffles, and final scoring.
+- Deterministic Rust rules engine, 18 cards, 2–4 players, practice bot, configurable 10–50-round cap, shared supply, reshuffles, and final scoring.
+- Choose six market piles from twelve action cards, use one of three market presets, and pick a shared starting deck for the table; see [cards and deck selection](docs/cards.md).
 - Nido passkey sign-in with live Stellar testnet wallet verification; see [Nido setup](docs/nido-auth.md).
 - Atomic snapshots and private, hash-linked command records for future replay tooling. These records are not a ZKP or a trustless consensus system.
 
 ## Rules
 
-Each player starts with 7 Credits and 3 Outposts, shuffled, and draws 5. Each turn grants 1 action and 1 buy. Play actions first. Playing any resource, playing all resources, or buying a card moves to the buy phase. Spend credits on supply cards; acquired cards go to discard. End the turn to discard the remaining hand and played cards, then draw 5, shuffling the discard pile if necessary. Unspent resources, actions, and buys expire.
+Each player starts with the host's ten-card preset, shuffled, and draws 5. Classic (the default) has 7 Credits and 3 Outposts; Explorer substitutes one Credit for a Survey vessel; Industrial substitutes two Credits for two Reactors. Everyone, including Kepler, uses the same preset. Each turn grants 1 action and 1 buy. Play actions first. Playing any resource, playing all resources, or buying a card moves to the buy phase. Spend credits on supply cards; acquired cards go to discard. End the turn to discard the remaining hand and played cards, then draw 5, shuffling the discard pile if necessary. Unspent resources, actions, and buys expire.
 
 Colonies cannot be played; they score influence across your entire collection: Outpost 1, Colony 3, Metropolis 6. Influence is public in this prototype. The game finishes at the end of the turn when the Metropolis pile is empty, any 3 supply piles are empty, or all players have completed the configured number of turns. Most influence wins; tied players share victory. Salvage Drone automatically scraps a Credit from the remaining hand, otherwise an Outpost, if available.
 
@@ -42,6 +43,9 @@ Colonies cannot be played; they score influence across your entire collection: O
 
 ```sh
 node scripts/test-galactic-reach.cjs
+node scripts/test-galactic-reach-dialogs.cjs
+node scripts/test-long-reach.cjs
+node scripts/test-replay-view.cjs
 cargo test --workspace --locked
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
@@ -72,7 +76,7 @@ For a shared deployment, serve through HTTPS, set `APP_ORIGIN` to its exact publ
 
 The server currently knows the decks and controls shuffle entropy. Other players cannot retrieve your hand or draw order through the API, but this is **not** cryptographic privacy from the server. There is no Soroban deployment or ZKP implementation yet. [Architecture and migration notes](docs/architecture.md) explain what can be reused and what needs a different protocol.
 
-Both Voidwright and Galactic Reach implement the shared game/AI contract and run authoritative, rated matches in the arena. Choose a game there to create its AI roster and run a series. Galactic Reach reuses its browser rules inside the server; its guest-play UI and existing v4 saves remain unchanged. Human server tables and the Practice action currently belong to Voidwright. There is not yet a visual card editor or arbitrary game plugin system. Polling updates the table every 1.8 seconds. The prototype does not yet provide spectators, disconnect timeouts, game deletion, turn timers, or public matchmaking. Nido sign-in currently supports single-passkey admin authority on the pinned testnet implementation.
+Both Voidwright and Galactic Reach implement the shared game/AI contract and run authoritative, rated matches in the arena. Choose a game there to create its AI roster and run a series. Galactic Reach reuses its browser rules inside the server and retains archived v4/v5 engines for old tables and replays. Human server tables and the Practice action currently belong to Voidwright. There is not yet a visual card editor or arbitrary game plugin system. Polling updates the table every 1.8 seconds. The prototype does not yet provide spectators, disconnect timeouts, game deletion, turn timers, or public matchmaking. Nido sign-in currently supports single-passkey admin authority on the pinned testnet implementation.
 
 ## Pull request previews
 

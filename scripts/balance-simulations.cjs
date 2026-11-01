@@ -41,8 +41,14 @@ function makeGame(seed, seatStrategies, fleetProduction) {
   );
   source = replaceOrFail(
     source,
-    "state.players[playerId].resources[planet.type] += 1;",
-    "state.players[playerId].resources[planet.type] += 1; state.sim.fleetIncome[playerId] += 1;",
+    "const gains = state.players.map(()=>({ matter: 0, energy: 0, biomass: 0, data: 0 }));",
+    "const gains = state.players.map(()=>({ matter: 0, energy: 0, biomass: 0, data: 0 }));\n    const fleetGains = state.players.map(()=>({ matter: 0, energy: 0, biomass: 0, data: 0 }));",
+    'fleet-income buckets'
+  );
+  source = replaceOrFail(
+    source,
+    "gains[playerId][planet.type] += 1;",
+    "gains[playerId][planet.type] += 1; fleetGains[playerId][planet.type] += 1;",
     'fleet-income instrumentation'
   );
   if (!fleetProduction) {
@@ -50,13 +56,26 @@ function makeGame(seed, seatStrategies, fleetProduction) {
       source,
       `    Object.entries(state.planets).forEach(([coord,planet]) => {
       fleetControllersAt(coord).forEach(playerId => {
-        state.players[playerId].resources[planet.type] += 1; state.sim.fleetIncome[playerId] += 1;
+        gains[playerId][planet.type] += 1; fleetGains[playerId][planet.type] += 1;
       });
     });`,
       '',
       'fleet production toggle'
     );
   }
+  source = replaceOrFail(
+    source,
+    "const overflow = state.players.map((player,playerId)=>addResources(player,gains[playerId])).reduce((sum,result)=>sum+result.totalLost,0);",
+    `const production = state.players.map((player,playerId)=>addResources(player,gains[playerId]));
+    production.forEach((result,playerId) => {
+      state.sim.fleetIncome[playerId] += RESOURCES.reduce((sum,resource) => {
+        const nonFleetGain = gains[playerId][resource] - fleetGains[playerId][resource];
+        return sum + Math.max(0,(result.added[resource] || 0) - nonFleetGain);
+      },0);
+    });
+    const overflow = production.reduce((sum,result)=>sum+result.totalLost,0);`,
+    'retained fleet-income instrumentation'
+  );
   source = replaceOrFail(
     source,
     "  function resolveCombat(attackerId, coord, origin, options = {}) {\n    const defenderId",

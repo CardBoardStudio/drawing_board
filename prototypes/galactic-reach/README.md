@@ -14,6 +14,15 @@ Then open <http://127.0.0.1:8000>.
 
 The prototype has no build step or external runtime dependencies. Game state and the one-turn undo snapshot are stored in browser `localStorage`; use **New game** to reset the current game.
 
+## Checks
+
+CI runs these with Node and no packages:
+
+```sh
+node scripts/test-galactic-reach.cjs           # round-end dialogs and save migrations against the real app.js
+node scripts/balance-simulations.cjs 1         # AI-vs-AI balance harness; raise the count for a full report
+```
+
 ## Current scope
 
 - Interactive galaxy map with movement, construction, colonization, production, trade, combat, and conquest.
@@ -34,4 +43,4 @@ The prototype has no build step or external runtime dependencies. Game state and
 - Three computer-controlled rival factions with military, economy, and expansion strategies.
 - Public awards, Prestige scoring, round phases, game log, rules reference, autosave, and one-turn undo.
 
-This is an independent static playtest prototype. The deployment build serves it from the repository's Rust server, but the game does not yet use the multiplayer API, sessions, or server-side persistence model.
+This is an independent static playtest prototype. The deployment build serves it from the repository's Rust server at `/galactic-reach/`, but the game does not yet use the multiplayer API, sessions, or server-side persistence model.

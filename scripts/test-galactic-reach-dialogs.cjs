@@ -75,7 +75,7 @@ function createDom(timers) {
       this.tagName = tag.toUpperCase();
       this.id = id;
       this.listeners = {};
-      this.style = {};
+      this.style = { setProperty() {} };
       this.dataset = {};
       this.classList = { add() {}, remove() {}, toggle() {}, contains: () => false };
       this.innerHTML = '';

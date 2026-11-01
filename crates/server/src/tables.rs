@@ -95,6 +95,7 @@ pub async fn create(
                 practice: input.practice,
                 round_limit: input.round_limit,
                 opponent_id: None,
+                setup: GameSetup::default(),
             }),
         )
         .await?;

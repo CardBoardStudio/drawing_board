@@ -26,7 +26,7 @@ Each event is linked to its predecessor using a domain-separated SHA-256 hash. T
 
 ## Growing the testing bed
 
-Next useful additions are versioned card/ruleset definitions, saved setup presets, structured playtest notes, deterministic replay tooling, and balance simulations. The shared `GameAdapter` / `PlayerAgent` contract drives both Voidwright and Galactic Reach through the same match runner. The arena selects each game’s constructor, seat count, policies, and rating pool; account storage, seat rotations, match recording, and rating transactions are shared. Human table transport remains Voidwright-specific. Galactic Reach’s guest UI and authoritative adapter call the same JavaScript rule primitives; no second port of its rules is maintained. See [accounts and the game platform](game-platform.md) for extension points, rating isolation, and current limits.
+Match setup stores selected market piles and a shared starting-deck preset with each game. Next useful additions are user-saved setup presets, structured playtest notes, deterministic replay tooling, and balance simulations. The shared `GameAdapter` / `PlayerAgent` contract drives both Voidwright and Galactic Reach through the same match runner. The arena selects each game’s constructor, seat count, policies, and versioned rating pool; account storage, seat rotations, match recording, and rating transactions are shared. Human table transport remains Voidwright-specific. Galactic Reach’s guest UI and authoritative adapter call the same JavaScript rule primitives; no second port of its rules is maintained. See [accounts and the game platform](game-platform.md) for extension points, rating isolation, and current limits.
 
 ## Soroban and ZKP path
 

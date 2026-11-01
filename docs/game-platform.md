@@ -53,7 +53,7 @@ To add a game, implement `GameAdapter`, add policies implementing `PlayerAgent<Y
 
 Each human owns up to twelve AI accounts per game. An AI's policy is immutable, and ratings are scoped to the owner’s lab and a rules/format pool:
 
-- Voidwright: `voidwright/1:duel:20-rounds:policies-v1` (2 seats).
+- Voidwright: `voidwright/2:duel:20-rounds:policies-v1` (2 seats).
 - Galactic Reach: `galactic-reach/4.9:four-player:winner:policies-v1` (4 seats).
 
 Game selection also scopes the roster and recent-series history. Policies from a different game, duplicate seats, and another owner’s bots are rejected. There is no global ladder, human Elo, arbitrary code upload, or remote-agent API yet.

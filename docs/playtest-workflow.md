@@ -4,7 +4,7 @@ The repository uses two change lanes so an ongoing game can continue receiving s
 
 ## Stable playtest lane
 
-The open pull request **Add Galactic Reach browser prototype**, from `codex/add-galactic-reach-prototype` into `main`, is the stable playtest lane. Its verified Render preview is the default game link during the current playtest.
+The `codex/add-galactic-reach-prototype` branch is the stable playtest lane. Its verified Render deployment is the default game link during an active branch playtest; `main` remains the production deployment.
 
 Commit only save-compatible changes to this lane:
 
@@ -28,7 +28,7 @@ For each such idea:
 5. Start a new game on the experiment preview. Because it has a different origin, its browser save is separate from the stable preview's save.
 6. Continue the existing game only on the stable preview. Never redirect the stable URL to an experiment.
 
-Keep one rules hypothesis per experimental pull request so testers can compare, abandon, or combine ideas deliberately.
+Keep one rules hypothesis per experimental pull request so testers can compare, abandon, or combine ideas deliberately. When several already-requested pieces must ship together to make a usable test surface, document the internal review slices and follow-up PRs in [the playtest roadmap](playtest-roadmap.md).
 
 ## Adopting or rejecting an experiment
 
@@ -40,7 +40,7 @@ If the experiment is adopted:
 2. Increment `SAVE_FORMAT_VERSION` in `prototypes/galactic-reach/app.js`. The save and turn-history storage keys derive from this value, so the new rules cannot accidentally load the prior ruleset's state.
 3. Rebase or merge the latest stable-lane changes into the experiment and rerun checks.
 4. Merge the experiment into the stable playtest branch.
-5. Verify the stable pull request's new Render deployment and start a new stable game there.
+5. Verify the stable lane's new Render deployment and start a new stable game there.
 
 Do not add a migration merely to preserve an incompatible game. Migrations are appropriate only when old state retains the same gameplay meaning.
 

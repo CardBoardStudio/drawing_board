@@ -12,7 +12,7 @@ const source = fs.readFileSync(sourcePath, 'utf8');
 const formatVersion = Number(source.match(/const SAVE_FORMAT_VERSION = (\d+);/)[1]);
 const SAVE_KEY = `galactic-reach-save-v${formatVersion}`;
 const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${formatVersion}`;
-const CURRENT_RULES_REVISION = Number(source.match(/visibilityRevision: 2, rulesRevision: (\d+)/)[1]);
+const CURRENT_RULES_REVISION = Number(source.match(/const RULES_REVISION = (\d+);/)[1]);
 
 function seededRandom(seed) {
   let value = seed >>> 0;
@@ -75,7 +75,7 @@ function createDom(timers) {
       this.tagName = tag.toUpperCase();
       this.id = id;
       this.listeners = {};
-      this.style = {};
+      this.style = { setProperty() {} };
       this.dataset = {};
       this.classList = { add() {}, remove() {}, toggle() {}, contains: () => false };
       this.innerHTML = '';
@@ -93,6 +93,11 @@ function createDom(timers) {
     appendChild(child) { return child; }
     insertAdjacentHTML(_, html) { this.innerHTML += html; }
     setAttribute() {}
+    getAttribute() { return null; }
+    matches() { return false; }
+    contains() { return false; }
+    showPopover() {}
+    hidePopover() {}
     remove() {}
     focus() {}
     click() { fire(this, 'click'); }
@@ -129,6 +134,8 @@ function createDom(timers) {
 
   const document = {
     body: new FakeElement('body'),
+    documentElement: { clientWidth: 1280 },
+    addEventListener() {},
     createElement: tag => new FakeElement(tag),
     querySelector: selector => (selector.startsWith('#') ? element(selector.slice(1)) : null),
     querySelectorAll: selector => (/^\[data-[a-z-]+\]$/.test(selector) ? byDataAttribute(selector) : [])
@@ -145,6 +152,7 @@ function boot(storage, seed = 20261013) {
   const context = vm.createContext({
     Math: math,
     document: dom.document,
+    window: { innerHeight: 900, addEventListener() {} },
     localStorage: storage,
     setTimeout: timers.setTimeout,
     clearTimeout: timers.clearTimeout,
@@ -299,47 +307,22 @@ test('a save from an older format version is replaced by a new game', () => {
   assert.equal(state.rulesRevision, CURRENT_RULES_REVISION);
 });
 
-test('the rulesRevision ladder upgrades a pre-revision save to the current rules', () => {
+test('a save from an incompatible rules revision is replaced by a current game', () => {
   const { storage } = playToRoundOneDirective();
   const legacy = JSON.parse(storage.getItem(SAVE_KEY));
-  Object.assign(legacy, { phase: 'operations', activePlayer: 0, turnStage: 'prep' });
-  delete legacy.rulesRevision;
-  delete legacy.visibilityRevision;
-  Object.values(legacy.fleets).forEach(group => Object.values(group).forEach(fleet => { delete fleet.researcher; }));
-  Object.values(legacy.planets).forEach(planet => { delete planet.researchStationOwner; });
-  legacy.players.forEach(player => {
-    delete player.cardsPurchased;
-    player.militaryDeck = [];
-  });
-  legacy.players[0].resources = { matter: 9, energy: 6, biomass: 5, data: 5 };
-  // Before rev 7, Ember's home Shipyard sat on a non-Energy planet.
-  const ember = legacy.clusters[1].coords;
-  const shipyard = ember[6];
-  const other = ember.find((coord, index) => index !== 0 && index !== 6 && legacy.planets[coord].type !== 'energy');
-  const energyCount = planets => ember.filter(coord => planets[coord].type === 'energy').length;
-  const energyBefore = energyCount(legacy.planets);
-  [legacy.planets[shipyard].type, legacy.planets[other].type] = [legacy.planets[other].type, legacy.planets[shipyard].type];
-  assert.notEqual(legacy.planets[shipyard].type, 'energy');
-  const relicCount = legacy.relicDeck.length;
+  legacy.rulesRevision = CURRENT_RULES_REVISION - 1;
   writeSave(storage, legacy);
 
   const game = boot(storage);
   const state = game.saved();
   assert.equal(state.rulesRevision, CURRENT_RULES_REVISION);
+  assert.equal(state.version, formatVersion);
   assert.equal(state.visibilityRevision, 2);
-  Object.values(state.fleets).forEach(group => Object.values(group).forEach(fleet => assert.equal(typeof fleet.researcher, 'number')));
-  Object.values(state.planets).forEach(planet => assert.notEqual(planet.researchStationOwner, undefined));
-  state.players.forEach(player => {
-    assert.equal(player.cardsPurchased, 0);
-    assert.ok(player.militaryDeck.length > 0, 'rev 4 dealt a military deck');
-  });
-  assert.equal(state.planets[shipyard].type, 'energy');
-  assert.equal(energyCount(state.planets), energyBefore, 'rev 7 swapped planet types rather than adding Energy');
-  assert.ok(state.relicDeck.length >= relicCount, 'rev 3 kept the relic deck');
-  const stored = Object.values(state.players[0].resources).reduce((sum, value) => sum + value, 0);
-  assert.equal(stored, 10);
-  assert.match(state.log[0], /Storage limits restored; 15 excess resources were removed\./);
-  assert.equal(storage.getItem(TURN_HISTORY_KEY), null, 'migrations clear the undo snapshot');
+  assert.equal(state.round, 1);
+  assert.equal(state.phase, 'operations');
+  const history = JSON.parse(storage.getItem(TURN_HISTORY_KEY));
+  assert.equal(history.undo, null, 'the reset clears the previous undo snapshot');
+  assert.ok(history.pending, 'the new Operations turn records its own pending snapshot');
 });
 
 let failed = 0;

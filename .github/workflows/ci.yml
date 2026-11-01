@@ -45,6 +45,8 @@ jobs:
           node-version: 24
       - run: node --check prototypes/galactic-reach/app.js
       - run: node scripts/test-galactic-reach.cjs
+      - run: node scripts/test-long-reach.cjs
+      - run: node scripts/test-replay-view.cjs
       - run: node scripts/test-galactic-reach-dialogs.cjs
       - name: Balance harness smoke run
         run: node scripts/balance-simulations.cjs 1 > /dev/null

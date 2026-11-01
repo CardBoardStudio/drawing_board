@@ -93,6 +93,11 @@ function createDom(timers) {
     appendChild(child) { return child; }
     insertAdjacentHTML(_, html) { this.innerHTML += html; }
     setAttribute() {}
+    getAttribute() { return null; }
+    matches() { return false; }
+    contains() { return false; }
+    showPopover() {}
+    hidePopover() {}
     remove() {}
     focus() {}
     click() { fire(this, 'click'); }
@@ -129,6 +134,8 @@ function createDom(timers) {
 
   const document = {
     body: new FakeElement('body'),
+    documentElement: { clientWidth: 1280 },
+    addEventListener() {},
     createElement: tag => new FakeElement(tag),
     querySelector: selector => (selector.startsWith('#') ? element(selector.slice(1)) : null),
     querySelectorAll: selector => (/^\[data-[a-z-]+\]$/.test(selector) ? byDataAttribute(selector) : [])
@@ -145,6 +152,7 @@ function boot(storage, seed = 20261013) {
   const context = vm.createContext({
     Math: math,
     document: dom.document,
+    window: { innerHeight: 900, addEventListener() {} },
     localStorage: storage,
     setTimeout: timers.setTimeout,
     clearTimeout: timers.clearTimeout,

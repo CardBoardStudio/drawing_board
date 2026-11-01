@@ -7,6 +7,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo install wasm-bindgen-cli --version 0.2.114 --locked --root /tools
 COPY Cargo.toml Cargo.lock ./
 COPY crates ./crates
+COPY prototypes ./prototypes
 COPY scripts/build-web.sh ./scripts/build-web.sh
 RUN mkdir -p .tools/bin && ln -s /tools/bin/wasm-bindgen .tools/bin/wasm-bindgen
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

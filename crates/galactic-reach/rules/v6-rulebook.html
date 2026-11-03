@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#060911">
+  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for Long Reach 6.11.">
+  <meta name="rules-version" content="galactic-reach/6.11">
+  <title>Galactic Reach · Rulebook · 6.11</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="rulebook.css">
+</head>
+<body class="rulebook">
+  <a class="skip-link" href="#start">Skip to rules</a>
+  <header class="book-header">
+    <a href="./" class="button button-ghost">← Galactic Reach</a>
+    <span class="eyebrow">CANONICAL RULES · LONG REACH 6.11</span>
+  </header>
+  <div class="book-layout">
+    <nav class="book-nav" aria-label="Rulebook sections">
+      <strong>Flight manual</strong>
+      <a href="#start">Start here</a>
+      <a href="#setup">Your starting faction</a>
+      <a href="#round">A round of play</a>
+      <a href="#resources">Resources &amp; storage</a>
+      <a href="#orders">Your four basic orders</a>
+      <a href="#movement">Exploration &amp; movement</a>
+      <a href="#building">Ships &amp; buildings</a>
+      <a href="#combat">Combat &amp; conquest</a>
+      <a href="#trade">Trade</a>
+      <a href="#buy">Improve your deck</a>
+      <a href="#politics">Politics &amp; directives</a>
+      <a href="#victory">Prestige &amp; victory</a>
+      <a href="#cards">Card reference</a>
+      <a href="#clarifications">6.11 clarifications</a>
+    </nav>
+    <main id="start" tabindex="-1">
+      <div class="eyebrow">A GALAXY. FOUR FACTIONS. YOUR NEXT MOVE.</div>
+      <h1>Make your mark<br>among the stars.</h1>
+      <p class="book-lead">Explore new worlds, turn a small deck into an engine, and race to <strong>20 Prestige</strong>. Expand, research, build, or bargain: you’ll need more than one route to the top.</p>
+      <div class="book-brief">
+        <h2>Your first minute</h2>
+        <ol>
+          <li><strong>Look at your hand.</strong> Each card is a choice: convert it into resources, or use its order.</li>
+          <li><strong>Take one action.</strong> Convert any cards you need, then play one order or offer a trade. The next faction takes a turn.</li>
+          <li><strong>Keep taking turns until you pass.</strong> After everyone passes, buy a card and improve your deck.</li>
+          <li><strong>Build toward Prestige.</strong> Colonies, fleets, relics, influence, and purchases all help. Victory is checked after the round’s vote and directive.</li>
+        </ol>
+        <p><strong>Try this:</strong> save a Construct card for its order; convert another card to help pay for a Scout. You cannot use the same card both ways.</p>
+      </div>
+      <p class="book-note">This manual describes current <strong>6.11</strong> play. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
+
+      <section id="setup">
+        <h2>01 / Your starting faction</h2>
+        <p>Four factions share eleven seven-hex worlds on a radius-12 galaxy (469 hexes). Four home worlds touch the rim; seven inner worlds are randomized with at least one empty hex between worlds. Home worlds are visible to everyone.</p>
+        <p>You start with a central <strong>Colony</strong>, an inward-facing <strong>Shipyard</strong>, one <strong>Scout</strong> at that Shipyard, and <strong>2 Biomass</strong>. Your ten starter cards are 3 Move, 3 Construct, 2 Colonize, and 2 Probe. Each faction also has its own shuffled 12-card military deck.</p>
+        <p>Production happens before the first five-card draw. At home, the Colony produces 1 Matter, the Shipyard 1 Energy, and its Scout another 1 Energy. Unbuilt surrounding hexes do not produce just because they belong to your home world.</p>
+      </section>
+
+      <section id="round">
+        <h2>02 / A round of play</h2>
+        <ol>
+          <li><strong>Produce, then draw five.</strong> Collect resources, then draw cards. Whenever your deck runs out, shuffle your discard pile to keep drawing.</li>
+          <li><strong>Operations.</strong> Starting with the first player, alternate one action: use an order, publish a trade, or pass. Converting cards and answering trades are free on your own Operations turn. Passing sits you out for the rest of Operations.</li>
+          <li><strong>Buy.</strong> Once everyone passes, each faction gets a Buy turn, starting with the first player. Normally buy up to one card; you may also upgrade starters, decommission, and exchange relics.</li>
+          <li><strong>Clean up.</strong> Discard your remaining hand, check storage, and update public awards. Every third round, hold the policy vote.</li>
+          <li><strong>Choose a directive, then check victory.</strong> The first player chooses a benefit for everyone. If nobody wins, rotate the first-player marker and start the next round.</li>
+        </ol>
+        <p>Played and converted cards go straight to discard. Resources carry between turns and rounds; unused cards do not stay in your hand after Buy.</p>
+      </section>
+
+      <section id="resources">
+        <h2>03 / Resources &amp; storage</h2>
+        <p><strong>Matter</strong> builds; <strong>Energy</strong> funds fleets and cards; <strong>Biomass</strong> founds colonies; <strong>Data</strong> buys and improves cards. Pay the listed cost when you build or buy. Ordinary movement has no resource cost.</p>
+        <p>Store <strong>10 resources total</strong>, plus 5 per level of an unoccupied Warehouse you own. A card conversion needs room for its entire gain. Automatic gains that exceed storage are lost; when several types arrive together, storage fills in Matter → Energy → Biomass → Data order. There is no voluntary discard of stored resources in 6.11.</p>
+        <p>Each owned, unoccupied planet hex produces 1 of its resource, +1 if Rich, plus its Harvester level. A combat fleet on a planet hex also earns its faction 1 of that resource, regardless of ownership. That is one bonus per fleet, not per ship; Researchers alone earn none.</p>
+      </section>
+
+      <section id="orders">
+        <h2>04 / Your four basic orders</h2>
+        <p class="book-note">On small screens, scroll tables sideways to read every column.</p>
+        <div class="book-table" tabindex="0" role="region" aria-label="Basic orders">
+          <table><thead><tr><th>Card</th><th>Convert</th><th>Use its order</th><th>Level II adds</th></tr></thead><tbody>
+            <tr><th>Move</th><td>1 Energy</td><td>Move one group of ships or Researchers.</td><td>+1 movement.</td></tr>
+            <tr><th>Construct</th><td>1 Matter</td><td>Build one ship or structure, or upgrade one structure.</td><td>Reduce one chosen resource in that cost by 1.</td></tr>
+            <tr><th>Colonize</th><td>1 Biomass</td><td>At a world’s center, spend 2 Biomass and consume a Scout to found a Colony. Capture an occupied enemy center for 1 Biomass and a Scout.</td><td>Optionally build one adjacent Harvester, Shipyard, or Warehouse at full cost after colonizing.</td></tr>
+            <tr><th>Probe</th><td>1 Data</td><td>Mark one relic’s exact coordinate, without revealing its world.</td><td>Reveal a whole unexplored world instead.</td></tr>
+          </tbody></table>
+        </div>
+        <p>Level II also adds one resource to that card’s conversion. Convert other cards before an order resolves, or during Colonize II’s optional build. Finish that build or skip it before taking another action.</p>
+      </section>
+
+      <section id="movement">
+        <h2>05 / Exploration &amp; movement</h2>
+        <p>A Scout entering a world reveals all seven hexes <strong>to everyone</strong>. Probe signals are private. Scouts can explore without a Probe. Researchers can travel to a marked relic without revealing the surrounding world.</p>
+        <p>Select a group at one hex: all its combat ships, or its Researcher team. Move up to the slowest unit’s speed. Scouts move 2; other units move 1. You cannot split individual ships from the selected group. Your destination may contain at most <strong>five of your units</strong>, including Researchers.</p>
+        <p>Entering a hostile hex stops the movement and resolves combat. You cannot move through it. Gates connect to each other as a single movement step. Pathfinder Network avoids hostile hexes; other orders may enter them.</p>
+      </section>
+
+      <section id="building">
+        <h2>06 / Ships, buildings &amp; relics</h2>
+        <p>A Colony reserves its world for expansion; it does not immediately give ownership or production on every hex. Use Construct to claim an empty adjacent planet hex with a building. One building fits on a hex. Occupied hexes cannot build. A Colony cannot be replaced with a different building.</p>
+        <p>Commission combat ships at an unoccupied Shipyard you own. Recruit Researchers at your original home Colony, if you still own it, or at an unoccupied level-II structure you own. Each build or structure upgrade earns <strong>1 Expansionist influence</strong>.</p>
+        <p class="book-note">Costs below use M = Matter, E = Energy, B = Biomass, D = Data.</p>
+        <div class="book-table" tabindex="0" role="region" aria-label="Ships and their costs">
+          <table><thead><tr><th>Unit</th><th>Cost</th><th>Speed / power / hull</th><th>Faction limit</th></tr></thead><tbody>
+            <tr><th>Scout</th><td>1M 1E</td><td>2 / 1 / 1</td><td>8</td></tr>
+            <tr><th>Researcher</th><td>1E 2D</td><td>1 / 0 / 1</td><td>5</td></tr>
+            <tr><th>Frigate</th><td>2M 1E 1B</td><td>1 / 2 / 2</td><td>6</td></tr>
+            <tr><th>Dreadnought</th><td>3M 2E 1B 1D</td><td>1 / 4 / 3</td><td>3</td></tr>
+          </tbody></table>
+        </div>
+        <div class="book-table" tabindex="0" role="region" aria-label="Structures and their costs">
+          <table><thead><tr><th>Structure</th><th>Build / upgrade to II</th><th>Benefit</th></tr></thead><tbody>
+            <tr><th>Harvester</th><td>1M 1E 1B / 2M 1E 1B</td><td>+1 local production per level.</td></tr>
+            <tr><th>Shipyard</th><td>2M 1E 1B 1D / 2M 2E 2D</td><td>Build combat ships; defends its own hex with 3 power and hull (4 at II).</td></tr>
+            <tr><th>Warehouse</th><td>2M 1E 1D / 2M 2D</td><td>+5 storage per level while unoccupied.</td></tr>
+            <tr><th>Research Station</th><td>1M 1E 2D / no upgrade</td><td>Built on an empty relic hex by consuming a Researcher; recover one Relic worth 1 Prestige.</td></tr>
+          </tbody></table>
+        </div>
+        <p>A Research Station does not require a nearby Colony, claim the hex, or produce resources. Once you have three stations, you may exchange Relics during Buy: lose one Relic (and its 1 Prestige) to put a random relic-deck card in your discard. Exchanges do not use your card purchase.</p>
+      </section>
+
+      <section id="combat">
+        <h2>07 / Combat &amp; conquest</h2>
+        <p>Combat resolves automatically in up to <strong>three volleys</strong>. Each side deals one base hit per four surviving power, rounded up, then reveals a military tactic. Tactics add hits, shields, piercing, or withdrawal. Damage is simultaneous; hits go to the piece with the least remaining hull. Surviving units repair after the battle.</p>
+        <p>Each military deck contains 3 Concentrated Fire (+1 hit), 2 Defensive Screen (2 shields), 2 Flanking Run (+2 hits with a Scout or Frigate, otherwise +1), 2 Heavy Barrage (+2 with a Dreadnought or Shipyard, otherwise +1), 1 Electronic Warfare (+1 hit, 1 shield, ignore 1 enemy shield), and 2 Tactical Withdrawal (1 shield, then withdraw if able). Used tactics reshuffle when exhausted. Reactions in hand trigger automatically.</p>
+        <p>If defenders remain after the battle, the attacker attempts to retreat to a non-hostile adjacent hex. Tactical Withdrawal and a badly outmatched attacker can end combat earlier. Fleet Overdrive prevents the attacker’s early withdrawal. Researchers contribute no base power and can be destroyed.</p>
+        <p>Winning at an enemy-owned planet <strong>occupies</strong> it, stopping its owner’s production and Warehouse storage. Ownership does not transfer. To capture its central Colony, later play Colonize there with a Scout and 1 Biomass. Only the center changes owner; surrounding structures do not transfer. The captured Colony gains a conquest marker.</p>
+      </section>
+
+      <section id="trade">
+        <h2>08 / Trade</h2>
+        <p>Once per round, use your Operations action to offer 1–5 of one resource for 1–5 of a different resource. You need the offered resources, but they are not reserved. At least one rival must still be taking Operations turns.</p>
+        <p>On their own turn, each rival may accept or reject for free. The first valid acceptance settles the offer; both sides must still have the resources and enough storage after exchanging. Each gains <strong>1 Culture influence</strong>. You may withdraw on your turn, but cannot post a second offer that round. All open offers expire when Operations ends.</p>
+      </section>
+
+      <section id="buy">
+        <h2>09 / Improve your deck</h2>
+        <p>Buy up to one basic card or one of the five face-up advanced cards. Purchases go to discard, refill the market, and earn <strong>1 Economy influence</strong>. Basic supply is unlimited; the advanced deck has two copies of each card and recycles the market discard when needed.</p>
+        <p>During the same Buy turn you may also:</p>
+        <ul>
+          <li><strong>Upgrade starters:</strong> spend 1 Data per original starter in your hand or discard to make it level II and gain 1 Technology influence. Purchased basic cards cannot upgrade.</li>
+          <li><strong>Decommission once:</strong> spend 1 Data to remove a non-starter card that was in your discard when Buy began. Newly purchased cards are ineligible. Original starters can never be scrapped.</li>
+          <li><strong>Use Buy cards or exchange Relics.</strong> These do not consume the normal purchase. Hold Buy cards in hand until this phase; conversions are only available in Operations.</li>
+        </ul>
+      </section>
+
+      <section id="politics">
+        <h2>10 / Politics &amp; directives</h2>
+        <p>Influence has four tracks: <strong>Expansionist</strong> from builds/upgrades, <strong>Culture</strong> from completed trades, <strong>Economy</strong> from purchases, and <strong>Technology</strong> from starter upgrades. Every 10 unspent points across all tracks score 1 Prestige.</p>
+        <p>Every third round, secretly bid points from a policy’s matching track. Bids are spent even if your choice loses; bidding zero is allowed. The winning policy replaces the previous one. The two pairs alternate:</p>
+        <ul>
+          <li><strong>Frontier Grants (Expansionist):</strong> first eligible build each round costs 1 less Matter; Research Stations and Colonize II’s bonus building are excluded. <strong>Open Exchange (Culture):</strong> each completed trade also gives both parties 1 Data.</li>
+          <li><strong>Market Stimulus (Economy):</strong> first purchase each round costs 1 less Data. <strong>Research Mandate (Technology):</strong> starter upgrades earn 2 Technology instead of 1.</li>
+        </ul>
+        <p>A tied vote picks the first policy when the round’s first player is seat 1 or 3, and the second when it is seat 2 or 4. After any vote, the first player chooses a directive. Storage limits apply to all gains.</p>
+        <div class="book-table" tabindex="0" role="region" aria-label="Directive benefits">
+          <table><thead><tr><th>Directive</th><th>Chooser gains</th><th>Each rival gains</th></tr></thead><tbody>
+            <tr><th>Frontier Mobilization</th><td>2 Matter, 1 Biomass</td><td>1 Matter</td></tr>
+            <tr><th>Cultural Exchange</th><td>1 Biomass, 2 Data</td><td>1 Data</td></tr>
+            <tr><th>Commercial Stimulus</th><td>1 Matter, 1 Energy, 1 Data</td><td>1 Energy</td></tr>
+            <tr><th>Research Initiative</th><td>3 Data</td><td>1 Data</td></tr>
+          </tbody></table>
+        </div>
+      </section>
+
+      <section id="victory">
+        <h2>11 / Prestige &amp; victory</h2>
+        <p>Score your current holdings plus permanent purchase milestones:</p>
+        <div class="book-table" tabindex="0" role="region" aria-label="Prestige scoring">
+          <table><thead><tr><th>Source</th><th>Prestige</th></tr></thead><tbody>
+            <tr><th>Colonies</th><td>1 each, plus 1 per complete pair after the first Colony. Five Colonies score 7.</td></tr>
+            <tr><th>Shipyards</th><td>1 per complete pair, regardless of level.</td></tr>
+            <tr><th>Relics</th><td>1 per unexchanged Relic.</td></tr>
+            <tr><th>Influence</th><td>1 per 10 unspent points across all tracks.</td></tr>
+            <tr><th>Purchased cards</th><td>1 per eight lifetime purchases; scrapping a card does not remove this score.</td></tr>
+            <tr><th>Fleet Supremacy</th><td>2 for the strongest single fleet, at least 8 power.</td></tr>
+            <tr><th>Galactic Reach</th><td>1 for owning planet hexes in the most worlds, at least three worlds.</td></tr>
+            <tr><th>Occupation Mandate</th><td>2 for owning the most conquest-marked Colonies, at least one.</td></tr>
+          </tbody></table>
+        </div>
+        <p>Awards can change hands. A tied leader keeps an award they already hold; otherwise a tie leaves it unclaimed. Occupation alone does not remove ownership-based Prestige.</p>
+        <p>After the directive, if anyone has at least <strong>20 Prestige</strong>, the highest Prestige wins. Break ties by most Colonies, then most stored resources. An exact tie selects the earliest seat in the browser; arena standings share that rank. Reaching 20 earlier does not lock in a win: spending influence or exchanging Relics can lower your score before the check. There is no round limit.</p>
+      </section>
+
+      <section id="cards">
+        <h2>12 / Card reference</h2>
+        <p>Basic cards cost 1 Data plus 1 Biomass (Colonize), 1 Matter (Construct), or 1 Energy (Move and Probe). For advanced cards, the market shows purchase cost and the hand shows conversion resources. The table below records current effects, including where printed summaries differ.</p>
+        <details>
+          <summary>All purchase costs and conversion gains</summary>
+          <p>These are base costs and level-I gains. Basic supply is unlimited, advanced supply has two of each card, and the relic deck has three of each relic card.</p>
+          <div class="book-table" tabindex="0" role="region" aria-label="Card purchase and conversion costs">
+            <table><thead><tr><th>Card</th><th>Purchase cost</th><th>Conversion gain</th></tr></thead><tbody>
+              <tr data-card="colonize"><th>Colonize</th><td>1 Biomass, 1 Data</td><td>1 Biomass</td></tr>
+              <tr data-card="construct"><th>Construct</th><td>1 Matter, 1 Data</td><td>1 Matter</td></tr>
+              <tr data-card="move"><th>Move</th><td>1 Energy, 1 Data</td><td>1 Energy</td></tr>
+              <tr data-card="probe"><th>Probe</th><td>1 Energy, 1 Data</td><td>1 Data</td></tr>
+              <tr data-card="surveyDrones"><th>Survey Drones</th><td>1 Energy, 1 Data</td><td>2 Data</td></tr>
+              <tr data-card="pathfinderNetwork"><th>Pathfinder Network</th><td>1 Energy, 1 Biomass, 1 Data</td><td>1 Energy, 1 Biomass</td></tr>
+              <tr data-card="dropColonyModules"><th>Drop Colony Modules</th><td>1 Matter, 2 Biomass, 1 Data</td><td>2 Biomass</td></tr>
+              <tr data-card="gateSynchronization"><th>Gate Synchronization</th><td>2 Energy, 2 Data</td><td>2 Energy</td></tr>
+              <tr data-card="modularConstruction"><th>Modular Construction</th><td>2 Matter, 1 Energy, 1 Data</td><td>2 Matter</td></tr>
+              <tr data-card="industrialSurge"><th>Industrial Surge</th><td>2 Matter, 2 Energy, 1 Biomass</td><td>1 Matter, 1 Energy</td></tr>
+              <tr data-card="orbitalShipyards"><th>Orbital Shipyards</th><td>2 Matter, 1 Energy, 1 Biomass, 1 Data</td><td>2 Matter</td></tr>
+              <tr data-card="terraformingProtocols"><th>Terraforming Protocols</th><td>2 Matter, 1 Energy, 2 Biomass, 1 Data</td><td>2 Biomass</td></tr>
+              <tr data-card="tradeConsortium"><th>Trade Consortium</th><td>1 Matter, 1 Energy, 1 Biomass, 1 Data</td><td>2 Data</td></tr>
+              <tr data-card="fleetOverdrive"><th>Fleet Overdrive</th><td>1 Matter, 2 Energy</td><td>2 Energy</td></tr>
+              <tr data-card="targetingAlgorithms"><th>Targeting Algorithms</th><td>1 Energy, 2 Data</td><td>2 Data</td></tr>
+              <tr data-card="ablativePlating"><th>Ablative Plating</th><td>2 Matter, 1 Biomass</td><td>2 Matter</td></tr>
+              <tr data-card="emergencyJump"><th>Emergency Jump</th><td>2 Energy, 1 Data</td><td>1 Energy, 1 Data</td></tr>
+              <tr data-card="coordinatedAssault"><th>Coordinated Assault</th><td>1 Matter, 1 Energy, 1 Biomass, 1 Data</td><td>1 Matter, 1 Energy</td></tr>
+              <tr data-card="salvageCrews"><th>Salvage Crews</th><td>2 Matter, 1 Biomass, 1 Data</td><td>1 Matter, 1 Data</td></tr>
+              <tr data-card="tacticalForesight"><th>Tactical Foresight</th><td>1 Energy, 2 Data</td><td>2 Data</td></tr>
+              <tr data-card="dataBrokerage"><th>Data Brokerage</th><td>1 Biomass, 2 Data</td><td>1 Biomass, 1 Data</td></tr>
+              <tr data-card="procurementNetwork"><th>Procurement Network</th><td>1 Matter, 1 Biomass, 2 Data</td><td>2 Data</td></tr>
+              <tr data-card="marketManipulation"><th>Market Manipulation</th><td>1 Energy, 1 Biomass, 2 Data</td><td>1 Energy, 1 Data</td></tr>
+              <tr data-card="commandUplink"><th>Command Uplink</th><td>2 Energy, 1 Biomass, 2 Data</td><td>1 Energy, 1 Data</td></tr>
+              <tr data-card="foldEngine"><th>Fold Engine</th><td>Relic exchange</td><td>3 Energy</td></tr>
+              <tr data-card="precursorForge"><th>Precursor Forge</th><td>Relic exchange</td><td>2 Matter, 2 Data</td></tr>
+              <tr data-card="livingArchive"><th>Living Archive</th><td>Relic exchange</td><td>2 Biomass, 2 Data</td></tr>
+            </tbody></table>
+          </div>
+        </details>
+        <details>
+          <summary>Advanced and relic orders</summary>
+          <div class="book-table" tabindex="0" role="region" aria-label="Advanced card effects">
+            <table><thead><tr><th>Card</th><th>Current 6.11 effect</th></tr></thead><tbody>
+              <tr><th>Survey Drones / Gate Synchronization</th><td>Normal movement. Survey Drones does not add range or filter cards; Gates already work with any Move order.</td></tr>
+              <tr><th>Pathfinder Network</th><td>Move with +1 range; cannot enter hostile hexes.</td></tr>
+              <tr><th>Drop Colony Modules</th><td>Found or capture for 1 Biomass without consuming the Scout.</td></tr>
+              <tr><th>Modular Construction / Orbital Shipyards / Precursor Forge</th><td>One normal Construct order. Their advertised extra builds or discounts are not implemented.</td></tr>
+              <tr><th>Industrial Surge</th><td>Produce from up to three unoccupied owned hexes in the world with the most such hexes; Rich adds 1, Harvesters do not. Local computer rivals instead use their first three eligible hexes across worlds.</td></tr>
+              <tr><th>Terraforming Protocols</th><td>Pay 2 Biomass to make one owned, non-Rich hex Rich.</td></tr>
+              <tr><th>Trade Consortium</th><td>Automatically trade 2 of your most plentiful resource for 1 of your least plentiful; if you have fewer than 2, gain 1 Data instead. Its conversion gives 2 Data.</td></tr>
+              <tr><th>Fleet Overdrive / Fold Engine</th><td>Move with +2 range; attacker cannot withdraw early.</td></tr>
+              <tr><th>Coordinated Assault</th><td>Move normally; add 1 hit in the first volley if you attack.</td></tr>
+              <tr><th>Tactical Foresight / Living Archive</th><td>Draw three, then automatically discard the first card in your hand. There is no selection prompt.</td></tr>
+              <tr><th>Data Brokerage</th><td>Remove the first purchased basic card in discard, if any, then draw two. It does not scrap a card from hand.</td></tr>
+              <tr><th>Command Uplink</th><td>Return the first basic card in discard to hand. Your action ends; play it on a later turn.</td></tr>
+              <tr><th>Procurement Network</th><td>In Buy, set your purchase limit to two. No second-purchase discount.</td></tr>
+              <tr><th>Market Manipulation</th><td>In Buy, replace the first two market cards and give your next purchase a 1 Data discount. Once per round; Data discounts do not stack.</td></tr>
+            </tbody></table>
+          </div>
+        </details>
+        <details>
+          <summary>Automatic reactions</summary>
+          <p>Keep these in hand to use them; converting one spends it. Targeting Algorithms adds 1 hit and Ablative Plating prevents 2 hits in a volley, each consuming one available copy. Additional copies can trigger in later volleys.</p>
+          <p>Emergency Jump applies only to an attacker with surviving power below 55% of the defender’s after a volley: suffer one extra hit, then attempt withdrawal. It cannot interrupt Fleet Overdrive. Salvage Crews grants Matter equal to destroyed pieces, up to three, after combat; both factions can use it.</p>
+        </details>
+      </section>
+
+      <section id="clarifications">
+        <h2>13 / Current playtest clarifications</h2>
+        <p>These are recorded behaviors, not new rules introduced by this manual. Resolving them requires a separate rules change and playtest.</p>
+        <details>
+          <summary>Occupation, retreats, and civilian combat</summary>
+          <ul>
+            <li>Occupation markers currently persist after the occupying fleet leaves. They continue to block production, building, and Warehouse capacity.</li>
+            <li>If a retreat cannot be completed, the combat report says the fleet was lost, but the current engine leaves survivors on the contested hex.</li>
+            <li>Researchers have zero base power, but a Researcher-only side can still receive hits and shields from tactics. Do not treat civilians as immune to combat.</li>
+            <li>Combat damage ties target Researchers, Scouts, Frigates, Shipyards, then Dreadnoughts. A surviving attacker below 65% of defending power after the second volley attempts withdrawal unless using Overdrive.</li>
+            <li>Lost storage is trimmed automatically. Combat removes excess from the largest resource piles in order; cleanup repeatedly removes from the currently largest pile. Ties use Matter, Energy, Biomass, then Data.</li>
+          </ul>
+        </details>
+      </section>
+      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 6.11 · The game and this rulebook travel together in every deployment.</p></footer>
+    </main>
+  </div>
+</body>
+</html>

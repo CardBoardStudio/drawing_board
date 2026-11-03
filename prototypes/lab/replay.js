@@ -1,6 +1,6 @@
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const colors=['#55d9f4','#ff9f6e','#a58cff','#f2cf66'];
-const LIVE_RULES='galactic-reach/6.11';
+const REPLAY_PATHS={'galactic-reach/6.11':'/galactic-reach/rules/6.11/','galactic-reach/7.12':'/galactic-reach/'};
 const titleCase=value=>String(value||'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
 export function matchList(data) {
   const matches=data?.matches||[];
@@ -13,7 +13,7 @@ export function bindReplays(api,onIndexed) {
   document.querySelector('#replay-version')?.addEventListener('change',e=>document.querySelectorAll('[data-replay]').forEach(el=>el.hidden=!!e.target.value&&el.dataset.rules!==e.target.value));
   document.querySelectorAll('[data-replay]').forEach(button=>button.addEventListener('click',async()=>{
     // Current-rules replays open in the live table's own interface.
-    if(button.dataset.rules===LIVE_RULES){location.assign(`/galactic-reach/?replay=${encodeURIComponent(button.dataset.replay)}`);return;}
+    if(REPLAY_PATHS[button.dataset.rules]){location.assign(`${REPLAY_PATHS[button.dataset.rules]}?replay=${encodeURIComponent(button.dataset.replay)}`);return;}
     const old=button.innerHTML; button.disabled=true; button.querySelector('.match-watch').textContent='Opening…';
     try {const data=await api(`/api/arena/replays/${encodeURIComponent(button.dataset.replay)}`,{});openReplay(data);Promise.resolve(onIndexed?.()).catch(()=>{});}
     catch(e){button.innerHTML=old;const error=document.createElement('span');error.className='replay-error';error.textContent=e.message;button.after(error);}

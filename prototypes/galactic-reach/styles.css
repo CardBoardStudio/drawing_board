@@ -716,3 +716,11 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
 }
 
 .rules-badge{display:inline-block;font:600 14px system-ui;color:var(--cyan,#55d9f4);padding:6px 10px;border:1px solid #33566a;border-radius:6px;white-space:nowrap} #construction-discount-row{display:grid;gap:8px;font-size:15px;margin:12px 0} #construction-discount-row[hidden]{display:none} #construction-discount{width:100%;font-size:16px;padding:9px;background:#101e2c;color:#e6f1fa;border:1px solid #39526a;border-radius:5px}
+
+.hand-tools { flex-wrap: wrap; }
+#convert-all-button { display: inline-flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; }
+#convert-all-button[hidden] { display: none; }
+.conversion-symbols { display: inline-flex; gap: 3px; }
+.conversion-symbols .resource-symbol { width: 16px; height: 16px; }
+
+.directive-gain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; }

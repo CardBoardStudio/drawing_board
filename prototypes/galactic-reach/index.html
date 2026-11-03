@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070b13">
-  <title>Galactic Reach · 6.11 · Long Reach experiment</title>
+  <title>Galactic Reach · 7.12 · Pass &amp; Buy experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
   <link rel="stylesheet" href="styles.css?v=long-reach-6-11-replay">
 </head>
@@ -14,8 +14,8 @@
   <main class="app-shell">
     <header class="topbar">
       <div class="brand-block">
-        <div class="eyebrow">LONG REACH EXPERIMENT · 20 PRESTIGE</div>
-        <h1>Galactic Reach <small class="rules-badge">Rules 6.11</small></h1>
+        <div class="eyebrow">PASS &amp; BUY EXPERIMENT · 20 PRESTIGE</div>
+        <h1>Galactic Reach <small class="rules-badge">Rules 7.12 · experiment</small></h1>
       </div>
       <div class="round-block" aria-live="polite">
         <div><span class="label">Round</span><strong id="round-value">1</strong></div>
@@ -40,7 +40,7 @@
             <strong id="turn-title">Preparing the galaxy</strong>
             <span id="turn-instruction">Please wait…</span>
           </div>
-          <button class="button button-danger" id="pass-button" type="button" hidden>Pass for round</button>
+          <button class="button button-danger" id="pass-button" type="button" hidden>Pass &amp; buy</button>
           <button class="button button-ghost" id="report-button" type="button" hidden>Combat report</button>
         </div>
         <div class="board-stage">
@@ -100,7 +100,7 @@
         <div class="tab-panel active" id="hand-panel" data-panel="hand" role="tabpanel" aria-labelledby="hand-tab" tabindex="0">
           <div class="section-intro">
             <div><h2 id="hand-title">Your hand</h2><p id="hand-help">Cards may be converted into resources at any time during your Operations turn, or used for their printed order.</p></div>
-            <div class="hand-tools"><button class="button" id="skip-colony-build" hidden>Finish without building</button>
+            <div class="hand-tools"><button class="button" id="convert-all-button" type="button" title="Converts every card that fits, left to right, including Buy and reaction cards. Cards that do not fit stay in hand.">Convert all to resources</button><button class="button" id="skip-colony-build" hidden>Finish without building</button>
               <div class="pile-stats" aria-label="Your card piles">
                 <span>Deck <strong id="deck-count">0</strong></span>
                 <span>Hand <strong id="hand-pile-count">0</strong></span>
@@ -144,11 +144,11 @@
 
   <dialog id="rules-dialog">
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
-    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 6.11 ↗</a></p>
+    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 7.12 ↗</a></p>
     <div class="rules-grid">
-      <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Factions alternate until everyone has passed.</p></section>
-      <section><h3>Your round</h3><p>Produce → draw five → Operations → Buy → cleanup → policy vote every third round → directive → victory check.</p></section>
-      <section><h3>Your deck</h3><p>Normally buy one card. Spend Data to upgrade original starters or decommission a non-starter. Cards go to discard; stored resources carry forward.</p></section>
+      <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Passing immediately starts your Buy turn. Finish Buy, then the remaining factions continue Operations.</p></section>
+      <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → policy vote every third round → directive → victory check.</p></section>
+      <section><h3>Your deck</h3><p>Normally buy one card. Spend Data to upgrade original starters or trash any eligible discarded card, including starters. Cards go to discard; stored resources carry forward.</p></section>
       <section><h3>Your goal</h3><p>Reach 20 Prestige at the end of a round. Colonies, Shipyards, Relics, influence, purchased cards, and public awards all contribute. The rulebook includes costs, scoring, and current card clarifications.</p></section>
     </div>
   </dialog>

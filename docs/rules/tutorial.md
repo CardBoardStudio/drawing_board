@@ -8,12 +8,12 @@ Give a new commander a small, friendly expedition with a clear destination. Let 
 
 | Mission | Player does | Rulebook source | Completion evidence |
 | --- | --- | --- | --- |
-| Power up | Compare a card's resource and order uses, then convert it | `#resources`, `#orders` | Resource and discard changes from an engine action |
+| Power up | Compare a card's resource and order uses, then try individual and batch conversion | `#resources`, `#orders` | Resource and discard changes; full-card storage limit and cards left in hand |
 | First flight | Move a Scout and reveal a world | `#movement` | Legal movement and shared world reveal |
 | A place to call home | Reserve Biomass and found a Colony | `#orders`, `#building` | Cost paid, Scout consumed, ownership and Prestige updated |
 | Build an engine | Build a structure and observe next-round production | `#building`, `#round` | Production and storage demonstrated, including overflow |
-| Make a deal | Offer or accept a trade, then pass | `#trade`, `#round` | Settlement, Culture gain, and Operations ending |
-| Make the deck yours | Buy a card and upgrade an original starter | `#buy` | Discard destination, upgrade cost, Technology gain |
+| Make a deal | Offer or accept a trade, then pass | `#trade`, `#round` | Settlement, Culture gain, and passing directly into the learner’s Buy turn |
+| Make the deck yours | Buy a card, upgrade a starter, and trash an eligible discarded starter | `#buy` | Discard destination, costs, Technology gain; Finish Buy resumes remaining factions |
 | Choose your future | Spend influence on a vote and choose a directive | `#politics` | Bid spent, policy enacted, benefits distributed |
 | Beyond the frontier | Optional Researcher/relic and combat practice | `#building`, `#combat`, `#cards` | Real engine outcome with an explanation |
 | Your next goal | Inspect scoring and play a staged final round | `#victory` | Victory checked only after the directive |

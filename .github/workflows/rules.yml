@@ -1,0 +1,27 @@
+name: Rules contract
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, edited, ready_for_review]
+permissions:
+  contents: read
+concurrency:
+  group: rules-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  rules:
+    name: Rules contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node scripts/test-rules-contract.cjs
+      - run: node scripts/check-rulebook.cjs
+      - if: github.event_name == 'pull_request'
+        run: node scripts/check-rules-contract.cjs

@@ -24,24 +24,10 @@ node scripts/test-galactic-reach-dialogs.cjs   # round-end dialogs and save migr
 node scripts/balance-simulations.cjs 1         # AI-vs-AI balance harness; raise the count for a full report
 ```
 
-## Current scope
+## Rules and scope
 
-- Interactive galaxy map with movement, construction, colonization, production, trade, combat, and conquest.
-- Separate 12-card military decks replace dice combat: both sides reveal a tactic each volley, combine it with fleet power, then discard and reshuffle tactics as needed.
-- Eleven seven-hex worlds with fog of war. Probes reveal only exact relic coordinates; fast Scouts explore blindly and reveal worlds on arrival.
-- Four home worlds touch the outer edge. Every faction begins with a Colony on the world’s center hex and a Shipyard on the adjacent inward hex.
-- Colonies can only be founded or captured on the center hex of a seven-hex world.
-- A Colony claims its seven-hex world. A player may build a structure on any empty planet hex adjacent to their Colony. Each hex can hold only one building, and structures upgrade in place.
-- During Production, every planet hex held by a combat fleet grants that fleet's controller 1 of its printed resource, in addition to any normal owner production. Researcher-only teams do not produce.
-- Deck-building market with basic orders, advanced cards, reactions, and card-pile inspection.
-- Deck-building is a primary scoring path: every eight purchased cards grant 1 permanent Prestige.
-- Permanent starter cards that upgrade to level II, plus upgradeable planet structures.
-- Expansionist, Culture, Economy, and Technology tracks used for secret policy votes every three rounds.
-- Every 10 unspent influence grants 1 Prestige, creating a tradeoff between voting power and endgame scoring.
-- Each Colony scores 1 Prestige plus a frontier bonus for every two beyond the home world; every pair of Shipyards scores 1 Prestige.
-- End-of-round directives that give the chooser a primary benefit and every rival a related lesser benefit.
-- Slow Researchers recruited at home (or upgraded outer settlements), Rosetta Stone stations, 1-Prestige Relics, and a three-station unlock for the powerful relic deck.
-- Three computer-controlled rival factions with military, economy, and expansion strategies.
-- Public awards, Prestige scoring, round phases, game log, rules reference, autosave, and one-turn undo.
+The [canonical rulebook](rulebook.html) describes the current **Long Reach 6.11** game: four factions race to 20 Prestige through exploration, construction, deck building, trade, politics, and combat. Open `/galactic-reach/rulebook.html` on the deployed site, or `/rulebook.html` on the standalone local server above. It requires no account and is packaged with every PR preview.
 
-This is an independent static playtest prototype. The deployment build serves it from the repository's Rust server at `/galactic-reach/`, but the game does not yet use the multiplayer API, sessions, or server-side persistence model.
+Read the [rules maintenance guide](../../docs/rules/README.md) before changing the game. Logic changes must include a rulebook update in the same PR. The [implementation notes](../../docs/rules/implementation-notes.md) record known printed-text discrepancies; the [tutorial brief](../../docs/rules/tutorial.md) describes the later interactive learning experience.
+
+Guest play saves in the browser. Account-backed tables pin their rules version, and the authoritative AI arena uses the same JavaScript engine. Existing 4.9 and 5.10 tables retain their archived engines; this rulebook applies to 6.11 only.

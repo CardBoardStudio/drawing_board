@@ -1,5 +1,7 @@
 # Playtest roadmap
 
+Historical planning snapshot: PR #5 was adopted and Long Reach 6.11 reached `main` in PR #16. Use the [current workflow](playtest-workflow.md) for new branches and the [canonical rules maintenance guide](rules/README.md) for rules changes. The statuses and numbered follow-ups below describe the earlier planning stage.
+
 This repository has three related pull requests with deliberately different jobs:
 
 | Pull request | Lane | Purpose | State |

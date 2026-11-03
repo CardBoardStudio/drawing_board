@@ -1,0 +1,18 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const sourceDir = path.join(__dirname, '../prototypes/galactic-reach');
+const targetDir = process.argv[2] ? path.resolve(process.argv[2]) : sourceDir;
+const html = fs.readFileSync(path.join(targetDir, 'rulebook.html'), 'utf8');
+const engine = fs.readFileSync(path.join(sourceDir, 'app.js'), 'utf8');
+const format = engine.match(/const SAVE_FORMAT_VERSION = (\d+);/)[1];
+const revision = engine.match(/const RULES_REVISION = (\d+);/)[1];
+assert(html.includes(`<meta name="rules-version" content="galactic-reach/${format}.${revision}">`), 'Rulebook must match the live engine version');
+const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
+assert.equal(new Set(ids).size, ids.length, 'Section IDs must be unique');
+for (const match of html.matchAll(/href="#([^"]+)"/g)) assert(ids.includes(match[1]), `Broken section: ${match[1]}`);
+assert(!/<script\b/i.test(html), 'The rulebook is readable without running game code or accessing saves');
+for (const match of html.matchAll(/href="([^"#]+)"/g)) assert(fs.existsSync(path.join(targetDir, match[1])), `Missing relative link: ${match[1]}`);
+assert(fs.readFileSync(path.join(targetDir, 'index.html'), 'utf8').includes('href="rulebook.html"'), 'The game must link to its own rulebook');
+for (const file of ['rulebook.html', 'rulebook.css']) assert.equal(fs.readFileSync(path.join(targetDir, file), 'utf8'), fs.readFileSync(path.join(sourceDir, file), 'utf8'), `Packaged ${file} must equal the reviewed source`);
+console.log(`Rulebook verified: version ${format}.${revision}, anchors, navigation, and assets in ${targetDir}.`);

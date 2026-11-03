@@ -55,7 +55,7 @@ function createGalacticAdapter(e) {
         if (effect && (effect !== 'manipulation' || !p.marketManipulated)) actions.push({ type: 'buy_effect', card: card.id });
       });
       if (!p.decommissioned && p.resources.data >= 1) p.discard.forEach(card => {
-        if (!card.starter && p.buyStartDiscardIds.includes(card.id)) actions.push({ type: 'decommission', card: card.id });
+        if (p.buyStartDiscardIds.includes(card.id)) actions.push({ type: 'decommission', card: card.id });
       });
       if (e.researchStationCount(seat) >= 3 && p.relics > 0 && state.relicDeck.length) actions.push({ type: 'exchange_relic' });
     } else if (state.phase === 'operations') {
@@ -180,6 +180,6 @@ function createGalacticAdapter(e) {
     const seat = activeSeat();
     return { active: seat, observation: seat === null ? null : observe(seat), legal: legalActions(seat), scores: scores() };
   }
-  return { rulesVersion: 'galactic-reach/6.11', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
+  return { rulesVersion: 'galactic-reach/7.12', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = createGalacticAdapter;

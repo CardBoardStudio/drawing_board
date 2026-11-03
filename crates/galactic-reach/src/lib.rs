@@ -8,7 +8,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/6.11";
+pub const RULES: &str = "galactic-reach/7.12";
 mod legacy_v1;
 mod legacy_v2;
 mod replay;
@@ -40,6 +40,7 @@ impl GalacticReach {
             RULES => RULES,
             "galactic-reach/4.9" => "galactic-reach/4.9",
             "galactic-reach/5.10" => "galactic-reach/5.10",
+            "galactic-reach/6.11" => "galactic-reach/6.11",
             _ => return Err("Unsupported rules version.".into()),
         };
         Self::initialize(seed, Duration::from_secs(90), rules)
@@ -61,12 +62,14 @@ impl GalacticReach {
                 )?;
                 ctx.eval::<(), _>(match rules {
                     RULES => ADAPTER,
+                    "galactic-reach/6.11" => include_str!("../rules/v6-adapter.js"),
                     "galactic-reach/5.10" => include_str!("../rules/v5-adapter.js"),
                     _ => include_str!("../rules/v4-adapter.js"),
                 })?;
                 ctx.eval::<(), _>(include_str!("../rules/replay-view.js"))?;
                 ctx.eval::<(), _>(match rules {
                     RULES => ENGINE,
+                    "galactic-reach/6.11" => include_str!("../rules/v6-app.js"),
                     "galactic-reach/5.10" => include_str!("../rules/v5-app.js"),
                     _ => include_str!("../rules/v4-app.js"),
                 })?;
@@ -450,9 +453,20 @@ mod tests {
     use game_core::run_match;
     #[test]
     fn archived_rules_and_policies_still_load() {
-        for rules in ["galactic-reach/4.9", "galactic-reach/5.10"] {
+        for rules in [
+            "galactic-reach/4.9",
+            "galactic-reach/5.10",
+            "galactic-reach/6.11",
+        ] {
             let game = GalacticReach::with_rules([19; 32], rules).unwrap();
             assert_eq!(game.rules_version(), rules);
+            let mut game = game;
+            game.apply_action(0, json!({"type":"pass"})).unwrap();
+            assert_eq!(
+                game.active_seat(),
+                Some(1),
+                "Archived passes still advance Operations"
+            );
         }
         for policy in ["gr-military/1", "gr-economy/2"] {
             assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
@@ -488,7 +502,11 @@ mod tests {
         assert_eq!(legal, g.legal_actions(0));
         assert_eq!(g.observe(0).unwrap(), before);
         g.apply_action(0, json!({"type":"pass"})).unwrap();
+        assert_eq!(g.active_seat(), Some(0));
+        assert_eq!(g.observe(0).unwrap()["phase"], "buy");
+        g.apply_action(0, json!({"type":"finish_buy"})).unwrap();
         assert_eq!(g.active_seat(), Some(1));
+        assert_eq!(g.observe(1).unwrap()["phase"], "operations");
     }
     #[test]
     fn reference_policies_complete_reproducible_four_player_matches() {

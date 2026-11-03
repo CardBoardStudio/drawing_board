@@ -27,7 +27,7 @@ function diff(before, after, at, out) {
 const context = vm.createContext({});
 vm.runInContext(read('prototypes/galactic-reach/adapter.js') + read('crates/galactic-reach/rules/replay-view.js') + read('prototypes/galactic-reach/app.js'), context);
 const factory = context.createGalacticAdapter;
-let engine, seed = 4242;
+let engine, seed = 1729;
 const random = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32);
 context.createGalacticAdapter = e => { engine = e; return factory(e); };
 const game = context.createGalacticReach({ headless: true, random });

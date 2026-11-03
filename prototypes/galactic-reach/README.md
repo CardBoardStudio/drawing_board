@@ -26,8 +26,8 @@ node scripts/balance-simulations.cjs 1         # AI-vs-AI balance harness; raise
 
 ## Rules and scope
 
-The [canonical rulebook](rulebook.html) describes the current **Long Reach 6.11** game: four factions race to 20 Prestige through exploration, construction, deck building, trade, politics, and combat. Open `/galactic-reach/rulebook.html` on the deployed site, or `/rulebook.html` on the standalone local server above. It requires no account and is packaged with every PR preview.
+The [canonical rulebook](rulebook.html) describes the current **Pass & Buy 7.12 experiment** game: four factions race to 20 Prestige through exploration, construction, deck building, trade, politics, and combat. Open `/galactic-reach/rulebook.html` on the deployed site, or `/rulebook.html` on the standalone local server above. It requires no account and is packaged with every PR preview.
 
 Read the [rules maintenance guide](../../docs/rules/README.md) before changing the game. Logic changes must include a rulebook update in the same PR. The [implementation notes](../../docs/rules/implementation-notes.md) record known printed-text discrepancies; the [tutorial brief](../../docs/rules/tutorial.md) describes the later interactive learning experience.
 
-Guest play saves in the browser. Account-backed tables pin their rules version, and the authoritative AI arena uses the same JavaScript engine. Existing 4.9 and 5.10 tables retain their archived engines; this rulebook applies to 6.11 only.
+Guest play saves in the browser. Account-backed tables pin their rules version, and the authoritative AI arena uses the same JavaScript engine. Existing 4.9, 5.10, and 6.11 tables retain their archived engines; this rulebook applies to 7.12 only. Buy starts when you pass, Convert all respects storage, and discarded starters can be trashed. Start a new game on the experiment’s preview or a separate localhost port.

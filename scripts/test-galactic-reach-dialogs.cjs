@@ -204,6 +204,24 @@ function playToRoundOneDirective() {
   return { storage, game };
 }
 
+test('pass opens Buy before any rival acts, and a Buy reload can finish', () => {
+  const storage = createStorage();
+  const game = boot(storage);
+  game.click('convert-all-button');
+  const converted = game.saved();
+  assert(converted.players[0].discard.length > 0);
+  assert.equal(converted.activePlayer, 0);
+  game.click('pass-button');
+  const state = game.saved();
+  assert.equal(state.phase, 'buy');
+  assert.equal(state.activePlayer, 0);
+  assert(state.players.slice(1).every(p => !p.passed && p.hand.length === 5));
+  const reloaded = boot(storage);
+  assert.equal(JSON.stringify(reloaded.saved()), JSON.stringify(state));
+  reloaded.click('finish-buy-button');
+  assert.equal(reloaded.saved().phase, 'directive');
+});
+
 test('a new game reaches the human-chosen directive at the end of round 1', () => {
   const { game } = playToRoundOneDirective();
   assert.equal(game.saved().phase, 'directive');

@@ -20,7 +20,7 @@ cp prototypes/lab/index.html dist/index.html
 cp prototypes/lab/index.html dist/lab/index.html
 cp prototypes/lab/lab.css prototypes/lab/lab.js prototypes/lab/replay.js dist/lab/
 
-# Preserve the complete v4 and v5 browsers alongside v6; tables never upgrade implicitly.
+# Preserve the complete v4, v5, and v6 browsers alongside v7; tables never upgrade implicitly.
 mkdir -p dist/galactic-reach/rules/4.9
 cp crates/galactic-reach/rules/v4-app.js dist/galactic-reach/rules/4.9/app.js
 cp crates/galactic-reach/rules/v4-styles.css dist/galactic-reach/rules/4.9/styles.css
@@ -33,3 +33,10 @@ cp crates/galactic-reach/rules/v5-app.js dist/galactic-reach/rules/5.10/app.js
 cp crates/galactic-reach/rules/v5-styles.css dist/galactic-reach/rules/5.10/styles.css
 cp crates/galactic-reach/rules/v5-index.html dist/galactic-reach/rules/5.10/index.html
 cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/5.10/table.js
+
+# 6.11 includes its own manual and live-table replay viewer.
+mkdir -p dist/galactic-reach/rules/6.11
+for asset in app.js styles.css index.html replay.js rulebook.html rulebook.css; do
+  cp "crates/galactic-reach/rules/v6-$asset" "dist/galactic-reach/rules/6.11/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/6.11/table.js

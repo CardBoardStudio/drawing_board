@@ -116,8 +116,8 @@ r.playOrder(order.id); assert.equal(r.state.actionMode,'move'); assert.equal(r.s
 r.playOrder(order.id); assert.equal(r.state.actionMode,null,'Clicking again cancels without spending the card');
 assert.equal(r.state.players[0].hand.length,1);
 const old='untouched-v4-save'; storage.set('galactic-reach-save-v4',old);
-assert.equal(r.SAVE_KEY,'galactic-reach-save-v6');
-assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v6');
+assert.equal(r.SAVE_KEY,'galactic-reach-save-v7');
+assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v7');
 const saved=JSON.stringify(fresh(123)); r.saveGame(); fresh(456);
 assert(r.loadGame()); assert.equal(JSON.stringify(r.state),saved,'Reload retains randomized placement');
 assert.equal(storage.get('galactic-reach-save-v4'),old);
@@ -177,6 +177,9 @@ assert(!r.offerTrade(0,{...terms,getType:'matter'})); assert(!r.offerTrade(0,{..
 assert(r.offerTrade(0,terms)); r.state.activePlayer=0;
 assert(!r.offerTrade(0,terms),'Only one offer per round'); assert(r.cancelTrade(0,1));
 assert.equal(r.state.tradeOffers[0].status,'withdrawn');
-tradeFixture(); assert(r.offerTrade(0,terms)); r.startBuyPhase();
+tradeFixture(); assert(r.offerTrade(0,terms));
+r.passOperations(1);
+assert.equal(r.state.tradeOffers[0].status,'open','An early Buy does not expire offers');
+r.nextBuyPlayer(); r.passOperations(2); r.nextBuyPlayer(); r.passOperations(3); r.nextBuyPlayer(); r.passOperations(0);
 assert.equal(r.state.tradeOffers[0].status,'expired'); assert(!r.respondTrade(1,1,'accept'));
 console.log('Open trades: publishing, rejection, atomic acceptance, stale balances, capacity, expiry, reload, and duplicate settlement passed.');

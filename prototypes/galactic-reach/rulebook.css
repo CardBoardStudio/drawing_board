@@ -45,3 +45,21 @@ html { min-width: 0; }
   .book-table { overflow: visible; }
   .rulebook table { min-width: 0; }
 }
+
+/* Resource and unit shapes match the game, with visible names as well as color. */
+.book-symbols { position: absolute; width: 0; height: 0; overflow: hidden; }
+.book-resource { display: inline-flex; align-items: center; gap: .28em; white-space: nowrap; font-weight: 600; }
+.book-resource.matter { color: var(--matter); }
+.book-resource.energy { color: var(--energy); }
+.book-resource.biomass { color: var(--biomass); }
+.book-resource.data { color: var(--data); }
+.rulebook .resource-symbol { width: 1em; height: 1em; }
+.rulebook td .book-resource { padding: 2px 5px; margin: 2px 1px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-2); }
+.book-unit { display: inline-flex; align-items: center; gap: 8px; }
+.book-unit svg { width: 24px; height: 24px; flex: none; fill: none; stroke: var(--cyan); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.book-legend { display: flex; flex-wrap: wrap; gap: 12px 24px; padding: 16px; background: var(--surface-2); border-radius: 8px; }
+.book-legend b { font-size: 1.3em; margin-right: 5px; }
+.rich-mark { color: var(--gold); }
+.relic-mark { color: var(--data); }
+.gate-mark { color: var(--cyan); }
+@media print { .book-resource.matter, .book-resource.energy, .book-resource.biomass, .book-resource.data { color: inherit; } }

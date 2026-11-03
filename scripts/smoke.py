@@ -57,6 +57,12 @@ for path, content_type in [("/", "text/html"), ("/galactic-reach/styles.css", "t
 
 assert b"Drawing Board" in request("/")[2]
 assert b"Galactic Reach" in request("/galactic-reach/")[2]
+status, headers, rulebook = request("/galactic-reach/rulebook.html")
+assert status == 200 and "text/html" in headers["Content-Type"]
+assert b'<meta name="rules-version" content="galactic-reach/6.11">' in rulebook
+assert b'id="victory"' in rulebook and b'20 Prestige' in rulebook
+status, headers, css = request("/galactic-reach/rulebook.css")
+assert status == 200 and "text/css" in headers["Content-Type"] and b'.book-layout' in css
 
 session = request("/api/session")[2]
 assert session["preview_auth"] and not session["dev_auth"]

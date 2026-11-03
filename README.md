@@ -35,6 +35,10 @@ For two human players on one computer, use separate browser profiles or a privat
 
 ## Rules
 
+Galactic Reach has a [canonical 6.11 rulebook](prototypes/galactic-reach/rulebook.html), served at `/galactic-reach/rulebook.html` on the live site and each PR preview. Read the [maintenance guide](docs/rules/README.md) before making changes; every gameplay-logic change must update the rulebook in the same PR. The [interactive tutorial](docs/rules/tutorial.md) is planned after rules review.
+
+### Voidwright
+
 Each player starts with the host's ten-card preset, shuffled, and draws 5. Classic (the default) has 7 Credits and 3 Outposts; Explorer substitutes one Credit for a Survey vessel; Industrial substitutes two Credits for two Reactors. Everyone, including Kepler, uses the same preset. Each turn grants 1 action and 1 buy. Play actions first. Playing any resource, playing all resources, or buying a card moves to the buy phase. Spend credits on supply cards; acquired cards go to discard. End the turn to discard the remaining hand and played cards, then draw 5, shuffling the discard pile if necessary. Unspent resources, actions, and buys expire.
 
 Colonies cannot be played; they score influence across your entire collection: Outpost 1, Colony 3, Metropolis 6. Influence is public in this prototype. The game finishes at the end of the turn when the Metropolis pile is empty, any 3 supply piles are empty, or all players have completed the configured number of turns. Most influence wins; tied players share victory. Salvage Drone automatically scraps a Credit from the remaining hand, otherwise an Outpost, if available.
@@ -80,6 +84,6 @@ Both Voidwright and Galactic Reach implement the shared game/AI contract and run
 
 ## Pull request previews
 
-The repository includes a multi-stage Docker image and a Render Blueprint with automatic per-PR service previews. GitHub Actions builds and smoke-tests the actual deployment image. Preview instances have an access-code-protected test login and isolated, disposable game data; the main service keeps test login disabled. During active Galactic Reach playtests, save-compatible changes stay in the stable playtest pull request while breaking rules experiments use separate pull requests and preview URLs.
+The repository includes a multi-stage Docker image and a Render Blueprint with automatic per-PR service previews. GitHub Actions builds and smoke-tests the actual deployment image. Preview instances have an access-code-protected test login and isolated, disposable game data; the main service keeps test login disabled. Galactic Reach work targets the current stable lane, `main`; breaking rules experiments use separate pull requests and preview URLs.
 
 See [the playtest branching workflow](docs/playtest-workflow.md) for stable and experimental lanes. See [PR preview activation](docs/pr-previews.md) for the one-time Render/GitHub connection, first-PR bootstrap, access code, lifecycle, and storage limitations. The checked-in Blueprint is a disposable testing host, not durable production infrastructure.

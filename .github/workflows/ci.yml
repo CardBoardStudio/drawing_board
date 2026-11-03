@@ -29,6 +29,7 @@ jobs:
       - run: cargo test --workspace --locked
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
       - run: ./scripts/build-web.sh
+      - run: node scripts/check-rulebook.cjs dist/galactic-reach
       - uses: actions/upload-artifact@v4
         with:
           name: drawing-board-web

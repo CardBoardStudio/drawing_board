@@ -26,6 +26,12 @@
 - The build must package the canonical rulebook and stylesheet with the game. Verify anonymous access, game-to-rules navigation, section links, and a narrow viewport. Rules changes need a preview just like code changes; never add `render-preview-skip` to a rules PR.
 - Publishing means pushing to GitHub and confirming the corresponding Render deployment. Opening a PR does not authorize merging it. Report missing or failed deployments honestly.
 
+## Make preview changes visible
+
+- Every player-facing preview must show a visible **What’s new in this playtest** summary in the game. Name the changes a player should try, link the relevant canonical rules, and clearly identify experiments that require a new game. Use short player-facing language, not implementation details.
+- Update the summary in the same PR as gameplay or UI changes, including stacked PRs. Describe the current PR’s additions so testers can distinguish them from its base. Keep the preview’s game, rulebook, version badge, and change summary aligned.
+- Verify the summary on both localhost and the successful Render preview. Include it in the PR’s verification notes. During adoption, review its wording for the stable release; do not leave obsolete experiment claims.
+
 ## Playtest change lanes
 
 - `main` is the current stable lane: Long Reach 6.11 was promoted in PR #16. The former `codex/add-galactic-reach-prototype` lane has merged; do not target it or a closed PR by default. If a new stable playtest lane is explicitly established, update this file and the workflow together.

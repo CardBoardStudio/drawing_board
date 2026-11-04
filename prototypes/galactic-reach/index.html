@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070b13">
-  <title>Galactic Reach · 7.12 · Pass &amp; Buy experiment</title>
+  <title>Galactic Reach · 8.13 · Resource Actions experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=long-reach-6-11-replay">
+  <link rel="stylesheet" href="styles.css?v=resource-actions-8-13">
 </head>
 <body>
   <a class="skip-link" href="#console">Skip to player controls</a>
@@ -14,8 +14,8 @@
   <main class="app-shell">
     <header class="topbar">
       <div class="brand-block">
-        <div class="eyebrow">PASS &amp; BUY EXPERIMENT · 20 PRESTIGE</div>
-        <h1>Galactic Reach <small class="rules-badge">Rules 7.12 · experiment</small></h1>
+        <div class="eyebrow">RESOURCE ACTIONS EXPERIMENT · 20 PRESTIGE</div>
+        <h1>Galactic Reach <small class="rules-badge">Rules 8.13 · experiment</small></h1>
       </div>
       <div class="round-block" aria-live="polite">
         <div><span class="label">Round</span><strong id="round-value">1</strong></div>
@@ -29,6 +29,18 @@
         <button class="button button-ghost" id="new-game-button" type="button">New game</button>
       </div>
     </header>
+    <details class="playtest-changes" id="playtest-changes">
+      <summary><span class="new-feature">New in this playtest</span> 4:1 bank · choose your trades · public votes · trash more cards</summary>
+      <ul>
+        <li><strong>Manage your resources:</strong> trade four of one kind for one of another, or discard to make room. Free during Operations and Buy. <a href="rulebook.html#trade">Trade rules</a></li>
+        <li><strong>Act from the map:</strong> select a unit to find the orders available from your hand. Hand and Market open automatically at the start of their turns. <a href="rulebook.html#orders">Order rules</a></li>
+        <li><strong>Your Trade Consortium, your choice:</strong> gain a resource or choose up to two 2:1 exchanges. <a href="rulebook.html#cards">Card rules</a></li>
+        <li><strong>Trash more cards:</strong> remove multiple eligible discarded cards for 1 Data each. <a href="rulebook.html#buy">Deck rules</a></li>
+        <li><strong>Public policy votes:</strong> see each faction’s choice and bid in turn order. <a href="rulebook.html#politics">Voting rules</a></li>
+        <li><strong>Clearer choices:</strong> Industrial Surge explains its extra production. Card prices are unchanged. <a href="rulebook.html#cards">Card reference</a></li>
+      </ul>
+      <p>Rules 8.13 experiment · Start a new game on this preview. Existing saved tables keep their original rules.</p>
+    </details>
 
     <section class="score-ribbon" id="score-ribbon" aria-label="Player standings"></section>
 
@@ -59,6 +71,21 @@
             </div>
           </div>
           <div class="resource-grid" id="resource-grid"></div>
+          <details class="resource-tools" id="resource-tools">
+            <summary>Bank exchange &amp; discards <span class="new-feature">New</span></summary>
+            <p id="resource-tools-help">Free during your Operations or Buy turn. Bank trades earn no Culture.</p>
+            <form id="bank-trade-form" class="resource-form">
+              <label>Give 4 of<select id="bank-give-type" aria-label="Bank: give four"></select></label>
+              <label>Receive 1 of<select id="bank-get-type" aria-label="Bank: receive one"></select></label>
+              <div id="bank-exchange-preview" class="resource-exchange-preview"></div>
+              <button class="button" id="bank-exchange-button" type="submit">Exchange 4 for 1</button>
+            </form>
+            <form id="discard-resource-form" class="resource-form">
+              <label>Discard<select id="discard-resource-type" aria-label="Resource to discard"></select></label>
+              <label>Amount<input id="discard-resource-amount" type="number" min="1" step="1" value="1" required></label>
+              <button class="button" id="discard-resource-button" type="submit">Discard resources</button>
+            </form>
+          </details>
         </section>
 
 
@@ -77,7 +104,8 @@
             <span class="capacity" id="policy-status">No policy enacted</span>
           </div>
           <div class="track-grid" id="track-grid"></div>
-          <p class="muted policy-summary" id="policy-summary">Every third round, secretly spend track points to vote between two policies.</p>
+          <p class="muted policy-summary" id="policy-summary">Every third round, publicly spend track points to vote between two policies.</p>
+          <div id="public-votes" class="public-votes"></div>
         </section>
 
         <section class="panel log-panel">
@@ -144,11 +172,11 @@
 
   <dialog id="rules-dialog">
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
-    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 7.12 ↗</a></p>
+    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 8.13 ↗</a></p>
     <div class="rules-grid">
       <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Passing immediately starts your Buy turn. Finish Buy, then the remaining factions continue Operations.</p></section>
       <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → policy vote every third round → directive → victory check.</p></section>
-      <section><h3>Your deck</h3><p>Normally buy one card. Spend Data to upgrade original starters or trash any eligible discarded card, including starters. Cards go to discard; stored resources carry forward.</p></section>
+      <section><h3>Your deck</h3><p>Normally buy one card. Spend Data to upgrade original starters or trash eligible discarded cards for 1 Data each, including starters. There is no one-card trash limit. Cards go to discard; stored resources carry forward.</p></section>
       <section><h3>Your goal</h3><p>Reach 20 Prestige at the end of a round. Colonies, Shipyards, Relics, influence, purchased cards, and public awards all contribute. The rulebook includes costs, scoring, and current card clarifications.</p></section>
     </div>
   </dialog>
@@ -158,12 +186,31 @@
     <div class="choice-grid" id="directive-choices"></div>
   </dialog>
 
+  <dialog id="consortium-dialog" class="choice-dialog" aria-labelledby="consortium-title">
+    <div class="dialog-heading"><div><div class="eyebrow">TRADE CONSORTIUM</div><h2 id="consortium-title">Choose your resources</h2><p id="consortium-status" aria-live="polite"></p></div></div>
+    <h3>Gain one resource</h3>
+    <div id="consortium-gains" class="consortium-gains"></div>
+    <h3>Or exchange two for one</h3>
+    <form id="consortium-form" class="resource-form">
+      <label>Give 2 <select id="consortium-give"></select></label>
+      <label>Get 1 <select id="consortium-get"></select></label>
+      <div id="consortium-exchange-preview" class="resource-exchange-preview" aria-live="polite"></div>
+      <button class="button button-primary" id="consortium-exchange-button" type="submit">Exchange 2 for 1</button>
+    </form>
+    <p class="muted">Each exchange uses two of the same resource. Up to two exchanges; no Culture gained.</p>
+    <div class="consortium-footer">
+      <button class="button" id="consortium-cancel" type="button">Cancel · keep card</button>
+      <button class="button button-primary" id="consortium-finish" type="button" hidden>Finish after one exchange</button>
+    </div>
+  </dialog>
+
   <dialog id="policy-dialog" class="choice-dialog">
-    <div class="dialog-heading"><div><div class="eyebrow">SECRET BALLOT</div><h2>Choose a policy and voting power</h2><p>Your bid stays hidden until all factions have committed. Spent track points are removed.</p></div></div>
+    <div class="dialog-heading"><div><div class="eyebrow">PUBLIC VOTE</div><h2>Choose a policy and voting power</h2><p>Vote in turn order, starting with the round leader. Choices and bids are public; points are spent immediately.</p></div></div>
     <form id="policy-form">
+      <div id="policy-votes" class="public-votes" aria-live="polite"></div>
       <div class="choice-grid" id="policy-choices"></div>
       <label class="vote-power">Voting power <input id="vote-power" type="number" min="0" value="0"><span id="vote-limit">0 available</span></label>
-      <button class="button button-primary button-wide" type="submit">Cast hidden ballot</button>
+      <button class="button button-primary button-wide" type="submit">Cast public vote</button>
     </form>
   </dialog>
 
@@ -204,8 +251,8 @@
         <div class="map-legend symbol-legend" id="symbol-legend" aria-label="Ship and building symbol legend"></div>
   </dialog>
 
-  <script src="table.js?v=long-reach-6-11-replay"></script>
-  <script src="replay.js?v=long-reach-6-11-replay"></script>
-  <script src="app.js?v=long-reach-6-11-replay"></script>
+  <script src="table.js?v=resource-actions-8-13"></script>
+  <script src="replay.js?v=resource-actions-8-13"></script>
+  <script src="app.js?v=resource-actions-8-13"></script>
 </body>
 </html>

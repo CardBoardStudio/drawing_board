@@ -48,6 +48,7 @@ jobs:
       - run: node scripts/test-galactic-reach.cjs
       - run: node scripts/test-long-reach.cjs
       - run: node scripts/test-pass-and-buy.cjs
+      - run: node scripts/test-resource-actions.cjs
       - run: node scripts/test-replay-view.cjs
       - run: node scripts/test-galactic-reach-dialogs.cjs
       - name: Balance harness smoke run

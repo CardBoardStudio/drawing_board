@@ -8,9 +8,10 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/7.12";
+pub const RULES: &str = "galactic-reach/8.13";
 mod legacy_v1;
 mod legacy_v2;
+mod legacy_v3;
 mod replay;
 pub use replay::Trace;
 const ENGINE: &str = include_str!("../../../prototypes/galactic-reach/app.js");
@@ -41,6 +42,7 @@ impl GalacticReach {
             "galactic-reach/4.9" => "galactic-reach/4.9",
             "galactic-reach/5.10" => "galactic-reach/5.10",
             "galactic-reach/6.11" => "galactic-reach/6.11",
+            "galactic-reach/7.12" => "galactic-reach/7.12",
             _ => return Err("Unsupported rules version.".into()),
         };
         Self::initialize(seed, Duration::from_secs(90), rules)
@@ -62,6 +64,7 @@ impl GalacticReach {
                 )?;
                 ctx.eval::<(), _>(match rules {
                     RULES => ADAPTER,
+                    "galactic-reach/7.12" => include_str!("../rules/v7-adapter.js"),
                     "galactic-reach/6.11" => include_str!("../rules/v6-adapter.js"),
                     "galactic-reach/5.10" => include_str!("../rules/v5-adapter.js"),
                     _ => include_str!("../rules/v4-adapter.js"),
@@ -69,6 +72,7 @@ impl GalacticReach {
                 ctx.eval::<(), _>(include_str!("../rules/replay-view.js"))?;
                 ctx.eval::<(), _>(match rules {
                     RULES => ENGINE,
+                    "galactic-reach/7.12" => include_str!("../rules/v7-app.js"),
                     "galactic-reach/6.11" => include_str!("../rules/v6-app.js"),
                     "galactic-reach/5.10" => include_str!("../rules/v5-app.js"),
                     _ => include_str!("../rules/v4-app.js"),
@@ -167,18 +171,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/3",
-            Self::Economy => "gr-economy/3",
-            Self::Expansion => "gr-expansion/3",
-            Self::Wanderer => "gr-wanderer/3",
+            Self::Military => "gr-military/4",
+            Self::Economy => "gr-economy/4",
+            Self::Expansion => "gr-expansion/4",
+            Self::Wanderer => "gr-wanderer/4",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/3" => Some(Self::Military),
-            "gr-economy/3" => Some(Self::Economy),
-            "gr-expansion/3" => Some(Self::Expansion),
-            "gr-wanderer/3" => Some(Self::Wanderer),
+            "gr-military/4" => Some(Self::Military),
+            "gr-economy/4" => Some(Self::Economy),
+            "gr-expansion/4" => Some(Self::Expansion),
+            "gr-wanderer/4" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -402,6 +406,35 @@ impl BuiltinAgent {
                 (if action["track"] == track { 20.0 } else { 0.0 })
                     - (number(&action["bid"]) - target).abs()
             }
+            "bank_trade" => {
+                let give = action["giveType"].as_str().unwrap();
+                let get = action["getType"].as_str().unwrap();
+                if number(&me["resources"][give]) >= 5.0 && number(&me["resources"][get]) < 2.0 {
+                    // Keep one of the given resource; favor scarce Data during Buy.
+                    if view["phase"] == "buy" && get == "data" {
+                        35.0
+                    } else {
+                        12.0
+                    }
+                } else {
+                    -20.0
+                }
+            }
+            // Voluntary discards are exposed for players; policies never discard blindly.
+            "consortium_gain" => {
+                30.0 - number(&me["resources"][action["resource"].as_str().unwrap()])
+            }
+            "consortium_exchange" => {
+                let give = number(&me["resources"][action["giveType"].as_str().unwrap()]);
+                let get = number(&me["resources"][action["getType"].as_str().unwrap()]);
+                if give > get + 1.0 {
+                    20.0 + give - get
+                } else {
+                    -5.0
+                }
+            }
+            "finish_consortium" => 0.0,
+            "cancel_consortium" | "discard_resources" => -50.0,
             "decommission" | "exchange_relic" => -10.0,
             _ => 0.0,
         }
@@ -444,6 +477,9 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
     if let Some(strategy) = legacy_v2::Strategy::parse(version) {
         return Ok(Box::new(legacy_v2::BuiltinAgent::new(strategy, seed)));
     }
+    if let Some(strategy) = legacy_v3::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v3::BuiltinAgent::new(strategy, seed)));
+    }
     Err("Unsupported Galactic Reach policy version.".into())
 }
 
@@ -457,6 +493,7 @@ mod tests {
             "galactic-reach/4.9",
             "galactic-reach/5.10",
             "galactic-reach/6.11",
+            "galactic-reach/7.12",
         ] {
             let game = GalacticReach::with_rules([19; 32], rules).unwrap();
             assert_eq!(game.rules_version(), rules);
@@ -464,11 +501,11 @@ mod tests {
             game.apply_action(0, json!({"type":"pass"})).unwrap();
             assert_eq!(
                 game.active_seat(),
-                Some(1),
-                "Archived passes still advance Operations"
+                Some(if rules == "galactic-reach/7.12" { 0 } else { 1 }),
+                "Archived passes retain their original timing"
             );
         }
-        for policy in ["gr-military/1", "gr-economy/2"] {
+        for policy in ["gr-military/1", "gr-economy/2", "gr-expansion/3"] {
             assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
         }
     }

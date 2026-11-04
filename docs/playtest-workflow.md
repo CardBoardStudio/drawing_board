@@ -25,7 +25,7 @@ A change is breaking if it can invalidate a game or materially change a player's
 
 ## Preview verification
 
-Every rules PR ships the edited source document to `/galactic-reach/rulebook.html` beside that PR's game. Open both without signing in. Check the game's Rules dialog link, rulebook navigation and narrow layout, and any changed mechanic. Include both verified URLs in the PR. Do not skip Render previews for documentation-only rules changes.
+Every rules PR ships the edited source document to `/galactic-reach/rulebook.html` beside that PR's game. Open both without signing in. Check the game's Rules dialog link, rulebook navigation and narrow layout, and any changed mechanic. Include both verified URLs in the PR. Each player-facing preview must also show “What’s new in this playtest,” with the current PR’s changes and rulebook links. Verify that panel at the same time. Do not skip Render previews for documentation-only rules changes.
 
 `scripts/build-web.sh` packages the rulebook and its stylesheet; `scripts/check-rulebook.cjs` verifies source and deployed asset contracts. The container smoke requests the rulebook and checks its version marker so a fallback HTML response cannot masquerade as a successful deployment.
 

@@ -11,7 +11,7 @@ createGalacticAdapter = e => {
     const players=s.players.map((p,seat)=>({seat,resources:p.resources,tracks:p.tracks,relics:p.relics,prestige:e.calculatePrestige(seat),colonies:e.colonyPlanets(seat).length,resourceTotal:e.totalResources(p),hand:p.hand.map(c=>({...c,name:e.ALL_CARDS[c.key].name})),deckCount:p.deck.length,discardCount:p.discard.length}));
     const compare=(a,b)=>b.prestige-a.prestige || b.colonies-a.colonies || b.resourceTotal-a.resourceTotal;
     players.forEach(p=>p.rank=1+players.filter(other=>compare(other,p)<0).length);
-    return e.clone({round:s.round,phase:s.phase,active:s.activePlayer,winner:s.winner,players,planets:s.planets,clusters:s.clusters,fleets:s.fleets,awards:s.awards,policy:s.activePolicy,log:s.log,lastCombat:s.lastCombat,tradeOffers:s.tradeOffers,battles});
+    return e.clone({round:s.round,phase:s.phase,active:s.activePlayer,winner:s.winner,players,planets:s.planets,clusters:s.clusters,fleets:s.fleets,awards:s.awards,policy:s.activePolicy,...(s.version>=8?{policyVotes:s.policyVotes,pendingConsortium:s.pendingConsortium}:{}),log:s.log,lastCombat:s.lastCombat,tradeOffers:s.tradeOffers,battles});
   };
   return adapter;
 };

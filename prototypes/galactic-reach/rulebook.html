@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060911">
-  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for the Pass &amp; Buy experiment 7.12.">
-  <meta name="rules-version" content="galactic-reach/7.12">
-  <title>Galactic Reach · Rulebook · 7.12</title>
+  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for the Resource Actions experiment 8.13.">
+  <meta name="rules-version" content="galactic-reach/8.13">
+  <title>Galactic Reach · Rulebook · 8.13</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="rulebook.css">
 </head>
@@ -30,7 +30,7 @@
   <a class="skip-link" href="#start">Skip to rules</a>
   <header class="book-header">
     <a href="./" class="button button-ghost">← Galactic Reach</a>
-    <span class="eyebrow">CANONICAL RULES · PASS &amp; BUY EXPERIMENT · 7.12</span>
+    <span class="eyebrow">CANONICAL RULES · RESOURCE ACTIONS EXPERIMENT · 8.13</span>
   </header>
   <div class="book-layout">
     <nav class="book-nav" aria-label="Rulebook sections">
@@ -48,7 +48,7 @@
       <a href="#politics">Politics &amp; directives</a>
       <a href="#victory">Prestige &amp; victory</a>
       <a href="#cards">Card reference</a>
-      <a href="#clarifications">7.12 clarifications</a>
+      <a href="#clarifications">8.13 clarifications</a>
     </nav>
     <main id="start" tabindex="-1">
       <div class="eyebrow">A GALAXY. FOUR FACTIONS. YOUR NEXT MOVE.</div>
@@ -64,7 +64,7 @@
         </ol>
         <p><strong>Try this:</strong> save a Construct card for its order; convert another card to help pay for a Scout. You cannot use the same card both ways.</p>
       </div>
-      <p class="book-note">This manual describes the <strong>7.12 Pass &amp; Buy experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
+      <p class="book-note">This manual describes the <strong>8.13 Resource Actions experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
 
       <section id="setup">
         <h2>01 / Your starting faction</h2>
@@ -90,12 +90,13 @@
         <p><strong><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>Matter</span></strong> builds; <strong><span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>Energy</span></strong> funds fleets and cards; <strong><span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>Biomass</span></strong> founds colonies; <strong><span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>Data</span></strong> buys and improves cards. Pay the listed cost when you build or buy. Ordinary movement has no resource cost.</p>
         <p>Store <strong>10 resources total</strong>, plus 5 per level of an unoccupied Warehouse you own. A card conversion needs room for its entire gain.</p>
         <p><strong>Convert all to resources</strong> checks your hand from left to right, converts every card whose full gain fits, and leaves the rest in hand. It includes Buy and reaction cards, so save those by converting individually instead. Converting a selected order cancels that selection; conversions never spend your Operations action.</p>
-        <p>Automatic gains that exceed storage are lost; when several types arrive together, storage fills in <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>Matter</span> → <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>Energy</span> → <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>Biomass</span> → <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>Data</span> order. There is no voluntary discard of stored resources in 7.12.</p>
+        <p>Automatic gains that exceed storage are lost; when several types arrive together, storage fills in <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>Matter</span> → <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>Energy</span> → <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>Biomass</span> → <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>Data</span> order. During your own Operations or Buy turn, you may <strong>discard any number of stored resources</strong> to make room. Discarding is free, gives nothing in return, and does not spend a card or end your turn. It is also allowed during Colonize II’s optional build.</p>
         <p>Each owned, unoccupied planet hex produces 1 of its resource, +1 if Rich, plus its Harvester level. A combat fleet on a planet hex also earns its faction 1 of that resource, regardless of ownership. That is one bonus per fleet, not per ship; Researchers alone earn none.</p>
       </section>
 
       <section id="orders">
         <h2>04 / Your four basic orders</h2>
+        <p>Select one of your units on the map to see orders available from your hand. Movement shortcuts select the card and fleet together; build and colonize shortcuts open the matching choices and costs. You still need the normal card, resources, and a legal target. The interface opens Hand when your Operations turn begins and Market when you pass into Buy; you can switch tabs yourself between these transitions.</p>
         <p class="book-note">On small screens, scroll tables sideways to read every column.</p>
         <div class="book-table" tabindex="0" role="region" aria-label="Basic orders">
           <table><thead><tr><th>Card</th><th>Convert</th><th>Use its order</th><th>Level II adds</th></tr></thead><tbody>
@@ -150,6 +151,8 @@
 
       <section id="trade">
         <h2>08 / Trade</h2>
+        <p><strong>Bank exchange, 4:1.</strong> During your own Operations or Buy turn, give four of <em>one</em> resource to gain one of a different resource. For example, <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>4 Energy</span> can become <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span>; <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>2 Energy</span> plus <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> cannot. Repeat while you can pay. Bank exchanges are free, work during Colonize II’s optional build, require no card or rival, and earn no Culture. They do not use your once-per-round player trade.</p>
+        <p><strong>Trade Consortium</strong> is a card order with a better rate: choose a free resource or up to two 2:1 exchanges. You choose every resource; see <a href="#cards">the card reference</a>.</p>
         <p>Once per round, use your Operations action to offer 1–5 of one resource for 1–5 of a different resource. You need the offered resources, but they are not reserved. At least one rival must still be taking Operations turns.</p>
         <p>On their own turn, each rival may accept or reject for free. The first valid acceptance settles the offer; both sides must still have the resources and enough storage after exchanging. Each gains <strong>1 Culture influence</strong>. You may withdraw on your turn, but cannot post a second offer that round. Passing does not withdraw your open offers: rivals still in Operations may accept them, if the live balances allow it. All open offers expire when the last faction passes, before that faction’s Buy turn.</p>
       </section>
@@ -160,7 +163,7 @@
         <p>During the same Buy turn you may also:</p>
         <ul>
           <li><strong>Upgrade starters:</strong> spend <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span> per original starter in your hand or discard to make it level II and gain 1 Technology influence. Purchased basic cards cannot upgrade.</li>
-          <li><strong>Decommission once:</strong> spend <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span> to permanently trash any one card that was in your discard when your Buy turn began, including an original or upgraded starter. Cards still in hand, newly purchased cards, and Buy cards discarded during this turn are ineligible.</li>
+          <li><strong>Decommission cards:</strong> spend <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span> per card to permanently trash as many cards as you can afford from your discard when your Buy turn began, including an original or upgraded starter. Cards still in hand, newly purchased cards, and Buy cards discarded during this turn are ineligible.</li>
           <li><strong>Use Buy cards or exchange Relics.</strong> These do not consume the normal purchase. Hold Buy cards in hand until this phase; conversions are only available in Operations.</li>
         </ul>
       </section>
@@ -168,7 +171,7 @@
       <section id="politics">
         <h2>10 / Politics &amp; directives</h2>
         <p>Influence has four tracks: <strong>Expansionist</strong> from builds/upgrades, <strong>Culture</strong> from completed trades, <strong>Economy</strong> from purchases, and <strong>Technology</strong> from starter upgrades. Every 10 unspent points across all tracks score 1 Prestige.</p>
-        <p>Every third round, secretly bid points from a policy’s matching track. Bids are spent even if your choice loses; bidding zero is allowed. The winning policy replaces the previous one. The two pairs alternate:</p>
+        <p>Every third round, vote publicly, starting with the round’s first player and continuing clockwise. Choose a policy and bid points from its matching track. Everyone sees each choice, bid, and running total before the next faction votes. Bids are spent immediately, even if your choice loses; bidding zero is allowed. The winning policy replaces the previous one. The two pairs alternate:</p>
         <ul>
           <li><strong>Frontier Grants (Expansionist):</strong> first eligible build each round costs 1 less <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>Matter</span>; Research Stations and Colonize II’s bonus building are excluded. <strong>Open Exchange (Culture):</strong> each completed trade also gives both parties <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span>.</li>
           <li><strong>Market Stimulus (Economy):</strong> first purchase each round costs 1 less <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>Data</span>. <strong>Research Mandate (Technology):</strong> starter upgrades earn 2 Technology instead of 1.</li>
@@ -244,14 +247,14 @@
         <details>
           <summary>Advanced and relic orders</summary>
           <div class="book-table" tabindex="0" role="region" aria-label="Advanced card effects">
-            <table><thead><tr><th>Card</th><th>Current 7.12 effect</th></tr></thead><tbody>
+            <table><thead><tr><th>Card</th><th>Current 8.13 effect</th></tr></thead><tbody>
               <tr><th>Survey Drones / Gate Synchronization</th><td>Normal movement. Survey Drones does not add range or filter cards; Gates already work with any Move order.</td></tr>
               <tr><th>Pathfinder Network</th><td>Move with +1 range; cannot enter hostile hexes.</td></tr>
               <tr><th>Drop Colony Modules</th><td>Found or capture for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> without consuming the Scout.</td></tr>
               <tr><th>Modular Construction / Orbital Shipyards / Precursor Forge</th><td>One normal Construct order. Their advertised extra builds or discounts are not implemented.</td></tr>
-              <tr><th>Industrial Surge</th><td>Produce from up to three unoccupied owned hexes in the world with the most such hexes; Rich adds 1, Harvesters do not. Local computer rivals instead use their first three eligible hexes across worlds.</td></tr>
+              <tr><th>Industrial Surge</th><td>Immediately collect one extra production from up to three unoccupied owned hexes in the world with the most such hexes. Each gives 1 of its printed resource, or 2 if Rich; add no Harvester bonus. For example, a Matter hex and a Rich Energy hex give <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span> and <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>2 Energy</span>, even if they have Harvesters. This does not replace normal round production. Local computer rivals instead use their first three eligible hexes across worlds.</td></tr>
               <tr><th>Terraforming Protocols</th><td>Pay <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>2 Biomass</span> to make one owned, non-Rich hex Rich.</td></tr>
-              <tr><th>Trade Consortium</th><td>Automatically trade 2 of your most plentiful resource for 1 of your least plentiful; if you have fewer than 2, gain <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span> instead. Its conversion gives <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>2 Data</span>.</td></tr>
+              <tr><th>Trade Consortium</th><td>Choose: gain 1 resource of any type, or make up to two bank exchanges at 2:1. For each exchange, choose two of one resource to give and one different resource to receive. You may stop after one exchange. Cancel before gaining or exchanging to keep the card; otherwise, discard it and end your Operations action when finished. Finish this choice before doing anything else. Gaining needs one open storage; exchanging frees one. No Culture or player-trade allowance is involved. Converting this card instead gives 2 Data.</td></tr>
               <tr><th>Fleet Overdrive / Fold Engine</th><td>Move with +2 range; attacker cannot withdraw early.</td></tr>
               <tr><th>Coordinated Assault</th><td>Move normally; add 1 hit in the first volley if you attack.</td></tr>
               <tr><th>Tactical Foresight / Living Archive</th><td>Draw three, then automatically discard the first card in your hand. There is no selection prompt.</td></tr>
@@ -283,7 +286,7 @@
           </ul>
         </details>
       </section>
-      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 7.12 · The game and this rulebook travel together in every deployment.</p></footer>
+      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 8.13 · The game and this rulebook travel together in every deployment.</p></footer>
     </main>
   </div>
 </body>

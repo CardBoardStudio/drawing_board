@@ -31,10 +31,18 @@ let engine, seed = 1729;
 const random = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32);
 context.createGalacticAdapter = e => { engine = e; return factory(e); };
 const game = context.createGalacticReach({ headless: true, random });
-const weight = { colony_build: 60, colonize: 60, trade_accept: 25, trade_offer: 3, upgrade: 20, build: 8, move: 8, buy: 6, probe: 2, pass: .3, finish_buy: 1, finish_colony_build: .5 };
+// A fixed opening exercises the optional Colonize II continuation independently of
+// later random decisions (public vote order changes that trajectory).
+const openingWorld = engine.state.clusters.find(c=>engine.state.planets[c.center].owner===null);
+engine.state.players[0].hand.push({id:'replay-colonize-II',key:'colonize',starter:true,upgraded:true});
+engine.state.players[0].resources={matter:3,energy:3,biomass:3,data:1};
+engine.state.fleets[openingWorld.center]={0:{scout:1,researcher:0,frigate:0,dreadnought:0}};
+openingWorld.revealedBy.push(0);
+const weight = { bank_trade: 0, discard_resources: 0, colony_build: 60, colonize: 60, trade_accept: 25, trade_offer: 3, upgrade: 20, build: 8, move: 8, buy: 6, probe: 2, pass: .3, finish_buy: 1, finish_colony_build: .5 };
 // JSON copies: vm-realm arrays would fail strict deep equality on their prototypes.
 const truth = state => JSON.parse(JSON.stringify({
   pending: state.pendingColonyBuild ? { playerId: state.pendingColonyBuild.playerId, colony: state.pendingColonyBuild.colony } : null,
+  policyVotes: state.policyVotes, pendingConsortium: state.pendingConsortium,
   tradesWith: state.players.map(p => [...p.tradesWith]),
   cardsPurchased: state.players.map(p => p.cardsPurchased || 0),
 }));
@@ -47,6 +55,9 @@ for (let n = 0; n < 1800 && game.activeSeat() !== null; n++) {
   const total = legal.reduce((sum, a) => sum + (weight[a.type] ?? 1), 0);
   let pick = random() * total, action = legal.at(-1);
   for (const a of legal) { pick -= weight[a.type] ?? 1; if (pick <= 0) { action = a; break; } }
+  if (n===0) action=legal.find(a=>a.type==='colonize'&&a.card==='replay-colonize-II'&&a.coord===openingWorld.center);
+  if (n===1) action=legal.find(a=>a.type==='colony_build');
+  assert(action,'Fixed opening is legal');
   game.applyAction(seat, action);
   const view = JSON.parse(JSON.stringify(game.replayView()));
   const changes = [];
@@ -73,6 +84,8 @@ for (let index = 0; index <= frames.length; index++) {
   const step = analysis.steps[index];
   const raw = stateAt(data, analysis, index);
   if (index % 5 === 0 || step.pendingColonyBuild || step.decision?.combat) assert.deepEqual(raw, views[index], `Replay deltas rebuild decision ${index}`);
+  assert.deepEqual(raw.policyVotes,truths[index].policyVotes,`Public votes at decision ${index}`);
+  assert.deepEqual(raw.pendingConsortium,truths[index].pendingConsortium,`Trade Consortium choice at decision ${index}`);
   assert.deepEqual(step.pendingColonyBuild, truths[index].pending, `Pending Colonize II at decision ${index}`);
   assert.deepEqual(step.tradesWith, truths[index].tradesWith, `Completed trades at decision ${index}`);
   assert.deepEqual(step.cardsPurchased, truths[index].cardsPurchased, `Purchased cards at decision ${index}`);

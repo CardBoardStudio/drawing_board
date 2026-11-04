@@ -63,7 +63,7 @@ for (const upgraded of [false, true]) {
   assert.equal(legal.length, 1); assert.equal(legal[0].card, card.id);
   const before = p.resources.data; act(g, 'decommission');
   assert.equal(p.resources.data, before - 1); assert(!p.discard.some(c => c.id === card.id));
-  assert(!g.adapter.legalActions(0).some(a => a.type === 'decommission'), 'Once per round');
+  assert(!g.adapter.legalActions(0).some(a => a.type === 'decommission'), 'No eligible cards remain; the new purchase is excluded');
 }
 {
   const g = engine(), p = g.port.state.players[0];

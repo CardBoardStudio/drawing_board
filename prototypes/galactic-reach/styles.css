@@ -724,3 +724,25 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
 .conversion-symbols .resource-symbol { width: 16px; height: 16px; }
 
 .directive-gain { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; }
+
+.playtest-changes { margin: 0 0 16px; padding: 12px 16px; border: 1px solid var(--line-bright); border-left: 3px solid var(--cyan); border-radius: 8px; background: var(--surface-2); font-size: 13px; line-height: 1.6; }
+.playtest-changes summary, .resource-tools summary { cursor: pointer; font-weight: 600; }
+.playtest-changes a { color: var(--cyan); }
+.playtest-changes p { margin-bottom: 0; color: var(--muted); }
+.new-feature { display: inline-block; color: var(--cyan); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; margin-right: 8px; }
+.resource-tools { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 14px; }
+.resource-tools p { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.resource-form { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin: 12px 0; }
+.resource-form label { min-width: 0; display: grid; gap: 5px; font-size: 12px; }
+.resource-form input, .resource-form select { width: 100%; min-width: 0; min-height: 42px; border: 1px solid var(--line-bright); border-radius: 3px; background: var(--surface-2); color: var(--text); padding: 9px; font-size: 16px; }
+.resource-form button, .resource-exchange-preview { grid-column: 1 / -1; }
+.resource-exchange-preview { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.context-order-list { display: grid; gap: 8px; padding-top: 8px; }
+.context-order-list .button { white-space: normal; }
+
+/* Explicit card decisions and public voting use the same resource symbols as the board. */
+.consortium-gains { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.consortium-gains .button { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; }
+.consortium-footer { display:flex; justify-content:flex-end; margin-top:20px; }
+.public-votes { display:grid; gap:6px; margin:12px 0; font-size:.82rem; color:var(--muted); overflow-wrap:anywhere; }
+.public-votes:empty { display:none; }

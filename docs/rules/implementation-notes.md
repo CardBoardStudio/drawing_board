@@ -16,3 +16,5 @@ Before declaring the rules ready for tutorial production, review the following w
 | Ties | Browser victory chooses the earliest seat after exact score ties; arena standings share rank. Policy ties use first-player seat parity, not a choice prompt. | `finishRound`, adapter `standings`, `enactPolicy` |
 
 Open proposals such as voluntary resource discards and upgrading purchased basic cards are not current rules. The initial rulebook must not pre-adopt them. The tutorial should link to these decisions through its source rule sections and avoid teaching unresolved exceptions as deliberate strategy.
+
+The 8.13 Resource Actions experiment resolves the Trade Consortium exception: its order explicitly chooses a resource gain or up to two chosen 2:1 exchanges. Its conversion remains 2 Data. The archived 6.11 and 7.12 behavior above is unchanged.

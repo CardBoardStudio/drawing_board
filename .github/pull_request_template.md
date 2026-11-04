@@ -23,6 +23,7 @@ For a breaking experiment: target the current stable lane (`main`), describe one
 
 ## Verification
 
+- Player-visible preview change summary (what to try and rule links):
 - Checks run and behavior tested:
 - Successful Render deployment for this head commit:
 - Game URL:

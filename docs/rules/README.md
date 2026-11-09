@@ -1,6 +1,6 @@
 # Galactic Reach rules maintenance
 
-The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 8.13 / Resource Actions experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
+The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 11.16 / Alien Relics experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
 
 ## Read, change, verify
 
@@ -18,8 +18,8 @@ The rulebook is authoritative for intended play. The initial version documents e
 | `#setup`, `#round` | `newState`, `generateGalaxy`, `beginRound`, `cleanupRound` in `app.js` | `test-long-reach.cjs`, `test-pass-and-buy.cjs`, `test-resource-actions.cjs`, `test-galactic-reach-dialogs.cjs` |
 | `#resources`, `#orders`, `#movement` | `produceAll`, `cardResources`, `movementRange`, `reachableFrom`, `applyColonizeOrder` | `test-galactic-reach.cjs`, `test-long-reach.cjs` |
 | `#building`, `#combat` | `constructAt`, `buildResearchStation`, `resolveCombat`, `colonizePlanet` | `test-galactic-reach.cjs` |
-| `#trade`, `#buy` | `offerTrade`, `respondTrade`, `buyCard`, `upgradeStarter`, `decommission` | `test-galactic-reach.cjs`, `test-long-reach.cjs` |
-| `#politics`, `#victory` | `enactPolicy`, `applyDirective`, `calculatePrestige`, `finishRound` | `test-long-reach.cjs`, `test-pass-and-buy.cjs`, `test-resource-actions.cjs`, `test-galactic-reach-dialogs.cjs` |
+| `#resources`, `#trade`, `#buy` | `offerTrade`, `respondTrade`, `buyCard`, `upgradeStarter`, `decommission`, `increaseStorage` | `test-galactic-reach.cjs`, `test-long-reach.cjs` |
+| `#politics`, `#victory` | `applyDirective`, `calculatePrestige`, `finishRound` | `test-long-reach.cjs`, `test-pass-and-buy.cjs`, `test-resource-actions.cjs`, `test-galactic-reach-dialogs.cjs` |
 | `#cards`, `#clarifications` | card definitions, `resolveHumanSpecial`, `useBuyEffect`, `resolveCombat`; legal actions in `adapter.js` | relevant mechanic regression, added when resolving each discrepancy |
 
 Engine files are under `prototypes/galactic-reach/`; check scripts are under `scripts/`. The Rust adapter in `crates/galactic-reach/` embeds the same JavaScript. Historical engines remain under `crates/galactic-reach/rules/`. Do not revise an archived ruleset's meaning to match the current manual.
@@ -32,8 +32,12 @@ Engine files are under `prototypes/galactic-reach/`; check scripts are under `sc
 - GitHub's `Rules contract` job checks every PR's grounding declaration. Known rule-bearing paths require the canonical rulebook in the diff; a declaration of changed gameplay also requires it. UI-only changes inside shared engine files are conservatively included. A reviewer must still catch logic changes elsewhere and assess whether the document update is meaningful.
 - `scripts/build-web.sh` copies the HTML and CSS directly into `dist/galactic-reach/`; Docker copies that same directory. No account, external publishing service, client script, or game save is needed to read rules.
 
-The 8.13 experiment adds free 4:1 bank trades and voluntary resource discards during the acting faction’s Operations or Buy, plus map order shortcuts, repeated paid trashing, public policy bids, and chosen Trade Consortium gains/exchanges. Card prices are unchanged. The archived 6.11 and 7.12 manuals and browsers remain at their versioned `/galactic-reach/rules/<version>/` paths. Every deployment is a snapshot: a preview serves that PR's rulebook and the stable deployment serves the adopted rulebook. The new v8 guest keys and version-pinned tables isolate this experiment from ongoing games. The [tutorial brief](tutorial.md) is the next stage after rules review, not an implemented tutorial.
+The 9.14 experiment removes influence and policy voting. Settlers replace Scouts at movement 1, Explorers replace Researchers at movement 3, and Frigates move 2. Each faction starts with a Colony and one Settler on it, without a Shipyard. Resource directives and the 8.13 resource actions remain. Archived engines and manuals preserve earlier games, and v9 guest keys isolate new games. The [tutorial brief](tutorial.md) is the next stage after rules review, not an implemented tutorial.
 
 ## Preview change summaries
 
 Every player-facing preview has a visible “What’s new in this playtest” summary in the game. Update it for the PR’s changes, link the relevant rulebook sections, and state when testers need a new game. Keep it concise and distinguish a stacked PR’s additions from its parent. Verify it on localhost and the successful Render preview; review the wording again when adopting the change.
+
+The 10.15 iteration removes Research Stations, Dreadnoughts, Gates, and Gate Synchronization. Fleet replaces Frigate at movement 2. Capacity grows by 5 for 2 Matter, 1 Energy, and 1 Data during Operations or Buy without using a card, action, purchase, or map hex. Explorers recover relics for the former station cost using Construct, and three recoveries unlock relic exchanges. The complete 9.14 rules remain archived; new games use v10 saves.
+
+The 11.16 revision overrides the earlier Relic infrastructure. Start with only a Colony and a six-card deck; commission all units at Shipyards. Settler and Explorer purchases grant Colonize and Probe respectively, outside the basic market. Research Stations grant 1 Prestige and an immediate private draw from the 12-card alien deck; inventory, recovery counters, and exchanges are gone. Current saves use v11 and prior 10.15 assets and AI policies remain archived.

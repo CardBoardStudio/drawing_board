@@ -4,9 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070b13">
-  <title>Galactic Reach · 8.13 · Resource Actions experiment</title>
+  <title>Galactic Reach · 11.16 · Alien Relics experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=resource-actions-8-13">
+  <link rel="stylesheet" href="styles.css?v=alien-relics-11-16">
+  <link rel="stylesheet" href="playtest-notes.css?v=1">
 </head>
 <body>
   <a class="skip-link" href="#console">Skip to player controls</a>
@@ -14,8 +15,8 @@
   <main class="app-shell">
     <header class="topbar">
       <div class="brand-block">
-        <div class="eyebrow">RESOURCE ACTIONS EXPERIMENT · 20 PRESTIGE</div>
-        <h1>Galactic Reach <small class="rules-badge">Rules 8.13 · experiment</small></h1>
+        <div class="eyebrow">ALIEN RELICS EXPERIMENT · 20 PRESTIGE</div>
+        <h1>Galactic Reach <small class="rules-badge">Rules 11.16 · experiment</small></h1>
       </div>
       <div class="round-block" aria-live="polite">
         <div><span class="label">Round</span><strong id="round-value">1</strong></div>
@@ -29,17 +30,16 @@
         <button class="button button-ghost" id="new-game-button" type="button">New game</button>
       </div>
     </header>
-    <details class="playtest-changes" id="playtest-changes">
-      <summary><span class="new-feature">New in this playtest</span> 4:1 bank · choose your trades · public votes · trash more cards</summary>
+    <details class="playtest-changes" id="playtest-changes" open>
+      <summary><span class="new-feature">New in this playtest</span> Colony-only start · unit-linked cards · 12 alien relics</summary>
       <ul>
-        <li><strong>Manage your resources:</strong> trade four of one kind for one of another, or discard to make room. Free during Operations and Buy. <a href="rulebook.html#trade">Trade rules</a></li>
-        <li><strong>Act from the map:</strong> select a unit to find the orders available from your hand. Hand and Market open automatically at the start of their turns. <a href="rulebook.html#orders">Order rules</a></li>
-        <li><strong>Your Trade Consortium, your choice:</strong> gain a resource or choose up to two 2:1 exchanges. <a href="rulebook.html#cards">Card rules</a></li>
-        <li><strong>Trash more cards:</strong> remove multiple eligible discarded cards for 1 Data each. <a href="rulebook.html#buy">Deck rules</a></li>
-        <li><strong>Public policy votes:</strong> see each faction’s choice and bid in turn order. <a href="rulebook.html#politics">Voting rules</a></li>
-        <li><strong>Clearer choices:</strong> Industrial Surge explains its extra production. Card prices are unchanged. <a href="rulebook.html#cards">Card reference</a></li>
+        <li><strong>Build your first expedition:</strong> start with only a Colony and 3 Move + 3 Construct cards. All units, including Explorers, commission at Shipyards. <a href="rulebook.html#setup">Setup rules</a></li>
+        <li><strong>Your units bring their orders:</strong> each Settler adds Colonize to discard; each Explorer adds Probe. Neither card is sold separately. <a href="rulebook.html#building">Unit rules</a></li>
+        <li><strong>Awaken alien technology:</strong> establish a Research Station at a relic to draw a powerful alien card straight into your hand. Each station scores 1 Prestige. <a href="rulebook.html#alien-relics">Alien relic rules</a></li>
+        <li><strong>Keep playtest notes:</strong> pin observations to a hex or control and review them as a GitHub issue.</li>
       </ul>
-      <p>Rules 8.13 experiment · Start a new game on this preview. Existing saved tables keep their original rules.</p>
+      <button class="button button-ghost" id="open-relic-catalog" type="button">Preview all 12 alien relics</button>
+      <p>Rules 11.16 experiment · Start a new game. Fleets move 2; permanent storage upgrades remain. Gates, Dreadnoughts, influence, and policies stay removed.</p>
     </details>
 
     <section class="score-ribbon" id="score-ribbon" aria-label="Player standings"></section>
@@ -71,9 +71,13 @@
             </div>
           </div>
           <div class="resource-grid" id="resource-grid"></div>
+          <div class="storage-upgrade-control">
+            <button class="button storage-upgrade-button" id="upgrade-storage-button" type="button" aria-describedby="storage-upgrade-help"><span>Add 5 storage</span><span id="storage-upgrade-cost"></span></button>
+            <p class="muted" id="storage-upgrade-help">Permanent capacity upgrade. Pay during your Operations or Buy turn.</p>
+          </div>
           <details class="resource-tools" id="resource-tools">
             <summary>Bank exchange &amp; discards <span class="new-feature">New</span></summary>
-            <p id="resource-tools-help">Free during your Operations or Buy turn. Bank trades earn no Culture.</p>
+            <p id="resource-tools-help">Free during your Operations or Buy turn.</p>
             <form id="bank-trade-form" class="resource-form">
               <label>Give 4 of<select id="bank-give-type" aria-label="Bank: give four"></select></label>
               <label>Receive 1 of<select id="bank-get-type" aria-label="Bank: receive one"></select></label>
@@ -98,15 +102,6 @@
           <div id="award-list" class="award-list"></div>
         </section>
 
-        <section class="panel politics-panel">
-          <div class="panel-heading">
-            <div><div class="eyebrow">POLITICAL CAPITAL</div><h2>Influence tracks</h2></div>
-            <span class="capacity" id="policy-status">No policy enacted</span>
-          </div>
-          <div class="track-grid" id="track-grid"></div>
-          <p class="muted policy-summary" id="policy-summary">Every third round, publicly spend track points to vote between two policies.</p>
-          <div id="public-votes" class="public-votes"></div>
-        </section>
 
         <section class="panel log-panel">
           <div class="panel-heading">
@@ -161,7 +156,7 @@
           <div class="trade-ledger" id="trade-ledger" aria-label="Completed trades by rival"></div>
         </div>
         <div class="tab-panel" id="fleet-panel" data-panel="fleet" role="tabpanel" aria-labelledby="fleet-tab" tabindex="0" hidden>
-          <div class="section-intro"><div><h2>Fleet manifest</h2><p>Scouts move fast and colonize. Researchers move one hex toward probe-marked relics.</p></div></div>
+          <div class="section-intro"><div><h2>Fleet manifest</h2><p>Settlers move fast and colonize. Explorers move one hex toward probe-marked relics.</p></div></div>
           <div class="fleet-summary" id="fleet-summary"></div>
           <div class="military-deck-heading"><div><h3>Your military deck</h3><p>Each side reveals one tactic per volley. Used tactics reshuffle when the deck empties.</p></div><strong id="military-deck-count">12 ready · 0 used</strong></div>
           <div class="military-card-grid" id="military-card-grid"></div>
@@ -172,12 +167,12 @@
 
   <dialog id="rules-dialog">
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
-    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 8.13 ↗</a></p>
+    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 11.16 ↗</a></p>
     <div class="rules-grid">
       <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Passing immediately starts your Buy turn. Finish Buy, then the remaining factions continue Operations.</p></section>
-      <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → policy vote every third round → directive → victory check.</p></section>
+      <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → resource directive → victory check.</p></section>
       <section><h3>Your deck</h3><p>Normally buy one card. Spend Data to upgrade original starters or trash eligible discarded cards for 1 Data each, including starters. There is no one-card trash limit. Cards go to discard; stored resources carry forward.</p></section>
-      <section><h3>Your goal</h3><p>Reach 20 Prestige at the end of a round. Colonies, Shipyards, Relics, influence, purchased cards, and public awards all contribute. The rulebook includes costs, scoring, and current card clarifications.</p></section>
+      <section><h3>Your goal</h3><p>Reach 20 Prestige at the end of a round. Colonies, Shipyards, Research Stations, purchased cards, and public awards all contribute. The rulebook includes costs, scoring, and current card clarifications.</p></section>
     </div>
   </dialog>
 
@@ -197,22 +192,13 @@
       <div id="consortium-exchange-preview" class="resource-exchange-preview" aria-live="polite"></div>
       <button class="button button-primary" id="consortium-exchange-button" type="submit">Exchange 2 for 1</button>
     </form>
-    <p class="muted">Each exchange uses two of the same resource. Up to two exchanges; no Culture gained.</p>
+    <p class="muted">Each exchange uses two of the same resource. Up to two exchanges;</p>
     <div class="consortium-footer">
       <button class="button" id="consortium-cancel" type="button">Cancel · keep card</button>
       <button class="button button-primary" id="consortium-finish" type="button" hidden>Finish after one exchange</button>
     </div>
   </dialog>
 
-  <dialog id="policy-dialog" class="choice-dialog">
-    <div class="dialog-heading"><div><div class="eyebrow">PUBLIC VOTE</div><h2>Choose a policy and voting power</h2><p>Vote in turn order, starting with the round leader. Choices and bids are public; points are spent immediately.</p></div></div>
-    <form id="policy-form">
-      <div id="policy-votes" class="public-votes" aria-live="polite"></div>
-      <div class="choice-grid" id="policy-choices"></div>
-      <label class="vote-power">Voting power <input id="vote-power" type="number" min="0" value="0"><span id="vote-limit">0 available</span></label>
-      <button class="button button-primary button-wide" type="submit">Cast public vote</button>
-    </form>
-  </dialog>
 
   <dialog id="message-dialog">
     <div class="dialog-heading"><div><div class="eyebrow" id="message-kicker">EVENT</div><h2 id="message-title">Title</h2></div></div>
@@ -251,8 +237,14 @@
         <div class="map-legend symbol-legend" id="symbol-legend" aria-label="Ship and building symbol legend"></div>
   </dialog>
 
-  <script src="table.js?v=resource-actions-8-13"></script>
-  <script src="replay.js?v=resource-actions-8-13"></script>
-  <script src="app.js?v=resource-actions-8-13"></script>
+  <dialog id="relic-catalog-dialog" class="relic-catalog-dialog" aria-labelledby="relic-catalog-title">
+    <div class="dialog-heading"><div><div class="eyebrow">TECHNOLOGY FROM LOST CIVILIZATIONS</div><h2 id="relic-catalog-title">Alien relic deck</h2><p>12 unique cards, one of each. Establish a Research Station to draw one into your hand.</p></div><button class="button button-ghost" id="close-relic-catalog" type="button">Close relic preview</button></div>
+    <div class="relic-catalog-grid" id="relic-catalog-grid"></div>
+  </dialog>
+
+  <script src="table.js?v=alien-relics-11-16"></script>
+  <script src="replay.js?v=alien-relics-11-16"></script>
+  <script src="app.js?v=alien-relics-11-16"></script>
+  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="11.16"></script>
 </body>
 </html>

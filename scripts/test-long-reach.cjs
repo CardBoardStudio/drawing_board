@@ -13,7 +13,7 @@ math.random = () => ((seed = (Math.imul(seed,1664525)+1013904223)>>>0) / 2**32);
 const elements = new Map();
 const element = selector => {
   if (!elements.has(selector)) elements.set(selector, {
-    open:false,value:0,elements:{'policy-choice':{value:0}},
+    open:false,value:0,elements:{},
     querySelectorAll:()=>[], showModal(){this.open=true;}, close(){this.open=false;},
   });
   return elements.get(selector);
@@ -29,7 +29,7 @@ vm.runInContext(source.slice(0,boot)+`
     get state(){ return state; }, set state(value){ state=value; },
     newState, generateGalaxy, boardHas, hexDistance, fleetMove, reachableFrom,
     prepareHumanMove, chooseAiMove, calculatePrestige, finishRound, saveGame, loadGame,
-    beginRound, passOperations, runAiOperation, runAiBuy, nextBuyPlayer, resolvePolicyVote, applyDirective,
+    beginRound, passOperations, runAiOperation, runAiBuy, nextBuyPlayer, applyDirective,
     SAVE_KEY, TURN_HISTORY_KEY, VICTORY_TARGET, BOARD_RADIUS,
     canOfferTrade, offerTrade, respondTrade, cancelTrade, tradeBlockReason, startBuyPhase,
     playOrder, cardMarkup, makeCard,
@@ -58,13 +58,12 @@ function assertGalaxy(s) {
     assert(world.coords.some(key=>distance(key)===12),'Each home world touches the outer ring');
     const colony=s.planets[world.center];
     assert.equal(colony.owner,id); assert.equal(colony.hasColony,true);
-    const yard=world.coords.find(key=>s.planets[key].upgrade==='starbase');
-    assert.equal(distance(yard),10,'Shipyards point inward');
-    assert.equal(s.planets[yard].type,'energy');
-    assert.equal(s.fleets[yard][id].scout,1);
+    assert.equal(Object.values(s.planets).filter(p=>p.owner===id).length,1,'Only the starting Colony is owned');
+    assert.equal(Object.values(s.planets).filter(p=>p.upgrade==='starbase').length,0,'No starting Shipyards');
+    assert(!Object.values(s.fleets).some(group=>group[id]),'There are no starting units');
   }
   assert.equal(Object.values(s.planets).filter(p=>p.special==='relic').length,6);
-  assert.equal(Object.values(s.planets).filter(p=>p.special==='gate').length,2);
+  assert.equal(Object.values(s.planets).filter(p=>p.special==='gate').length,0);
 }
 const layouts=new Set();
 for(let n=1;n<=1000;n++) {
@@ -80,30 +79,30 @@ let cells=0;
 for(let q=-13;q<=13;q++) for(let y=-13;y<=13;y++) if(r.boardHas(`${q},${y}`)) cells++;
 assert.equal(cells,469); assert.equal(r.BOARD_RADIUS,12);
 assert.equal(JSON.stringify(fresh(42)),JSON.stringify(fresh(42)),'A seeded fixture remains reproducible');
-assert.equal(r.fleetMove({researcher:1}),1);
-assert.equal(r.fleetMove({researcher:1,scout:1}),1);
-assert.equal(r.fleetMove({researcher:1,dreadnought:1}),1);
-assert.equal(r.fleetMove({scout:1}),2); assert.equal(r.fleetMove({frigate:1}),1);
+assert.equal(r.fleetMove({explorer:1}),3);
+assert.equal(r.fleetMove({explorer:1,settler:1}),1);
+assert.equal(r.fleetMove({explorer:1,fleet:1}),2);
+assert.equal(r.fleetMove({settler:1}),1); assert.equal(r.fleetMove({fleet:1}),2);
 assert.equal(r.fleetMove({}),0);
-fresh(9); r.state.planets={}; r.state.fleets={'0,0':{0:{researcher:1}}};
-r.prepareHumanMove('0,0','researcher');
-assert.equal(r.state.reachable.length,6);
-assert(r.state.reachable.includes('1,0')); assert(!r.state.reachable.includes('2,0'));
-r.state.actionOptions={tag:'pathfinder'}; r.prepareHumanMove('0,0','researcher');
-assert(r.state.reachable.includes('2,0')); assert(!r.state.reachable.includes('3,0'));
-const atEdge=r.reachableFrom('-12,0',0,2,false,{researcher:1});
+fresh(9); r.state.planets={}; r.state.fleets={'0,0':{0:{explorer:1}}};
+r.prepareHumanMove('0,0','explorer');
+assert.equal(r.state.reachable.length,36);
+assert(r.state.reachable.includes('3,0')); assert(!r.state.reachable.includes('4,0'));
+r.state.actionOptions={tag:'pathfinder'}; r.prepareHumanMove('0,0','explorer');
+assert(r.state.reachable.includes('4,0')); assert(!r.state.reachable.includes('5,0'));
+const atEdge=r.reachableFrom('-12,0',0,2,false,{explorer:1});
 assert(atEdge.every(key=>distance(key)<=12));
-// A real AI choice uses one step toward a scanned relic, respecting hostile blockers.
-r.state.planets={'5,0':{special:'relic',owner:null,upgrade:null,hasColony:false,researchStationOwner:null}};
+// A real AI choice uses three steps toward a scanned relic, respecting hostile blockers.
+r.state.planets={'5,0':{special:'relic',owner:null,upgrade:null,hasColony:false,researchStationOwner:null,relicClaimed:false}};
 r.state.clusters=[{id:4,coords:['5,0'],scannedBy:[1]}];
-r.state.fleets={'0,0':{1:{researcher:1}}};
+r.state.fleets={'0,0':{1:{explorer:1}}};
 let move=r.chooseAiMove(1);
-assert.equal(move.moveGroup,'researcher'); assert.equal(move.destination,'1,0');
-r.state.fleets['1,0']={2:{frigate:1}};
-assert(!r.chooseAiMove(1) || r.chooseAiMove(1).destination!=='2,0','Do not jump through a hostile fleet');
+assert.equal(move.moveGroup,'explorer'); assert.equal(move.destination,'3,0');
+r.state.fleets['1,0']={2:{fleet:1}};
+assert(!r.chooseAiMove(1) || r.chooseAiMove(1).destination!=='3,0','Do not jump through a hostile fleet');
 // The end-of-round rule must not end at the old target or one point below the new one.
 for(const points of [10,19,20]) {
-  const s=fresh(100); s.players[0].relics=points-1;
+  const s=fresh(100); s.players[0].cardsPurchased=(points-1)*8;
   assert.equal(r.calculatePrestige(0),points);
   r.finishRound();
   assert.equal(s.winner,points===20?0:null);
@@ -116,8 +115,8 @@ r.playOrder(order.id); assert.equal(r.state.actionMode,'move'); assert.equal(r.s
 r.playOrder(order.id); assert.equal(r.state.actionMode,null,'Clicking again cancels without spending the card');
 assert.equal(r.state.players[0].hand.length,1);
 const old='untouched-v4-save'; storage.set('galactic-reach-save-v4',old);
-assert.equal(r.SAVE_KEY,'galactic-reach-save-v8');
-assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v8');
+assert.equal(r.SAVE_KEY,'galactic-reach-save-v11');
+assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v11');
 const saved=JSON.stringify(fresh(123)); r.saveGame(); fresh(456);
 assert(r.loadGame()); assert.equal(JSON.stringify(r.state),saved,'Reload retains randomized placement');
 assert.equal(storage.get('galactic-reach-save-v4'),old);
@@ -131,7 +130,6 @@ if(process.env.LONG_REACH_SIMULATE) {
     const s=r.state;
     if(s.phase==='operations') s.activePlayer===0?r.passOperations(0):r.runAiOperation();
     else if(s.phase==='buy') s.activePlayer===0?r.nextBuyPlayer():r.runAiBuy();
-    else if(s.phase==='policy') r.resolvePolicyVote(0,0);
     else if(s.phase==='directive') r.applyDirective('economy',s.firstPlayer);
     else throw Error(`Unexpected phase ${s.phase}`);
   }
@@ -159,7 +157,7 @@ r.state.activePlayer=2;
 assert(r.respondTrade(2,1,'accept'));
 assert.equal(r.state.players[0].resources.matter,1); assert.equal(r.state.players[0].resources.energy,4);
 assert.equal(r.state.players[2].resources.matter,5); assert.equal(r.state.players[2].resources.energy,2);
-assert.equal(r.state.players[0].tracks.culture,1); assert.equal(r.state.players[2].tracks.culture,1);
+assert(!('tracks' in r.state.players[0])); assert(!('tracks' in r.state.players[2]));
 assert.equal(r.state.players[0].tradesWith[2],1);
 r.state.activePlayer=3;
 const settled=JSON.stringify(r.state.players);

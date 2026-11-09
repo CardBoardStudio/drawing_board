@@ -100,20 +100,6 @@ for(const resource of ['matter','energy','biomass','data']) {
   const g=consortiumGame();act(g,'cancel_consortium');assert.equal(g.port.state.players[0].hand.length,1);assert.equal(g.adapter.activeSeat(),0);
   act(g,'special');act(g,'consortium_gain',a=>a.resource==='data');
 }
-for (const first of [0,1,2,3]) {
-  const g=engine(),s=g.port.state;s.firstPlayer=first;s.round=3;
-  s.players.forEach(p=>{p.tracks.expansion=5;p.tracks.culture=5;});g.port.startPolicyVote();
-  assert.equal(g.adapter.activeSeat(),first);
-  const initial=JSON.stringify(s);assert(!g.port.castPolicyVote(first,0,6));assert(!g.port.castPolicyVote(first,2,1));assert(!g.port.castPolicyVote(first,0,1.5));assert.equal(JSON.stringify(s),initial);
-  for (let i=0;i<4;i++) {
-    const seat=(first+i)%4;act(g,'vote',a=>a.choice===i%2&&a.bid===2);
-    assert.equal(s.players[seat].tracks[i%2?'culture':'expansion'],3,'Public bids are spent immediately');
-    for(const observer of [0,1,2,3]) assert.equal(g.adapter.observe(observer).policyVotes.length,i+1);
-  }
-  assert.deepEqual(plain(s.policyVotes.map(v=>v.seat)),[first,(first+1)%4,(first+2)%4,(first+3)%4]);
-  assert.equal(s.phase,'directive');assert.equal(s.activePolicy.id,first%2?'open_exchange':'frontier_grants','Ties retain documented rule');
-}
-
 // Browser shortcuts exercise actual private rule functions, not a duplicate engine.
 const source=read('prototypes/galactic-reach/app.js');
 const boot=source.indexOf('\n  if (headless) {\n    state = newState();');assert(boot>0);
@@ -129,7 +115,7 @@ const r=context.createGalacticReach({onTab:name=>tabs.push(name),storage:{getIte
 function fresh(){r.state=r.newState();r.state.phase='operations';r.state.activePlayer=0;r.state.turnStage='prep';return r.state;}
 function card(key,upgraded=false){return {...r.makeCard(key,true),upgraded};}
 {
-  const s=fresh(),p=s.players[0],move=card('move');s.planets={};s.fleets={'0,0':{0:{scout:1,researcher:1}}};p.hand=[move,card('move')];
+  const s=fresh(),p=s.players[0],move=card('move');s.planets={};s.fleets={'0,0':{0:{settler:1,explorer:1}}};p.hand=[move,card('move')];
   let options=r.availableContextOrders('0,0');assert.equal(options.length,2,'One shortcut per group; identical cards are not duplicated');
   assert(r.startContextOrder(move.id,'0,0','ships'));assert.equal(s.moveSource,'0,0');assert.equal(s.actionCardId,move.id);
   assert.equal(s.actionOptions.moveGroup,'ships');assert.equal(p.hand.length,2,'Selecting an order does not consume it');
@@ -137,20 +123,20 @@ function card(key,upgraded=false){return {...r.makeCard(key,true),upgraded};}
   p.resources={matter:0,energy:8,biomass:0,data:0};assert(r.bankTrade(0,'energy','data'));assert(r.discardResources(0,'energy',1));
   assert.equal(JSON.stringify({mode:s.actionMode,id:s.actionCardId,source:s.moveSource,options:s.actionOptions,reachable:s.reachable}),beforePending);
   const target=s.reachable.find(coord=>coord==='1,0');assert(target);r.humanSelectHex(target);
-  assert.equal(s.fleets['1,0'][0].scout,1);assert.equal(s.fleets['0,0'][0].researcher,1);assert.equal(p.hand.length,1);assert.equal(s.activePlayer,1);
+  assert.equal(s.fleets['1,0'][0].settler,1);assert.equal(s.fleets['0,0'][0].explorer,1);assert.equal(p.hand.length,1);assert.equal(s.activePlayer,1);
 }
 {
   const s=fresh(),p=s.players[0],construct=card('construct',true);p.hand=[construct];p.resources={matter:0,energy:0,biomass:0,data:0};
-  const yard=s.clusters[0].coords.find(k=>s.planets[k].upgrade==='starbase');
+  const yard=s.clusters[0].coords[1];s.planets[yard].owner=0;s.planets[yard].upgrade='starbase';s.planets[yard].upgradeLevel=1;
   assert(r.availableContextOrders(yard).some(a=>a.type==='construct'));
   assert(r.startContextOrder(construct.id,yard));assert.equal(s.actionMode,'construct');assert.equal(s.actionOptions.upgraded,true);
-  assert(!r.constructAt(0,yard,'scout','matter',true),'Popup does not bypass construction costs');
+  assert(!r.constructAt(0,yard,'settler','matter',true),'Popup does not bypass construction costs');
   assert.equal(p.hand.length,1);assert.equal(s.activePlayer,0);
   p.hand=[];assert(!r.startContextOrder(construct.id,yard),'Stale card shortcuts cannot create an order');
 }
 {
   const s=fresh(),p=s.players[0],world=s.clusters[4],colonize=card('colonize');p.hand=[colonize];
-  s.fleets[world.center]={0:{scout:1}};world.revealedBy=[0];
+  s.fleets[world.center]={0:{settler:1}};world.revealedBy=[0];
   assert(r.availableContextOrders(world.center).some(a=>a.type==='colonize'));
   assert(r.startContextOrder(colonize.id,world.center));assert.equal(s.actionMode,'colonize');assert.equal(s.selected,world.center);
   s.activePlayer=1;assert.equal(r.availableContextOrders(world.center).length,0);assert(!r.startContextOrder(colonize.id,world.center));
@@ -158,9 +144,9 @@ function card(key,upgraded=false){return {...r.makeCard(key,true),upgraded};}
 {
   const s=fresh(),p=s.players[0],world=s.clusters[4];p.hand=[card('construct'),card('move')];
   const relic=world.coords.find(k=>s.planets[k].special==='relic');assert(relic);
-  s.fleets[relic]={0:{researcher:1}};world.revealedBy=[];world.scannedBy=[];
-  assert(!r.availableContextOrders(relic).some(a=>a.type==='construct'),'Unknown relics do not leak Research Station choices');
-  world.scannedBy=[0];assert(r.availableContextOrders(relic).some(a=>a.type==='construct'),'A located relic permits the Researcher shortcut');
+  s.fleets[relic]={0:{explorer:1}};world.revealedBy=[];world.scannedBy=[];
+  assert(!r.availableContextOrders(relic).some(a=>a.type==='construct'),'Unknown relics do not leak relic recovery choices');
+  world.scannedBy=[0];assert(r.availableContextOrders(relic).some(a=>a.type==='construct'),'A located relic permits the Explorer shortcut');
   s.pendingColonyBuild={playerId:0,colony:s.clusters[0].center};s.turnStage='bonus-build';
   assert.equal(r.availableContextOrders(relic).length,0,'Finish Colonize II before starting a new order');
   p.resources={matter:0,energy:4,biomass:0,data:0};assert(r.bankTrade(0,'energy','data'));assert(r.discardResources(0,'data',1));assert(s.pendingColonyBuild);

@@ -2,11 +2,11 @@
 
 ## GitHub identity
 
-- Every GitHub write, including commits, pushes, PRs, comments, labels, and merges, must use `bitswell`. Never use `willemneal` or its credentials, even if the local defaults point there. Do not add co-author trailers for that account or an AI agent.
-- Run every GitHub CLI/API call through `~/.config/bitswell/gh-bitswell gh <args>`. The wrapper injects the token from 1Password only for that command. Never print, persist, export, or paste the token; do not read, list, or explore other 1Password items.
-- Set this repository's commit identity to `bitswell` / `96487943+bitswell@users.noreply.github.com`. Use HTTPS remotes, never SSH. Reset this repo's GitHub credential helper with `git config credential.https://github.com.helper ''`, then add `~/.config/bitswell/git-credential-bitswell` with `git config --add credential.https://github.com.helper ~/.config/bitswell/git-credential-bitswell`.
-- Before the first write, verify that `~/.config/bitswell/gh-bitswell gh api user --jq .login` reports `bitswell`, `git config user.email` reports its noreply address, and `git remote -v` contains HTTPS URLs. If any check fails, or 1Password reports an authentication or network error, stop and report it. Never fall back to another account.
-- Do not merge without explicit user authorization. Do not write to upstream or third-party repositories unless the user names them.
+- Use the user's connected GitHub account for commits, branches, pushes, pull requests, comments, and labels unless the user explicitly requests another identity. Prefer the GitHub connector when it supports the operation.
+- Verify the connected account before writing. Match local commit identity to that account; never impersonate another contributor or add unsolicited co-author trailers.
+- Use HTTPS remotes. Never print, persist, or paste access tokens. No bitswell-specific wrapper or 1Password token is required for the connected-account workflow.
+- Stacking work on another contributor's PR is allowed when requested: target its head branch and preserve its commits. Do not merge without explicit user authorization.
+- Do not write to upstream or third-party repositories unless the user names them.
 
 ## Ground every PR in the rules
 
@@ -34,9 +34,9 @@
 
 ## Playtest change lanes
 
-- `main` is the current stable lane: Long Reach 6.11 was promoted in PR #16. The former `codex/add-galactic-reach-prototype` lane has merged; do not target it or a closed PR by default. If a new stable playtest lane is explicitly established, update this file and the workflow together.
-- Use a `codex/<short-name>` branch from latest `origin/main` and a PR into `main` for save-compatible work. Apply `playtest-safe`. Examples: layout, accessibility, wording, diagnostics, and fixes that do not change legal decisions or saved-state meaning.
-- Put every breaking rules experiment on its own `codex/experiment-<short-name>` branch from the latest stable head, target `main`, and apply `playtest-breaking`. Never mix both labels. A change is breaking if it can invalidate an ongoing game or materially change player decisions, including setup, topology, phases, economy, combat, card contents, scoring, victory, limits, or persisted state meaning.
+- The user-designated stable playtest lane is `codex/add-galactic-reach-prototype`. Keep it playable and save-compatible during ongoing games. This explicit lane selection takes precedence over the historical `main` promotion.
+- Use a `codex/<short-name>` branch from the latest `origin/codex/add-galactic-reach-prototype` head and a PR into `codex/add-galactic-reach-prototype` for save-compatible work. Apply `playtest-safe`. Examples: layout, accessibility, wording, diagnostics, and fixes that do not change legal decisions or saved-state meaning.
+- Put every breaking rules experiment on its own `codex/experiment-<short-name>` branch from the latest stable head, target `codex/add-galactic-reach-prototype`, and apply `playtest-breaking`. Never mix both labels. A change is breaking if it can invalidate an ongoing game or materially change player decisions, including setup, topology, phases, economy, combat, card contents, scoring, victory, limits, or persisted state meaning.
 - Test experiments only on their successful Render preview and start a new game there. The distinct origin keeps guest saves separate. Preserve pinned table versions and their archived engines; never redirect an existing game to an incompatible ruleset.
 - To adopt an experiment, announce the reset, increment `SAVE_FORMAT_VERSION` and `RULES_REVISION` as appropriate, update all version declarations and derived storage keys, preserve supported old engines/assets, then verify the stable deployment after merge. Close rejected experiment PRs without changing stable play.
 - Follow [the playtest branching workflow](docs/playtest-workflow.md) for preview and promotion details.

@@ -14,7 +14,7 @@ Give a new commander a small, friendly expedition with a clear destination. Let 
 | Build an engine | Build a structure and observe next-round production | `#building`, `#round` | Production and storage demonstrated, including overflow |
 | Make a deal | Exchange four of one resource at the bank, compare player trading, then pass | `#trade`, `#round` | The bank’s fixed 4:1 payment and lack of Culture; player settlement, Culture gain, and passing directly into the learner’s Buy turn |
 | Make the deck yours | Buy a card, upgrade a starter, and trash multiple eligible discarded cards at 1 Data each | `#buy` | Discard destination, costs, Technology gain; Finish Buy resumes remaining factions |
-| Choose your future | Spend influence on a vote and choose a directive | `#politics` | Bid spent, policy enacted, benefits distributed |
+| Choose your future | Choose a round-end resource directive | `#politics` | Primary and secondary resource benefits distributed |
 | Beyond the frontier | Optional Researcher/relic and combat practice | `#building`, `#combat`, `#cards` | Real engine outcome with an explanation |
 | Your next goal | Inspect scoring and play a staged final round | `#victory` | Victory checked only after the directive |
 
@@ -30,4 +30,8 @@ Give a new commander a small, friendly expedition with a clear destination. Let 
 
 The approved rulebook and tutorial agree on every demonstrated result. A new player can complete the core path without prior game knowledge; an experienced player can skip it. Test retry, reload, skip, alternative valid actions, and return to the existing game without save changes. Review the tutorial alongside the exact same version's rulebook on its Render PR preview before adoption.
 
-In 8.13, the politics step shows public bids in first-player order. The trade step lets the learner choose Trade Consortium’s one-resource gain or up to two explicit 2:1 exchanges, with a pause after the first exchange.
+In 9.14, teach the three unit speeds (Settler 1, Frigate 2, Explorer 3), the Colony-and-Settler opening without a Shipyard, and construction of the first Shipyard. Influence tracks and policy voting are absent. Keep the explicit Trade Consortium resource choices in the trade step.
+
+In 10.15, use Fleet in place of Frigate. Teach the permanent +5 capacity purchase from the resource panel and direct relic recovery with Construct; omit Gates, Dreadnoughts, and Research Stations.
+
+For 11.16, teach the Colony-only opening and early 4:1 bank use for Data. Commission a Settler/Colonize or Explorer/Probe at a Shipyard, then establish a Research Station for an immediate alien-card draw. Replace the 10.15 recovery/exchange step with the new alien deck.

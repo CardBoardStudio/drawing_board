@@ -184,7 +184,11 @@ fn validate(save: &serde_json::Value) -> ApiResult<()> {
         || (s["version"] == 5 && s["rulesRevision"] == 10)
         || (s["version"] == 6 && s["rulesRevision"] == 11)
         || (s["version"] == 7 && s["rulesRevision"] == 12)
-        || (s["version"] == 8 && s["rulesRevision"] == 13))
+        || (s["version"] == 8 && s["rulesRevision"] == 13)
+        || (s["version"] == 9 && s["rulesRevision"] == 14)
+        || (s["version"] == 10 && s["rulesRevision"] == 15)
+        || (s["version"] == 11 && s["rulesRevision"] == 16))
+        || (s["version"].as_u64().is_some_and(|v| v >= 9) && s["phase"] == "policy")
         || s["players"].as_array().is_none_or(|p| p.len() != 4)
         || !s["planets"].is_object()
         || !s["fleets"].is_object()
@@ -249,6 +253,20 @@ pub async fn save(
 mod tests {
     use super::*;
     use crate::tests::{app, call};
+    #[test]
+    fn current_tables_skip_policies_but_archived_tables_keep_them() {
+        let mut save = json!({"state":{
+            "version":11,"rulesRevision":16,"players":[{},{},{},{}],
+            "planets":{},"fleets":{},"clusters":[],"round":3,
+            "activePlayer":0,"phase":"directive","winner":null
+        }});
+        assert!(validate(&save).is_ok());
+        save["state"]["phase"] = json!("policy");
+        assert!(validate(&save).is_err());
+        save["state"]["version"] = json!(8);
+        save["state"]["rulesRevision"] = json!(13);
+        assert!(validate(&save).is_ok());
+    }
     #[test]
     fn old_tables_keep_their_rules_version() {
         let db = Connection::open_in_memory().unwrap();
@@ -315,7 +333,7 @@ mod tests {
             galactic_reach::RULES
         );
         // A realistic size above the normal 16 KiB request limit is accepted here only.
-        let save = json!({"state":{"version":8,"rulesRevision":13,"players":[{},{},{},{}],"planets":{},"fleets":{},"clusters":[],"round":3,"activePlayer":0,"phase":"policy","winner":null,"log":"x".repeat(40000)},"turnHistory":{"pending":null,"undo":null}});
+        let save = json!({"state":{"version":11,"rulesRevision":16,"players":[{},{},{},{}],"planets":{},"fleets":{},"clusters":[],"round":3,"activePlayer":0,"phase":"directive","winner":null,"log":"x".repeat(40000)},"turnHistory":{"pending":null,"undo":null}});
         let body = json!({"revision":0,"save":save});
         let mut wrong = body.clone();
         wrong["save"]["state"]["version"] = json!(5);

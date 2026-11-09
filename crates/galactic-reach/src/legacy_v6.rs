@@ -107,40 +107,42 @@ impl BuiltinAgent {
                 }
             }
             "colonize" => 100.0,
-            "build" | "colony_build" | "recover_relic" => match action["kind"].as_str().unwrap_or("") {
-                "relic" => 95.0,
-                "starbase" => {
-                    if military {
-                        72.0
-                    } else {
-                        64.0
+            "build" | "colony_build" | "recover_relic" => {
+                match action["kind"].as_str().unwrap_or("") {
+                    "relic" => 95.0,
+                    "starbase" => {
+                        if military {
+                            72.0
+                        } else {
+                            64.0
+                        }
+                    }
+                    "harvester" => {
+                        if economy {
+                            80.0
+                        } else {
+                            65.0
+                        }
+                    }
+                    "settler" => {
+                        let settlers: f64 = view["fleets"]
+                            .as_object()
+                            .unwrap()
+                            .values()
+                            .map(|g| number(&g[seat.to_string()]["settler"]))
+                            .sum();
+                        if settlers < 3.0 { 82.0 } else { 20.0 }
+                    }
+                    "explorer" => 30.0,
+                    _ => {
+                        if military {
+                            78.0
+                        } else {
+                            35.0
+                        }
                     }
                 }
-                "harvester" => {
-                    if economy {
-                        80.0
-                    } else {
-                        65.0
-                    }
-                }
-                "settler" => {
-                    let settlers: f64 = view["fleets"]
-                        .as_object()
-                        .unwrap()
-                        .values()
-                        .map(|g| number(&g[seat.to_string()]["settler"]))
-                        .sum();
-                    if settlers < 3.0 { 82.0 } else { 20.0 }
-                }
-                "explorer" => 30.0,
-                _ => {
-                    if military {
-                        78.0
-                    } else {
-                        35.0
-                    }
-                }
-            },
+            }
             "resource" => {
                 let gain = action["gain"].as_object().unwrap();
                 let need: f64 = gain
@@ -161,9 +163,7 @@ impl BuiltinAgent {
                     let goal = if explorer {
                         p["relicSignal"] == true
                             || p["special"] == "relic" && p["relicClaimed"] != true
-                    } else if military
-                        && number(&fleet["fleet"]) > 1.0
-                    {
+                    } else if military && number(&fleet["fleet"]) > 1.0 {
                         !p["owner"].is_null() && p["owner"] != json!(seat)
                     } else {
                         center && p["owner"].is_null() && number(&fleet["settler"]) > 0.0

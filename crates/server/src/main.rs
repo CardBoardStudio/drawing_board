@@ -84,7 +84,7 @@ struct User {
     development: bool,
 }
 fn user(app: &App, headers: &HeaderMap) -> ApiResult<User> {
-    let token = cookie(headers, "drawing_board_resource_actions_v8_session").ok_or(ApiError(
+    let token = cookie(headers, "drawing_board_alien_v11_session").ok_or(ApiError(
         StatusCode::UNAUTHORIZED,
         "Sign in to join the table.".into(),
     ))?;
@@ -240,7 +240,7 @@ fn create_test_session(
     let tx = db.transaction().map_err(internal)?;
     tx.execute("DELETE FROM sessions WHERE expires<=?", [now()])
         .map_err(internal)?;
-    if let Some(old) = cookie(headers, "drawing_board_resource_actions_v8_session") {
+    if let Some(old) = cookie(headers, "drawing_board_alien_v11_session") {
         tx.execute("DELETE FROM sessions WHERE token_hash=?", [digest(&old)])
             .map_err(internal)?;
     }
@@ -261,10 +261,10 @@ fn create_test_session(
     } else {
         ""
     };
-    Ok(([(header::SET_COOKIE,format!("drawing_board_resource_actions_v8_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400{secure}"))],Json(json!({"ok":true}))).into_response())
+    Ok(([(header::SET_COOKIE,format!("drawing_board_alien_v11_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400{secure}"))],Json(json!({"ok":true}))).into_response())
 }
 async fn logout(State(app): State<App>, headers: HeaderMap) -> ApiResult<Response> {
-    if let Some(token) = cookie(&headers, "drawing_board_resource_actions_v8_session") {
+    if let Some(token) = cookie(&headers, "drawing_board_alien_v11_session") {
         app.store
             .0
             .lock()
@@ -275,7 +275,7 @@ async fn logout(State(app): State<App>, headers: HeaderMap) -> ApiResult<Respons
     Ok((
         [(
             header::SET_COOKIE,
-            "drawing_board_resource_actions_v8_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
+            "drawing_board_alien_v11_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
         )],
         Json(json!({"ok":true})),
     )

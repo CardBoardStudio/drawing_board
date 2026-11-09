@@ -260,44 +260,23 @@ test('reloading during the directive reopens it and the choice continues the gam
   assert.equal(reloaded.dialog('directive').open, false);
 });
 
-// The review's reproduction: the last AI Buy turn of round 3 opens the policy ballot.
-function reachRoundThreeBallot() {
+test('round three goes directly to its resource directive without a policy ballot', () => {
   const { storage } = playToRoundOneDirective();
   const state = JSON.parse(storage.getItem(SAVE_KEY));
   Object.assign(state, { round: 3, phase: 'buy', firstPlayer: 0, activePlayer: 3, turnStage: 'ai-buy' });
   writeSave(storage, state);
   storage.removeItem(TURN_HISTORY_KEY);
   const game = boot(storage);
-  assert.equal(game.saved().phase, 'policy');
-  assert.equal(game.dialog('policy').open, true);
-  return { storage, game };
-}
-
-test('Escape cannot dismiss the policy ballot', () => {
-  const { game } = reachRoundThreeBallot();
-  game.pressEscape('policy');
-  assert.equal(game.dialog('policy').open, true);
-  assert.equal(game.saved().phase, 'policy');
-});
-
-test('a policy ballot closed without a vote reopens', () => {
-  const { game } = reachRoundThreeBallot();
-  game.dialog('policy').close();
-  game.settle();
-  assert.equal(game.dialog('policy').open, true);
-});
-
-test('reloading during the ballot reopens it and voting moves on to the directive', () => {
-  const { storage } = reachRoundThreeBallot();
+  assert.equal(game.saved().phase, 'directive');
+  assert.equal(game.dialog('directive').open, true);
+  assert(!('activePolicy' in game.saved()));
+  assert(game.saved().players.every(p => !('tracks' in p)));
   const reloaded = boot(storage);
-  assert.equal(reloaded.dialog('policy').open, true);
-  fire(reloaded.dom.element('policy-form'), 'submit');
-  reloaded.settle();
-  const state = reloaded.saved();
-  assert.ok(state.activePolicy, 'a policy was enacted');
-  assert.equal(state.phase, 'directive');
-  assert.equal(reloaded.dialog('policy').open, false);
   assert.equal(reloaded.dialog('directive').open, true);
+  reloaded.dom.lastQuery('[data-directive]')[0].click();
+  reloaded.settle();
+  assert.equal(reloaded.saved().round, 4);
+  assert.equal(reloaded.saved().phase, 'operations');
 });
 
 test('a current save loads without being rewritten', () => {
@@ -371,17 +350,25 @@ test('Trade Consortium gain and cancellation buttons resolve explicitly',()=>{
   gainGame.dom.lastQuery('[data-consortium-gain]').find(b=>b.dataset.consortiumGain==='biomass').click();gainGame.settle();
   assert(!gainGame.saved().pendingConsortium);assert.equal(gainGame.saved().players[0].resources.biomass,1);
 });
-test('public votes before the human remain visible and are not charged again on reload',()=>{
-  const {storage}=reachRoundThreeBallot(),state=JSON.parse(storage.getItem(SAVE_KEY));
-  state.firstPlayer=2;state.activePlayer=2;state.policyVotes=[];
-  for(const p of state.players){p.tracks.expansion=5;p.tracks.culture=5;}
-  writeSave(storage,state);const game=boot(storage),before=game.saved();
-  assert.deepEqual(before.policyVotes.map(v=>v.seat),[2,3]);
-  assert.equal(before.activePlayer,0);assert.match(game.dom.element('policy-votes').innerHTML,/Violet Assembly/);
-  const reloaded=boot(storage);assert.deepEqual(reloaded.saved(),before);
-  fire(reloaded.dom.element('policy-form'),'submit');reloaded.settle();
-  assert.deepEqual(reloaded.saved().policyVotes.map(v=>v.seat),[2,3,0,1]);
-  assert(!reloaded.dialog('policy').open);
+
+
+test('paid storage button preserves Buy and survives reload without a map building', () => {
+  const { storage } = playToRoundOneDirective();
+  const state = JSON.parse(storage.getItem(SAVE_KEY));
+  Object.assign(state, { phase: 'buy', activePlayer: 0, turnStage: 'human-buy' });
+  state.players[0].resources = { matter: 2, energy: 1, biomass: 0, data: 1 };
+  state.players[0].storageUpgrades = 0;
+  writeSave(storage, state);
+  const game = boot(storage), before = game.saved();
+  game.click('upgrade-storage-button');
+  assert.equal(game.saved().players[0].storageUpgrades, 1);
+  assert.equal(game.saved().phase, 'buy');
+  assert.equal(game.saved().players[0].bought, before.players[0].bought);
+  assert.deepEqual(game.saved().planets, before.planets);
+  assert.equal(game.dom.element('capacity-value').textContent, '0 of 15 stored');
+  const reloaded = boot(storage);
+  assert.equal(reloaded.saved().players[0].storageUpgrades, 1);
+  assert.equal(reloaded.dom.element('capacity-value').textContent, '0 of 15 stored');
 });
 
 let failed = 0;

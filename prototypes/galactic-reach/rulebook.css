@@ -63,3 +63,5 @@ html { min-width: 0; }
 .relic-mark { color: var(--data); }
 .gate-mark { color: var(--cyan); }
 @media print { .book-resource.matter, .book-resource.energy, .book-resource.biomass, .book-resource.data { color: inherit; } }
+
+.book-table th small { display: block; margin-top: 4px; font-weight: 400; font-style: italic; line-height: 1.4; opacity: .78; }

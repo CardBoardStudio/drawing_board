@@ -1,6 +1,6 @@
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const colors=['#55d9f4','#ff9f6e','#a58cff','#f2cf66'];
-const REPLAY_PATHS={'galactic-reach/6.11':'/galactic-reach/rules/6.11/','galactic-reach/7.12':'/galactic-reach/'};
+const REPLAY_PATHS={'galactic-reach/6.11':'/galactic-reach/rules/6.11/','galactic-reach/7.12':'/galactic-reach/rules/7.12/','galactic-reach/8.13':'/galactic-reach/'};
 const titleCase=value=>String(value||'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
 export function matchList(data) {
   const matches=data?.matches||[];

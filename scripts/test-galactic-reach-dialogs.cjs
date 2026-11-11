@@ -260,44 +260,23 @@ test('reloading during the directive reopens it and the choice continues the gam
   assert.equal(reloaded.dialog('directive').open, false);
 });
 
-// The review's reproduction: the last AI Buy turn of round 3 opens the policy ballot.
-function reachRoundThreeBallot() {
+test('round three goes directly to its resource directive without a policy ballot', () => {
   const { storage } = playToRoundOneDirective();
   const state = JSON.parse(storage.getItem(SAVE_KEY));
   Object.assign(state, { round: 3, phase: 'buy', firstPlayer: 0, activePlayer: 3, turnStage: 'ai-buy' });
   writeSave(storage, state);
   storage.removeItem(TURN_HISTORY_KEY);
   const game = boot(storage);
-  assert.equal(game.saved().phase, 'policy');
-  assert.equal(game.dialog('policy').open, true);
-  return { storage, game };
-}
-
-test('Escape cannot dismiss the policy ballot', () => {
-  const { game } = reachRoundThreeBallot();
-  game.pressEscape('policy');
-  assert.equal(game.dialog('policy').open, true);
-  assert.equal(game.saved().phase, 'policy');
-});
-
-test('a policy ballot closed without a vote reopens', () => {
-  const { game } = reachRoundThreeBallot();
-  game.dialog('policy').close();
-  game.settle();
-  assert.equal(game.dialog('policy').open, true);
-});
-
-test('reloading during the ballot reopens it and voting moves on to the directive', () => {
-  const { storage } = reachRoundThreeBallot();
+  assert.equal(game.saved().phase, 'directive');
+  assert.equal(game.dialog('directive').open, true);
+  assert(!('activePolicy' in game.saved()));
+  assert(game.saved().players.every(p => !('tracks' in p)));
   const reloaded = boot(storage);
-  assert.equal(reloaded.dialog('policy').open, true);
-  fire(reloaded.dom.element('policy-form'), 'submit');
-  reloaded.settle();
-  const state = reloaded.saved();
-  assert.ok(state.activePolicy, 'a policy was enacted');
-  assert.equal(state.phase, 'directive');
-  assert.equal(reloaded.dialog('policy').open, false);
   assert.equal(reloaded.dialog('directive').open, true);
+  reloaded.dom.lastQuery('[data-directive]')[0].click();
+  reloaded.settle();
+  assert.equal(reloaded.saved().round, 4);
+  assert.equal(reloaded.saved().phase, 'operations');
 });
 
 test('a current save loads without being rewritten', () => {
@@ -341,6 +320,55 @@ test('a save from an incompatible rules revision is replaced by a current game',
   const history = JSON.parse(storage.getItem(TURN_HISTORY_KEY));
   assert.equal(history.undo, null, 'the reset clears the previous undo snapshot');
   assert.ok(history.pending, 'the new Operations turn records its own pending snapshot');
+});
+
+function consortiumSave() {
+  const storage=createStorage(),game=boot(storage),state=game.saved();
+  Object.assign(state,{phase:'operations',activePlayer:0,turnStage:'consortium',pendingConsortium:{playerId:0,cardId:'choice-card',trades:0}});
+  state.players[0].hand=[{id:'choice-card',key:'tradeConsortium'}];
+  state.players[0].resources={matter:6,energy:0,biomass:0,data:0};
+  writeSave(storage,state);return storage;
+}
+test('Trade Consortium waits, preserves an exchange across reload, and finishes once',()=>{
+  const storage=consortiumSave(),game=boot(storage);
+  assert(game.dialog('consortium').open);assert.equal(game.saved().players[0].resources.matter,6);
+  game.pressEscape('consortium');assert(game.dialog('consortium').open);
+  game.dom.element('consortium-give').value='matter';game.dom.element('consortium-get').value='energy';
+  fire(game.dom.element('consortium-form'),'submit');game.settle();
+  assert.equal(game.saved().pendingConsortium.trades,1);
+  assert.equal(game.saved().players[0].resources.energy,1);
+  const reloaded=boot(storage);assert(reloaded.dialog('consortium').open);
+  assert.equal(reloaded.saved().pendingConsortium.trades,1);assert.equal(reloaded.saved().players[0].resources.matter,4);
+  assert(reloaded.dom.element('consortium-cancel').hidden);
+  reloaded.click('consortium-finish');assert(!reloaded.dialog('consortium').open);
+  assert.equal(reloaded.saved().players[0].discard.filter(c=>c.id==='choice-card').length,1);
+});
+test('Trade Consortium gain and cancellation buttons resolve explicitly',()=>{
+  const storage=consortiumSave(),game=boot(storage);game.click('consortium-cancel');
+  assert(!game.saved().pendingConsortium);assert.equal(game.saved().players[0].hand.length,1);
+  const gainGame=boot(consortiumSave());
+  gainGame.dom.lastQuery('[data-consortium-gain]').find(b=>b.dataset.consortiumGain==='biomass').click();gainGame.settle();
+  assert(!gainGame.saved().pendingConsortium);assert.equal(gainGame.saved().players[0].resources.biomass,1);
+});
+
+
+test('paid storage button preserves Buy and survives reload without a map building', () => {
+  const { storage } = playToRoundOneDirective();
+  const state = JSON.parse(storage.getItem(SAVE_KEY));
+  Object.assign(state, { phase: 'buy', activePlayer: 0, turnStage: 'human-buy' });
+  state.players[0].resources = { matter: 2, energy: 1, biomass: 0, data: 1 };
+  state.players[0].storageUpgrades = 0;
+  writeSave(storage, state);
+  const game = boot(storage), before = game.saved();
+  game.click('upgrade-storage-button');
+  assert.equal(game.saved().players[0].storageUpgrades, 1);
+  assert.equal(game.saved().phase, 'buy');
+  assert.equal(game.saved().players[0].bought, before.players[0].bought);
+  assert.deepEqual(game.saved().planets, before.planets);
+  assert.equal(game.dom.element('capacity-value').textContent, '0 of 15 stored');
+  const reloaded = boot(storage);
+  assert.equal(reloaded.saved().players[0].storageUpgrades, 1);
+  assert.equal(reloaded.dom.element('capacity-value').textContent, '0 of 15 stored');
 });
 
 let failed = 0;

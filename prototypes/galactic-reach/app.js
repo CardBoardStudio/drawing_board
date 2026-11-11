@@ -911,13 +911,7 @@ function createGalacticReach(options = {}) {
     return (planet.owner === playerId && !hasBuilding(planet)) || canClaimStructureHex(playerId,coord);
   }
 
-  function clusterCount(playerId) {
-    return new Set(controlledPlanets(playerId).map(([,p]) => p.cluster)).size;
-  }
 
-  function conquestCount(playerId) {
-    return controlledPlanets(playerId).filter(([,p]) => p.conquest).length;
-  }
 
   function strongestFleet(playerId) {
     let best = 0;
@@ -1574,8 +1568,6 @@ function createGalacticReach(options = {}) {
         if (salvage) addResources(state.players[id],{matter:Math.min(salvage.salvageCap||3,destroyedCount),data:salvage.bonusData||0});
       }
     }
-    const capacityLoss = trimResourcesToCapacity(attackerId) + trimResourcesToCapacity(defenderId);
-    if (capacityLoss) summary.push(`${capacityLoss} resource${capacityLoss === 1 ? '' : 's'} were lost when storage capacity fell.`);
     state.lastCombat = { attackerId, defenderId, coord, summary, outcome, system: 'military-deck' };
     logEvent(`${state.players[attackerId].name} attacked ${state.players[defenderId].name} at ${nameForCoord(coord)}. ${outcome}`);
     if (attackerId === 0 || defenderId === 0) showMessage('COMBAT REPORT', nameForCoord(coord), [...summary,outcome].join(' '));

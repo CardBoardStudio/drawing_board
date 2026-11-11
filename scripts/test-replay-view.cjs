@@ -37,7 +37,7 @@ const openingWorld = engine.state.clusters.find(c=>engine.state.planets[c.center
 engine.state.players[0].hand.push({id:'replay-colonize-II',key:'colonize',starter:true,upgraded:true});
 engine.state.players[0].storageUpgrades=3;
 engine.state.players[0].resources={matter:6,energy:5,biomass:3,data:5};
-engine.state.players[0].hand.push({id:'replay-recovery',key:'construct',starter:true});
+engine.state.players[0].hand.push({id:'replay-recovery',key:'excavate',starter:true});
 const openingRelic=openingWorld.coords.find(k=>engine.state.planets[k].special==='relic');
 engine.state.fleets[openingRelic]={0:{settler:0,explorer:1,fleet:0}};
 engine.state.fleets[openingWorld.center]={0:{settler:1,explorer:0,fleet:0}};
@@ -45,7 +45,7 @@ engine.state.fleets['12,-12']={0:{settler:0,explorer:0,fleet:2}};
 engine.state.fleets['11,-12']={1:{settler:0,explorer:0,fleet:2}};
 engine.state.players[0].hand.push({id:'replay-combat-move',key:'move'});
 openingWorld.revealedBy.push(0);
-const weight = { bank_trade: 0, discard_resources: 0, colony_build: 60, colonize: 60, trade_accept: 25, trade_offer: 3, upgrade: 20, build: 8, move: 8, buy: 6, probe: 2, pass: .3, finish_buy: 1, finish_colony_build: .5 };
+const weight = { bank_trade: 0, discard_resources: 0, colony_build: 60, colonize: 60, trade_accept: 25, trade_offer: 3, upgrade: 20, build: 8, move: 8, buy: 6, excavate: 20, pass: .3, finish_buy: 1, finish_colony_build: .5 };
 // JSON copies: vm-realm arrays would fail strict deep equality on their prototypes.
 const truth = state => JSON.parse(JSON.stringify({
   pending: state.pendingColonyBuild ? { playerId: state.pendingColonyBuild.playerId, colony: state.pendingColonyBuild.colony } : null,
@@ -65,7 +65,7 @@ for (let n = 0; n < 1800 && game.activeSeat() !== null; n++) {
   if (n===0) action=legal.find(a=>a.type==='increase_storage');
   if (n===1) action=legal.find(a=>a.type==='colonize'&&a.card==='replay-colonize-II'&&a.coord===openingWorld.center);
   if (n===2) action=legal.find(a=>a.type==='colony_build'&&a.kind==='harvester'&&a.coord===openingWorld.coords[1]);
-  if (n>2) action=legal.find(a=>a.type==='establish_station'&&a.card==='replay-recovery')||legal.find(a=>a.type==='move'&&a.source==='12,-12'&&a.destination==='11,-12')||action;
+  if (n>2) action=legal.find(a=>a.type==='excavate'&&a.card==='replay-recovery')||legal.find(a=>a.type==='move'&&a.source==='12,-12'&&a.destination==='11,-12')||action;
   assert(action,'Fixed opening is legal');
   assert(action);
   game.applyAction(seat, action);
@@ -115,7 +115,7 @@ for (let index = 0; index <= frames.length; index++) {
   if (raw.players.some(p => p.hand.some(card => card.upgraded))) seen.upgraded++;
 }
 for (const [kind, count] of Object.entries(seen)) assert(count > 0, `The recorded match should cover ${kind}`);
-assert(frames.some(frame=>frame.action.type==='establish_station'));
+assert(frames.some(frame=>frame.action.type==='excavate'));
 assert(frames.some(frame=>frame.action.type==='increase_storage'));
 assert(frames.some(frame => frame.action.type === 'colony_build' || frame.action.type === 'finish_colony_build'));
 const rounds = [...analysis.rounds];

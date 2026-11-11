@@ -40,16 +40,16 @@ const r = context.createGalacticReach({random:()=>math.random()});
 const distance = key => r.hexDistance('0,0',key);
 function fresh(n) { seed=n; r.state=r.newState(); return r.state; }
 function assertGalaxy(s) {
-  assert.equal(s.clusters.length,11);
-  assert.equal(Object.keys(s.planets).length,77,'Worlds must never overwrite one another');
+  assert.equal(s.clusters.length,16);
+  assert.equal(Object.keys(s.planets).length,88,'Worlds must never overwrite one another');
   for (const world of s.clusters) {
-    assert.equal(world.coords.length,7);
+    assert.equal(world.coords.length,world.kind==='moon'?1:7);
     for (const key of world.coords) {
       assert(r.boardHas(key),'Every planet lies inside the expanded map');
       assert.equal(s.planets[key].cluster,world.id);
     }
     for (const other of s.clusters) {
-      if (world.id!==other.id) assert(r.hexDistance(world.center,other.center)>=4,'Leave an empty hex between worlds');
+      if (world.id!==other.id) assert(r.hexDistance(world.center,other.center)>=(world.kind==='moon'?0:1)+(other.kind==='moon'?0:1)+2,'Leave an empty hex between every terrain group');
     }
   }
   for (let id=0;id<4;id++) {
@@ -62,7 +62,7 @@ function assertGalaxy(s) {
     assert.equal(Object.values(s.planets).filter(p=>p.upgrade==='starbase').length,0,'No starting Shipyards');
     assert(!Object.values(s.fleets).some(group=>group[id]),'There are no starting units');
   }
-  assert.equal(Object.values(s.planets).filter(p=>p.special==='relic').length,6);
+  assert.equal(Object.values(s.planets).filter(p=>p.special==='relic').length,12);
   assert.equal(Object.values(s.planets).filter(p=>p.special==='gate').length,0);
 }
 const layouts=new Set();
@@ -115,8 +115,8 @@ r.playOrder(order.id); assert.equal(r.state.actionMode,'move'); assert.equal(r.s
 r.playOrder(order.id); assert.equal(r.state.actionMode,null,'Clicking again cancels without spending the card');
 assert.equal(r.state.players[0].hand.length,1);
 const old='untouched-v4-save'; storage.set('galactic-reach-save-v4',old);
-assert.equal(r.SAVE_KEY,'galactic-reach-save-v12');
-assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v12');
+assert.equal(r.SAVE_KEY,'galactic-reach-save-v13');
+assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v13');
 const saved=JSON.stringify(fresh(123)); r.saveGame(); fresh(456);
 assert(r.loadGame()); assert.equal(JSON.stringify(r.state),saved,'Reload retains randomized placement');
 assert.equal(storage.get('galactic-reach-save-v4'),old);

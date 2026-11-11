@@ -14,7 +14,7 @@ function engine() {
   return {port,adapter};
 }
 const {port,adapter}=engine();
-assert.equal(adapter.rulesVersion,'galactic-reach/11.16');
+assert.equal(adapter.rulesVersion,'galactic-reach/12.17');
 const before=JSON.stringify(port.state);
 adapter.legalActions(0);adapter.observe(0);
 assert.equal(JSON.stringify(port.state),before,'Observation and legality must not mutate state');
@@ -24,7 +24,7 @@ assert.throws(()=>adapter.applyAction(0,{...action,gain:{data:100}}),/Illegal ac
 assert.equal(JSON.stringify(port.state),before);
 // Retain direct coverage of construction, upgrades, colonization, and purchases.
 const e=engine().port, home=e.state.clusters[0], p=e.state.players[0];
-p.resources={matter:20,energy:20,biomass:20,data:20};
+p.storageUpgrades=20;p.resources={matter:20,energy:20,biomass:20,data:20};
 assert(e.buildUpgrade(0,home.coords[1],'starbase'));
 assert(e.buildShip(0,home.coords[1],'fleet'));
 assert(!e.buildShip(0,home.center,'explorer'));assert(e.buildShip(0,home.coords[1],'explorer'));

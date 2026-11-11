@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060911">
-  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for the Alien Relics experiment 11.16.">
-  <meta name="rules-version" content="galactic-reach/11.16">
-  <title>Galactic Reach · Rulebook · 11.16</title>
+  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for the Streamlined Reach experiment 12.17.">
+  <meta name="rules-version" content="galactic-reach/12.17">
+  <title>Galactic Reach · Rulebook · 12.17</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="rulebook.css">
 </head>
@@ -28,7 +28,7 @@
   <a class="skip-link" href="#start">Skip to rules</a>
   <header class="book-header">
     <a href="./" class="button button-ghost">← Galactic Reach</a>
-    <span class="eyebrow">CANONICAL RULES · ALIEN RELICS EXPERIMENT · 11.16</span>
+    <span class="eyebrow">CANONICAL RULES · ALIEN RELICS EXPERIMENT · 12.17</span>
   </header>
   <div class="book-layout">
     <nav class="book-nav" aria-label="Rulebook sections">
@@ -43,10 +43,10 @@
       <a href="#combat">Combat &amp; conquest</a>
       <a href="#trade">Trade</a>
       <a href="#buy">Improve your deck</a>
-      <a href="#politics">Resource directives</a>
+      <a href="#politics">End of the round</a>
       <a href="#victory">Prestige &amp; victory</a>
       <a href="#cards">Card reference</a>
-      <a href="#clarifications">11.16 clarifications</a>
+      <a href="#clarifications">12.17 clarifications</a>
     </nav>
     <main id="start" tabindex="-1">
       <div class="eyebrow">A GALAXY. FOUR FACTIONS. YOUR NEXT MOVE.</div>
@@ -58,17 +58,17 @@
           <li><strong>Look at your hand.</strong> Each card is a choice: convert it into resources, or use its order.</li>
           <li><strong>Take one action.</strong> Convert any cards you need, then play one order or offer a trade. The next faction takes a turn.</li>
           <li><strong>Keep taking turns until you pass.</strong> Passing starts your Buy turn immediately. Improve your deck, then let the remaining factions continue.</li>
-          <li><strong>Build toward Prestige.</strong> Colonies, fleets, Research Stations, and purchases all help. Victory is checked after the round’s resource directive.</li>
+          <li><strong>Build toward Prestige.</strong> Colonies, pairs of Shipyards, Research Stations, and purchases score Prestige. Victory is checked when everyone finishes the round.</li>
         </ol>
         <p><strong>Try this:</strong> save a Construct card for its order; convert another card to help pay for a Settler. You cannot use the same card both ways.</p>
       </div>
-      <p class="book-note">This manual describes the <strong>11.16 Alien Relics experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
+      <p class="book-note">This manual describes the <strong>12.17 Streamlined Reach experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
 
       <section id="setup">
         <h2>01 / Your starting faction</h2>
         <p>Four factions share eleven seven-hex worlds on a radius-12 galaxy (469 hexes). Four home worlds touch the rim; seven inner worlds are randomized with at least one empty hex between worlds. Home worlds are visible to everyone.</p>
         <p>You start with only a central <strong>Colony</strong>: no Settler, Explorer, Fleet, Shipyard, or other building. Your six starter cards are <strong>3 Move and 3 Construct</strong>. There are no starting Colonize or Probe cards. Each faction also has its own shuffled 12-card military deck.</p>
-        <p>Production happens before the first five-card draw. Your Colony produces <strong>1 Matter</strong>, so you open with <strong>1 Matter and 2 Biomass</strong>. Build a Shipyard with Construct, then commission your first units. Use the 4:1 bank or round-end resource directives to obtain Data before you have a Probe.</p>
+        <p>Production happens before the first five-card draw. Your Colony produces <strong>1 Matter</strong>, so you open with <strong>1 Matter and 2 Biomass</strong>. Build a Shipyard with Construct, then commission your first units. Use the 4:1 bank to obtain Data before you have a Probe.</p>
       </section>
 
       <section id="round">
@@ -77,8 +77,8 @@
           <li><strong>Produce, then draw five.</strong> Collect resources, then draw cards. Whenever your deck runs out, shuffle your discard pile to keep drawing.</li>
           <li><strong>Operations.</strong> Starting with the first player, alternate one action: use an order, publish a trade, or pass. Converting cards and answering trades are free on your own Operations turn. Passing ends your Operations for this round and immediately starts your Buy turn.</li>
           <li><strong>Buy.</strong> When you pass, take your own Buy turn before play moves on. Normally buy up to one card; you may also upgrade starters, decommission, and exchange relics. Finish Buy to resume Operations with the next faction that has not passed.</li>
-          <li><strong>Clean up.</strong> After the last faction finishes Buy, discard everyone’s remaining hand, check storage, and update public awards.</li>
-          <li><strong>Choose a directive, then check victory.</strong> The first player chooses a benefit for everyone. If nobody wins, rotate the first-player marker and start the next round.</li>
+          <li><strong>Clean up.</strong> After the last faction finishes Buy, discard everyone’s remaining hand.</li>
+          <li><strong>Check victory.</strong> If nobody wins, rotate the first-player marker and start the next round.</li>
         </ol>
         <p>Played and converted cards go straight to discard. Resources carry between turns and rounds; keep unused cards until the shared cleanup, so automatic reactions can still protect you after your Buy turn.</p>
       </section>
@@ -86,9 +86,9 @@
       <section id="resources">
         <h2>03 / Resources &amp; storage</h2>
         <p><strong><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>Matter</span></strong> builds; <strong><span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>Energy</span></strong> funds fleets and cards; <strong><span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>Biomass</span></strong> founds colonies; <strong><span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>Data</span></strong> buys and improves cards. Pay the listed cost when you build or buy. Ordinary movement has no resource cost.</p>
-        <p>Start with space for <strong>10 resources total</strong>. During your own Operations or Buy turn, pay <strong>2 Matter, 1 Energy, and 1 Data</strong> to permanently add <strong>5 storage</strong>. Repeat while you can afford it. This is a free resource-management action: it needs no card, map hex, building, or purchase, and preserves your current order. Occupation does not reduce this capacity. A card conversion needs room for its entire gain.</p>
-        <p><strong>Convert all to resources</strong> checks your hand from left to right, converts every card whose full gain fits, and leaves the rest in hand. It includes Buy and reaction cards, so save those by converting individually instead. Converting a selected order cancels that selection; conversions never spend your Operations action.</p>
-        <p>Automatic gains that exceed storage are lost; when several types arrive together, storage fills in <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>Matter</span> → <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>Energy</span> → <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>Biomass</span> → <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>Data</span> order. During your own Operations or Buy turn, you may <strong>discard any number of stored resources</strong> to make room. Discarding is free, gives nothing in return, and does not spend a card or end your turn.</p>
+        <p>Start with space for <strong>10 resources total</strong>. During your own Operations or Buy turn, pay <strong>2 Matter, 1 Energy, and 1 Data</strong> to permanently add <strong>5 storage</strong>. Repeat while you can afford it. This is a free resource-management action: it needs no card, map hex, building, or purchase, and preserves your current order. Occupation does not reduce this capacity. Collect the full resource gain, then resolve any excess storage before taking another action.</p>
+        <p><strong>Convert all to resources</strong> checks your hand from left to right and pauses when a conversion exceeds storage. Choose what to discard before converting more cards. It includes Buy and reaction cards, so save those by converting individually instead. Converting a selected order cancels that selection; conversions never spend your Operations action.</p>
+        <p>Whenever a gain takes you over your storage limit, choose enough resources to discard to return to capacity. You may discard resources you already held or resources you just collected. Play pauses for your choice, including gains from Production, card conversions, relics, and combat. Reloading preserves the resources awaiting your choice. Computer rivals choose their own discards. During your own Operations or Buy turn, you may <strong>discard any number of stored resources</strong> to make room. Discarding is free, gives nothing in return, and does not spend a card or end your turn.</p>
         <p>Each owned, unoccupied planet hex produces 1 of its resource, +1 if Rich, plus its Harvester level. A combat fleet on a planet hex also earns its faction 1 of that resource, regardless of ownership. That is one bonus per fleet, not per ship; Explorers alone earn none.</p>
       </section>
 
@@ -110,7 +110,7 @@
       <section id="movement">
         <h2>05 / Exploration &amp; movement</h2>
         <div class="book-legend" aria-label="Map symbols"><span><b class="rich-mark" aria-hidden="true">★</b> Rich: +1 production</span><span><b class="relic-mark" aria-hidden="true">◈</b> Located relic</span><span><b class="relic-mark" aria-hidden="true">◇</b> Researched relic</span></div>
-        <p>A Settler entering a world reveals all seven hexes <strong>to everyone</strong>. Probe signals are private. Settlers can explore without a Probe. Explorers can travel to a marked relic without revealing the surrounding world.</p>
+        <p>Any Settler, Fleet, or Explorer entering a world reveals all seven hexes <strong>to everyone</strong>. Every ship type can discover worlds without a Probe. Probe signals remain private until a ship reveals the world.</p>
         <p>Select a group at one hex: all its combat ships, or its Explorer team. Move up to the slowest unit’s speed. Settlers move <strong>1 hex</strong>, Fleets <strong>2 hexes</strong>, Explorers <strong>3 hexes</strong>. Move II adds 1 hex to that order. A group uses its slowest unit’s speed: a Settler and Fleet together move 1 hex. Explorers travel as a separate civilian team and establish Research Stations at relics. You cannot split individual ships from the selected group. Your destination may contain at most <strong>five of your units</strong>, including Explorers.</p>
         <p>Entering a hostile hex stops the movement and resolves combat. You cannot move through it. Pathfinder Network avoids hostile hexes; other orders may enter them.</p>
       </section>
@@ -160,23 +160,14 @@
         <p>During the same Buy turn you may also:</p>
         <ul>
           <li><strong>Upgrade starters:</strong> spend <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span> per original starter in your hand or discard to make it level II. Purchased basic cards cannot upgrade.</li>
-          <li><strong>Decommission cards:</strong> spend <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span> per card to permanently trash as many cards as you can afford from your discard when your Buy turn began, including an original or upgraded starter. Cards still in hand, newly purchased cards, and Buy cards discarded during this turn are ineligible.</li>
+          <li><strong>Decommission cards:</strong> spend <strong>three of one chosen resource type</strong> per card to permanently trash as many cards as you can afford from your discard when your Buy turn began, including an original or upgraded starter. Cards still in hand, newly purchased cards, and Buy cards discarded during this turn are ineligible.</li>
           <li><strong>Use Buy cards.</strong> These do not consume the normal purchase. Hold Buy cards in hand until this phase; conversions are only available in Operations.</li>
         </ul>
       </section>
 
       <section id="politics">
-        <h2>10 / Round-end resource directives</h2>
-        <p>This experiment has <strong>no influence tracks or policies</strong>. Building, trading, buying, and upgrading do not award influence; there are no policy votes, policy discounts, or influence Prestige.</p>
-        <p>After every round, the first player chooses one resource directive. The chooser receives its primary benefit and each rival receives its lesser benefit. Storage limits apply. Resolve the directive, check victory, and then rotate the first-player marker.</p>
-        <div class="book-table" tabindex="0" role="region" aria-label="Resource directives">
-          <table><thead><tr><th>Directive</th><th>Chooser gains</th><th>Each rival gains</th></tr></thead><tbody>
-            <tr><th>Frontier Mobilization</th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span>, <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span></td><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span></td></tr>
-            <tr><th>Cultural Exchange</th><td><span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span>, <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>2 Data</span></td><td><span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span></td></tr>
-            <tr><th>Commercial Stimulus</th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span>, <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span>, <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span></td><td><span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span></td></tr>
-            <tr><th>Research Initiative</th><td><span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>3 Data</span></td><td><span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span></td></tr>
-          </tbody></table>
-        </div>
+        <h2>10 / End of the round</h2>
+        <p>When everyone has finished Buy, discard the remaining hands and check victory. Then rotate the first-player marker and begin the next round with Production and Draw. The council directive and its resource bonuses are removed.</p>
       </section>
 
       <section id="victory">
@@ -188,13 +179,10 @@
             <tr><th>Shipyards</th><td>1 per complete pair, regardless of level.</td></tr>
             <tr><th>Research Stations</th><td>1 per Research Station you established at a relic.</td></tr>
             <tr><th>Purchased cards</th><td>1 per eight lifetime purchases; scrapping a card does not remove this score.</td></tr>
-            <tr><th>Fleet Supremacy</th><td>2 for the strongest single fleet, at least 8 power.</td></tr>
-            <tr><th>Galactic Reach</th><td>1 for owning planet hexes in the most worlds, at least three worlds.</td></tr>
-            <tr><th>Occupation Mandate</th><td>2 for owning the most conquest-marked Colonies, at least one.</td></tr>
           </tbody></table>
         </div>
-        <p>Awards can change hands. A tied leader keeps an award they already hold; otherwise a tie leaves it unclaimed. Occupation alone does not remove ownership-based Prestige.</p>
-        <p>After the directive, if anyone has at least <strong>20 Prestige</strong>, the highest Prestige wins. Break ties by most Colonies, then most stored resources. An exact tie selects the earliest seat in the browser; arena standings share that rank. Reaching 20 earlier does not lock in a win: finish the round before checking the standings. There is no round limit.</p>
+        <p>Public awards are removed. Prestige comes from Colonies, pairs of Shipyards, Research Stations, and card-purchase milestones. Occupation alone does not remove ownership-based Prestige.</p>
+        <p>After everyone finishes Buy and the round is cleaned up, if anyone has at least <strong>20 Prestige</strong>, the highest Prestige wins. Break ties by most Colonies, then most stored resources. An exact tie selects the earliest seat in the browser; arena standings share that rank. Reaching 20 earlier does not lock in a win: finish the round before checking the standings. There is no round limit.</p>
         <p>AI arena games use this same victory check. Only completed games earn placement ratings. A simulation that stops before victory awards no ratings.</p>
       </section>
 
@@ -235,14 +223,14 @@
         <details>
           <summary>Advanced and relic orders</summary>
           <div class="book-table" tabindex="0" role="region" aria-label="Advanced card effects">
-            <table><thead><tr><th>Card</th><th>Current 11.16 effect</th></tr></thead><tbody>
+            <table><thead><tr><th>Card</th><th>Current 12.17 effect</th></tr></thead><tbody>
               <tr><th>Survey Drones</th><td>Normal movement at the selected group’s speed. Survey Drones does not add range or filter cards.</td></tr>
               <tr><th>Pathfinder Network</th><td>Move with +1 range; cannot enter hostile hexes.</td></tr>
               <tr><th>Drop Colony Modules</th><td>Found or capture for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> without consuming the Settler.</td></tr>
               <tr><th>Modular Construction / Orbital Shipyards / Precursor Forge</th><td>One normal Construct order. Their advertised extra builds or discounts are not implemented.</td></tr>
               <tr><th>Industrial Surge</th><td>Immediately collect one extra production from up to three unoccupied owned hexes in the world with the most such hexes. Each gives 1 of its printed resource, or 2 if Rich; add no Harvester bonus. For example, a Matter hex and a Rich Energy hex give <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span> and <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>2 Energy</span>, even if they have Harvesters. This does not replace normal round production. Local computer rivals instead use their first three eligible hexes across worlds.</td></tr>
               <tr><th>Terraforming Protocols</th><td>Pay <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>2 Biomass</span> to make one owned, non-Rich hex Rich.</td></tr>
-              <tr><th>Trade Consortium</th><td>Choose: gain 1 resource of any type, or make up to two bank exchanges at 2:1. For each exchange, choose two of one resource to give and one different resource to receive. You may stop after one exchange. Cancel before gaining or exchanging to keep the card; otherwise, discard it and end your Operations action when finished. Finish this choice before doing anything else. Gaining needs one open storage; exchanging frees one. The player-trade allowance is not used. Converting this card instead gives 2 Data.</td></tr>
+              <tr><th>Trade Consortium</th><td>Choose: gain 1 resource of any type, or make up to two bank exchanges at 2:1. For each exchange, choose two of one resource to give and one different resource to receive. You may stop after one exchange. Cancel before gaining or exchanging to keep the card; otherwise, discard it and end your Operations action when finished. Finish this choice before doing anything else. A gain that exceeds storage pauses play for your discard choice; exchanging frees one storage. The player-trade allowance is not used. Converting this card instead gives 2 Data.</td></tr>
               <tr><th>Fleet Overdrive</th><td>Move with +2 range; attacker cannot withdraw early.</td></tr>
               <tr><th>Coordinated Assault</th><td>Move normally; add 1 hit in the first volley if you attack.</td></tr>
               <tr><th>Tactical Foresight</th><td>Draw three, then automatically discard the first card in your hand. There is no selection prompt.</td></tr>
@@ -286,11 +274,11 @@
             <li>If a retreat cannot be completed, the combat report says the fleet was lost, but the current engine leaves survivors on the contested hex.</li>
             <li>Explorers have zero base power, but a Explorer-only side can still receive hits and shields from tactics. Do not treat civilians as immune to combat.</li>
             <li>Combat damage ties target Explorers, Settlers, Fleets, then Shipyards. A surviving attacker below 65% of defending power after the second volley attempts withdrawal unless using Overdrive.</li>
-            <li>Purchased storage capacity is permanent. Occupation and combat never reduce it; automatic gains and card conversions still respect the current capacity.</li>
+            <li>Purchased storage capacity is permanent. Occupation and combat never reduce it; collect excess resources in full and choose the discards that bring you back to capacity.</li>
           </ul>
         </details>
       </section>
-      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 11.16 · The game and this rulebook travel together in every deployment.</p></footer>
+      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 12.17 · The game and this rulebook travel together in every deployment.</p></footer>
     </main>
   </div>
 </body>

@@ -60,7 +60,7 @@ for(const version of [6,7]) {
 {
   const g=engine(),s=g.port.state,p=s.players[0];
   p.hand=[];p.discard=[{id:'trash1',key:'move',starter:true},{id:'trash2',key:'construct',starter:true,upgraded:true},{id:'trash3',key:'probe'}];
-  p.resources={matter:0,energy:0,biomass:0,data:2};act(g,'pass');
+  p.resources={matter:0,energy:0,biomass:0,data:6};act(g,'pass');
   act(g,'decommission',a=>a.card==='trash1');act(g,'decommission',a=>a.card==='trash2');
   assert.equal(p.resources.data,0);assert.deepEqual(plain(p.discard.map(c=>c.id)),['trash3']);
   assert(!g.adapter.legalActions(0).some(a=>a.type==='decommission'));assert.equal(s.phase,'buy');
@@ -92,7 +92,7 @@ for(const resource of ['matter','energy','biomass','data']) {
 }
 {
   const g=consortiumGame({matter:10,energy:0,biomass:0,data:0});
-  assert(!g.adapter.legalActions(0).some(a=>a.type==='consortium_gain'));
+  assert(g.adapter.legalActions(0).some(a=>a.type==='consortium_gain'));
   act(g,'consortium_exchange',a=>a.giveType==='matter'&&a.getType==='data');act(g,'finish_consortium');
   assert.equal(g.port.state.players[0].resources.matter,8);assert.equal(g.port.state.players[0].resources.data,1);
 }
@@ -108,7 +108,7 @@ const context=vm.createContext({console,setTimeout:()=>0,clearTimeout:()=>{},doc
 vm.runInContext(source.slice(0,boot)+`
   render=()=>{};toast=()=>{};showMessage=()=>{};scheduleAiTurn=()=>{};switchTab=name=>options.onTab(name);
   return {get state(){return state;},set state(s){state=s;},newState,makeCard,availableContextOrders,startContextOrder,humanSelectHex,
-    bankTrade,discardResources,playResourceMode,bankPlanForCost,runAiBuy,passOperations,nextBuyPlayer,startOperationsTurn,
+    bankTrade,discardResources,playResourceMode, discardOverflow,bankPlanForCost,runAiBuy,passOperations,nextBuyPlayer,startOperationsTurn,
     saveGame,loadGame,SAVE_KEY,describeDecision,constructAt};
 }`,context);
 const r=context.createGalacticReach({onTab:name=>tabs.push(name),storage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)}});
@@ -153,9 +153,10 @@ function card(key,upgraded=false){return {...r.makeCard(key,true),upgraded};}
 }
 {
   const s=fresh(),p=s.players[0];p.resources={matter:9,energy:0,biomass:0,data:1};const gain=card('construct',true);p.hand=[gain];
-  r.playResourceMode(gain.id);assert.equal(p.hand.length,1);
-  assert(r.discardResources(0,'matter',2));assert(r.playResourceMode(gain.id));assert.equal(p.resources.matter,9);assert.equal(p.hand.length,0);
-  r.saveGame();const expected=JSON.stringify(s);fresh();assert(r.loadGame());assert.equal(JSON.stringify(r.state),expected);
+  assert(r.playResourceMode(gain.id));assert.equal(p.hand.length,0);assert.equal(p.resources.matter,11);
+  r.saveGame();const pending=JSON.stringify(s);fresh();assert(r.loadGame());assert.equal(JSON.stringify(r.state),pending);
+  assert(r.discardOverflow(0,{matter:2}));assert.equal(r.state.players[0].resources.matter,9);
+  r.saveGame();const expected=JSON.stringify(r.state);fresh();assert(r.loadGame());assert.equal(JSON.stringify(r.state),expected);
   storage.set('galactic-reach-save-v7','parent-game');r.saveGame();assert.equal(storage.get('galactic-reach-save-v7'),'parent-game');
 }
 {

@@ -20,7 +20,7 @@ impl GameKind {
     fn pool(self) -> &'static str {
         match self {
             Self::Voidwright => "voidwright/2:duel:20-rounds:policies-v1",
-            Self::GalacticReach => "galactic-reach/11.16:four-player:placement:policies-v7",
+            Self::GalacticReach => "galactic-reach/12.17:four-player:placement:policies-v8",
         }
     }
     fn seats(self) -> usize {
@@ -95,16 +95,16 @@ pub fn migrate(db: &Connection) -> rusqlite::Result<()> {
 }
 pub async fn catalog() -> Json<serde_json::Value> {
     Json(json!({"games":[
-        {"id":"galactic-reach","name":"Galactic Reach","href":"/galactic-reach/","rules_version":galactic_reach::RULES,"mode":"Browser playtest + AI arena","rated":true,"seats":4,"pool":GameKind::GalacticReach.pool(),"description":"Alien Relics experiment: start with a Colony, commission units and their order cards, and establish Research Stations to draw alien technology. Play to 20 Prestige; start a new game."},
+        {"id":"galactic-reach","name":"Galactic Reach","href":"/galactic-reach/","rules_version":galactic_reach::RULES,"mode":"Browser playtest + AI arena","rated":true,"seats":4,"pool":GameKind::GalacticReach.pool(),"description":"Streamlined Reach experiment: all ships discover worlds, choose excess-resource discards, and trash cards for three of one resource. Public awards and council directives are removed. Play to 20 Prestige; start a new game."},
         {"id":"voidwright","name":"Voidwright","href":"/voidwright/","rules_version":RULES_VERSION,"mode":"Server tables + AI arena","rated":true,"seats":2,"pool":GameKind::Voidwright.pool(),"description":"Build a fleet of cards. Play with friends or compare AI players in the rated arena."}
     ],"policies":[
         {"game":"voidwright","id":"explorer","version":"explorer/1","name":"Explorer","description":"Experiments with random purchases and sometimes passes."},
         {"game":"voidwright","id":"merchant","version":"merchant/1","name":"Merchant","description":"Builds a resource economy, then buys scoring colonies."},
         {"game":"voidwright","id":"kepler","version":"kepler/1","name":"Kepler","description":"Balances resource growth with a small action engine."}
-        ,{"game":"galactic-reach","id":"gr-military","version":"gr-military/7","name":"Vanguard","description":"Builds warships and shipyards, then moves toward rival colonies."}
-        ,{"game":"galactic-reach","id":"gr-economy","version":"gr-economy/7","name":"Architect","description":"Prioritizes production, storage, and terraforming."}
-        ,{"game":"galactic-reach","id":"gr-expansion","version":"gr-expansion/7","name":"Pathfinder","description":"Builds Scouts and seeks new colony sites."}
-        ,{"game":"galactic-reach","id":"gr-wanderer","version":"gr-wanderer/7","name":"Wanderer","description":"Samples useful legal actions with seeded randomness."}
+        ,{"game":"galactic-reach","id":"gr-military","version":"gr-military/8","name":"Vanguard","description":"Builds warships and shipyards, then moves toward rival colonies."}
+        ,{"game":"galactic-reach","id":"gr-economy","version":"gr-economy/8","name":"Architect","description":"Prioritizes production, storage, and terraforming."}
+        ,{"game":"galactic-reach","id":"gr-expansion","version":"gr-expansion/8","name":"Pathfinder","description":"Builds Scouts and seeks new colony sites."}
+        ,{"game":"galactic-reach","id":"gr-wanderer","version":"gr-wanderer/8","name":"Wanderer","description":"Samples useful legal actions with seeded randomness."}
     ],"pool":GameKind::Voidwright.pool()}))
 }
 #[derive(Serialize)]
@@ -174,7 +174,7 @@ pub async fn create_bot(
         "{}/{}",
         input.strategy,
         if input.game == GameKind::GalacticReach {
-            7
+            8
         } else {
             1
         }
@@ -462,10 +462,10 @@ pub fn calibrate(
     }
     let game = GameKind::GalacticReach;
     let policies: Vec<String> = [
-        "gr-military/7",
-        "gr-economy/7",
-        "gr-expansion/7",
-        "gr-wanderer/7",
+        "gr-military/8",
+        "gr-economy/8",
+        "gr-expansion/8",
+        "gr-wanderer/8",
     ]
     .into_iter()
     .map(String::from)

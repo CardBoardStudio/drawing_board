@@ -1,13 +1,14 @@
+// Archived 11.16 compatibility. Current round and trash rules are exercised in test-streamlined-rules.cjs.
 // Regression coverage for the 7.12 experiment and preservation of 6.11 behavior.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const root = path.join(__dirname, '..');
-const source = fs.readFileSync(path.join(root, 'prototypes/galactic-reach/app.js'), 'utf8');
+const source = fs.readFileSync(path.join(root, 'crates/galactic-reach/rules/v11-app.js'), 'utf8');
 function engine(archived = false) {
   const context = vm.createContext({});
-  const base = archived ? 'crates/galactic-reach/rules/v6-' : 'prototypes/galactic-reach/';
+  const base = archived ? 'crates/galactic-reach/rules/v6-' : 'crates/galactic-reach/rules/v11-';
   vm.runInContext(fs.readFileSync(path.join(root, `${base}adapter.js`), 'utf8') + fs.readFileSync(path.join(root, `${base}app.js`), 'utf8'), context);
   const createAdapter = context.createGalacticAdapter;
   let port, seed = 79;

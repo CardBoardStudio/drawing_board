@@ -27,18 +27,8 @@ function makeGame(seed, seatStrategies, fleetProduction) {
     "if (state.phase !== 'operations' || state.winner !== null) return;",
     'AI operation guard'
   );
-  source = replaceOrFail(
-    source,
-    "if (chooser !== 0) {",
-    "if (true) {",
-    'automatic directive chooser'
-  );
-  source = replaceOrFail(
-    source,
-    "if (!headless && $('#directive-dialog').open) $('#directive-dialog').close();",
-    "",
-    'directive dialog'
-  );
+
+
   source = replaceOrFail(
     source,
     "const gains = state.players.map(()=>({ matter: 0, energy: 0, biomass: 0, data: 0 }));",
@@ -111,12 +101,10 @@ function makeGame(seed, seatStrategies, fleetProduction) {
     getState: () => state,
     step: () => {
       if (state.winner !== null) return;
+      const overflow = overflowPlayer();
+      if (overflow >= 0) { trimResourcesToCapacity(overflow); return; }
       if (state.phase === 'operations') runAiOperation();
       else if (state.phase === 'buy') runAiBuy();
-      else if (state.phase === 'directive') {
-        const strategy = state.players[state.firstPlayer].strategy;
-        applyDirective(strategy === 'military' ? 'technology' : strategy === 'economy' ? 'economy' : 'expansion', state.firstPlayer);
-      }
       else throw new Error('Unexpected simulation phase: ' + state.phase);
     },
     prestige: id => calculatePrestige(id),
@@ -192,7 +180,7 @@ function runBatch(label, fleetProduction, gamesPerAssignment = 40) {
           stations: game.stations(seat),
 
           starbases: Object.values(state.planets).filter(planet => planet.owner === seat && planet.upgrade === 'starbase').length,
-          awards: Object.values(state.awards).filter(owner => owner === seat).length,
+          awards: 0, // Public awards are removed in 12.17.
           cardsPurchased: player.cardsPurchased || 0,
           fleetIncome: state.sim.fleetIncome[seat],
           conquests: state.sim.conquests[seat]

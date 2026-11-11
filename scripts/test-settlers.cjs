@@ -1,10 +1,11 @@
+// Keep the previous Settlers/Alien Relics contracts verified on archived 11.16.
 // Behavior regressions for the incompatible Settlers & Explorers ruleset.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const root = path.join(__dirname, '..');
-function engine(seed = 1, archive = null) {
+function engine(seed = 1, archive = 11) {
   const base = archive ? `crates/galactic-reach/rules/v${archive}-` : 'prototypes/galactic-reach/';
   const context = vm.createContext({});
   vm.runInContext(['adapter.js', 'app.js'].map(file => fs.readFileSync(path.join(root, base + file), 'utf8')).join('\n'), context);

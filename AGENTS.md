@@ -1,11 +1,9 @@
 # Project instructions
 
-## GitHub identity
+## GitHub workflow
 
-- Every GitHub write, including commits, pushes, PRs, comments, labels, and merges, must use `bitswell`. Never use `willemneal` or its credentials, even if the local defaults point there. Do not add co-author trailers for that account or an AI agent.
-- Run every GitHub CLI/API call through `~/.config/bitswell/gh-bitswell gh <args>`. The wrapper injects the token from 1Password only for that command. Never print, persist, export, or paste the token; do not read, list, or explore other 1Password items.
-- Set this repository's commit identity to `bitswell` / `96487943+bitswell@users.noreply.github.com`. Use HTTPS remotes, never SSH. Reset this repo's GitHub credential helper with `git config credential.https://github.com.helper ''`, then add `~/.config/bitswell/git-credential-bitswell` with `git config --add credential.https://github.com.helper ~/.config/bitswell/git-credential-bitswell`.
-- Before the first write, verify that `~/.config/bitswell/gh-bitswell gh api user --jq .login` reports `bitswell`, `git config user.email` reports its noreply address, and `git remote -v` contains HTTPS URLs. If any check fails, or 1Password reports an authentication or network error, stop and report it. Never fall back to another account.
+- Use HTTPS remotes, never SSH.
+- Do not add co-author trailers for an AI agent.
 - Do not merge without explicit user authorization. Do not write to upstream or third-party repositories unless the user names them.
 
 ## Ground every PR in the rules
@@ -25,6 +23,12 @@
 - An unmerged PR must link to its own successful Render deployment, including `/galactic-reach/rulebook.html` on that same origin. Do not link a preview game to `main`'s rules or a hard-coded old PR preview.
 - The build must package the canonical rulebook and stylesheet with the game. Verify anonymous access, game-to-rules navigation, section links, and a narrow viewport. Rules changes need a preview just like code changes; never add `render-preview-skip` to a rules PR.
 - Publishing means pushing to GitHub and confirming the corresponding Render deployment. Opening a PR does not authorize merging it. Report missing or failed deployments honestly.
+
+## Make preview changes visible
+
+- Every player-facing preview must show a visible **What’s new in this playtest** summary in the game. Name the changes a player should try, link the relevant canonical rules, and clearly identify experiments that require a new game. Use short player-facing language, not implementation details.
+- Update the summary in the same PR as gameplay or UI changes, including stacked PRs. Describe the current PR’s additions so testers can distinguish them from its base. Keep the preview’s game, rulebook, version badge, and change summary aligned.
+- Verify the summary on both localhost and the successful Render preview. Include it in the PR’s verification notes. During adoption, review its wording for the stable release; do not leave obsolete experiment claims.
 
 ## Playtest change lanes
 

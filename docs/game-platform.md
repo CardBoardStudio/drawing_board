@@ -109,3 +109,7 @@ Unit popups offer relevant cards from the current hand without bypassing legal t
 The experiment has separate v8 save/undo keys, `drawing_board_resource_actions_v8_` auth cookies, and its own rating pool. The parent 7.12 engine, UI, manual, and replay viewer are archived exactly. The game’s visible preview summary identifies the new features and links canonical rule sections.
 
 Rules 8.13 also allow repeated Buy-phase trashing at 1 Data per eligible card. Trade Consortium pauses the turn for an explicit resource gain or up to two 2:1 exchanges. Its pending choice and public vote history survive saves and are recorded in replays.
+
+## Streamlined Reach 12.17
+
+The current game removes public awards and council directives. All moving ship types reveal worlds. Each eligible trash costs three of one chosen resource type. Resource collections remain complete until excess-resource discards are chosen; the adapter exposes only discard choices during that interruption. Current rules and policy-v8 ratings use a separate pool. The full 11.16 game and policy-v7 implementations remain archived for pinned tables and replays.

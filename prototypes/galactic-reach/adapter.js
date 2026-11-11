@@ -2,14 +2,18 @@
 // Only observations and legal commands leave this closure; decks and RNG stay private.
 function createGalacticAdapter(e) {
   const s = () => e.state;
-  const activeSeat = () => s().winner === null ? s().activePlayer : null;
+  const activeSeat = () => {
+    if (s().winner !== null) return null;
+    const pending = e.overflowPlayer();
+    return pending >= 0 ? pending : s().activePlayer;
+  };
   const visible = (coord, seat) => e.clusterKnown(s().clusters[s().planets[coord].cluster], seat);
   let cached = null;
   function observe(seat) {
     if (!Number.isInteger(seat) || seat < 0 || seat >= 4) return null;
     const state = s();
     return e.clone({
-      seat, round: state.round, phase: state.phase, firstPlayer: state.firstPlayer,
+      seat, round: state.round, phase: state.phase, firstPlayer: state.firstPlayer, overflowPlayer: e.overflowPlayer(),
       players: state.players.map((p, id) => ({
         id, resources: p.resources, researchStations: e.researchStationCount(id), storageUpgrades: p.storageUpgrades,
         prestige: e.calculatePrestige(id), capacity: e.playerCapacity(id),
@@ -22,7 +26,7 @@ function createGalacticAdapter(e) {
           relicSignal: e.clusterScanned(state.clusters[p.cluster], seat) && p.special === 'relic' }
       ])),
       clusters: state.clusters.map(c => ({ center: c.center, coords: c.coords })),
-      fleets: state.fleets, market: state.market, awards: state.awards,
+      fleets: state.fleets, market: state.market,
       pendingConsortium: state.pendingConsortium, tradeOffers: state.tradeOffers, pendingColonyBuild: state.pendingColonyBuild
     });
   }
@@ -30,14 +34,19 @@ function createGalacticAdapter(e) {
     if (seat === null || activeSeat() !== seat) return [];
     if (cached) return e.clone(cached);
     const state = s(), p = state.players[seat], actions = [];
-    if (state.phase === 'operations' && state.pendingConsortium) {
+    if (e.overflowPlayer() >= 0) {
+      const excess = e.totalResources(p) - e.playerCapacity(seat);
+      for (const resource of e.RESOURCES) for (let amount = 1; amount <= Math.min(excess,p.resources[resource]); amount++)
+        actions.push({type:'discard_overflow',resource,amount});
+      cached = actions;
+      return e.clone(actions);
+    } else if (state.phase === 'operations' && state.pendingConsortium) {
       for (const resource of e.RESOURCES) {
         if (e.canConsortiumGain(seat,resource)) actions.push({type:'consortium_gain',resource});
         for (const getType of e.RESOURCES) if (e.canConsortiumExchange(seat,resource,getType)) actions.push({type:'consortium_exchange',giveType:resource,getType});
       }
       actions.push({type:state.pendingConsortium.trades ? 'finish_consortium' : 'cancel_consortium'});
-    } else if (state.phase === 'directive') {
-      Object.keys(e.DIRECTIVES).forEach(directive => actions.push({ type: 'directive', directive }));
+
     } else if (state.phase === 'buy') {
       actions.push({ type: 'finish_buy' });
       if (p.bought < p.buyLimit) {
@@ -56,8 +65,9 @@ function createGalacticAdapter(e) {
         const effect = e.ALL_CARDS[card.key].buyEffect;
         if (effect && (effect !== 'manipulation' || !p.marketManipulated)) actions.push({ type: 'buy_effect', card: card.id });
       });
-      if (p.resources.data >= 1) p.discard.forEach(card => {
-        if (p.buyStartDiscardIds.includes(card.id)) actions.push({ type: 'decommission', card: card.id });
+      p.discard.forEach(card => {
+        if (p.buyStartDiscardIds.includes(card.id)) for (const resource of e.RESOURCES)
+          if (p.resources[resource] >= 3) actions.push({type:'decommission',card:card.id,resource});
       });
     } else if (state.phase === 'operations') {
       if (!state.pendingColonyBuild) actions.push({ type: 'pass' });
@@ -84,7 +94,7 @@ function createGalacticAdapter(e) {
         const def = e.ALL_CARDS[card.key], base = { card: card.id, key: card.key };
         const gain = e.cardResources(card);
         if (def.wildcard) gain.data = (gain.data || 0) + def.wildcard;
-        if (e.resourceGainTotal(gain) <= e.remainingResourceCapacity(seat)) actions.push({ type: 'resource', ...base, gain });
+        actions.push({ type: 'resource', ...base, gain });
         if (state.pendingColonyBuild) return;
         if (def.order === 'colonize') Object.keys(state.planets).forEach(coord => {
           if (e.colonizePlanet(seat, coord, { tag: def.tag }, true)) actions.push({ type: 'colonize', ...base, coord });
@@ -152,8 +162,8 @@ function createGalacticAdapter(e) {
       case 'buy': e.buyCard(seat, action.source, action.source === 'market' ? action.index : action.key); return;
       case 'upgrade': e.upgradeStarter(seat, action.card); return;
       case 'buy_effect': e.useBuyEffect(action.card, seat); return;
-      case 'decommission': e.decommission(seat, action.card); return;
-      case 'directive': e.applyDirective(action.directive, seat); return;
+      case 'decommission': e.decommission(seat, action.card, action.resource); return;
+      case 'discard_overflow': e.discardOverflow(seat,{[action.resource]:action.amount}); return;
       case 'finish_colony_build': e.finishColonyBuild(seat); return;
       case 'colony_build': e.finishColonyBuild(seat,action.coord,action.kind); return;
       case 'colonize': e.applyColonizeOrder(seat, action.coord, card); return;
@@ -183,6 +193,6 @@ function createGalacticAdapter(e) {
     const seat = activeSeat();
     return { active: seat, observation: seat === null ? null : observe(seat), legal: legalActions(seat), scores: scores() };
   }
-  return { rulesVersion: 'galactic-reach/11.16', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
+  return { rulesVersion: 'galactic-reach/12.17', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = createGalacticAdapter;

@@ -148,4 +148,30 @@ for (const resource of ['matter', 'energy', 'biomass', 'data']) {
   assert.equal(s.phase, 'operations');
 }
 
+for (const key of ['salvageCrews', 'naniteOssuary']) {
+  const { e, s, adapter } = game();
+  s.planets = {};
+  s.fleets = {
+    '0,0': { 0: { settler: 0, explorer: 0, fleet: 1 } },
+    '1,0': { 1: { settler: 0, explorer: 0, fleet: 1 } }
+  };
+  for (const seat of [0, 1]) {
+    s.players[seat].resources = { matter: 0, energy: 0, biomass: 0, data: 10 };
+    s.players[seat].hand = [{ key, id: `salvage-${seat}` }];
+    s.players[seat].militaryDeck = ['concentratedFire', 'concentratedFire', 'concentratedFire'];
+    s.players[seat].militaryDiscard = [];
+  }
+  assert(e.executeMove(0, '0,0', '1,0', { moveGroup: 'ships' }));
+  const excess = key === 'naniteOssuary' ? 4 : 2;
+  const a = adapter();
+  for (const seat of [0, 1]) {
+    assert.equal(s.players[seat].resources.matter, 2, 'Both factions collect the full combat salvage');
+    assert.equal(e.totalResources(s.players[seat]), 10 + excess, 'Combat cleanup preserves excess resources');
+    assert.equal(a.activeSeat(), seat);
+    a.applyAction(seat, { type: 'discard_overflow', resource: 'data', amount: excess });
+    assert.equal(s.players[seat].resources.matter, 2, 'The chosen discard preserves the collected salvage');
+  }
+  assert.equal(e.overflowPlayer(), -1);
+}
+
 console.log('Streamlined rules: all-ship discovery, removed awards/directives, atomic three-of-one-type trash costs, full resource collection, forced discard choices, and production interruptions passed.');

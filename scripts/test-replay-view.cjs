@@ -41,6 +41,9 @@ engine.state.players[0].hand.push({id:'replay-recovery',key:'construct',starter:
 const openingRelic=openingWorld.coords.find(k=>engine.state.planets[k].special==='relic');
 engine.state.fleets[openingRelic]={0:{settler:0,explorer:1,fleet:0}};
 engine.state.fleets[openingWorld.center]={0:{settler:1,explorer:0,fleet:0}};
+engine.state.fleets['12,-12']={0:{settler:0,explorer:0,fleet:2}};
+engine.state.fleets['11,-12']={1:{settler:0,explorer:0,fleet:2}};
+engine.state.players[0].hand.push({id:'replay-combat-move',key:'move'});
 openingWorld.revealedBy.push(0);
 const weight = { bank_trade: 0, discard_resources: 0, colony_build: 60, colonize: 60, trade_accept: 25, trade_offer: 3, upgrade: 20, build: 8, move: 8, buy: 6, probe: 2, pass: .3, finish_buy: 1, finish_colony_build: .5 };
 // JSON copies: vm-realm arrays would fail strict deep equality on their prototypes.
@@ -62,8 +65,9 @@ for (let n = 0; n < 1800 && game.activeSeat() !== null; n++) {
   if (n===0) action=legal.find(a=>a.type==='increase_storage');
   if (n===1) action=legal.find(a=>a.type==='colonize'&&a.card==='replay-colonize-II'&&a.coord===openingWorld.center);
   if (n===2) action=legal.find(a=>a.type==='colony_build'&&a.kind==='harvester'&&a.coord===openingWorld.coords[1]);
-  if (n>2) action=legal.find(a=>a.type==='establish_station'&&a.card==='replay-recovery')||action;
+  if (n>2) action=legal.find(a=>a.type==='establish_station'&&a.card==='replay-recovery')||legal.find(a=>a.type==='move'&&a.source==='12,-12'&&a.destination==='11,-12')||action;
   assert(action,'Fixed opening is legal');
+  assert(action);
   game.applyAction(seat, action);
   const view = JSON.parse(JSON.stringify(game.replayView()));
   const changes = [];

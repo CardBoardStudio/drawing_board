@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070b13">
-  <title>Galactic Reach · 11.16 · Alien Relics experiment</title>
+  <title>Galactic Reach · 12.17 · Streamlined Reach experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=alien-relics-11-16">
+  <link rel="stylesheet" href="styles.css?v=streamlined-12-17">
   <link rel="stylesheet" href="playtest-notes.css?v=1">
 </head>
 <body>
@@ -15,8 +15,8 @@
   <main class="app-shell">
     <header class="topbar">
       <div class="brand-block">
-        <div class="eyebrow">ALIEN RELICS EXPERIMENT · 20 PRESTIGE</div>
-        <h1>Galactic Reach <small class="rules-badge">Rules 11.16 · experiment</small></h1>
+        <div class="eyebrow">STREAMLINED REACH EXPERIMENT · 20 PRESTIGE</div>
+        <h1>Galactic Reach <small class="rules-badge">Rules 12.17 · experiment</small></h1>
       </div>
       <div class="round-block" aria-live="polite">
         <div><span class="label">Round</span><strong id="round-value">1</strong></div>
@@ -31,15 +31,15 @@
       </div>
     </header>
     <details class="playtest-changes" id="playtest-changes" open>
-      <summary><span class="new-feature">New in this playtest</span> Colony-only start · unit-linked cards · 12 alien relics</summary>
+      <summary><span class="new-feature">New in this playtest</span> All ships discover worlds · choose excess resources · simpler rounds</summary>
       <ul>
-        <li><strong>Build your first expedition:</strong> start with only a Colony and 3 Move + 3 Construct cards. All units, including Explorers, commission at Shipyards. <a href="rulebook.html#setup">Setup rules</a></li>
-        <li><strong>Your units bring their orders:</strong> each Settler adds Colonize to discard; each Explorer adds Probe. Neither card is sold separately. <a href="rulebook.html#building">Unit rules</a></li>
-        <li><strong>Awaken alien technology:</strong> establish a Research Station at a relic to draw a powerful alien card straight into your hand. Each station scores 1 Prestige. <a href="rulebook.html#alien-relics">Alien relic rules</a></li>
-        <li><strong>Keep playtest notes:</strong> pin observations to a hex or control and review them as a GitHub issue.</li>
+        <li><strong>Every ship discovers worlds:</strong> Settlers, Fleets, and Explorers reveal a world when they enter it. <a href="rulebook.html#movement">Movement rules</a></li>
+        <li><strong>Choose your excess resources:</strong> collect the full gain, then choose what to discard when storage is exceeded. <a href="rulebook.html#resources">Storage rules</a></li>
+        <li><strong>Simpler scoring and rounds:</strong> public awards and council directives are removed. <a href="rulebook.html#victory">Scoring rules</a></li>
+        <li><strong>Trash using any resource type:</strong> pay three of one chosen type for each eligible discarded card. <a href="rulebook.html#buy">Buy rules</a></li>
       </ul>
       <button class="button button-ghost" id="open-relic-catalog" type="button">Preview all 12 alien relics</button>
-      <p>Rules 11.16 experiment · Start a new game. Fleets move 2; permanent storage upgrades remain. Gates, Dreadnoughts, influence, and policies stay removed.</p>
+      <p>Rules 12.17 experiment · Start a new game. Earlier games keep their archived rules.</p>
     </details>
 
     <section class="score-ribbon" id="score-ribbon" aria-label="Player standings"></section>
@@ -93,16 +93,6 @@
         </section>
 
 
-
-        <section class="panel objective-panel">
-          <div class="panel-heading">
-            <div><div class="eyebrow">PRESTIGE RACE</div><h2>Public awards</h2></div>
-            <strong>20 to win</strong>
-          </div>
-          <div id="award-list" class="award-list"></div>
-        </section>
-
-
         <section class="panel log-panel">
           <div class="panel-heading">
             <div><div class="eyebrow">COMMS FEED</div><h2>Game log</h2></div>
@@ -123,7 +113,7 @@
         <div class="tab-panel active" id="hand-panel" data-panel="hand" role="tabpanel" aria-labelledby="hand-tab" tabindex="0">
           <div class="section-intro">
             <div><h2 id="hand-title">Your hand</h2><p id="hand-help">Cards may be converted into resources at any time during your Operations turn, or used for their printed order.</p></div>
-            <div class="hand-tools"><button class="button" id="convert-all-button" type="button" title="Converts every card that fits, left to right, including Buy and reaction cards. Cards that do not fit stay in hand.">Convert all to resources</button><button class="button" id="skip-colony-build" hidden>Finish without building</button>
+            <div class="hand-tools"><button class="button" id="convert-all-button" type="button" title="Converts cards from left to right and pauses for your choice if storage is exceeded. Includes Buy and reaction cards.">Convert all to resources</button><button class="button" id="skip-colony-build" hidden>Finish without building</button>
               <div class="pile-stats" aria-label="Your card piles">
                 <span>Deck <strong id="deck-count">0</strong></span>
                 <span>Hand <strong id="hand-pile-count">0</strong></span>
@@ -167,18 +157,22 @@
 
   <dialog id="rules-dialog">
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
-    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 11.16 ↗</a></p>
+    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 12.17 ↗</a></p>
     <div class="rules-grid">
       <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Passing immediately starts your Buy turn. Finish Buy, then the remaining factions continue Operations.</p></section>
-      <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → resource directive → victory check.</p></section>
-      <section><h3>Your deck</h3><p>Normally buy one card. Spend Data to upgrade original starters or trash eligible discarded cards for 1 Data each, including starters. There is no one-card trash limit. Cards go to discard; stored resources carry forward.</p></section>
-      <section><h3>Your goal</h3><p>Reach 20 Prestige at the end of a round. Colonies, Shipyards, Research Stations, purchased cards, and public awards all contribute. The rulebook includes costs, scoring, and current card clarifications.</p></section>
+      <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → victory check → next round.</p></section>
+      <section><h3>Your deck</h3><p>Normally buy one card. Upgrade original starters for 1 Data each. Trash eligible discarded cards, including starters, for three of one chosen resource type each. There is no one-card trash limit. Cards go to discard; stored resources carry forward.</p></section>
+      <section><h3>Your goal</h3><p>Reach 20 Prestige at the end of a round. Colonies, Shipyards, Research Stations, and purchased cards all contribute. The rulebook includes costs, scoring, and current card clarifications.</p></section>
     </div>
   </dialog>
 
-  <dialog id="directive-dialog" class="choice-dialog">
-    <div class="dialog-heading"><div><div class="eyebrow">END OF ROUND</div><h2>Choose the council directive</h2><p>You receive the primary benefit. Every rival receives the linked lesser benefit.</p></div></div>
-    <div class="choice-grid" id="directive-choices"></div>
+  <dialog id="overflow-dialog" class="choice-dialog" aria-labelledby="overflow-title" aria-describedby="overflow-help">
+    <div class="dialog-heading"><div><h2 id="overflow-title">Choose excess resources to discard</h2><p id="overflow-help"></p></div></div>
+    <form id="overflow-form">
+      <div id="overflow-options" class="overflow-options"></div>
+      <p id="overflow-status" role="status" aria-live="polite"></p>
+      <button class="button button-primary" id="overflow-confirm" type="submit" disabled>Discard selected resources</button>
+    </form>
   </dialog>
 
   <dialog id="consortium-dialog" class="choice-dialog" aria-labelledby="consortium-title">
@@ -242,9 +236,9 @@
     <div class="relic-catalog-grid" id="relic-catalog-grid"></div>
   </dialog>
 
-  <script src="table.js?v=alien-relics-11-16"></script>
-  <script src="replay.js?v=alien-relics-11-16"></script>
-  <script src="app.js?v=alien-relics-11-16"></script>
-  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="11.16"></script>
+  <script src="table.js?v=streamlined-12-17"></script>
+  <script src="replay.js?v=streamlined-12-17"></script>
+  <script src="app.js?v=streamlined-12-17"></script>
+  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="12.17"></script>
 </body>
 </html>

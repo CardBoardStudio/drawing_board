@@ -8,7 +8,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/12.17";
+pub const RULES: &str = "galactic-reach/13.18";
 mod legacy_v1;
 mod legacy_v2;
 mod legacy_v3;
@@ -16,6 +16,7 @@ mod legacy_v4;
 mod legacy_v5;
 mod legacy_v6;
 mod legacy_v7;
+mod legacy_v8;
 mod replay;
 pub use replay::Trace;
 const ENGINE: &str = include_str!("../../../prototypes/galactic-reach/app.js");
@@ -52,6 +53,7 @@ impl GalacticReach {
             "galactic-reach/9.14" => "galactic-reach/9.14",
             "galactic-reach/10.15" => "galactic-reach/10.15",
             "galactic-reach/11.16" => "galactic-reach/11.16",
+            "galactic-reach/12.17" => "galactic-reach/12.17",
             _ => return Err("Unsupported rules version.".into()),
         };
         Self::initialize(seed, MATCH_TIMEOUT, rules)
@@ -73,6 +75,7 @@ impl GalacticReach {
                 )?;
                 ctx.eval::<(), _>(match rules {
                     RULES => ADAPTER,
+                    "galactic-reach/12.17" => include_str!("../rules/v12-adapter.js"),
                     "galactic-reach/11.16" => include_str!("../rules/v11-adapter.js"),
                     "galactic-reach/10.15" => include_str!("../rules/v10-adapter.js"),
                     "galactic-reach/9.14" => include_str!("../rules/v9-adapter.js"),
@@ -85,6 +88,7 @@ impl GalacticReach {
                 ctx.eval::<(), _>(include_str!("../rules/replay-view.js"))?;
                 ctx.eval::<(), _>(match rules {
                     RULES => ENGINE,
+                    "galactic-reach/12.17" => include_str!("../rules/v12-app.js"),
                     "galactic-reach/11.16" => include_str!("../rules/v11-app.js"),
                     "galactic-reach/10.15" => include_str!("../rules/v10-app.js"),
                     "galactic-reach/9.14" => include_str!("../rules/v9-app.js"),
@@ -188,18 +192,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/8",
-            Self::Economy => "gr-economy/8",
-            Self::Expansion => "gr-expansion/8",
-            Self::Wanderer => "gr-wanderer/8",
+            Self::Military => "gr-military/9",
+            Self::Economy => "gr-economy/9",
+            Self::Expansion => "gr-expansion/9",
+            Self::Wanderer => "gr-wanderer/9",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/8" => Some(Self::Military),
-            "gr-economy/8" => Some(Self::Economy),
-            "gr-expansion/8" => Some(Self::Expansion),
-            "gr-wanderer/8" => Some(Self::Wanderer),
+            "gr-military/9" => Some(Self::Military),
+            "gr-economy/9" => Some(Self::Economy),
+            "gr-expansion/9" => Some(Self::Expansion),
+            "gr-wanderer/9" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -278,42 +282,39 @@ impl BuiltinAgent {
                 }
             }
             "colonize" => 100.0,
-            "build" | "colony_build" | "establish_station" => {
-                match action["kind"].as_str().unwrap_or("") {
-                    "research" => 95.0,
-                    "starbase" => {
-                        if military {
-                            72.0
-                        } else {
-                            64.0
-                        }
-                    }
-                    "harvester" => {
-                        if economy {
-                            80.0
-                        } else {
-                            65.0
-                        }
-                    }
-                    "settler" => {
-                        let settlers: f64 = view["fleets"]
-                            .as_object()
-                            .unwrap()
-                            .values()
-                            .map(|g| number(&g[seat.to_string()]["settler"]))
-                            .sum();
-                        if settlers < 3.0 { 82.0 } else { 20.0 }
-                    }
-                    "explorer" => 30.0,
-                    _ => {
-                        if military {
-                            78.0
-                        } else {
-                            35.0
-                        }
+            "build" | "colony_build" => match action["kind"].as_str().unwrap_or("") {
+                "starbase" => {
+                    if military {
+                        72.0
+                    } else {
+                        64.0
                     }
                 }
-            }
+                "harvester" => {
+                    if economy {
+                        80.0
+                    } else {
+                        65.0
+                    }
+                }
+                "settler" => {
+                    let settlers: f64 = view["fleets"]
+                        .as_object()
+                        .unwrap()
+                        .values()
+                        .map(|g| number(&g[seat.to_string()]["settler"]))
+                        .sum();
+                    if settlers < 3.0 { 82.0 } else { 20.0 }
+                }
+                "explorer" => 30.0,
+                _ => {
+                    if military {
+                        78.0
+                    } else {
+                        35.0
+                    }
+                }
+            },
             "resource" => {
                 let gain = action["gain"].as_object().unwrap();
                 let need: f64 = gain
@@ -332,12 +333,14 @@ impl BuiltinAgent {
                     let center = view["clusters"][p["cluster"].as_u64().unwrap() as usize]["center"]
                         == *coord;
                     let goal = if explorer {
-                        p["relicSignal"] == true
-                            || p["special"] == "relic" && p["researchStationOwner"].is_null()
+                        p["relicSignal"] == true || p["special"] == "relic" || p["unknown"] == true
                     } else if military && number(&fleet["fleet"]) > 1.0 {
                         !p["owner"].is_null() && p["owner"] != json!(seat)
                     } else {
-                        center && p["owner"].is_null() && number(&fleet["settler"]) > 0.0
+                        center
+                            && p["type"] != "moon"
+                            && p["owner"].is_null()
+                            && number(&fleet["settler"]) > 0.0
                     };
                     if !goal {
                         continue;
@@ -350,7 +353,7 @@ impl BuiltinAgent {
                 }
                 best
             }
-            "probe" => 15.0,
+            "excavate" => 95.0,
             "special" => 50.0,
             "terraform" => {
                 if economy {
@@ -507,6 +510,9 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
     if let Some(strategy) = legacy_v7::Strategy::parse(version) {
         return Ok(Box::new(legacy_v7::BuiltinAgent::new(strategy, seed)));
     }
+    if let Some(strategy) = legacy_v8::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v8::BuiltinAgent::new(strategy, seed)));
+    }
     Err("Unsupported Galactic Reach policy version.".into())
 }
 
@@ -539,6 +545,7 @@ mod tests {
             "galactic-reach/9.14",
             "galactic-reach/10.15",
             "galactic-reach/11.16",
+            "galactic-reach/12.17",
         ] {
             let game = GalacticReach::with_rules([19; 32], rules).unwrap();
             assert_eq!(game.rules_version(), rules);
@@ -554,6 +561,7 @@ mod tests {
                             | "galactic-reach/9.14"
                             | "galactic-reach/10.15"
                             | "galactic-reach/11.16"
+                            | "galactic-reach/12.17"
                     ) {
                         0
                     } else {
@@ -572,6 +580,7 @@ mod tests {
             "gr-economy/6",
             "gr-military/7",
             "gr-military/8",
+            "gr-military/9",
         ] {
             assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
         }

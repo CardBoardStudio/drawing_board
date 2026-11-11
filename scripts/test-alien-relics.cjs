@@ -19,14 +19,14 @@ function effect(key) {
 }
 function special(g) {const action=g.a.legalActions(0).find(a=>a.type==='special');assert(action);g.a.applyAction(0,action);assert(g.p.discard.some(c=>c.id==='relic-order'));assert.equal(g.s.activePlayer,1);}
 {
-  const {e,a,s}=game();assert.equal(a.rulesVersion,'galactic-reach/12.17');assert.deepEqual(plain(s.fleets),{});
+  const {e,a,s}=game();assert.equal(a.rulesVersion,'galactic-reach/13.18');assert.deepEqual(plain(s.fleets),{});
   for(const p of s.players) {
     const cards=[...p.deck,...p.hand,...p.discard];assert.equal(cards.length,6);
     assert.equal(cards.filter(c=>c.key==='move').length,3);assert.equal(cards.filter(c=>c.key==='construct').length,3);
     assert(cards.every(c=>c.starter));assert.deepEqual(plain(p.resources),{matter:1,energy:0,biomass:2,data:0});
     assert(!('relics' in p)&&!('relicRecoveries' in p));
   }
-  assert.equal(s.relicDeck.length,12);assert.equal(new Set(s.relicDeck.map(c=>c.key)).size,12);
+  assert.equal(s.relicDeck.length,9);assert.equal(new Set([...s.relicDeck,...s.relicRow].map(c=>c.key)).size,12);
   const cards=Object.values(e.RELIC_CARDS);assert.equal(cards.length,12);
   for(const type of ['Exploration','Settlement','Military'])assert.equal(cards.filter(c=>c.affinity===type).length,4);
   assert(s.advancedDeck.every(c=>!e.RELIC_CARDS[c.key])&&s.market.every(c=>!e.RELIC_CARDS[c.key]));
@@ -38,15 +38,16 @@ function special(g) {const action=g.a.legalActions(0).find(a=>a.type==='special'
   assert(!e.buildShip(0,yard,'explorer'),'Level-II buildings cannot commission Explorers');
   s.planets[yard].upgrade='starbase';
   const count=p.discard.length;assert(e.buildShip(0,yard,'settler'));assert.equal(p.discard.at(-1).key,'colonize');assert(!p.discard.at(-1).starter);
-  assert(e.buildShip(0,yard,'explorer'));assert.equal(p.discard.at(-1).key,'probe');assert.equal(p.discard.length,count+2);
-  assert(e.buildShip(0,yard,'fleet'));assert.equal(p.discard.length,count+2,'Fleets grant no order card');assert.equal(p.cardsPurchased,0);
+  const hand=p.hand.length;assert(e.buildShip(0,yard,'explorer'));assert.equal(p.hand.at(-1).key,'excavate');assert.equal(p.hand.length,hand+1);assert.equal(p.discard.length,count+1);
+  assert(e.buildShip(0,yard,'fleet'));assert.equal(p.discard.length,count+1,'Fleets grant no order card');assert.equal(p.cardsPurchased,0);
   const before=JSON.stringify(s);assert(e.buildShip(0,yard,'settler',0,true));assert.equal(JSON.stringify(s),before,'Legality checks do not grant cards');
-  s.phase='buy';assert(!e.buyCard(0,'basic','colonize'));assert(!e.buyCard(0,'basic','probe'));
-  assert(!a.legalActions(0).some(x=>x.type==='buy'&&['colonize','probe'].includes(x.key)));
+  s.phase='buy';assert(!e.buyCard(0,'basic','colonize'));assert(!e.buyCard(0,'basic','excavate'));
+  assert(!a.legalActions(0).some(x=>x.type==='buy'&&['colonize','excavate'].includes(x.key)));
   assert(!a.legalActions(0).some(x=>x.type==='exchange_relic'));
 }
 {
-  const {e,a,s,p}=game(),coord=Object.keys(s.planets).find(k=>s.planets[k].special==='relic');
+  // Retained 12.17 station semantics are exercised only on the immutable engine.
+  const {e,a,s,p}=game(12),coord=Object.keys(s.planets).find(k=>s.planets[k].special==='relic');
   p.hand=[{key:'construct',id:'station-order',starter:true,upgraded:true}];p.resources={matter:1,energy:1,biomass:0,data:1};
   s.fleets[coord]={0:{settler:0,explorer:1,fleet:0}};
   const prize=s.relicDeck.at(-1),count=s.relicDeck.length,before=JSON.stringify(s);

@@ -50,9 +50,9 @@ for (const resource of ['matter', 'energy', 'data']) {
 {
   const {e, a, s, p} = game();
   assert.deepEqual(Object.keys(e.SHIP_STATS).sort(), ['explorer', 'fleet', 'settler']);
-  assert.deepEqual(Object.keys(e.STRUCTURES).sort(), ['harvester', 'research', 'starbase']);
+  assert.deepEqual(Object.keys(e.STRUCTURES).sort(), ['harvester', 'starbase']);
   assert(!e.ALL_CARDS.gateSynchronization);
-  assert(Object.values(s.planets).every(x => x.special !== 'gate' && x.researchStationOwner===null));
+  assert(Object.values(s.planets).every(x => x.special !== 'gate' && !('researchStationOwner' in x)));
   p.hand = [{id: 'construct', key: 'construct'}]; p.resources = {matter: 10, energy: 10, biomass: 10, data: 10};
   const before = JSON.stringify(s);
   for (const kind of ['warehouse', 'dreadnought', 'frigate']) {

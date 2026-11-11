@@ -78,3 +78,11 @@ for asset in app.js styles.css index.html replay.js rulebook.html rulebook.css; 
 done
 cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/11.16/table.js
 cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/11.16/
+
+# Keep the full 12.17 browser for existing tables and replays.
+mkdir -p dist/galactic-reach/rules/12.17
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v12-$asset" "dist/galactic-reach/rules/12.17/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/12.17/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/12.17/

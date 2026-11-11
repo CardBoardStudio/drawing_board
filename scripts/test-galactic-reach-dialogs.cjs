@@ -69,6 +69,7 @@ function fire(target, type, { cancelable = false } = {}) {
 function createDom(timers) {
   const byId = new Map();
   const queried = new Map();
+  const created = [];
 
   class FakeElement {
     constructor(tag = 'div', id = '') {
@@ -88,12 +89,12 @@ function createDom(timers) {
       this.elements = new Proxy({}, { get: (fields, name) => (fields[name] ??= new FakeElement('input')) });
     }
     addEventListener(type, listener) { (this.listeners[type] ||= []).push(listener); }
-    querySelector() { return new FakeElement(); }
+    querySelector(selector) { return (this.childQueries ||= new Map()).get(selector) || (this.childQueries.set(selector,new FakeElement()),this.childQueries.get(selector)); }
     querySelectorAll() { return []; }
     appendChild(child) { return child; }
     insertAdjacentHTML(_, html) { this.innerHTML += html; }
-    setAttribute() {}
-    getAttribute() { return null; }
+    setAttribute(key,value) { (this.attributes ||= {})[key]=String(value); }
+    getAttribute(key) { return this.attributes?.[key] ?? null; }
     matches() { return false; }
     contains() { return false; }
     showPopover() {}
@@ -136,21 +137,21 @@ function createDom(timers) {
     body: new FakeElement('body'),
     documentElement: { clientWidth: 1280 },
     addEventListener() {},
-    createElement: tag => new FakeElement(tag),
-    querySelector: selector => (selector.startsWith('#') ? element(selector.slice(1)) : null),
-    querySelectorAll: selector => (/^\[data-[a-z-]+\]$/.test(selector) ? byDataAttribute(selector) : [])
+    createElement: tag => {const e=new FakeElement(tag);created.push(e);return e;},
+    querySelector: selector => (selector.startsWith('#') ? element(selector.slice(1)) : selector.startsWith('.hex[data-coord=') ? created.find(e=>e.dataset.coord===selector.match(/"([^"]+)"/)[1]) : null),
+    querySelectorAll: selector => (selector==='.hex'?created.filter(e=>e.dataset.coord):/^\[data-[a-z-]+\]$/.test(selector) ? byDataAttribute(selector) : [])
   };
-  return { document, element, lastQuery: selector => queried.get(selector) || [] };
+  return { document, element, hex:key=>created.find(e=>e.dataset.coord===key), lastQuery: selector => queried.get(selector) || [] };
 }
 
-function boot(storage, seed = 20261013) {
+function boot(storage, seed = 20261013, location = {hostname:'localhost',search:''}) {
   const timers = createTimers();
   const dom = createDom(timers);
   const errors = [];
   const math = Object.create(Math);
   math.random = seededRandom(seed);
   const context = vm.createContext({
-    Math: math,
+    Math: math, URLSearchParams, location,
     document: dom.document,
     window: { innerHeight: 900, addEventListener() {} },
     localStorage: storage,
@@ -413,6 +414,58 @@ test('trashing uses three of the selected resource type in the live Buy UI', () 
   assert.equal(game.saved().players[0].resources.matter,3);
   assert.equal(game.saved().players[0].resources.energy,0);
   assert.equal(game.saved().players[0].discard.length,0);
+});
+
+
+test('excavation UI chooses a visible reward and survives reload without its spent order', () => {
+  const storage=createStorage(), state=boot(storage).saved();
+  const coord=Object.keys(state.planets).find(k=>state.planets[k].special==='relic');
+  state.clusters[state.planets[coord].cluster].revealedBy=[0,1,2,3];
+  state.selected=coord;state.players[0].hand=[{key:'excavate',id:'ui-dig'}];
+  state.players[0].resources={matter:1,energy:1,biomass:0,data:2};
+  state.fleets[coord]={0:{explorer:1}};
+  writeSave(storage,state);
+  const game=boot(storage), chosen=state.relicRow[1], replacement=state.relicDeck.at(-1);
+  game.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='ui-dig').click();
+  const choices=game.dom.lastQuery('[data-excavate-relic]');assert.equal(choices.length,3);
+  choices.find(b=>b.dataset.excavateRelic===chosen.id).click();
+  const after=game.saved(), p=after.players[0];
+  assert.equal(after.planets[coord].special,null);assert.equal(after.fleets[coord][0].explorer,1);
+  assert.equal(p.relicsExcavated,1);assert.equal(p.hand.find(c=>c.id===chosen.id).key,chosen.key);
+  assert(![...p.hand,...p.discard,...p.deck].some(c=>c.id==='ui-dig'));
+  assert.equal(after.relicRow[1].id,replacement.id);
+  assert.equal(boot(storage).saved().players[0].relicsExcavated,1);
+});
+
+test('map and Sector Scan show every faction in fog and empty space', () => {
+  const storage=createStorage(), state=boot(storage).saved(), coord=state.clusters[4].coords[1];
+  const empty=['-12,12','12,-12','0,0'].find(key=>!state.planets[key]);assert(empty);
+  state.clusters[4].revealedBy=[];state.clusters[4].scannedBy=[];
+  state.fleets[coord]={2:{explorer:1,fleet:2}};state.fleets[empty]={3:{settler:1}};
+  writeSave(storage,state);const game=boot(storage);
+  for (const [key,name] of [[coord,'Violet Assembly'],[empty,'Helios Compact']]) {
+    const hex=game.dom.hex(key);assert(hex.querySelector('.hex-fleets').innerHTML.includes('hex-fleet-group'));
+    assert(hex.getAttribute('aria-label').includes(name));
+    hex.click();assert(game.dom.element('inspect-facts').innerHTML.includes(name));
+  }
+  assert(game.dom.hex(coord).className.includes('unknown-world'),'Visible units do not reveal terrain');
+});
+
+test('development reveal restores fog and leaves saved discovery unchanged', () => {
+  const storage=createStorage(), state=boot(storage).saved(), coord=state.clusters[4].coords[1];
+  state.planets[coord].owner=2;state.planets[coord].upgrade='harvester';state.planets[coord].upgradeLevel=1;
+  state.fleets[coord]={2:{fleet:1}};state.selected=coord;
+  writeSave(storage,state);
+  const game=boot(storage,20261013,{hostname:'localhost',search:'?dev=1'}), before=storage.getItem(SAVE_KEY);
+  assert.equal(game.dom.element('development-tools').hidden,false);
+  const toggle=game.dom.element('reveal-entire-map'), hex=game.dom.hex(coord);
+  assert(hex.className.includes('unknown-world'));assert.equal(hex.querySelector('.hex-buildings').innerHTML,'');
+  toggle.checked=true;fire(toggle,'change');
+  assert(!hex.className.includes('unknown-world'));assert(hex.querySelector('.hex-buildings').innerHTML);
+  toggle.checked=false;fire(toggle,'change');
+  assert(hex.className.includes('unknown-world'));assert.equal(hex.querySelector('.hex-buildings').innerHTML,'');
+  assert(hex.querySelector('.hex-fleets').innerHTML);assert.equal(storage.getItem(SAVE_KEY),before);
+  assert.equal(boot(storage,20261013,{hostname:'drawing-board-p0g3.onrender.com',search:'?dev=1'}).dom.element('development-tools').hidden,true,'Stable host never exposes development controls');
 });
 
 let failed = 0;

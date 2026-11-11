@@ -14,7 +14,7 @@ function engine() {
   return {port,adapter};
 }
 const {port,adapter}=engine();
-assert.equal(adapter.rulesVersion,'galactic-reach/12.17');
+assert.equal(adapter.rulesVersion,'galactic-reach/13.18');
 const before=JSON.stringify(port.state);
 adapter.legalActions(0);adapter.observe(0);
 assert.equal(JSON.stringify(port.state),before,'Observation and legality must not mutate state');
@@ -63,12 +63,6 @@ for(const [kind,base] of [['settler',1],['explorer',3],['fleet',2]]){
   }
 }
 for(const upgraded of [false,true]){
-  const f=orderFixture('probe',upgraded), target=f.port.nearestUnscannedRelicCluster(0,upgraded);
-  f.adapter.applyAction(0,f.adapter.legalActions(0).find(a=>a.type==='probe'));
-  assert(target.scannedBy.includes(0));assert.equal(target.revealedBy.includes(0),upgraded);
-  if(upgraded)assert(target.coords.every(key=>!f.adapter.observe(0).planets[key].unknown));
-}
-for(const upgraded of [false,true]){
   const f=orderFixture('construct',upgraded),s=f.port.state,p=s.players[0],coord=s.clusters[0].coords[2];
   p.resources={matter:0,energy:1,biomass:1,data:0};
   const before=JSON.stringify(s),build=f.adapter.legalActions(0).find(a=>a.type==='build'&&a.kind==='harvester'&&a.coord===coord);
@@ -92,4 +86,4 @@ for(const finish of ['build','skip']){
 const ranked=engine();ranked.port.state.winner=0;
 ranked.port.state.players.forEach((p,i)=>{p.cardsPurchased=(i===0?20:10)*8;p.resources={matter:i===3?0:1,energy:0,biomass:0,data:0};});
 assert.equal(JSON.stringify(ranked.adapter.scores()),JSON.stringify([3,2,2,0]),'Prestige ranks, resource tiebreaks, and exact ties are reflected in terminal scores');
-console.log('Upgraded orders: unit minimums, +1 range, full-world Probe, chosen construction discounts, optional paid colony building, and tied placements passed.');
+console.log('Upgraded orders: unit minimums, +1 range, chosen construction discounts, optional paid colony building, and tied placements passed.');

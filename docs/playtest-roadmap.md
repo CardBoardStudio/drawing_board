@@ -57,9 +57,9 @@ The companion tracking issue records the remaining decisions and links the next 
 - Collect full gains and let the player choose excess-resource discards.
 - Let Settlers, Fleets, and Explorers discover worlds.
 
-## Pending next round
+## Implemented in the 13.18 excavation experiment
 
-These requests follow the six-change 12.17 playtest.
+These requests follow the six-change 12.17 playtest and are implemented together in the 13.18 experiment.
 
 - Remove Research Stations.
 - Purchasing an Explorer adds an Excavate card directly to that player's hand.
@@ -71,4 +71,4 @@ These requests follow the six-change 12.17 playtest.
 - Add a development-only Reveal entire map toggle for worlds, moons, relics, resources, buildings, and units. Switching it off restores normal fog of war.
 - Keep every player's units visible to every other player, including in unexplored regions and empty space, independently of the development toggle. Map icons and Sector Scan must agree.
 
-Later rules decisions remain open for the excavation resource cost, whether the Explorer is consumed, whether relic collection retains Prestige, the number of moons and total relics, and relic-row refill behavior. Trashing the used Excavate card is specified.
+Confirmed defaults: excavation costs 1 Matter, 1 Energy, and 2 Data; keep the Explorer; gain 1 permanent Prestige; four moons and twelve relics total; refill the chosen row slot immediately. Trash the used Excavate card.

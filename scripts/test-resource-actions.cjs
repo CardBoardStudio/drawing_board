@@ -59,7 +59,7 @@ for(const version of [6,7]) {
 // Multiple paid trashes, preserving start-of-Buy eligibility.
 {
   const g=engine(),s=g.port.state,p=s.players[0];
-  p.hand=[];p.discard=[{id:'trash1',key:'move',starter:true},{id:'trash2',key:'construct',starter:true,upgraded:true},{id:'trash3',key:'probe'}];
+  p.hand=[];p.discard=[{id:'trash1',key:'move',starter:true},{id:'trash2',key:'construct',starter:true,upgraded:true},{id:'trash3',key:'excavate'}];
   p.resources={matter:0,energy:0,biomass:0,data:6};act(g,'pass');
   act(g,'decommission',a=>a.card==='trash1');act(g,'decommission',a=>a.card==='trash2');
   assert.equal(p.resources.data,0);assert.deepEqual(plain(p.discard.map(c=>c.id)),['trash3']);
@@ -142,11 +142,11 @@ function card(key,upgraded=false){return {...r.makeCard(key,true),upgraded};}
   s.activePlayer=1;assert.equal(r.availableContextOrders(world.center).length,0);assert(!r.startContextOrder(colonize.id,world.center));
 }
 {
-  const s=fresh(),p=s.players[0],world=s.clusters[4];p.hand=[card('construct'),card('move')];
+  const s=fresh(),p=s.players[0],world=s.clusters[4];p.hand=[card('excavate'),card('move')];
   const relic=world.coords.find(k=>s.planets[k].special==='relic');assert(relic);
   s.fleets[relic]={0:{explorer:1}};world.revealedBy=[];world.scannedBy=[];
-  assert(!r.availableContextOrders(relic).some(a=>a.type==='construct'),'Unknown relics do not leak relic recovery choices');
-  world.scannedBy=[0];assert(r.availableContextOrders(relic).some(a=>a.type==='construct'),'A located relic permits the Explorer shortcut');
+  assert(!r.availableContextOrders(relic).some(a=>a.type==='excavate'),'Unknown relics do not leak relic recovery choices');
+  world.scannedBy=[0];assert(r.availableContextOrders(relic).some(a=>a.type==='excavate'),'A located relic permits the Explorer shortcut');
   s.pendingColonyBuild={playerId:0,colony:s.clusters[0].center};s.turnStage='bonus-build';
   assert.equal(r.availableContextOrders(relic).length,0,'Finish Colonize II before starting a new order');
   p.resources={matter:0,energy:4,biomass:0,data:0};assert(r.bankTrade(0,'energy','data'));assert(r.discardResources(0,'data',1));assert(s.pendingColonyBuild);

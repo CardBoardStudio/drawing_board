@@ -37,8 +37,8 @@ function makeGame(seed, seatStrategies, fleetProduction) {
   );
   source = replaceOrFail(
     source,
-    "gains[playerId][planet.type] += 1;",
-    "gains[playerId][planet.type] += 1; fleetGains[playerId][planet.type] += 1;",
+    "if (RESOURCES.includes(planet.type)) gains[playerId][planet.type] += 1;",
+    "if (RESOURCES.includes(planet.type)) { gains[playerId][planet.type] += 1; fleetGains[playerId][planet.type] += 1; }",
     'fleet-income instrumentation'
   );
   if (!fleetProduction) {
@@ -46,7 +46,7 @@ function makeGame(seed, seatStrategies, fleetProduction) {
       source,
       `    Object.entries(state.planets).forEach(([coord,planet]) => {
       fleetControllersAt(coord).forEach(playerId => {
-        gains[playerId][planet.type] += 1; fleetGains[playerId][planet.type] += 1;
+        if (RESOURCES.includes(planet.type)) { gains[playerId][planet.type] += 1; fleetGains[playerId][planet.type] += 1; }
       });
     });`,
       '',
@@ -111,7 +111,7 @@ function makeGame(seed, seatStrategies, fleetProduction) {
     colonies: id => colonyPlanets(id).length,
     controlled: id => controlledPlanets(id).length,
     fleetPower: id => strongestFleet(id),
-    stations: id => researchStationCount(id)
+    stations: id => excavatedRelicCount(id)
   };
   return globalThis.__gr;
 }`;

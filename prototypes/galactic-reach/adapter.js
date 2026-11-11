@@ -15,7 +15,7 @@ function createGalacticAdapter(e) {
     return e.clone({
       seat, round: state.round, phase: state.phase, firstPlayer: state.firstPlayer, overflowPlayer: e.overflowPlayer(),
       players: state.players.map((p, id) => ({
-        id, resources: p.resources, researchStations: e.researchStationCount(id), storageUpgrades: p.storageUpgrades,
+        id, resources: p.resources, relicsExcavated: e.excavatedRelicCount(id), storageUpgrades: p.storageUpgrades,
         prestige: e.calculatePrestige(id), capacity: e.playerCapacity(id),
         hand: id === seat ? p.hand : undefined, discard: p.discard,
         handCount: p.hand.length, deckCount: p.deck.length,
@@ -26,7 +26,7 @@ function createGalacticAdapter(e) {
           relicSignal: e.clusterScanned(state.clusters[p.cluster], seat) && p.special === 'relic' }
       ])),
       clusters: state.clusters.map(c => ({ center: c.center, coords: c.coords })),
-      fleets: state.fleets, market: state.market,
+      fleets: state.fleets, market: state.market, relicRow: state.relicRow, relicDeckCount: state.relicDeck.length,
       pendingConsortium: state.pendingConsortium, tradeOffers: state.tradeOffers, pendingColonyBuild: state.pendingColonyBuild
     });
   }
@@ -102,7 +102,7 @@ function createGalacticAdapter(e) {
         if (def.order === 'construct') Object.keys(state.planets).forEach(coord => {
           for (const discountResource of card.upgraded ? e.RESOURCES : [null]) {
             for (const kind of [...Object.keys(e.STRUCTURES),...Object.keys(e.SHIP_STATS)])
-              if (e.constructAt(seat,coord,kind,discountResource,true)) actions.push({type:kind==='research'?'establish_station':'build',...base,coord,kind,discountResource});
+              if (e.constructAt(seat,coord,kind,discountResource,true)) actions.push({type:'build',...base,coord,kind,discountResource});
           }
         });
         if (def.order === 'move') Object.entries(state.fleets).forEach(([source, group]) => {
@@ -116,10 +116,14 @@ function createGalacticAdapter(e) {
             });
           }
         });
-        if (def.order === 'probe' && e.nearestUnscannedRelicCluster(seat,card.upgraded)) actions.push({ type: 'probe', ...base });
+        if (def.order === 'excavate') Object.keys(state.planets).forEach(coord=>{
+          state.relicRow.forEach(relic=>{
+            if(e.excavate(seat,coord,card.id,relic.id,true)) actions.push({type:'excavate',...base,coord,relic:relic.id});
+          });
+        });
         if (def.order === 'special') {
           if (def.tag === 'terraform') Object.entries(state.planets).forEach(([coord, planet]) => {
-            if (planet.owner === seat && !planet.rich && p.resources.biomass >= 2) actions.push({ type: 'terraform', ...base, coord });
+            if (planet.owner === seat && planet.type!=='moon' && !planet.rich && p.resources.biomass >= 2) actions.push({ type: 'terraform', ...base, coord });
           });
           else actions.push({ type: 'special', ...base });
         }
@@ -167,10 +171,9 @@ function createGalacticAdapter(e) {
       case 'finish_colony_build': e.finishColonyBuild(seat); return;
       case 'colony_build': e.finishColonyBuild(seat,action.coord,action.kind); return;
       case 'colonize': e.applyColonizeOrder(seat, action.coord, card); return;
-      case 'establish_station':
       case 'build': e.constructAt(seat,action.coord,action.kind,action.discountResource); break;
       case 'move': e.executeMove(seat, action.source, action.destination, { tag: def.tag, moveGroup: action.moveGroup }); break;
-      case 'probe': e.resolveProbe(seat,card); break;
+      case 'excavate': e.excavate(seat,action.coord,action.card,action.relic); return;
       case 'terraform': p.resources.biomass -= 2; state.planets[action.coord].rich = true; break;
       case 'special': e.resolveHumanSpecial(card, def, seat); return;
       default: throw new Error('Unknown action.');
@@ -193,6 +196,6 @@ function createGalacticAdapter(e) {
     const seat = activeSeat();
     return { active: seat, observation: seat === null ? null : observe(seat), legal: legalActions(seat), scores: scores() };
   }
-  return { rulesVersion: 'galactic-reach/12.17', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
+  return { rulesVersion: 'galactic-reach/13.18', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = createGalacticAdapter;

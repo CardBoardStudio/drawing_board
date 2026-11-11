@@ -1,6 +1,6 @@
 # Galactic Reach rules maintenance
 
-The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 12.17 / Streamlined Reach experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
+The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 13.18 / Excavation experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
 
 ## Read, change, verify
 
@@ -43,3 +43,5 @@ The 10.15 iteration removes Research Stations, Dreadnoughts, Gates, and Gate Syn
 The 11.16 revision overrides the earlier Relic infrastructure. Start with only a Colony and a six-card deck; commission all units at Shipyards. Settler and Explorer purchases grant Colonize and Probe respectively, outside the basic market. Research Stations grant 1 Prestige and an immediate private draw from the 12-card alien deck; inventory, recovery counters, and exchanges are gone. The 11.16 saves use v11 and prior 10.15 assets and AI policies remain archived.
 
 The 12.17 playtest removes public awards and council directives, reduces the resource panel, permits discovery by every ship type, and prices each trash at three of one chosen resource type. Full resource gains remain stored until the owning player chooses the excess discards, including across reloads. New guest saves use v12; 11.16 browser assets and policy-v7 agents remain archived.
+
+The 13.18 experiment removes stations, replaces Explorer-bundled Probe with Excavate directly in hand, and uses a public three-card relic row. Excavation costs 1 Matter, 1 Energy, and 2 Data, keeps the Explorer, removes the site, grants one permanent Prestige and the chosen relic to hand, and trashes Excavate. The map has 12 worlds, four non-producing moons, and 12 relics with separated terrain. All units remain visible under fog; the preview-only development reveal changes only local rendering. Complete 12.17 assets and policy-v8 remain immutable.

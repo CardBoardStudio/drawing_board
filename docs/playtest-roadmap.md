@@ -47,3 +47,28 @@ Make the local/Tailscale test service repeatable: documented port selection, iso
 - The existing stable and 5.10 local services remain playable throughout the experiment.
 
 The companion tracking issue records the remaining decisions and links the next implementation work: [Playtest roadmap after PR #5](https://github.com/CardBoardStudio/drawing_board/issues/6).
+
+## Streamlined Reach 12.17 requested modifications
+
+- Remove public awards and their Prestige.
+- Compact the Your Command resource totals and remove their descriptions.
+- Remove the council directive and its resource bonuses.
+- Trash each eligible discarded card for three of one chosen resource type.
+- Collect full gains and let the player choose excess-resource discards.
+- Let Settlers, Fleets, and Explorers discover worlds.
+
+## Pending next round
+
+These requests follow the six-change 12.17 playtest.
+
+- Remove Research Stations.
+- Purchasing an Explorer adds an Excavate card directly to that player's hand.
+- Excavate collects a relic, removes it from the board, and grants a relic-deck card into the player's hand. Trash the Excavate card immediately after use.
+- Replace the random relic draw with a visible row of three relic cards. The excavating player chooses one.
+- Increase the map to eight inner worlds and four home worlds, for twelve worlds total.
+- Add single gray Moons that produce no resources. Relics may appear on planet hexes and moons.
+- Keep at least one empty space tile between separate worlds and moons, and between moons. Larger gaps are allowed.
+- Add a development-only Reveal entire map toggle for worlds, moons, relics, resources, buildings, and units. Switching it off restores normal fog of war.
+- Keep every player's units visible to every other player, including in unexplored regions and empty space, independently of the development toggle. Map icons and Sector Scan must agree.
+
+Later rules decisions remain open for the excavation resource cost, whether the Explorer is consumed, whether relic collection retains Prestige, the number of moons and total relics, and relic-row refill behavior. Trashing the used Excavate card is specified.

@@ -2,9 +2,9 @@
 
 ## Stable lane
 
-`main` is the stable lane following the promotion of Long Reach 6.11 in [PR #16](https://github.com/CardBoardStudio/drawing_board/pull/16). PR #3 and the later promotion PR are closed. Do not use their old preview URLs or target their historical branch for new work.
+The user-designated stable playtest lane is `codex/add-galactic-reach-prototype`. Keep ongoing games on this lane save-compatible. This explicit lane selection supersedes the historical promotion of Long Reach 6.11 into `main`; old PR preview URLs are not current deployment links.
 
-Create save-compatible work on `codex/<short-name>` from latest `origin/main`, open a PR against `main`, and apply `playtest-safe`. This includes accessibility, layout, wording, diagnostics, and fixes that preserve available decisions and saved-state meaning. Keep existing guest saves, pinned tables, and replays playable.
+Create save-compatible work on `codex/<short-name>` from the latest `origin/codex/add-galactic-reach-prototype` head, open a PR against `codex/add-galactic-reach-prototype`, and apply `playtest-safe`. This includes accessibility, layout, wording, diagnostics, and fixes that preserve available decisions and saved-state meaning. Keep existing guest saves, pinned tables, and replays playable.
 
 ## Rules contract for every PR
 
@@ -16,16 +16,16 @@ The `Rules contract` check requires a grounding declaration and pairs changes in
 
 A change is breaking if it can invalidate a game or materially change a player's decisions: setup, map generation, turn order, legal actions, card effects/costs, production, combat, scoring, victory, component limits, or saved-state meaning. If uncertain, treat it as breaking until proven compatible.
 
-1. Create `codex/experiment-<short-name>` from latest `origin/main`.
+1. Create `codex/experiment-<short-name>` from the latest `origin/codex/add-galactic-reach-prototype` head.
 2. Describe one rules hypothesis in the rulebook and PR, then implement it with supporting behavior tests.
-3. Open a PR against `main` and apply `playtest-breaking`.
+3. Open a PR against `codex/add-galactic-reach-prototype` and apply `playtest-breaking`.
 4. Keep the game and rulebook version declarations aligned. Label experimental rules as experimental on their preview.
 5. Wait for checks and the Render preview; inspect GitHub deployment statuses for that head commit and use the successful `environment_url`.
 6. Start a new game on that origin. Keep existing play on the stable origin; never redirect stable saves into an experiment.
 
 ## Preview verification
 
-Every rules PR ships the edited source document to `/galactic-reach/rulebook.html` beside that PR's game. Open both without signing in. Check the game's Rules dialog link, rulebook navigation and narrow layout, and any changed mechanic. Include both verified URLs in the PR. Do not skip Render previews for documentation-only rules changes.
+Every rules PR ships the edited source document to `/galactic-reach/rulebook.html` beside that PR's game. Open both without signing in. Check the game's Rules dialog link, rulebook navigation and narrow layout, and any changed mechanic. Include both verified URLs in the PR. Each player-facing preview must also show “What’s new in this playtest,” with the current PR’s changes and rulebook links. Verify that panel at the same time. Do not skip Render previews for documentation-only rules changes.
 
 `scripts/build-web.sh` packages the rulebook and its stylesheet; `scripts/check-rulebook.cjs` verifies source and deployed asset contracts. The container smoke requests the rulebook and checks its version marker so a fallback HTML response cannot masquerade as a successful deployment.
 

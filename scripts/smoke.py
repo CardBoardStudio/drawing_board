@@ -13,7 +13,7 @@ ORIGIN = os.environ.get("SMOKE_ORIGIN", "https://preview.example")
 CODE = os.environ["SMOKE_PREVIEW_CODE"]
 
 
-def request(path, body=None, cookie="", origin=ORIGIN):
+def request(path, body=None, cookie="", origin=ORIGIN, timeout=120):
     headers = {"Origin": origin, "x-drawing-board": "1"}
     if cookie:
         headers["Cookie"] = cookie
@@ -22,7 +22,7 @@ def request(path, body=None, cookie="", origin=ORIGIN):
         headers["Content-Type"] = "application/json"
     req = urllib.request.Request(BASE + path, data=data, headers=headers)
     try:
-        response = urllib.request.urlopen(req, timeout=120)
+        response = urllib.request.urlopen(req, timeout=timeout)
     except urllib.error.HTTPError as error:
         response = error
     with response:
@@ -147,7 +147,9 @@ for policy in ['gr-military', 'gr-economy', 'gr-expansion', 'gr-wanderer']:
     assert status == 200, bot
     gr_bots.append(bot['id'])
 gr_series = {'request_id': str(uuid.uuid4()), 'game': 'galactic-reach', 'bots': gr_bots, 'games': 4}
-status, _, gr_result = request('/api/arena/series', gr_series, account_cookie)
+# Four rotations run sequentially, each with the engine's 300-second deadline.
+# Keep ordinary HTTP checks short, but allow this complete series to finish.
+status, _, gr_result = request('/api/arena/series', gr_series, account_cookie, timeout=4 * 300 + 30)
 assert status == 200, gr_result
 assert len(gr_result['matches']) == 4
 assert all(m['result']['rules_version'] == 'galactic-reach/13.18' for m in gr_result['matches'])

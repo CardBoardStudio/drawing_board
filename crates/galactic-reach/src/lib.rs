@@ -19,6 +19,7 @@ mod replay;
 pub use replay::Trace;
 const ENGINE: &str = include_str!("../../../prototypes/galactic-reach/app.js");
 const ADAPTER: &str = include_str!("../../../prototypes/galactic-reach/adapter.js");
+const MATCH_TIMEOUT: Duration = Duration::from_secs(300);
 #[derive(Deserialize)]
 struct Snapshot {
     active: Option<usize>,
@@ -34,7 +35,7 @@ pub struct GalacticReach {
 }
 impl GalacticReach {
     pub fn new(seed: [u8; 32]) -> Result<Self, String> {
-        Self::with_timeout(seed, Duration::from_secs(90))
+        Self::with_timeout(seed, MATCH_TIMEOUT)
     }
     fn with_timeout(seed: [u8; 32], timeout: Duration) -> Result<Self, String> {
         Self::initialize(seed, timeout, RULES)
@@ -51,7 +52,7 @@ impl GalacticReach {
             "galactic-reach/10.15" => "galactic-reach/10.15",
             _ => return Err("Unsupported rules version.".into()),
         };
-        Self::initialize(seed, Duration::from_secs(90), rules)
+        Self::initialize(seed, MATCH_TIMEOUT, rules)
     }
     fn initialize(seed: [u8; 32], timeout: Duration, rules: &'static str) -> Result<Self, String> {
         let runtime = Runtime::new().map_err(|e| e.to_string())?;

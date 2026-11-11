@@ -47,3 +47,12 @@ Make the local/Tailscale test service repeatable: documented port selection, iso
 - The existing stable and 5.10 local services remain playable throughout the experiment.
 
 The companion tracking issue records the remaining decisions and links the next implementation work: [Playtest roadmap after PR #5](https://github.com/CardBoardStudio/drawing_board/issues/6).
+
+## Streamlined Reach 12.17 requested modifications
+
+- Remove public awards and their Prestige.
+- Compact the Your Command resource totals and remove their descriptions.
+- Remove the council directive and its resource bonuses.
+- Trash each eligible discarded card for three of one chosen resource type.
+- Collect full gains and let the player choose excess-resource discards.
+- Let Settlers, Fleets, and Explorers discover worlds.

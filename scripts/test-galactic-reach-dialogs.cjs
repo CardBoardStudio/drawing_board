@@ -189,7 +189,7 @@ const tests = [];
 function test(name, body) { tests.push({ name, body }); }
 
 // Plays the fresh game's first round: the human leads Operations and Buy in round 1.
-function playToRoundOneDirective() {
+function playFirstRound() {
   const storage = createStorage();
   const game = boot(storage);
   let state = game.saved();
@@ -219,68 +219,80 @@ test('pass opens Buy before any rival acts, and a Buy reload can finish', () => 
   const reloaded = boot(storage);
   assert.equal(JSON.stringify(reloaded.saved()), JSON.stringify(state));
   reloaded.click('finish-buy-button');
-  assert.equal(reloaded.saved().phase, 'directive');
+  assert.equal(reloaded.saved().phase, 'operations');
+  assert.equal(reloaded.saved().round, 2);
 });
 
-test('a new game reaches the human-chosen directive at the end of round 1', () => {
-  const { game } = playToRoundOneDirective();
-  assert.equal(game.saved().phase, 'directive');
-  assert.equal(game.dialog('directive').open, true);
-  game.saved().players.forEach(player => {
-    const stored = Object.values(player.resources).reduce((sum, value) => sum + value, 0);
-    assert.ok(stored <= 10, `${player.name} stores ${stored} resources without a Warehouse`);
-  });
+test('a completed first round advances directly into round two', () => {
+  const { game } = playFirstRound();
+  assert.equal(game.saved().phase, 'operations');
+  assert.equal(game.saved().round, 2);
+  assert(!('awards' in game.saved()));
+  assert(!game.dialog('directive').open);
 });
 
-test('Escape cannot dismiss the directive dialog', () => {
-  const { game } = playToRoundOneDirective();
-  game.pressEscape('directive');
-  assert.equal(game.dialog('directive').open, true);
-  assert.equal(game.saved().phase, 'directive');
+function overflowStorage() {
+  const storage = createStorage();
+  const state = boot(storage).saved();
+  state.players[0].resources = { matter: 8, energy: 2, biomass: 0, data: 3 };
+  state.activePlayer = 1;
+  state.turnStage = 'ai';
+  writeSave(storage,state);
+  return storage;
+}
+
+test('excess resources wait for the player and survive Escape', () => {
+  const game = boot(overflowStorage());
+  assert.equal(game.saved().players[0].resources.data, 3);
+  assert.equal(game.saved().activePlayer, 1);
+  assert(game.dialog('overflow').open);
+  game.pressEscape('overflow');
+  assert(game.dialog('overflow').open);
+  assert.deepEqual(game.saved().players[0].resources,{matter:8,energy:2,biomass:0,data:3});
 });
 
-test('a directive dialog closed without a choice reopens', () => {
-  const { game } = playToRoundOneDirective();
-  game.dialog('directive').close();
+test('closing or reloading an overflow choice preserves the full collection', () => {
+  const storage = overflowStorage();
+  const game = boot(storage);
+  game.dialog('overflow').close();
   game.settle();
-  assert.equal(game.dialog('directive').open, true);
-});
-
-test('reloading during the directive reopens it and the choice continues the game', () => {
-  const { storage } = playToRoundOneDirective();
+  assert(game.dialog('overflow').open);
+  const before = storage.getItem(SAVE_KEY);
   const reloaded = boot(storage);
-  assert.equal(reloaded.dialog('directive').open, true);
-  const [choice] = reloaded.dom.lastQuery('[data-directive]');
-  assert.ok(choice, 'the directive dialog rendered its choices');
-  choice.click();
-  reloaded.settle();
-  const state = reloaded.saved();
-  assert.equal(state.round, 2);
-  assert.equal(state.phase, 'operations');
-  assert.equal(reloaded.dialog('directive').open, false);
+  assert(reloaded.dialog('overflow').open);
+  assert.equal(storage.getItem(SAVE_KEY),before);
 });
 
-test('round three goes directly to its resource directive without a policy ballot', () => {
-  const { storage } = playToRoundOneDirective();
+test('the player can discard old resources and keep newly collected resources', () => {
+  const game = boot(overflowStorage());
+  game.dom.element('overflow-matter').value='3';
+  game.dom.element('overflow-energy').value='0';
+  game.dom.element('overflow-biomass').value='0';
+  game.dom.element('overflow-data').value='0';
+  fire(game.dom.element('overflow-matter'),'input');
+  assert.equal(game.dom.element('overflow-confirm').disabled,false);
+  fire(game.dom.element('overflow-form'),'submit',{cancelable:true});
+  game.settle();
+  assert(!game.dialog('overflow').open);
+  assert.deepEqual(game.saved().players[0].resources,{matter:5,energy:2,biomass:0,data:3});
+  assert.equal(game.saved().activePlayer,0);
+});
+
+test('round three skips the council and proceeds to round four', () => {
+  const { storage } = playFirstRound();
   const state = JSON.parse(storage.getItem(SAVE_KEY));
-  Object.assign(state, { round: 3, phase: 'buy', firstPlayer: 0, activePlayer: 3, turnStage: 'ai-buy' });
-  writeSave(storage, state);
+  Object.assign(state,{round:3,phase:'buy',firstPlayer:0,activePlayer:3,turnStage:'ai-buy'});
+  state.players.forEach(player=>{player.passed=true;player.resources={matter:0,energy:0,biomass:0,data:0};});
+  writeSave(storage,state);
   storage.removeItem(TURN_HISTORY_KEY);
   const game = boot(storage);
-  assert.equal(game.saved().phase, 'directive');
-  assert.equal(game.dialog('directive').open, true);
-  assert(!('activePolicy' in game.saved()));
-  assert(game.saved().players.every(p => !('tracks' in p)));
-  const reloaded = boot(storage);
-  assert.equal(reloaded.dialog('directive').open, true);
-  reloaded.dom.lastQuery('[data-directive]')[0].click();
-  reloaded.settle();
-  assert.equal(reloaded.saved().round, 4);
-  assert.equal(reloaded.saved().phase, 'operations');
+  assert.equal(game.saved().round,4);
+  assert.equal(game.saved().phase,'operations');
+  assert(!game.dialog('directive').open);
 });
 
 test('a current save loads without being rewritten', () => {
-  const { storage } = playToRoundOneDirective();
+  const { storage } = playFirstRound();
   const before = storage.getItem(SAVE_KEY);
   const history = storage.getItem(TURN_HISTORY_KEY);
   const state = JSON.parse(before);
@@ -293,7 +305,7 @@ test('a current save loads without being rewritten', () => {
 });
 
 test('a save from an older format version is replaced by a new game', () => {
-  const { storage } = playToRoundOneDirective();
+  const { storage } = playFirstRound();
   const stale = JSON.parse(storage.getItem(SAVE_KEY));
   stale.version = formatVersion - 1;
   writeSave(storage, stale);
@@ -305,7 +317,7 @@ test('a save from an older format version is replaced by a new game', () => {
 });
 
 test('a save from an incompatible rules revision is replaced by a current game', () => {
-  const { storage } = playToRoundOneDirective();
+  const { storage } = playFirstRound();
   const legacy = JSON.parse(storage.getItem(SAVE_KEY));
   legacy.rulesRevision = CURRENT_RULES_REVISION - 1;
   writeSave(storage, legacy);
@@ -353,7 +365,7 @@ test('Trade Consortium gain and cancellation buttons resolve explicitly',()=>{
 
 
 test('paid storage button preserves Buy and survives reload without a map building', () => {
-  const { storage } = playToRoundOneDirective();
+  const { storage } = playFirstRound();
   const state = JSON.parse(storage.getItem(SAVE_KEY));
   Object.assign(state, { phase: 'buy', activePlayer: 0, turnStage: 'human-buy' });
   state.players[0].resources = { matter: 2, energy: 1, biomass: 0, data: 1 };
@@ -369,6 +381,38 @@ test('paid storage button preserves Buy and survives reload without a map buildi
   const reloaded = boot(storage);
   assert.equal(reloaded.saved().players[0].storageUpgrades, 1);
   assert.equal(reloaded.dom.element('capacity-value').textContent, '0 of 15 stored');
+});
+
+test('converting at full storage opens the discard choice without losing the gain', () => {
+  const storage=createStorage(),state=boot(storage).saved();
+  state.players[0].resources={matter:9,energy:0,biomass:0,data:1};
+  state.players[0].hand=[{id:'full-conversion',key:'construct',starter:true},{id:'keep-conversion',key:'move',starter:true}];
+  writeSave(storage,state);
+  const game=boot(storage);
+  assert.equal(game.dom.element('convert-all-button').disabled,false);
+  game.click('convert-all-button');
+  assert(game.dialog('overflow').open);
+  assert.equal(game.saved().players[0].resources.matter,10);
+  assert.equal(game.saved().players[0].resources.data,1);
+  assert.equal(game.saved().players[0].hand.length,1);
+});
+
+test('trashing uses three of the selected resource type in the live Buy UI', () => {
+  const storage=createStorage(),state=boot(storage).saved();
+  Object.assign(state,{phase:'buy',activePlayer:0,turnStage:'human-buy'});
+  state.players[0].resources={matter:3,energy:3,biomass:0,data:0};
+  state.players[0].hand=[];
+  state.players[0].discard=[{id:'selected-trash',key:'move',starter:true}];
+  state.players[0].buyStartDiscardIds=['selected-trash'];
+  writeSave(storage,state);
+  const game=boot(storage);
+  game.dom.element('trash-resource').value='energy';
+  fire(game.dom.element('trash-resource'),'change');
+  game.dom.lastQuery('[data-trash]').find(button=>button.dataset.trash==='selected-trash').click();
+  game.settle();
+  assert.equal(game.saved().players[0].resources.matter,3);
+  assert.equal(game.saved().players[0].resources.energy,0);
+  assert.equal(game.saved().players[0].discard.length,0);
 });
 
 let failed = 0;

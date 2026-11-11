@@ -1,6 +1,6 @@
 # Galactic Reach rules maintenance
 
-The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 11.16 / Alien Relics experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
+The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 12.17 / Streamlined Reach experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
 
 ## Read, change, verify
 
@@ -19,7 +19,7 @@ The rulebook is authoritative for intended play. The initial version documents e
 | `#resources`, `#orders`, `#movement` | `produceAll`, `cardResources`, `movementRange`, `reachableFrom`, `applyColonizeOrder` | `test-galactic-reach.cjs`, `test-long-reach.cjs` |
 | `#building`, `#combat` | `constructAt`, `buildResearchStation`, `resolveCombat`, `colonizePlanet` | `test-galactic-reach.cjs` |
 | `#resources`, `#trade`, `#buy` | `offerTrade`, `respondTrade`, `buyCard`, `upgradeStarter`, `decommission`, `increaseStorage` | `test-galactic-reach.cjs`, `test-long-reach.cjs` |
-| `#politics`, `#victory` | `applyDirective`, `calculatePrestige`, `finishRound` | `test-long-reach.cjs`, `test-pass-and-buy.cjs`, `test-resource-actions.cjs`, `test-galactic-reach-dialogs.cjs` |
+| `#politics`, `#victory` | `cleanupRound`, `calculatePrestige`, `finishRound` | `test-long-reach.cjs`, `test-pass-and-buy.cjs`, `test-resource-actions.cjs`, `test-galactic-reach-dialogs.cjs` |
 | `#cards`, `#clarifications` | card definitions, `resolveHumanSpecial`, `useBuyEffect`, `resolveCombat`; legal actions in `adapter.js` | relevant mechanic regression, added when resolving each discrepancy |
 
 Engine files are under `prototypes/galactic-reach/`; check scripts are under `scripts/`. The Rust adapter in `crates/galactic-reach/` embeds the same JavaScript. Historical engines remain under `crates/galactic-reach/rules/`. Do not revise an archived ruleset's meaning to match the current manual.
@@ -40,4 +40,6 @@ Every player-facing preview has a visible “What’s new in this playtest” su
 
 The 10.15 iteration removes Research Stations, Dreadnoughts, Gates, and Gate Synchronization. Fleet replaces Frigate at movement 2. Capacity grows by 5 for 2 Matter, 1 Energy, and 1 Data during Operations or Buy without using a card, action, purchase, or map hex. Explorers recover relics for the former station cost using Construct, and three recoveries unlock relic exchanges. The complete 9.14 rules remain archived; new games use v10 saves.
 
-The 11.16 revision overrides the earlier Relic infrastructure. Start with only a Colony and a six-card deck; commission all units at Shipyards. Settler and Explorer purchases grant Colonize and Probe respectively, outside the basic market. Research Stations grant 1 Prestige and an immediate private draw from the 12-card alien deck; inventory, recovery counters, and exchanges are gone. Current saves use v11 and prior 10.15 assets and AI policies remain archived.
+The 11.16 revision overrides the earlier Relic infrastructure. Start with only a Colony and a six-card deck; commission all units at Shipyards. Settler and Explorer purchases grant Colonize and Probe respectively, outside the basic market. Research Stations grant 1 Prestige and an immediate private draw from the 12-card alien deck; inventory, recovery counters, and exchanges are gone. The 11.16 saves use v11 and prior 10.15 assets and AI policies remain archived.
+
+The 12.17 playtest removes public awards and council directives, reduces the resource panel, permits discovery by every ship type, and prices each trash at three of one chosen resource type. Full resource gains remain stored until the owning player chooses the excess discards, including across reloads. New guest saves use v12; 11.16 browser assets and policy-v7 agents remain archived.

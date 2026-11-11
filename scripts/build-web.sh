@@ -70,3 +70,11 @@ for asset in app.js styles.css index.html replay.js rulebook.html rulebook.css; 
 done
 cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/10.15/table.js
 cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/10.15/
+
+# Keep 11.16 tables and replays on the full Alien Relics implementation.
+mkdir -p dist/galactic-reach/rules/11.16
+for asset in app.js styles.css index.html replay.js rulebook.html rulebook.css; do
+  cp "crates/galactic-reach/rules/v11-$asset" "dist/galactic-reach/rules/11.16/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/11.16/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/11.16/

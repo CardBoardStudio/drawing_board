@@ -194,7 +194,8 @@ fn validate(save: &serde_json::Value) -> ApiResult<()> {
         || (s["version"] == 15 && s["rulesRevision"] == 20)
         || (s["version"] == 16 && s["rulesRevision"] == 21)
         || (s["version"] == 17 && s["rulesRevision"] == 22)
-        || (s["version"] == 18 && s["rulesRevision"] == 23))
+        || (s["version"] == 18 && s["rulesRevision"] == 23)
+        || (s["version"] == 19 && s["rulesRevision"] == 24))
         || (s["version"].as_u64().unwrap_or(0) >= 12 && s["phase"] == "directive")
         || (s["version"].as_u64().is_some_and(|v| v >= 9) && s["phase"] == "policy")
         || s["players"].as_array().is_none_or(|p| p.len() != 4)
@@ -231,7 +232,12 @@ pub async fn save(
     let u = user(&app, &headers)?;
     validate(&input.save)?;
     let encoded = serde_json::to_string(&input.save).map_err(internal)?;
-    if encoded.len() > 1024 * 1024 {
+    let size_limit = if input.save["state"]["version"] == 19 {
+        8 * 1024 * 1024
+    } else {
+        1024 * 1024
+    };
+    if encoded.len() > size_limit {
         return Err(bad("This save exceeds the table size limit."));
     }
     let db = app.store.0.lock().map_err(internal)?;
@@ -352,11 +358,12 @@ mod tests {
             galactic_reach::RULES
         );
         // A realistic size above the normal 16 KiB request limit is accepted here only.
-        let save = json!({"state":{"version":18,"rulesRevision":23,"players":[{},{},{},{}],"planets":{},"fleets":{},"clusters":[],"round":3,"activePlayer":0,"phase":"operations","winner":null,"log":"x".repeat(40000)},"turnHistory":{"pending":null,"undo":null}});
+        let save = json!({"state":{"version":19,"rulesRevision":24,"players":[{},{},{},{}],"planets":{},"fleets":{},"clusters":[],"round":3,"activePlayer":0,"phase":"operations","winner":null,"log":"x".repeat(40000)},"turnHistory":{"pending":null,"undo":null},"gameHistory":{"format":1,"complete":true,"events":[{"text":"x".repeat(1100000)}]}});
         let body = json!({"revision":0,"save":save});
         let mut wrong = body.clone();
         wrong["save"]["state"]["version"] = json!(5);
         wrong["save"]["state"]["rulesRevision"] = json!(10);
+        wrong["save"].as_object_mut().unwrap().remove("gameHistory");
         assert_eq!(
             call(&a, "POST", &savepath, &owner, wrong).await.0,
             StatusCode::CONFLICT

@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060911">
-  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 10 Prestige. The canonical rules for the Central Frontier experiment 18.23.">
-  <meta name="rules-version" content="galactic-reach/18.23">
-  <title>Galactic Reach · Rulebook · 18.23</title>
+  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 10 Prestige. The canonical rules for the Game Reports experiment 19.24.">
+  <meta name="rules-version" content="galactic-reach/19.24">
+  <title>Galactic Reach · Rulebook · 19.24</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="rulebook.css">
 </head>
@@ -28,7 +28,7 @@
   <a class="skip-link" href="#start">Skip to rules</a>
   <header class="book-header">
     <a href="./" class="button button-ghost">← Galactic Reach</a>
-    <span class="eyebrow">CANONICAL RULES · TEN PRESTIGE EXPERIMENT · 18.23</span>
+    <span class="eyebrow">CANONICAL RULES · GAME REPORTS EXPERIMENT · 19.24</span>
   </header>
   <div class="book-layout">
     <nav class="book-nav" aria-label="Rulebook sections">
@@ -45,8 +45,9 @@
       <a href="#buy">Improve your deck</a>
       <a href="#politics">End of the round</a>
       <a href="#victory">Prestige &amp; victory</a>
+      <a href="#game-report">Game reports</a>
       <a href="#cards">Card reference</a>
-      <a href="#clarifications">18.23 clarifications</a>
+      <a href="#clarifications">19.24 clarifications</a>
     </nav>
     <main id="start" tabindex="-1">
       <div class="eyebrow">A GALAXY. FOUR FACTIONS. YOUR NEXT MOVE.</div>
@@ -58,11 +59,11 @@
           <li><strong>Look at your hand.</strong> Each card is a choice: convert it into resources, or use its order.</li>
           <li><strong>Take one action.</strong> Convert any cards you need, then play one order or offer a trade. The next faction takes a turn.</li>
           <li><strong>Keep taking turns until you pass.</strong> Passing starts your Buy turn immediately. Improve your deck, then let the remaining factions continue.</li>
-          <li><strong>Build toward Prestige.</strong> Colonies, pairs of Shipyards, excavated relics, purchases, and decisive combat victories score Prestige. Victory is checked when everyone finishes the round.</li>
+          <li><strong>Build toward Prestige.</strong> Colonies, their expansion bonus, excavated relics, and decisive combat victories score Prestige. Victory is checked when everyone finishes the round.</li>
         </ol>
         <p><strong>Try this:</strong> save a Construct card for its order; convert another card to help pay for a Settler. You cannot use the same card both ways.</p>
       </div>
-      <p class="book-note">This manual describes the <strong>18.23 Central Frontier experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
+      <p class="book-note">This manual describes the <strong>19.24 Game Reports experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
 
       <section id="setup">
         <h2>01 / Your starting faction</h2>
@@ -189,20 +190,26 @@
 
       <section id="victory">
         <h2>11 / Prestige &amp; victory</h2>
-        <p>Score your current holdings plus permanent purchase milestones:</p>
+        <p>Click any faction’s point total to see its Prestige breakdown. Score Colonies and their expansion bonus, plus permanent relic and combat achievements:</p>
         <div class="book-table" tabindex="0" role="region" aria-label="Prestige scoring">
           <table><thead><tr><th>Source</th><th>Prestige</th></tr></thead><tbody>
             <tr><th>Colonies</th><td>1 each, plus 1 per complete pair after the first Colony. Five Colonies score 7.</td></tr>
-            <tr><th>Shipyards</th><td>1 per complete pair.</td></tr>
             <tr><th>Excavated relics</th><td>1 permanent Prestige per relic you excavated, even after using or trashing its card.</td></tr>
-            <tr><th>Purchased cards</th><td>1 per eight lifetime purchases; scrapping a card does not remove this score.</td></tr>
             <tr><th>Decisive combat victories</th><td>1 permanent Prestige per fight won by destroying all opposing units. No point if any opposing unit escapes or retreats; see <a href="#combat">Combat &amp; conquest</a>.</td></tr>
           </tbody></table>
         </div>
-        <p>Public awards are removed. Prestige comes from Colonies, pairs of Shipyards, excavated relics, card-purchase milestones, and decisive combat victories. Occupation alone does not remove ownership-based Prestige.</p>
+        <p>Shipyards and card purchases award no Prestige. For example, one Colony, four Shipyards, and sixteen purchased cards still score just 1 Prestige before relics or combat. Occupation alone does not remove ownership-based Prestige.</p>
         <p>After everyone finishes Buy and the round is cleaned up, if anyone has at least <strong>10 Prestige</strong>, the highest Prestige wins. Break ties by most Colonies, then most stored resources. An exact tie selects the earliest seat in the browser; arena standings share that rank. Reaching 10 earlier does not lock in a win: finish the round before checking the standings. There is no round limit.</p>
-        <p>This playtest checks victory at 10 Prestige and adds decisive combat victories as a scoring source. Resource costs and production stay the same. Combat Prestige survives later losses and is saved with your faction’s score.</p>
+        <p>Victory stays at 10 Prestige. Relic and combat Prestige survive later losses and are saved with your faction’s score. This scoring change applies to new 19.24 games; older tables keep their pinned scoring rules.</p>
         <p>AI arena games use this same victory check. Only completed games earn placement ratings. A simulation that stops before victory awards no ratings.</p>
+      </section>
+
+      <section id="game-report">
+        <h2>Game reports</h2>
+        <p>Click <strong>Export game report</strong> beside the Game log to download a JSON file at any time, including after victory. It contains the saved position, rules version, faction and computer-rival profiles, resources, point breakdowns, and a chronological log with readable text.</p>
+        <p>New games retain their history from setup through victory, including resource changes, card gains and conversions, construction, movement, trades, excavation, combat choices and outcomes, and scoring. Reloading keeps that history. The Comms Feed shows only recent entries; it does not limit the exported log. Undo keeps the audit trail and adds a boundary identifying the events rolled back.</p>
+        <p>If a save has no matching full history, its report is marked <strong>partial</strong> and includes only the history still available. Missing past actions cannot be reconstructed. Starting a new game starts a new complete history.</p>
+        <p>The report includes private cards and hidden map information from your solo game. Exporting downloads a local file and changes no cards, resources, random draws, or turns. Replay viewers keep their recorded perspective and do not export private solo-game reports.</p>
       </section>
 
       <section id="cards">
@@ -242,7 +249,7 @@
         <details>
           <summary>Advanced and relic orders</summary>
           <div class="book-table" tabindex="0" role="region" aria-label="Advanced card effects">
-            <table><thead><tr><th>Card</th><th>Current 18.23 effect</th></tr></thead><tbody>
+            <table><thead><tr><th>Card</th><th>Current 19.24 effect</th></tr></thead><tbody>
               <tr><th>Survey Drones</th><td>Normal movement at the selected group’s speed. Survey Drones does not add range or filter cards.</td></tr>
               <tr><th>Pathfinder Network</th><td>Move with +1 range; cannot enter hostile hexes.</td></tr>
               <tr><th>Drop Colony Modules</th><td>Found or capture for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> without consuming the Settler.</td></tr>
@@ -299,7 +306,7 @@
           </ul>
         </details>
       </section>
-      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 18.23 · The game and this rulebook travel together in every deployment.</p></footer>
+      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 19.24 · The game and this rulebook travel together in every deployment.</p></footer>
     </main>
   </div>
 </body>

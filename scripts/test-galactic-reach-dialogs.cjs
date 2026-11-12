@@ -13,6 +13,7 @@ const indexHtml=fs.readFileSync(path.resolve(__dirname,'../prototypes/galactic-r
 const formatVersion = Number(source.match(/const SAVE_FORMAT_VERSION = (\d+);/)[1]);
 const SAVE_KEY = `galactic-reach-save-v${formatVersion}`;
 const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${formatVersion}`;
+const HISTORY_KEY = `galactic-reach-history-v${formatVersion}`;
 const CURRENT_RULES_REVISION = Number(source.match(/const RULES_REVISION = (\d+);/)[1]);
 
 function seededRandom(seed) {
@@ -160,14 +161,19 @@ function createDom(timers) {
   return { document, element, tabs, panels, contextButton:label=>created.filter(e=>e.tagName==='BUTTON'&&(e.textContent===label||e.innerHTML===label||e.innerHTML.startsWith(`<span>${label}</span>`))).at(-1), hex:key=>created.find(e=>e.dataset.coord===key), lastQuery: selector => queried.get(selector) || [] };
 }
 
-function boot(storage, seed = 20261013, location = {hostname:'localhost',search:''}) {
+function boot(storage, seed = 20261013, location = {hostname:'localhost',search:''}, engineOptions = {}) {
   const timers = createTimers();
   const dom = createDom(timers);
   const errors = [];
+  const downloads = [];
+  let randomCalls = 0;
   const math = Object.create(Math);
-  math.random = seededRandom(seed);
+  const nextRandom = seededRandom(seed);
+  math.random = () => {randomCalls++;return nextRandom();};
   const context = vm.createContext({
-    Math: math, URLSearchParams, location,
+    Math: math, URLSearchParams, location, drawingBoardTableBoot:true,
+    Blob:class {constructor(parts){this.text=parts.join('');}},
+    URL:{createObjectURL:blob=>{downloads.push(JSON.parse(blob.text));return 'blob:test-report';},revokeObjectURL(){}},
     document: dom.document,
     window: { innerHeight: 900, addEventListener() {} },
     localStorage: storage,
@@ -177,8 +183,9 @@ function boot(storage, seed = 20261013, location = {hostname:'localhost',search:
     console: { log() {}, warn() {}, error: (...args) => errors.push(args) }
   });
   vm.runInContext(`${adapterSource}\n${source}`, context, { filename: sourcePath });
+  context.createGalacticReach(engineOptions);
   const game = {
-    dom,
+    dom, downloads, randomCalls:()=>randomCalls,
     dialog: name => dom.element(`${name}-dialog`),
     saved: () => JSON.parse(storage.getItem(SAVE_KEY)),
     // Every timer the game queues is drained, so AI turns run until the human must act.
@@ -636,6 +643,109 @@ test('decisive combat awards Prestige once and the saved report preserves it', (
  assert.equal(reloaded.saved().players[0].combatVictories,1);
  reloaded.click('message-continue');assert.equal(reloaded.saved().players[0].combatVictories,1);
  assert.equal(boot(storage).saved().players[0].combatVictories,1);
+});
+
+
+test('point buttons show all scoring components and ignore yards and purchases', () => {
+ const storage=createStorage(),state=boot(storage).saved();
+ const owned=state.clusters[0].coords;
+ owned.slice(1,5).forEach(coord=>Object.assign(state.planets[coord],{owner:0,upgrade:'starbase'}));
+ for(const cluster of state.clusters.slice(4,6))Object.assign(state.planets[cluster.center],{owner:0,hasColony:true});
+ state.players[0].cardsPurchased=80;state.players[0].relicsExcavated=2;state.players[0].combatVictories=1;writeSave(storage,state);
+ const game=boot(storage),before=storage.snapshot(),randomBefore=game.randomCalls();
+ const button=game.dom.lastQuery('[data-score-player]').find(b=>b.dataset.scorePlayer==='0');
+ assert(button);button.click();assert(game.dialog('prestige').open);
+ assert.match(game.dom.element('prestige-title').textContent,/7 Prestige/);
+ const rows=game.dom.element('prestige-breakdown').innerHTML;
+ assert.match(rows,/Colonies<\/dt><dd>3/);assert.match(rows,/Expansion bonus<\/dt><dd>1/);
+ assert.match(rows,/Excavated relics<\/dt><dd>2/);assert.match(rows,/Decisive combat victories<\/dt><dd>1/);
+ assert(!/Shipyard|Purchased/.test(rows));game.click('close-prestige');
+ assert.deepEqual(storage.snapshot(),before);assert.equal(game.randomCalls(),randomBefore);
+});
+
+test('export downloads a private read-only report without using RNG or changing the save', () => {
+ const storage=createStorage(),snapshots=[];
+ const game=boot(storage,20261013,undefined,{onSave:value=>snapshots.push(JSON.parse(JSON.stringify(value)))});
+ const before=storage.snapshot(),randomBefore=game.randomCalls();game.click('export-game-report');
+ const report=game.downloads[0];assert(report);assert.equal(report.reportFormat,'galactic-reach-game-report/1');
+ assert.equal(report.rulesVersion,`galactic-reach/${formatVersion}.${CURRENT_RULES_REVISION}`);
+ assert(report.coverage.complete);assert(report.save.gameHistory.initialState);
+ assert.deepEqual(report.save.state,game.saved());assert.equal(report.factions.length,4);
+ assert.equal(report.factions[1].botProfile.strategy,'military');assert.equal(report.factions[0].points.total,1);
+ assert(report.logText.includes('Controlled planets produced'));assert(report.logText.includes('+1 Matter'));
+ assert(report.save.gameHistory.events.some(event=>event.changes.some(change=>change.path.join('.')==='players.0.hand')));
+ assert(snapshots.at(-1).gameHistory.complete,'Account payload includes the full private history');
+ assert.deepEqual(storage.snapshot(),before);assert.equal(game.randomCalls(),randomBefore);
+ const reloaded=boot(storage);reloaded.click('export-game-report');
+ assert.deepEqual(reloaded.downloads[0].save.gameHistory,report.save.gameHistory);
+});
+
+test('history is uncapped, persists resource transactions, and marks unavailable history partial', () => {
+ const storage=createStorage(),state=boot(storage).saved();
+ state.players[0].storageUpgrades=1000;state.players[0].resources={matter:400,energy:0,biomass:0,data:0};writeSave(storage,state);
+ const game=boot(storage);game.dom.element('bank-give-type').value='matter';game.dom.element('bank-get-type').value='data';
+ for(let n=0;n<95;n++)fire(game.dom.element('bank-trade-form'),'submit',{cancelable:true});
+ game.click('export-game-report');const report=game.downloads.at(-1);
+ assert(!report.coverage.complete);assert.equal(report.save.state.log.length,80);
+ assert(report.coverage.events>95);assert.equal(report.save.gameHistory.events.filter(e=>e.text.includes('exchanged 4 Matter')).length,95);
+ const transaction=report.save.gameHistory.events.find(e=>e.text.includes('exchanged 4 Matter'));
+ assert.equal(transaction.actor,0);assert(transaction.changes.some(c=>c.path.join('.')==='players.0.resources.matter'&&c.after-c.before===-4));
+ assert.match(report.logText,/earlier|unavailable/);assert.match(game.dom.element('history-status').textContent,/Partial/);
+ const reload=boot(storage);reload.click('export-game-report');assert.deepEqual(reload.downloads[0].save.gameHistory,report.save.gameHistory);
+ reload.click('new-game-button').click('export-game-report');const fresh=reload.downloads.at(-1);
+ assert(fresh.coverage.complete);assert(fresh.coverage.events<20);assert(!fresh.logText.includes('exchanged 4 Matter'));
+});
+
+test('Undo retains the audit and records which events it reverses, including across reload', () => {
+ const storage=createStorage(),game=boot(storage);game.click('pass-button').click('finish-buy-button');
+ const before=JSON.parse(storage.getItem(HISTORY_KEY));assert(before.events.some(e=>e.text.includes('passed')));
+ game.click('undo-turn-button').click('export-game-report');const report=game.downloads.at(-1),events=report.save.gameHistory.events;
+ const boundary=events.find(e=>e.kind==='undo');assert(boundary);assert.equal(boundary.actor,0);
+ assert(boundary.undone.from<=boundary.undone.to);assert(events.length>before.events.length);
+ assert(events.some(e=>e.seq===boundary.undone.from));assert.match(report.logText,/rolls back/);
+ const reload=boot(storage);reload.click('export-game-report');assert(reload.downloads[0].save.gameHistory.events.some(e=>e.kind==='undo'));
+});
+
+test('combat history retains secret choices and volley arithmetic without changing the observer view', () => {
+ const storage=combatStorage(0,'tactic'),game=boot(storage);
+ const choice=game.dom.lastQuery('[data-combat-action]')[0];
+ assert(choice);choice.click();game.settle();game.click('export-game-report');
+ const events=game.downloads.at(-1).save.gameHistory.events;
+ assert(events.some(e=>e.kind==='combat-choice'&&e.actor===0&&e.action.tactic==='concentratedFire'));
+ const volley=events.find(e=>e.kind==='combat-volley');assert(volley);assert.equal(volley.results.attacker.base,3);
+ assert(Number.isFinite(volley.results.defender.damage));
+});
+
+test('stale history never attaches to a different position and storage failure is visible', () => {
+ const storage=createStorage(),state=boot(storage).saved();state.round++;writeSave(storage,state);
+ const stale=boot(storage);stale.click('export-game-report');assert(!stale.downloads[0].coverage.complete);
+ const failedStorage=createStorage();failedStorage.setItem=()=>{throw new Error('quota');};
+ const failed=boot(failedStorage);assert.match(failed.dom.element('history-status').textContent,/Browser save unavailable/);
+ failed.click('export-game-report');assert(failed.downloads[0].coverage.complete);
+});
+
+
+test('a complete browser game exports setup through victory and retains its history after reload', () => {
+ const storage=createStorage(),game=boot(storage);
+ for(let turn=0;game.saved().winner===null;turn++) {
+   assert(turn<350,'Browser rivals should finish a game');
+   const state=game.saved();
+   if(state.pendingCombatReport)game.click('message-continue');
+   else if(state.pendingCombat){game.dom.lastQuery('[data-combat-action]')[0].click();game.settle();}
+   else if(game.dialog('overflow').open){
+     const player=state.players[0],capacity=10+5*player.storageUpgrades;
+     let excess=Object.values(player.resources).reduce((a,b)=>a+b,0)-capacity;
+     for(const resource of ['matter','energy','biomass','data']) {const amount=Math.min(excess,player.resources[resource]);game.dom.element('overflow-'+resource).value=String(amount);excess-=amount;}
+     fire(game.dom.element('overflow-form'),'submit',{cancelable:true});game.settle();
+   } else game.click(state.phase==='buy'?'finish-buy-button':'pass-button');
+ }
+ game.click('export-game-report');const report=game.downloads.at(-1);
+ assert(report.coverage.complete);assert(report.factions[report.winner].points.total>=10);
+ assert(report.save.gameHistory.events.some(e=>e.text.includes('won with')));
+ assert(report.save.gameHistory.events.some(e=>e.text.includes('converted')&&e.actor>0));
+ assert(report.coverage.events>80);assert.equal(report.save.state.log.length,80);
+ assert(JSON.stringify(report.save).length<8*1024*1024,'A completed report fits the account save bound');
+ const reload=boot(storage);reload.click('export-game-report');assert.deepEqual(reload.downloads[0].save.gameHistory,report.save.gameHistory);
 });
 
 let failed = 0;

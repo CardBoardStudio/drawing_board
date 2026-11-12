@@ -20,9 +20,9 @@ function game() {
 
 {
   const { e, s, adapter } = game();
-  assert.equal(adapter().rulesVersion, 'galactic-reach/18.23');
-  assert.equal(s.version, 18);
-  assert.equal(s.rulesRevision, 23);
+  assert.equal(adapter().rulesVersion, 'galactic-reach/19.24');
+  assert.equal(s.version, 19);
+  assert.equal(s.rulesRevision, 24);
   assert(!('awards' in s));
   assert(!('DIRECTIVES' in e));
   const score = e.calculatePrestige(0);

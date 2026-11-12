@@ -15,10 +15,11 @@ function createGalacticReach(options = {}) {
   }
   const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
-  const SAVE_FORMAT_VERSION = 18;
-  const RULES_REVISION = 23;
+  const SAVE_FORMAT_VERSION = 19;
+  const RULES_REVISION = 24;
   const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
   const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${SAVE_FORMAT_VERSION}`;
+  const HISTORY_KEY = `galactic-reach-history-v${SAVE_FORMAT_VERSION}`;
   const RESOURCES = ['matter', 'energy', 'biomass', 'data'];
   const RESOURCE_NAMES = { matter: 'Matter', energy: 'Energy', biomass: 'Biomass', data: 'Data' };
   const RESOURCE_DETAILS = {
@@ -44,7 +45,6 @@ function createGalacticReach(options = {}) {
   const PLAYER_STRATEGIES = ['human', 'military', 'economy', 'expansion'];
   const BOARD_RADIUS = 10;
   const VICTORY_TARGET = 10;
-  const CARDS_PER_PRESTIGE = 8;
   const HOME_STARTS = [
     { cluster: 0, owner: 0, colonySector: 0, inwardSector: 1 },
     { cluster: 1, owner: 1, colonySector: 0, inwardSector: 6 },
@@ -302,6 +302,9 @@ function createGalacticReach(options = {}) {
   let aiTimer = null;
   let displayingCombatReport = false;
   let turnHistory = { pending: null, undo: null };
+  let gameHistory = null;
+  let historyPosition = null;
+  let historySaveFailed = false;
   // Whose command panels (resources, hand) are shown. Live play is always seat 0.
   let viewSeat = 0;
 
@@ -402,7 +405,7 @@ function createGalacticReach(options = {}) {
     const advancedDeck = shuffled(Object.keys(ADVANCED_CARDS).flatMap(key => [makeCard(key), makeCard(key)]));
     const relicDeck = shuffled(Object.keys(RELIC_CARDS).map(key=>makeCard(key)));
     const relicRow = [relicDeck.pop(),relicDeck.pop(),relicDeck.pop()];
-    return {
+    const initial = {
       version: SAVE_FORMAT_VERSION, round: 1, phase: 'production', firstPlayer: 0, activePlayer: 0, players,
       planets: galaxy.planets, clusters: galaxy.clusters, fleets, advancedDeck, market: [], marketDiscard: [],
       selected: null, actionMode: null, actionCardId: null, actionOptions: {}, moveSource: null, reachable: [],
@@ -411,18 +414,135 @@ function createGalacticReach(options = {}) {
       tradeOffers: [], nextTradeOfferId: 1, pendingColonyBuild: null, pendingConsortium: null,
       visibilityRevision: 2, rulesRevision: RULES_REVISION
     };
+    if (!headless) {
+      gameHistory = {format:1, rulesVersion:`galactic-reach/${SAVE_FORMAT_VERSION}.${RULES_REVISION}`, complete:true, initialState:clone(initial), events:[]};
+      historyPosition = auditPosition(initial);
+    }
+    return initial;
+  }
+
+  // The append-only audit is outside state: undo snapshots and arena observations
+  // must not duplicate the whole history or reveal private cards to policies.
+  function auditPosition(position = state) {
+    return {
+      round:position.round, phase:position.phase, activePlayer:position.activePlayer, winner:position.winner,
+      players:position.players.map(player=>({
+        resources:clone(player.resources), prestige:prestigeBreakdown(player.id,position), storageUpgrades:player.storageUpgrades,
+        cardsPurchased:player.cardsPurchased, relicsExcavated:player.relicsExcavated, combatVictories:player.combatVictories,
+        passed:player.passed, bought:player.bought,
+        hand:clone(player.hand), deck:clone(player.deck), discard:clone(player.discard)
+      })),
+      planets:clone(position.planets), fleets:clone(position.fleets),
+      market:clone(position.market), relicRow:clone(position.relicRow), tradeOffers:clone(position.tradeOffers),
+      lastCombat:clone(position.lastCombat)
+    };
+  }
+
+  function auditChanges(before, after, path = [], changes = []) {
+    if (JSON.stringify(before) === JSON.stringify(after)) return changes;
+    if (before && after && typeof before === 'object' && typeof after === 'object' && !Array.isArray(before) && !Array.isArray(after)) {
+      for (const key of new Set([...Object.keys(before),...Object.keys(after)])) auditChanges(before[key],after[key],[...path,key],changes);
+    } else if (path.length === 1 && path[0] === 'players') {
+      after.forEach((player,id)=>auditChanges(before[id],player,[...path,String(id)],changes));
+    } else changes.push({path,before:before ?? null,after:after ?? null});
+    return changes;
+  }
+
+  function appendHistory(text, detail = {}) {
+    if (headless || replayMode || !gameHistory) return;
+    const position = auditPosition();
+    const changes = auditChanges(historyPosition,position);
+    if (!text && !changes.length) return;
+    const actor = detail.actor ?? state.players.find(player=>text?.startsWith(player.name) || (player.id===0 && text?.startsWith('You ')))?.id ?? null;
+    gameHistory.events.push({seq:gameHistory.events.length+1,round:state.round,phase:state.phase,actor,
+      kind:detail.kind || (text?'event':'position'),text:text || 'Position updated.',changes,...detail});
+    historyPosition = position;
+  }
+
+  function stateSignature(position) {
+    // Detect an interrupted two-key write or a different game's history. This is
+    // an integrity marker, not a security primitive or a seed for the game RNG.
+    let hash = 2166136261;
+    const text = JSON.stringify(position);
+    for (let n=0;n<text.length;n++) hash = Math.imul(hash ^ text.charCodeAt(n),16777619) >>> 0;
+    return `${text.length}:${hash.toString(16)}`;
+  }
+
+  function loadGameHistory() {
+    let saved;
+    try { saved = JSON.parse(storage.getItem(HISTORY_KEY) || 'null'); } catch (_) {}
+    const rulesVersion = `galactic-reach/${SAVE_FORMAT_VERSION}.${RULES_REVISION}`;
+    if (saved?.format===1 && saved.rulesVersion===rulesVersion && saved.stateSignature===stateSignature(state) && Array.isArray(saved.events)) {
+      gameHistory = saved;
+    } else {
+      gameHistory = {format:1,rulesVersion,complete:false,initialState:null,
+        coverageNote:'Full history was unavailable for this position. Only retained messages and subsequent events are included.',
+        events:[...state.log].reverse().map((text,index)=>({seq:index+1,round:Number(/^R(\d+)/.exec(text)?.[1]) || null,phase:null,actor:null,kind:'retained',text,changes:[]}))};
+    }
+    historyPosition = auditPosition();
   }
 
   function saveGame() {
-    if (headless) return;
-    try { storage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (_) {}
-    options.onSave?.({state, turnHistory});
+    if (headless || replayMode) return;
+    appendHistory();
+    gameHistory.stateSignature = stateSignature(state);
+    historySaveFailed = false;
+    try {
+      storage.setItem(HISTORY_KEY,JSON.stringify(gameHistory));
+      storage.setItem(TURN_HISTORY_KEY,JSON.stringify(turnHistory));
+      storage.setItem(SAVE_KEY,JSON.stringify(state));
+    } catch (_) { historySaveFailed = true; }
+    options.onSave?.({state,turnHistory,gameHistory});
+    renderHistoryStatus();
   }
 
   function saveTurnHistory() {
-    if (headless) return;
-    try { storage.setItem(TURN_HISTORY_KEY, JSON.stringify(turnHistory)); } catch (_) {}
-    options.onSave?.({state, turnHistory});
+    saveGame();
+  }
+
+  function renderHistoryStatus() {
+    if (headless || replayMode) return;
+    $('#history-status').textContent = historySaveFailed
+      ? 'Browser save unavailable. Keep this page open and export a report to keep your history.'
+      : gameHistory?.complete ? 'Full history retained from setup.' : 'Partial history: earlier actions are unavailable.';
+  }
+
+  function createGameReport() {
+    // A report is a read-only snapshot. Pending deltas belong in this copy only.
+    const history = clone(gameHistory);
+    const changes = auditChanges(historyPosition,auditPosition());
+    if (changes.length) history.events.push({seq:history.events.length+1,round:state.round,phase:state.phase,actor:null,kind:'position',text:'Current position at export.',changes});
+    history.stateSignature = stateSignature(state);
+    const changeText = change=>{
+      const path=change.path;
+      if (path[0]==='players' && path[2]==='resources') {
+        const delta=change.after-change.before;
+        return `${state.players[Number(path[1])].name}: ${delta>=0?'+':''}${delta} ${RESOURCE_NAMES[path[3]]}`;
+      }
+      if (path[0]==='players' && path[2]==='prestige' && path[3]==='total') return `${state.players[Number(path[1])].name}: ${change.after-change.before>=0?'+':''}${change.after-change.before} Prestige (${change.after} total)`;
+      return '';
+    };
+    return {
+      reportFormat:'galactic-reach-game-report/1', rulesVersion:history.rulesVersion,
+      round:state.round, phase:state.phase, activePlayer:state.activePlayer, winner:state.winner,
+      coverage:{complete:history.complete,note:history.coverageNote || 'History retained from setup.',events:history.events.length},
+      factions:state.players.map(player=>({id:player.id,name:player.name,controller:player.id===0?'human':'computer',
+        botProfile:player.id===0?null:{strategy:player.strategy,implementation:'browser-ai',rulesVersion:history.rulesVersion},
+        resources:clone(player.resources),capacity:playerCapacity(player.id),points:prestigeBreakdown(player.id),
+        cards:{hand:player.hand.length,deck:player.deck.length,discard:player.discard.length,purchased:player.cardsPurchased || 0}})),
+      save:{state:clone(state),turnHistory:clone(turnHistory),gameHistory:history},
+      logText:[history.complete?'Complete history from setup.':history.coverageNote,...history.events.map(event=>`#${event.seq} R${event.round ?? '?'} ${event.phase || ''} · ${event.text}${event.kind==='undo'?` [rolls back #${event.undone.from}–#${event.undone.to}]`:''}${event.changes.map(changeText).filter(Boolean).map(text=>' | '+text).join('')}`)].join('\n')
+    };
+  }
+
+  function downloadGameReport() {
+    if (headless || replayMode) return;
+    const report = createGameReport();
+    const url = URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:'application/json'}));
+    const link = document.createElement('a');
+    link.href = url; link.download = `galactic-reach-${SAVE_FORMAT_VERSION}.${RULES_REVISION}-round-${state.round}-report.json`;
+    link.click();
+    globalThis.setTimeout(()=>URL.revokeObjectURL(url),1000);
   }
 
   function loadTurnHistory() {
@@ -446,7 +566,7 @@ function createGalacticReach(options = {}) {
 
   function captureHumanTurn(label) {
     if (headless) return;
-    turnHistory.pending = { state: clone(state), cardSerial, label };
+    turnHistory.pending = { state: clone(state), cardSerial, label, historyCursor:gameHistory?.events.length || 0 };
     saveTurnHistory();
   }
 
@@ -461,10 +581,12 @@ function createGalacticReach(options = {}) {
     if (!turnHistory.undo || state.pendingCombatReport || state.pendingCombat || state.pendingMove || overflowPlayer()>=0) return;
     const snapshot = turnHistory.undo;
     clearTimeout(aiTimer);
+    const lastEvent = gameHistory.events.length;
     state = clone(snapshot.state);
     cardSerial = snapshot.cardSerial;
     turnHistory.undo = null;
-    turnHistory.pending = { state: clone(state), cardSerial, label: snapshot.label };
+    appendHistory(`${snapshot.label} restored with Undo.`,{kind:'undo',actor:0,undone:{from:(snapshot.historyCursor || 0)+1,to:lastEvent}});
+    turnHistory.pending = { state: clone(state), cardSerial, label: snapshot.label, historyCursor:gameHistory.events.length };
     saveTurnHistory();
     const messageDialog = $('#message-dialog');
     if (messageDialog.open) messageDialog.close();
@@ -481,6 +603,7 @@ function createGalacticReach(options = {}) {
       const parsed = JSON.parse(raw);
       if (!parsed || parsed.version !== SAVE_FORMAT_VERSION || parsed.rulesRevision !== RULES_REVISION) return false;
       state = parsed;
+      loadGameHistory();
       cardSerial = Math.max(1, ...state.players.flatMap(p => [...p.deck, ...p.discard, ...p.hand].map(c => Number(String(c.id).split('-').pop()) || 0)), ...state.market.map(c => Number(String(c.id).split('-').pop()) || 0)) + 1;
       if (!state.visibilityRevision) {
         const everyone = [0,1,2,3];
@@ -502,6 +625,7 @@ function createGalacticReach(options = {}) {
   function logEvent(text) {
     state.log.unshift(`R${state.round} · ${text}`);
     state.log = state.log.slice(0, 80);
+    appendHistory(text);
   }
 
   function getFleet(coord, player) {
@@ -896,16 +1020,16 @@ function createGalacticReach(options = {}) {
     return best;
   }
 
-  function calculatePrestige(playerId) {
-    const colonies = colonyPlanets(playerId).length;
-    const starbases = controlledPlanets(playerId).filter(([,p]) => p.upgrade === 'starbase').length;
-    const relics = state.players[playerId].relicsExcavated || 0;
-    const frontierPrestige = Math.floor(Math.max(0,colonies - 1) / 2);
-    return colonies + frontierPrestige + Math.floor(starbases / 2) + relics + deckPrestige(playerId) + (state.players[playerId].combatVictories || 0);
+  function prestigeBreakdown(playerId, position = state) {
+    const colonies = Object.values(position.planets).filter(planet=>planet.owner===playerId && planet.hasColony).length;
+    const expansionBonus = Math.floor(Math.max(0,colonies-1)/2);
+    const relics = position.players[playerId].relicsExcavated || 0;
+    const combat = position.players[playerId].combatVictories || 0;
+    return {colonies,expansionBonus,relics,combat,total:colonies+expansionBonus+relics+combat};
   }
 
-  function deckPrestige(playerId) {
-    return Math.floor((state.players[playerId].cardsPurchased || 0) / CARDS_PER_PRESTIGE);
+  function calculatePrestige(playerId) {
+    return prestigeBreakdown(playerId).total;
   }
 
   function excavatedRelicCount(playerId) {
@@ -985,6 +1109,7 @@ function createGalacticReach(options = {}) {
       guard += 1;
     }
     state.turnStage = state.activePlayer === 0 ? 'prep' : 'ai';
+    appendHistory(`${state.players[state.activePlayer].name} began an Operations turn.`,{kind:'turn',actor:state.activePlayer});
     if (state.activePlayer === 0) {
       captureHumanTurn(`Operations turn in Round ${state.round}`);
       if (!headless) switchTab('hand');
@@ -1047,8 +1172,8 @@ function createGalacticReach(options = {}) {
   function completeAction(playerId, message) {
     if (state.pendingCombat || state.pendingMove) return;
     state.pendingColonyBuild = null;
-    if (playerId === 0) completeHumanTurn();
     if (message) logEvent(message);
+    if (playerId === 0) completeHumanTurn();
     clearAction();
     if (playerId === 0) state.turnStage = 'waiting';
     saveGame();
@@ -1582,6 +1707,7 @@ function createGalacticReach(options = {}) {
     b.summary.push(`Volley ${number}: ${sides.map(side=>{const r=results[side],enemy=results[side==='attacker'?'defender':'attacker'];return `${state.players[b[`${side}Id`]].name} revealed ${MILITARY_CARDS[r.tactic].name}: ${r.base} base + ${r.bonus} bonus − ${enemy.shields} shields = ${r.damage} damage`;}).join('; ')}.`);
     b.volley++;
     syncCombatPieces(b.attackerId,b.coord,b.attackerPieces);syncCombatPieces(b.defenderId,b.coord,b.defenderPieces);
+    appendHistory(b.summary[b.summary.length-1],{kind:'combat-volley',coordinate:b.coord,volley:number,results:clone(results)});
     if (!aliveCombatPieces(b.attackerPieces).length || !aliveCombatPieces(b.defenderPieces).length || b.volley>=3) {finishCombat();return;}
     if (b.options.tag!=='overdrive' && combatPower(b.attackerPieces)<combatPower(b.defenderPieces)*.55 && useReaction(b.attackerId,'jump')) {
       b.destroyedCount+=applyCombatHits(b.attackerPieces,1).length;
@@ -1596,6 +1722,7 @@ function createGalacticReach(options = {}) {
     const match=combatActions(seat).find(legal=>Object.keys(legal).sort().join(',')===keys && Object.keys(legal).every(key=>legal[key]===action[key]));
     if (!match) return false;
     const b=state.pendingCombat, side=combatSide(seat);
+    appendHistory(`${state.players[seat].name} chose ${action.type==='combat_tactic'?MILITARY_CARDS[action.tactic].name:action.type==='combat_escape'?'Explorer escape':'to stay for combat'}.`,{kind:'combat-choice',actor:seat,action:clone(action),coordinate:b.coord,volley:b.volley+1});
     if (action.type==='combat_tactic') {
       b.commitments[side]=action.tactic;
       if (b.commitments.attacker!==null && b.commitments.defender!==null) resolveCombatVolley();
@@ -1843,6 +1970,7 @@ function createGalacticReach(options = {}) {
       const result = addResources(player,cardResources(card));
       if (!result.totalAdded) break;
       removeHandCard(player,card.id);
+      logEvent(`${player.name} converted ${ALL_CARDS[card.key].name} into resources.`);
     }
     const plan = bankPlanForCost(player,desiredCost);
     if (plan) for (const trade of plan) bankTrade(player.id,trade.giveType,trade.getType);
@@ -2067,6 +2195,7 @@ function createGalacticReach(options = {}) {
   function startBuyTurn() {
     const player = state.players[state.activePlayer];
     state.turnStage = state.activePlayer === 0 ? 'buy' : 'ai-buy';
+    appendHistory(`${player.name} began a Buy turn.`,{kind:'turn',actor:state.activePlayer});
     if (state.activePlayer === 0) {
       captureHumanTurn(`Buy turn in Round ${state.round}`);
       if (!headless) switchTab('market');
@@ -2218,6 +2347,7 @@ function createGalacticReach(options = {}) {
     const contenders = state.players.map((_,id)=>({id,prestige:calculatePrestige(id),colonies:colonyPlanets(id).length,resources:totalResources(state.players[id])})).filter(p=>p.prestige>=VICTORY_TARGET).sort((a,b)=>b.prestige-a.prestige||b.colonies-a.colonies||b.resources-a.resources);
     if (contenders.length) {
       state.winner = contenders[0].id;
+      logEvent(`${state.players[state.winner].name} won with ${contenders[0].prestige} Prestige at the end of Round ${state.round}.`);
       render(); saveGame();
       showMessage('GAME COMPLETE',`${state.players[state.winner].name} wins`,`${contenders[0].prestige} Prestige · ${contenders[0].colonies} Colonies · ${contenders[0].resources} stored resources`);
       return;
@@ -2506,13 +2636,26 @@ function createGalacticReach(options = {}) {
     });
   }
 
+  function showPrestigeBreakdown(playerId) {
+    const points = prestigeBreakdown(playerId);
+    $('#prestige-title').textContent = `${state.players[playerId].name} · ${points.total} Prestige`;
+    $('#prestige-breakdown').innerHTML = [
+      ['Colonies',points.colonies],['Expansion bonus',points.expansionBonus],
+      ['Excavated relics',points.relics],['Decisive combat victories',points.combat]
+    ].map(([label,value])=>`<div><dt>${label}</dt><dd>${value}</dd></div>`).join('');
+    const dialog = $('#prestige-dialog');
+    if (!dialog.open) dialog.showModal();
+  }
+
   function renderScoreboard() {
     $('#score-ribbon').innerHTML = state.players.map((player,id)=>{
       const active = state.activePlayer===id && state.winner===null;
       const elo = state.replayElo?.[id];
       const eloText = elo ? `<span class="score-elo">Elo ${Math.round(elo.before)} → ${Math.round(elo.after)} (${elo.after>=elo.before?'+':''}${(elo.after-elo.before).toFixed(1)})</span>` : '';
-      return `<article class="score-card ${active?'active':''} ${replayMode&&id===viewSeat?'viewing':''}" style="--player:${player.color}" title="Colonies: 1 each, plus 1 per two beyond home · Shipyards: 1 per pair · Excavated relics: 1 each · Combat victories: ${player.combatVictories||0} · Deck: ${deckPrestige(id)}"><div class="score-top"><span class="score-name">${esc(player.name)}</span><span class="score-value">${calculatePrestige(id)}</span></div><div class="score-meta"><span>${colonyPlanets(id).length} colonies</span><span>${player.cardsPurchased||0} cards · ${deckPrestige(id)} Prestige</span><span>${strongestFleet(id)} fleet</span>${eloText}</div></article>`;
+      return `<article class="score-card ${active?'active':''} ${replayMode&&id===viewSeat?'viewing':''}" style="--player:${player.color}"><div class="score-top"><span class="score-name">${esc(player.name)}</span><button type="button" class="score-value" data-score-player="${id}" aria-label="${esc(player.name)}: ${calculatePrestige(id)} Prestige. Show point breakdown" aria-haspopup="dialog">${calculatePrestige(id)}</button></div><div class="score-meta"><span>${colonyPlanets(id).length} colonies</span><span>${player.cardsPurchased||0} cards purchased</span><span>${strongestFleet(id)} fleet</span>${eloText}</div></article>`;
     }).join('');
+    $$('[data-score-player]').forEach(button=>button.addEventListener('click',()=>showPrestigeBreakdown(Number(button.dataset.scorePlayer))));
+    renderHistoryStatus();
   }
 
   function renderResourceTools() {
@@ -2763,7 +2906,7 @@ function createGalacticReach(options = {}) {
 
   function renderMarket() {
     const humanBuy=!replayMode&&state.phase==='buy'&&state.activePlayer===0;
-    $('#market-help').textContent=replayMode?`Every ${CARDS_PER_PRESTIGE} purchased cards grant 1 Prestige. ${state.players[viewSeat].name} purchased: ${state.players[viewSeat].cardsPurchased||0} · Deck Prestige: ${deckPrestige(viewSeat)}.`:`Buy one card during your Buy turn. Every ${CARDS_PER_PRESTIGE} purchased cards grant 1 Prestige. Purchased: ${state.players[0].cardsPurchased||0} · Deck Prestige: ${deckPrestige(0)}.`;
+    $('#market-help').textContent=replayMode?`${state.players[viewSeat].name} purchased ${state.players[viewSeat].cardsPurchased||0} cards. Card purchases award no Prestige.`:'Buy one card during your Buy turn. New cards enter discard. Card purchases award no Prestige.';
     $('#basic-market').innerHTML=BASIC_MARKET.map(key=>[key,BASIC_CARDS[key]]).map(([key,def])=>`<span class="tooltip-anchor basic-market-item" data-tooltip="${BASIC_TOOLTIPS[key]}"><button class="button" data-buy-basic="${key}" aria-label="${def.name}. ${BASIC_TOOLTIPS[key]}" ${!humanBuy||state.players[0].bought>=state.players[0].buyLimit||!canAfford(state.players[0],def.cost,state.players[0].buyDiscountData)?'disabled':''}><span>${def.name}</span>${resourceDots(def.cost)}</button></span>`).join('');
     $('#market-row').innerHTML=replayMode?'<p class="muted">Replays record purchases in the game log, not the advanced market row.</p>':state.market.map((card,index)=>{
       const def=ALL_CARDS[card.key];
@@ -3113,6 +3256,9 @@ function createGalacticReach(options = {}) {
       }
     });
     renderSymbolLegend();
+    $('#export-game-report').hidden=replayMode;
+    $('#export-game-report').addEventListener('click',downloadGameReport);
+    $('#close-prestige').addEventListener('click',()=>$('#prestige-dialog').close());
     $('#undo-turn-button').addEventListener('click',undoLastTurn);
     $('#rules-button').addEventListener('click',()=>$('#rules-dialog').showModal());
     $('#close-rules').addEventListener('click',()=>$('#rules-dialog').close());

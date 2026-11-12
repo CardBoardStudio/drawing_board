@@ -498,7 +498,7 @@ fn router(app: App) -> Router {
         .route("/api/tables/{id}", get(tables::get))
         .route(
             "/api/tables/{id}/save",
-            post(tables::save).layer(axum::extract::DefaultBodyLimit::max(1024 * 1024 + 16384)),
+            post(tables::save).layer(axum::extract::DefaultBodyLimit::max(8 * 1024 * 1024 + 16384)),
         )
         .route("/api/catalog", get(arena::catalog))
         .route("/api/arena", get(arena::overview))

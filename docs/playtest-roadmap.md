@@ -1,5 +1,18 @@
 # Playtest roadmap
 
+## Implemented in the 19.24 Game Reports experiment
+
+- **Export game report:** add a visible button to download a JSON report containing the current saved position, rules version, round/phase, factions and bot profiles, scores and scoring breakdowns, resources, and the available game log. Include readable log text so a completed human-versus-bot game can be reviewed alongside its final position.
+- **Full game logging:** retain the complete history from setup through victory for new games, covering every faction's turns, actions and outcomes. Identify the round, phase and acting faction; include resource changes, conversions, construction, movement, colonization, excavation, trades, purchases, combat outcomes and Prestige awards. Preserve the history across reloads and record undo boundaries. The visible Comms Feed can remain compact while the exported history stays complete.
+- **History completeness:** existing saves export their retained events and clearly mark earlier history as incomplete. Full recording begins with new games; starting another game starts a separate history.
+- **Clickable point totals:** click a faction's point total to see its Prestige breakdown by scoring source.
+- **Remove Shipyard points:** Shipyards no longer grant Prestige, including the current point per pair.
+- **Remove card points:** purchased cards no longer grant Prestige, including the current point per eight lifetime purchases.
+
+Status: implemented in 19.24. Start a new game for the revised scoring and complete history. Earlier tables keep their archived rules.
+
+## Historical planning
+
 Historical planning snapshot: PR #5 was adopted and Long Reach 6.11 reached `main` in PR #16. Use the [current workflow](playtest-workflow.md) for new branches and the [canonical rules maintenance guide](rules/README.md) for rules changes. The statuses and numbered follow-ups below describe the earlier planning stage.
 
 This repository has three related pull requests with deliberately different jobs:

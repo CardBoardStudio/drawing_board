@@ -805,3 +805,13 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
   .console-tab { min-width: 0; padding-inline: 4px; font-size: 12px; }
   .console-tab span { min-width: 14px; margin-left: 2px; padding: 1px 3px; font-size: 11px; }
 }
+
+/* Point totals are keyboard-operable controls with the same compact typography. */
+button.score-value { font: inherit; font-size: 1.55rem; font-weight: 800; color: var(--player); background: transparent; border: 0; border-radius: 6px; padding: 3px 8px; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 5px; }
+button.score-value:hover { background: rgba(255,255,255,.08); }
+button.score-value:focus-visible { outline: 2px solid var(--player); outline-offset: 2px; }
+.prestige-breakdown { margin: 20px 0; }
+.prestige-breakdown > div { display: flex; justify-content: space-between; gap: 24px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.prestige-breakdown dd { margin: 0; font-weight: 800; }
+.log-panel .panel-heading { flex-wrap: wrap; gap: 10px; }
+#history-status { font-size: .75rem; margin: 0 0 10px; }

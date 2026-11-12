@@ -237,6 +237,28 @@ for(const attacker of [0,1]) for(const stage of ['escape','tactic','committed','
   assert.equal(reload.saved().players[attacker].discard.filter(c=>c.id==='dialog-combat-move').length,1);
   assert.equal(reload.saved().log.filter(line=>line.includes('moved a group from')).length,1,'Movement completes once despite reload and repeated close');
   assert(reload.saved().lastCombat.volleys.length>0);
+  assert(reload.dialog('message').open,'Final report opens automatically');
+  const final=reload.saved().lastCombat;
+  assert(reload.dom.element('message-body').textContent.includes(final.summary.at(-1)));
+  assert(reload.dom.element('message-body').textContent.includes(final.outcome));
+  assert.doesNotMatch(final.outcome,/You has/);
+  const beforeReport=JSON.stringify(reload.saved());
+  const reportReload=boot(storage);assert(reportReload.dialog('message').open,'Unacknowledged report survives reload');assert.equal(JSON.stringify(reportReload.saved()),beforeReport,'AI waits while the final report is open');
+  reportReload.click('message-continue');assert(!reportReload.saved().pendingCombatReport);
+});
+
+test('salvage overflow resolves before the saved automatic final report',()=>{
+  const storage=combatStorage(0,'tactic'),state=JSON.parse(storage.getItem(SAVE_KEY));
+  for(const seat of [0,1]) {state.players[seat].resources.data=10;state.players[seat].hand.push({key:'salvageCrews',id:`report-salvage-${seat}`});}
+  writeSave(storage,state);let game=boot(storage),choices=0;
+  while(game.saved().pendingCombat){assert(choices++<8);game.dom.lastQuery('[data-combat-action]')[0].click();game.settle();}
+  assert(game.saved().pendingCombatReport);assert(game.dialog('overflow').open);assert(!game.dialog('message').open,'Final report waits behind the resource choice');
+  assert.equal(game.saved().players[0].resources.matter,2);
+  game=boot(storage);assert(game.dialog('overflow').open);assert(!game.dialog('message').open);
+  game.dom.element('overflow-data').value='2';fire(game.dom.element('overflow-data'),'input');fire(game.dom.element('overflow-form'),'submit',{cancelable:true});game.settle();
+  assert(game.dialog('message').open);assert.equal(game.saved().players[0].resources.matter,2);
+  assert(game.dom.element('message-body').textContent.includes(game.saved().lastCombat.outcome));
+  game.click('message-continue');assert(!game.saved().pendingCombatReport);
 });
 
 test('pass opens Buy before any rival acts, and a Buy reload can finish', () => {

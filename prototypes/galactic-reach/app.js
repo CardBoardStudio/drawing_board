@@ -15,8 +15,8 @@ function createGalacticReach(options = {}) {
   }
   const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
-  const SAVE_FORMAT_VERSION = 13;
-  const RULES_REVISION = 18;
+  const SAVE_FORMAT_VERSION = 14;
+  const RULES_REVISION = 19;
   const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
   const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${SAVE_FORMAT_VERSION}`;
   const RESOURCES = ['matter', 'energy', 'biomass', 'data'];
@@ -42,7 +42,7 @@ function createGalacticReach(options = {}) {
   const PLAYER_COLORS = ['#55d9f4', '#ff9f6e', '#a58cff', '#f2cf66'];
   const PLAYER_NAMES = ['You', 'Ember Directorate', 'Violet Assembly', 'Helios Compact'];
   const PLAYER_STRATEGIES = ['human', 'military', 'economy', 'expansion'];
-  const BOARD_RADIUS = 12;
+  const BOARD_RADIUS = 11;
   const VICTORY_TARGET = 20;
   const CARDS_PER_PRESTIGE = 8;
   const HOME_STARTS = [
@@ -82,7 +82,7 @@ function createGalacticReach(options = {}) {
   const EXCAVATION_COST = { matter: 1, energy: 1, data: 2 };
   const LEGEND_TOOLTIPS = {
     settler: 'Colony ship. Base movement 1; Move II adds 1. It has 1 combat power, reveals worlds by entering them, and is required to colonize. Commission at a Shipyard to receive a Colonize card.',
-    explorer: 'Civilian explorer. Reveals worlds by entering them. Base movement 3; Move II adds 1. Commission at a Shipyard to receive Excavate directly in hand. Play it at a relic, pay 1 Matter, 1 Energy, and 2 Data, and choose a relic card. Keep the Explorer; trash Excavate.',
+    explorer: 'Civilian explorer. Reveals worlds by entering them. Base movement 3; Move II adds 1. Commission at a Shipyard to receive Excavate in discard. Play it at a relic, pay 1 Matter, 1 Energy, and 2 Data, and choose a relic card. Consume one Explorer and trash Excavate.',
     fleet: 'Reveals worlds by entering them. Base movement 2 (3 with Move II), with 2 combat power and 2 hull.',
     colony: 'Claims a seven-hex world. Colonies must occupy the world’s center hex.',
     harvester: 'Adds 1 resource to this planet’s production.',
@@ -92,7 +92,7 @@ function createGalacticReach(options = {}) {
     colonize: 'Use a Settler on the center hex of an eligible world to found or capture its Colony.',
     construct: 'Build one structure on any empty planet hex adjacent to your Colony, upgrade one building, or commission one ship at a Shipyard.',
     move: 'Move ships or Explorers up to the selected group’s speed.',
-    excavate: 'With an Explorer at a relic, pay 1 Matter, 1 Energy, and 2 Data. Choose a relic card into hand, gain 1 Prestige, remove the relic, and trash Excavate. Keep the Explorer.'
+    excavate: 'With an Explorer at a relic, pay 1 Matter, 1 Energy, and 2 Data. Choose a relic card into discard, gain 1 Prestige, remove the relic, and trash Excavate. Consume one Explorer.'
   };
   const BOARD_ICONS = {
     settler: '<svg class="board-glyph" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><polygon points="12 2 19 21 12 17 5 21 12 2"></polygon></svg>',
@@ -108,7 +108,7 @@ function createGalacticReach(options = {}) {
     colonize: { name: 'Colonize', kind: 'Basic', accent: 'var(--biomass)', resource: { biomass: 1 }, order: 'colonize', text: 'Establish a Colony with a Settler on a world’s center hex.' },
     construct: { name: 'Construct', kind: 'Basic', accent: 'var(--matter)', resource: { matter: 1 }, order: 'construct', text: 'Build on any empty planet hex adjacent to your Colony, upgrade a building, or commission one ship.', cost: { matter: 1, data: 1 } },
     move: { name: 'Move', kind: 'Basic', accent: 'var(--energy)', resource: { energy: 1 }, order: 'move', text: 'Move one ship group or Explorer team at its own speed.', cost: { energy: 1, data: 1 } },
-    excavate: { name: 'Excavate', kind: 'Basic', accent: 'var(--data)', resource: { data: 1 }, order: 'excavate', text: 'At your Explorer’s relic, pay 1 Matter, 1 Energy, and 2 Data. Choose a relic card into hand and gain 1 Prestige. Remove the relic and trash this card; keep the Explorer.' }
+    excavate: { name: 'Excavate', kind: 'Basic', accent: 'var(--data)', resource: { data: 1 }, order: 'excavate', text: 'At your Explorer’s relic, pay 1 Matter, 1 Energy, and 2 Data. Choose a relic card into discard and gain 1 Prestige. Remove the relic and trash this card; consume one Explorer.' }
   };
 
   const BASIC_MARKET = ['move', 'construct'];
@@ -118,9 +118,8 @@ function createGalacticReach(options = {}) {
     pathfinderNetwork: { name: 'Pathfinder Network', kind: 'Exploration', accent: 'var(--energy)', resource: { energy: 1, biomass: 1 }, order: 'move', tag: 'pathfinder', text: 'Move a fleet with +1 range; it cannot initiate combat.', cost: { energy: 1, biomass: 1, data: 1 } },
     dropColonyModules: { name: 'Drop Colony Modules', kind: 'Expansion', accent: 'var(--biomass)', resource: { biomass: 2 }, order: 'colonize', tag: 'dropColony', text: 'Colonize for 1 less Biomass without consuming the Settler.', cost: { matter: 1, biomass: 2, data: 1 } },
     modularConstruction: { name: 'Modular Construction', kind: 'Industry', accent: 'var(--matter)', resource: { matter: 2 }, order: 'construct', tag: 'doubleBuild', text: 'Build upgrades on two different planets; second costs 1 less Matter.', cost: { matter: 2, energy: 1, data: 1 } },
-    industrialSurge: { name: 'Industrial Surge', kind: 'Industry', accent: 'var(--matter)', resource: { matter: 1, energy: 1 }, order: 'special', tag: 'surge', text: 'Immediately produce from up to three owned hexes in one world, chosen automatically. Rich adds 1; Harvesters add nothing.', cost: { matter: 2, energy: 2, biomass: 1 } },
+    industrialSurge: { name: 'Industrial Surge', kind: 'Industry', accent: 'var(--matter)', resource: { matter: 1, energy: 1 }, order: 'special', tag: 'surge', text: 'Immediately produce from up to three owned hexes in one world, chosen automatically. Each gives 1 printed resource; Harvesters add nothing.', cost: { matter: 2, energy: 2, biomass: 1 } },
     orbitalShipyards: { name: 'Orbital Shipyards', kind: 'Industry', accent: 'var(--matter)', resource: { matter: 2 }, order: 'construct', tag: 'doubleShip', text: 'Commission up to two ships at one Shipyard; second costs 1 less Energy.', cost: { matter: 2, energy: 1, biomass: 1, data: 1 } },
-    terraformingProtocols: { name: 'Terraforming Protocols', kind: 'Industry', accent: 'var(--biomass)', resource: { biomass: 2 }, order: 'special', tag: 'terraform', text: 'Pay 2 Biomass to make a controlled planet Rich.', cost: { matter: 2, energy: 1, biomass: 2, data: 1 } },
     tradeConsortium: { name: 'Trade Consortium', kind: 'Commerce', accent: 'var(--gold)', resource: { data: 1 }, wildcard: 1, order: 'special', tag: 'bankTrade', text: 'Choose 1 resource to gain, or choose up to two bank exchanges at 2:1.', cost: { matter: 1, energy: 1, biomass: 1, data: 1 } },
     fleetOverdrive: { name: 'Fleet Overdrive', kind: 'Military', accent: 'var(--energy)', resource: { energy: 2 }, order: 'move', tag: 'overdrive', text: 'Move a fleet with +2 range; an initiated battle cannot be retreated from early.', cost: { matter: 1, energy: 2 } },
     targetingAlgorithms: { name: 'Targeting Algorithms', kind: 'Reaction', accent: 'var(--data)', resource: { data: 2 }, reaction: 'targeting', text: 'Automatically add 1 hit to your next combat volley.', cost: { energy: 1, data: 2 } },
@@ -230,7 +229,7 @@ function createGalacticReach(options = {}) {
             "biomass": 3,
             "data": 1
         },
-        "text": "Make up to two of your unoccupied planets Rich, chosen automatically. Gain one of each changed planet's resource.",
+        "text": "Gain 1 printed resource from each of up to two of your unoccupied owned planet hexes, chosen automatically. No permanent production bonus.",
         "lore": "The garden outlived its gods."
     },
     "cradleOfLostSuns": {
@@ -339,37 +338,57 @@ function createGalacticReach(options = {}) {
     return shuffled(MILITARY_DECK_LIST);
   }
 
-  function randomInnerCenters(homeCenters) {
-    const candidates = [];
-    const innerRadius = BOARD_RADIUS - 3;
-    for (let q = -innerRadius; q <= innerRadius; q += 1) {
-      for (let r = -innerRadius; r <= innerRadius; r += 1) {
-        if (Math.max(Math.abs(q), Math.abs(r), Math.abs(q+r)) <= innerRadius) candidates.push([q,r]);
+  function balancedTerrainPositions(homeCenters) {
+    const distance=(a,b=[0,0])=>Math.max(Math.abs(a[0]-b[0]),Math.abs(a[1]-b[1]),Math.abs(a[0]+a[1]-b[0]-b[1]));
+    const region=coord=>{
+      const distances=homeCenters.map(home=>distance(coord,home)), closest=Math.min(...distances);
+      return distances.filter(d=>d===closest).length===1 ? distances.indexOf(closest) : -1;
+    };
+    const cells=[];
+    for (let q=-BOARD_RADIUS;q<=BOARD_RADIUS;q++) for (let r=-BOARD_RADIUS;r<=BOARD_RADIUS;r++)
+      if (distance([q,r])<=BOARD_RADIUS) cells.push([q,r]);
+    const pools=homeCenters.map((home,id)=>({
+      near:cells.filter(c=>distance(c)<=BOARD_RADIUS-3 && region(c)===id && distance(c,home)>=5 && distance(c,home)<=6 && homeCenters.every(h=>distance(c,h)>=4)),
+      inner:cells.filter(c=>distance(c)<=BOARD_RADIUS-3 && region(c)===id && distance(c,home)>=7 && distance(c,home)<=9 && homeCenters.every(h=>distance(c,h)>=4))
+    }));
+    for (let attempt=0;attempt<64;attempt++) {
+      const worlds=[];
+      const slots=[...shuffled([0,1,2,3]).map(id=>[id,'inner']),...shuffled([0,1,2,3]).map(id=>[id,'near'])];
+      for (const [id,band] of slots) {
+        const next=shuffled(pools[id][band]).find(c=>worlds.every(w=>distance(c,w)>=4));
+        if (!next) break;
+        worlds.push(next);
       }
-    }
-    const apart = (a,b) => hexDistance(coordKey(...a), coordKey(...b)) >= 4;
-    // Leave at least one empty hex between worlds. Bound the rejection loop.
-    for (let attempt = 0; attempt < 32; attempt += 1) {
-      const selected = [];
-      for (const candidate of shuffled(candidates)) {
-        if ([...homeCenters, ...selected].every(center => apart(center,candidate))) selected.push(candidate);
-        if (selected.length === 8) return selected;
+      if (worlds.length!==8) continue;
+      const second=homeCenters.map(h=>worlds.map(w=>distance(h,w)).sort((a,b)=>a-b)[1]);
+      if (Math.max(...second)-Math.min(...second)>2) continue;
+      const moonDistance=5+Math.floor(random()*3), moons=[];
+      for (const id of shuffled([0,1,2,3])) {
+        const candidates=cells.filter(c=>region(c)===id && distance(c,homeCenters[id])>=moonDistance && distance(c,homeCenters[id])<=moonDistance+1 && [...homeCenters,...worlds].every(w=>distance(c,w)>=3));
+        const next=shuffled(candidates).find(c=>moons.every(m=>distance(c,m)>=2));
+        if (!next) break;
+        moons.push(next);
       }
+      if (moons.length!==4) continue;
+      const allWorlds=[...homeCenters,...worlds];
+      if (cells.some(c=>Math.min(...allWorlds.map(w=>distance(c,w)-1),...moons.map(m=>distance(c,m)))>6)) continue;
+      return {worlds,moons};
     }
-    // This pre-spaced lattice always has enough room, even with an adversarial RNG.
-    // Shuffle its eligible sites so the fallback is still a fresh layout.
-    return shuffled(candidates.filter(([q,r]) => q % 4 === 0 && r % 4 === 0)
-      .filter(candidate => homeCenters.every(center => apart(center,candidate)))).slice(0,8);
+    // Fully validated fallback for bounded retries, including constant random sources.
+    return {
+      worlds:[[-7,2],[2,-7],[7,-2],[-2,7],[-3,1],[1,-3],[3,-1],[-1,3]],
+      moons:[[-8,5],[5,-8],[8,-5],[-5,8]]
+    };
   }
 
   function generateGalaxy() {
     // Seven-hex home worlds touch the rim; the starting shipyards face inward.
     const edge = BOARD_RADIUS - 1;
     const homeCenters = [[-edge,0],[0,-edge],[edge,0],[0,edge]];
-    const centers = [...homeCenters, ...randomInnerCenters(homeCenters)];
+    const layout = balancedTerrainPositions(homeCenters);
+    const centers = [...homeCenters, ...layout.worlds];
     const names = ['Asterion','Borealis','Cygnus','Draco','Erebus','Fornax','Gemini','Helios','Icarus','Juno','Kepler','Lyra'];
     const homes = new Map(HOME_CLUSTER_OWNERS);
-    const specials = new Map([[5,'rich'],[7,'rich'],[10,'rich']]);
     const relicSectors = new Map(RELIC_SECTORS);
     const resourceCycle = ['matter','energy','biomass','data'];
     const numerals = ['I','II','III','IV','V','VI','VII'];
@@ -397,30 +416,18 @@ function createGalacticReach(options = {}) {
         const type = types[planetIndex];
         planets[coordKey(cq,cr)] = {
           q: cq, r: cr, cluster: clusterIndex, name: `${names[clusterIndex]} ${numerals[planetIndex]}`,
-          type, special: relicSectors.get(clusterIndex) === planetIndex ? 'relic' : planetIndex === 0 ? specials.get(clusterIndex) || null : null,
+          type, special: relicSectors.get(clusterIndex) === planetIndex ? 'relic' : null,
           owner, originalFounder: isHomeColony ? owner : null, hasColony: isHomeColony,
-          upgrade: null, upgradeLevel: 0, rich: specials.get(clusterIndex) === 'rich' && planetIndex === 0,
+          upgrade: null, upgradeLevel: 0,
           relicClaimed: false, occupiedBy: null, conquest: owner !== null ? false : null
         };
       });
     });
-    // Single-hex moons must be at least two steps from every occupied terrain hex.
-    const candidates = [];
-    for (let q=-BOARD_RADIUS;q<=BOARD_RADIUS;q++) for (let r=-BOARD_RADIUS;r<=BOARD_RADIUS;r++) {
-      const key=coordKey(q,r);
-      if (boardHas(key) && !planets[key] && DIRECTIONS.every(([dq,dr])=>!planets[coordKey(q+dq,r+dr)])) candidates.push(key);
-    }
-    const moons=[];
-    for (const key of shuffled(candidates)) {
-      if (moons.every(coord=>hexDistance(key,coord)>=2)) moons.push(key);
-      if (moons.length===4) break;
-    }
-    if (moons.length!==4) throw new Error('Galaxy has no room for four separated moons.');
-    moons.forEach((key,index)=>{
-      const id=clusters.length, [q,r]=parseCoord(key), name=`Moon ${index+1}`;
+    layout.moons.forEach(([q,r],index)=>{
+      const key=coordKey(q,r), id=clusters.length, name=`Moon ${index+1}`;
       clusters.push({id,kind:'moon',name,center:key,coords:[key],scannedBy:[],revealedBy:[]});
       planets[key]={q,r,cluster:id,name,type:'moon',special:'relic',owner:null,originalFounder:null,
-        hasColony:false,upgrade:null,upgradeLevel:0,rich:false,relicClaimed:false,occupiedBy:null,conquest:null};
+        hasColony:false,upgrade:null,upgradeLevel:0,relicClaimed:false,occupiedBy:null,conquest:null};
     });
     return { planets, clusters, homes };
   }
@@ -584,7 +591,7 @@ function createGalacticReach(options = {}) {
   }
 
   function ownerProductionAmount(planet) {
-    return planet.type==='moon' ? 0 : 1 + (planet.rich ? 1 : 0) + (planet.upgrade === 'harvester' ? (planet.upgradeLevel || 1) : 0);
+    return planet.type==='moon' ? 0 : 1 + (planet.upgrade === 'harvester' ? (planet.upgradeLevel || 1) : 0);
   }
 
   function fleetGroup(fleet, group = 'all') {
@@ -865,6 +872,12 @@ function createGalacticReach(options = {}) {
     }
     distances.delete(source);
     return [...distances.keys()];
+  }
+
+  // Every newly acquired card enters discard; draws and returns of owned cards
+  // are separate operations and keep their normal printed timing.
+  function gainCard(player, card) {
+    player.discard.push(card);
   }
 
   function drawCards(player, amount) {
@@ -1201,9 +1214,9 @@ function createGalacticReach(options = {}) {
       drawCards(player,1);
     } else if (definition.tag === 'alienLoom') addResources(player,{matter:4,biomass:2});
     else if (definition.tag === 'alienWorldweaver') {
-      const planets=controlledPlanets(playerId).filter(([,planet])=>planet.occupiedBy===null&&!planet.rich).slice(0,2);
+      const planets=controlledPlanets(playerId).filter(([,planet])=>planet.occupiedBy===null&&RESOURCES.includes(planet.type)).slice(0,2);
       const gains={};
-      planets.forEach(([,planet])=>{planet.rich=true;gains[planet.type]=(gains[planet.type]||0)+1;});
+      planets.forEach(([,planet])=>{gains[planet.type]=(gains[planet.type]||0)+1;});
       addResources(player,gains);
     } else if (definition.tag === 'alienCradle') {
       player.storageUpgrades+=1;addResources(player,{biomass:2});drawCards(player,1);
@@ -1225,7 +1238,7 @@ function createGalacticReach(options = {}) {
       });
       const best = [...byCluster.values()].sort((a,b) => b.length - a.length)[0] || [];
       const gain = {};
-      best.slice(0,3).forEach(planet => { gain[planet.type] = (gain[planet.type] || 0) + (planet.rich ? 2 : 1); });
+      best.slice(0,3).forEach(planet => { gain[planet.type] = (gain[planet.type] || 0) + 1; });
       const result = addResources(player,gain);
       removeHandCard(player, card.id);
       completeAction(playerId, `You used Industrial Surge on ${Math.min(3,best.length)} planets.${overflowNote(result)}`);
@@ -1248,11 +1261,6 @@ function createGalacticReach(options = {}) {
       }
       removeHandCard(player, card.id);
       completeAction(playerId, `You activated Command Uplink${basic ? ` and recovered ${ALL_CARDS[basic.key].name}` : ''}.`);
-    } else if (definition.tag === 'terraform') {
-      state.actionMode = 'terraform';
-      state.actionCardId = card.id;
-      toast('Select a controlled planet and pay', { biomass: 2 }, 'to make it Rich.');
-      render();
     } else if (definition.tag === 'bankTrade') {
       if (state.pendingConsortium || state.phase !== 'operations' || state.activePlayer !== playerId || !player.hand.some(c=>c.id===card.id)) return false;
       clearAction();
@@ -1659,13 +1667,19 @@ function createGalacticReach(options = {}) {
       || !canAfford(player,EXCAVATION_COST)) return false;
     if (dryRun) return true;
     payCost(player,EXCAVATION_COST);
+    const fleet=getFleet(coord,playerId);
+    fleet.explorer-=1;
+    if (!fleetCount(fleet)) {
+      delete state.fleets[coord][playerId];
+      if (!Object.keys(state.fleets[coord]).length) delete state.fleets[coord];
+    }
     const [relic]=state.relicRow.splice(index,1);
-    player.hand.push(relic);
+    gainCard(player,relic);
     if (state.relicDeck.length) state.relicRow.splice(index,0,state.relicDeck.pop());
     planet.special=null; planet.relicClaimed=true;
     player.relicsExcavated+=1;
     removeHandCard(player,cardId,'trash');
-    completeAction(playerId,`${player.name} excavated a relic at ${planet.name}, chose ${ALL_CARDS[relic.key].name}, and gained 1 Prestige. Excavate was trashed.`);
+    completeAction(playerId,`${player.name} excavated a relic at ${planet.name}, chose ${ALL_CARDS[relic.key].name}, into discard and gained 1 Prestige. One Explorer was consumed and Excavate was trashed.`);
     return true;
   }
 
@@ -1685,7 +1699,7 @@ function createGalacticReach(options = {}) {
     payCost(player,discountedCost(SHIP_STATS[type].cost,discountResource),0,0,discountEnergy);
     ensureFleet(coord,playerId)[type] += 1;
     const bundled=type==='settler'?'colonize':type==='explorer'?'excavate':null;
-    if (bundled) {const destination=type==='explorer'?'hand':'discard';player[destination].push(makeCard(bundled));logEvent(`${player.name} commissioned ${SHIP_STATS[type].name} and gained ${BASIC_CARDS[bundled].name} in ${destination}.`);}
+    if (bundled) {gainCard(player,makeCard(bundled));logEvent(`${player.name} commissioned ${SHIP_STATS[type].name} and gained ${BASIC_CARDS[bundled].name} in discard.`);}
     return true;
   }
 
@@ -1705,14 +1719,7 @@ function createGalacticReach(options = {}) {
     if (!applyColonizeOrder(0,coord,card)) toast('You need an eligible Settler on the world’s center hex and the required resources.');
   }
 
-  function contextTerraform(coord) {
-    const planet = state.planets[coord];
-    if (!planet || planet.owner !== 0 || planet.rich || state.players[0].resources.biomass < 2) { toast('That planet cannot be terraformed.'); return; }
-    state.players[0].resources.biomass -= 2;
-    planet.rich = true;
-    discardActionCard(0);
-    completeAction(0,`You terraformed ${planet.name} into a Rich world.`);
-  }
+
 
   function bankPlanForCost(player, cost) {
     const resources = {...player.resources}, plan = [];
@@ -1912,7 +1919,7 @@ function createGalacticReach(options = {}) {
     if (special) {
       const worlds = controlledPlanets(id).filter(([,p])=>p.occupiedBy===null).slice(0,3).map(([,p])=>p);
       const gain = {};
-      worlds.forEach(planet=>{ gain[planet.type]=(gain[planet.type]||0)+(planet.rich?2:1); });
+      worlds.forEach(planet=>{ gain[planet.type]=(gain[planet.type]||0)+1; });
       const result = addResources(player,gain);
       aiPlayCard(player,special);
       completeAction(id,`${player.name} triggered an Industrial Surge.${overflowNote(result)}`);
@@ -1960,7 +1967,7 @@ function createGalacticReach(options = {}) {
     const discount = player.buyDiscountData > 0 ? 1 : 0;
     if (!payCost(player,definition.cost,discount)) return false;
     if (source === 'market') state.market.splice(indexOrKey,1);
-    player.discard.push(card);
+    gainCard(player,card);
     player.bought += 1;
     player.cardsPurchased = (player.cardsPurchased || 0) + 1;
     if (discount) player.buyDiscountData = 0;
@@ -1998,14 +2005,14 @@ function createGalacticReach(options = {}) {
     return true;
   }
 
-  function upgradeStarter(playerId, cardId) {
+  function upgradeStarter(playerId, cardId, resource) {
     const player = state.players[playerId];
-    if (state.phase !== 'buy' || state.activePlayer !== playerId || player.resources.data < 1) return false;
+    if (!canManageResources(playerId) || state.phase !== 'buy' || !RESOURCES.includes(resource) || player.resources[resource] < 2) return false;
     const card = [...player.hand,...player.discard].find(item=>item.id===cardId);
     if (!card?.starter || card.upgraded) return false;
-    player.resources.data -= 1;
+    player.resources[resource] -= 2;
     card.upgraded = true;
-    logEvent(`${player.name} upgraded ${ALL_CARDS[card.key].name} to level II.`);
+    logEvent(`${player.name} upgraded ${ALL_CARDS[card.key].name} to level II for 2 ${RESOURCE_NAMES[resource]}.`);
     return true;
   }
 
@@ -2014,7 +2021,8 @@ function createGalacticReach(options = {}) {
     aiManageStorage(id);
     const player = state.players[id];
     const upgradeCandidate = [...player.hand,...player.discard].find(card=>card.starter&&!card.upgraded);
-    if (upgradeCandidate && player.resources.data >= 2) upgradeStarter(id,upgradeCandidate.id);
+    const upgradeResource = [...RESOURCES].sort((a,b)=>player.resources[b]-player.resources[a]).find(resource=>player.resources[resource]>=2);
+    if (upgradeCandidate && upgradeResource) upgradeStarter(id,upgradeCandidate.id,upgradeResource);
     const procurement = player.hand.find(card => ALL_CARDS[card.key].buyEffect === 'procurement');
     if (procurement) {
       player.buyLimit = 2;
@@ -2030,7 +2038,7 @@ function createGalacticReach(options = {}) {
       removeHandCard(player,manipulation.id);
       logEvent(`${player.name} manipulated the market.`);
     }
-    const priorities = player.strategy === 'military' ? ['coordinatedAssault','targetingAlgorithms','ablativePlating','orbitalShipyards'] : player.strategy === 'economy' ? ['industrialSurge','modularConstruction','terraformingProtocols','dataBrokerage'] : ['dropColonyModules','surveyDrones','pathfinderNetwork','procurementNetwork'];
+    const priorities = player.strategy === 'military' ? ['coordinatedAssault','targetingAlgorithms','ablativePlating','orbitalShipyards'] : player.strategy === 'economy' ? ['industrialSurge','modularConstruction','dataBrokerage'] : ['dropColonyModules','surveyDrones','pathfinderNetwork','procurementNetwork'];
     while (player.bought < player.buyLimit) {
       const choices = state.market.map((card,index)=>({card,index,score:priorities.includes(card.key)?10-priorities.indexOf(card.key):2})).filter(option=>canAfford(player,ALL_CARDS[option.card.key].cost,player.buyDiscountData)).sort((a,b)=>b.score-a.score);
       if (choices[0]) buyCard(id,'market',choices[0].index);
@@ -2293,7 +2301,7 @@ function createGalacticReach(options = {}) {
   }
 
   function renderSymbolLegend() {
-    $('#resource-legend').innerHTML = `<strong class="legend-heading">Map key</strong>${RESOURCES.map(resource=>`<span>${resourceDot(resource)}${RESOURCE_NAMES[resource]}</span>`).join('')}<span>★ Rich world</span><span>◈ Located relic</span><span>● Gray moon · no production</span><span>Fog = unvisited</span>`;
+    $('#resource-legend').innerHTML = `<strong class="legend-heading">Map key</strong>${RESOURCES.map(resource=>`<span>${resourceDot(resource)}${RESOURCE_NAMES[resource]}</span>`).join('')}<span>◈ Located relic</span><span>● Gray moon · no production</span><span>Fog = unvisited</span>`;
     const entries = [
       ['settler','Settler'],['explorer','Explorer'],['fleet','Fleet'],
       ['colony','Colony'],['harvester','Harvester'],['starbase','Shipyard']
@@ -2358,7 +2366,7 @@ function createGalacticReach(options = {}) {
       fleets.innerHTML = fleetSymbolsAt(key);
       if (planet) {
         buildings.innerHTML = known ? buildingSymbols(planet) : '';
-        special.textContent = known ? (planet.special==='rich'?'★':planet.special==='relic'?(planet.relicClaimed?'◇':'◈'):'') : (relicSignal?(planet.relicClaimed?'◇':'◈'):'');
+        special.textContent = known ? (planet.special==='relic'?(planet.relicClaimed?'◇':'◈'):'') : (relicSignal?(planet.relicClaimed?'◇':'◈'):'');
         const buildingText = hasBuilding(planet) ? `, ${buildingLabel(planet)}` : '';
         const fleetText = fleetAriaAt(key);
         hex.setAttribute('aria-label',known?`${planet.name}, ${planet.type}, ${planet.owner===null?'unclaimed':state.players[planet.owner].name}${buildingText}${fleetText ? `, fleet ${fleetText}` : ''}${planet.occupiedBy!==null?', occupied':''}`:relicSignal?`Alien relic signal at ${key}; surrounding terrain unknown${fleetText?', fleet '+fleetText:''}`:`Uncharted space ${key}${fleetText?', fleet '+fleetText:''}`);
@@ -2448,7 +2456,6 @@ function createGalacticReach(options = {}) {
       if (known && def.order === 'colonize' && isColonySite(coord) && fleet?.settler > 0
         && (planet.owner === null && !hasBuilding(planet) || planet.owner !== null && planet.owner !== 0 && planet.occupiedBy === 0))
         add('colonize',planet.owner === null ? 'Found Colony' : 'Capture Colony');
-      if (known && def.tag === 'terraform' && planet.owner === 0 && !planet.rich) add('terraform','Terraform');
     }
     return orders;
   }
@@ -2548,7 +2555,6 @@ function createGalacticReach(options = {}) {
         const colonizeCost={ biomass: capture?1:state.actionOptions.tag==='dropColony'?1:2 };
         if (eligible) actions.appendChild(actionButton(capture?'Capture planet':'Found Colony',()=>contextColonize(key),state.players[0].resources.biomass>=colonizeCost.biomass,colonizeCost));
       }
-      if (state.actionMode==='terraform' && planet?.owner===0&&!planet.rich) actions.appendChild(actionButton('Terraform',()=>contextTerraform(key),state.players[0].resources.biomass>=2,{ biomass: 2 }));
     }
   }
 
@@ -2575,12 +2581,35 @@ function createGalacticReach(options = {}) {
     return `<article class="game-card ${definition.kind==='Alien Relic'?'alien-relic':''} ${card.upgraded?'upgraded':''} ${isSelectedOrder?'order-selected':''}" style="--card-accent:${definition.accent}"><span class="card-type">${definition.kind}${definition.affinity?' · '+definition.affinity:''}${card.starter?' · STARTER':''}</span><span class="card-name">${definition.name}${card.upgraded?' II':''}</span>${definition.lore?`<span class="card-lore">${esc(definition.lore)}</span>`:''}<span class="card-effect">${resourceText(definition.text)}${card.upgraded?` II: ${upgradedOrderText(card)} Conversion gains one extra resource.`:''}</span><div class="card-footer"><span>${definition.resource?`<small>Gain</small>${resourceDots(conversionGain(card))}`:''}</span><span>${definition.cost?`<small>Buy</small>${resourceDots(definition.cost)}`:''}</span></div>${location==='hand'?`<div class="card-buttons">${canResource?`<button class="button" data-resource-card="${card.id}" ${canStoreCard?'':`disabled title="Choose excess resources first"`}>${canStoreCard?'Convert to resources':`Choose discards first`}</button>`:''}${canOrder?`<button class="button ${isSelectedOrder?'button-danger':'button-primary'}" data-order-card="${card.id}" aria-pressed="${isSelectedOrder}">${isSelectedOrder?'Cancel order':'Use order'}</button>`:''}${canBuyEffect?`<button class="button button-primary" data-buy-effect="${card.id}">Use in Buy</button>`:''}${definition.reaction&&isHumanOps?'<span class="muted">Automatic reaction</span>':''}</div>`:''}</article>`;
   }
 
+  function deckContents(player) {
+    const groups=new Map();
+    for (const card of player.deck) {
+      const key=`${card.key}:${card.upgraded?1:0}:${card.starter?1:0}`;
+      if (!groups.has(key)) groups.set(key,{key:card.key,upgraded:!!card.upgraded,starter:!!card.starter,count:0});
+      groups.get(key).count++;
+    }
+    return [...groups.values()].sort((a,b)=>{
+      const an=ALL_CARDS[a.key].name, bn=ALL_CARDS[b.key].name;
+      return (an<bn?-1:an>bn?1:0) || Number(a.upgraded)-Number(b.upgraded) || Number(b.starter)-Number(a.starter);
+    });
+  }
+
+  function renderDeck() {
+    const player=state.players[viewSeat];
+    $('#deck-button').disabled=replayMode;
+    $('#deck-button').title=replayMode?'Replays record deck size only.':'Inspect remaining cards without revealing draw order.';
+    if (replayMode) return;
+    $('#deck-dialog-count').textContent=player.deck.length;
+    $('#deck-row').innerHTML=deckContents(player).map(group=>`<div class="deck-card-group"><strong class="deck-card-count">${group.count}×</strong>${cardMarkup(group,'deck')}</div>`).join('') || '<p class="muted discard-empty">Your draw pile is empty. Discarded cards shuffle in when you next need to draw.</p>';
+  }
+
   function renderHand() {
     const player=state.players[viewSeat];
     // Replays record pile sizes, not the order or contents of deck and discard.
     const discardCount=replayMode?player.discardCount:player.discard.length;
     $('#hand-count').textContent=player.hand.length;
     $('#deck-count').textContent=replayMode?player.deckCount:player.deck.length;
+    renderDeck();
     $('#hand-pile-count').textContent=player.hand.length;
     $('#discard-count').textContent=discardCount;
     $('#discard-dialog-count').textContent=discardCount;
@@ -2616,6 +2645,7 @@ function createGalacticReach(options = {}) {
     $$('[data-buy-market]').forEach(button=>button.addEventListener('click',()=>{if(buyCard(0,'market',Number(button.dataset.buyMarket))){render();saveGame();}}));
     $('#finish-buy-button').hidden=!humanBuy;
     if (replayMode) { $('#decommission-area').innerHTML=''; return; }
+    const previousUpgradeResource = $('#upgrade-resource')?.value;
     const eligible=state.players[0].discard.filter(card=>state.players[0].buyStartDiscardIds.includes(card.id));
     const selectedResource = $('#trash-resource')?.value;
     const trashResource = RESOURCES.includes(selectedResource) ? selectedResource : RESOURCES.find(resource=>state.players[0].resources[resource]>=3) || 'matter';
@@ -2635,8 +2665,11 @@ function createGalacticReach(options = {}) {
     $('#trash-resource')?.addEventListener('change',renderMarket);
     $$('[data-trash]').forEach(button=>button.addEventListener('click',()=>{if(decommission(0,button.dataset.trash,$('#trash-resource').value)){render();saveGame();}}));
     const upgradeable=[...state.players[0].hand,...state.players[0].discard].filter(card=>card.starter&&!card.upgraded);
-    if(humanBuy) $('#decommission-area').insertAdjacentHTML('beforeend',`<div class="decommission-list upgrade-list"><strong>Upgrade starter ${resourceDots({ data: 1 })}</strong>${upgradeable.length?upgradeable.map(card=>`<button class="button" data-upgrade-card="${card.id}" ${state.players[0].resources.data<1?'disabled':''}>${ALL_CARDS[card.key].name} → II · ${upgradedOrderText(card)}</button>`).join(''):'<span class="muted">All starter cards upgraded</span>'}</div>`);
-    $$('[data-upgrade-card]').forEach(button=>button.addEventListener('click',()=>{if(upgradeStarter(0,button.dataset.upgradeCard)){render();saveGame();}}));
+    const selectedUpgradeResource = previousUpgradeResource;
+    const upgradeResource = RESOURCES.includes(selectedUpgradeResource) ? selectedUpgradeResource : RESOURCES.find(resource=>state.players[0].resources[resource]>=2) || 'matter';
+    if(humanBuy) $('#decommission-area').insertAdjacentHTML('beforeend',`<div class="decommission-list upgrade-list"><strong>Upgrade starter</strong><label>Pay 2 <select id="upgrade-resource">${RESOURCES.map(resource=>`<option value="${resource}" ${resource===upgradeResource?'selected':''}>${RESOURCE_NAMES[resource]}</option>`).join('')}</select></label>${upgradeable.length?upgradeable.map(card=>`<button class="button" data-upgrade-card="${card.id}" ${state.players[0].resources[upgradeResource]<2?'disabled':''}>${ALL_CARDS[card.key].name} → II · ${upgradedOrderText(card)}</button>`).join(''):'<span class="muted">All starter cards upgraded</span>'}</div>`);
+    $('#upgrade-resource')?.addEventListener('change',renderMarket);
+    $$('[data-upgrade-card]').forEach(button=>button.addEventListener('click',()=>{if(upgradeStarter(0,button.dataset.upgradeCard,$('#upgrade-resource').value)){render();saveGame();}}));
 
   }
 
@@ -2740,7 +2773,6 @@ function createGalacticReach(options = {}) {
       case 'colony_build': return { text: `Colonize II · Build ${STRUCTURES[action.kind]?.name || action.kind} at ${place(action.coord)} at full cost`, coords: [action.coord] };
       case 'finish_colony_build': return { text: 'Colonize II · Finish without building' };
       case 'excavate': return { text: `${order} · Excavate at ${place(action.coord)} · Choose ${ALL_CARDS[before.relicRow?.find(card=>card.id===action.relic)?.key]?.name || 'alien relic'}`, coords:[action.coord] };
-      case 'terraform': return { text: `${order} · Terraform ${place(action.coord)}`, coords: [action.coord] };
       case 'special': return { text: order };
       case 'trade_offer': return { text: `Publish open offer · Offers ${amount(action.giveAmount,action.giveType)} → Asks for ${amount(action.getAmount,action.getType)}` };
       case 'trade_accept': return { text: `Accept offer${offer ? ` from ${names[offer.from]}` : ''}` };
@@ -2748,7 +2780,7 @@ function createGalacticReach(options = {}) {
       case 'trade_cancel': return { text: 'Withdraw offer' };
       case 'buy': return { text: `Buy ${ALL_CARDS[action.key]?.name || 'a card'}${action.source === 'market' ? ' from the market' : ''}` };
       case 'finish_buy': return { text: 'Finish Buy' };
-      case 'upgrade': return { text: `Upgrade starter · ${cardName('a starter card')} → II` };
+      case 'upgrade': return { text: `Upgrade starter · ${cardName('a starter card')} → II · ${amount(2,action.resource)}` };
       case 'buy_effect': return { text: `Use in Buy · ${cardName('Card')}` };
       case 'decommission': return { text: `Trash ${cardName('a discarded card')} · ${amount(3,action.resource)}` };
       case 'discard_overflow': return { text: `Discard excess resources · ${amount(action.amount,action.resource)}` };
@@ -2916,6 +2948,8 @@ function createGalacticReach(options = {}) {
     $('#close-rules').addEventListener('click',()=>$('#rules-dialog').close());
     $('#message-continue').addEventListener('click',()=>$('#message-dialog').close());
     $('#report-button').addEventListener('click',showReplayReport);
+    $('#deck-button').addEventListener('click',()=>{if(!replayMode){renderDeck();$('#deck-dialog').showModal();}});
+    $('#close-deck').addEventListener('click',()=>$('#deck-dialog').close());
     $('#discard-button').addEventListener('click',()=>$('#discard-dialog').showModal());
     $('#close-discard').addEventListener('click',()=>$('#discard-dialog').close());
     $('#new-game-button').addEventListener('click',()=>{
@@ -2979,7 +3013,7 @@ function createGalacticReach(options = {}) {
     beginRound();
     return createGalacticAdapter({
       get state() { return state; },
-      clone, ALL_CARDS, BASIC_CARDS, BASIC_MARKET, RELIC_CARDS, STRUCTURES, SHIP_STATS, RESOURCES, STORAGE_UPGRADE, EXCAVATION_COST,
+      clone, deckContents, ALL_CARDS, BASIC_CARDS, BASIC_MARKET, RELIC_CARDS, STRUCTURES, SHIP_STATS, RESOURCES, STORAGE_UPGRADE, EXCAVATION_COST,
       canAfford, cardResources, resourceGainTotal, remainingResourceCapacity, addResources,
       removeHandCard, passOperations, completeAction, nextBuyPlayer, buyCard, upgradeStarter,
       decommission, excavatedRelicCount, useBuyEffect, resolveHumanSpecial,

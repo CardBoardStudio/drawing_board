@@ -1,6 +1,6 @@
 # Galactic Reach rules maintenance
 
-The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 13.18 / Excavation experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
+The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 14.19 / Fair Frontier experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
 
 ## Read, change, verify
 
@@ -17,7 +17,7 @@ The rulebook is authoritative for intended play. The initial version documents e
 | --- | --- | --- |
 | `#setup`, `#round` | `newState`, `generateGalaxy`, `beginRound`, `cleanupRound` in `app.js` | `test-long-reach.cjs`, `test-pass-and-buy.cjs`, `test-resource-actions.cjs`, `test-galactic-reach-dialogs.cjs` |
 | `#resources`, `#orders`, `#movement` | `produceAll`, `cardResources`, `movementRange`, `reachableFrom`, `applyColonizeOrder` | `test-galactic-reach.cjs`, `test-long-reach.cjs` |
-| `#building`, `#combat` | `constructAt`, `buildResearchStation`, `resolveCombat`, `colonizePlanet` | `test-galactic-reach.cjs` |
+| `#building`, `#combat` | `constructAt`, `excavate`, `resolveCombat`, `colonizePlanet` | `test-galactic-reach.cjs` |
 | `#resources`, `#trade`, `#buy` | `offerTrade`, `respondTrade`, `buyCard`, `upgradeStarter`, `decommission`, `increaseStorage` | `test-galactic-reach.cjs`, `test-long-reach.cjs` |
 | `#politics`, `#victory` | `cleanupRound`, `calculatePrestige`, `finishRound` | `test-long-reach.cjs`, `test-pass-and-buy.cjs`, `test-resource-actions.cjs`, `test-galactic-reach-dialogs.cjs` |
 | `#cards`, `#clarifications` | card definitions, `resolveHumanSpecial`, `useBuyEffect`, `resolveCombat`; legal actions in `adapter.js` | relevant mechanic regression, added when resolving each discrepancy |
@@ -45,3 +45,9 @@ The 11.16 revision overrides the earlier Relic infrastructure. Start with only a
 The 12.17 playtest removes public awards and council directives, reduces the resource panel, permits discovery by every ship type, and prices each trash at three of one chosen resource type. Full resource gains remain stored until the owning player chooses the excess discards, including across reloads. New guest saves use v12; 11.16 browser assets and policy-v7 agents remain archived.
 
 The 13.18 experiment removes stations, replaces Explorer-bundled Probe with Excavate directly in hand, and uses a public three-card relic row. Excavation costs 1 Matter, 1 Energy, and 2 Data, keeps the Explorer, removes the site, grants one permanent Prestige and the chosen relic to hand, and trashes Excavate. The map has 12 worlds, four non-producing moons, and 12 relics with separated terrain. All units remain visible under fog; the preview-only development reveal changes only local rendering. Complete 12.17 assets and policy-v8 remain immutable.
+
+The 14.19 Fair Frontier experiment consumes one Explorer per successful excavation, prices starter upgrades at two of a selected resource type, removes Rich and Terraforming Protocols, and allows private unordered deck inspection. Worldweaver Spore retains its one-time resource gain. Complete 13.18 browser assets and policy-v9 remain immutable.
+
+The radius-11 map has 397 cells. Generation places two inner worlds and one moon in each unique-nearest-home region. Near worlds are 5–6 center steps from home; the other world is 7–9. Nearest-world and nearest-moon distances differ by at most one step across factions; second-nearest-world distances differ by at most two. Worlds have center gaps of at least four, moons stay at least three from world centers and two from each other, and every board cell is within six steps of terrain. Bounded random retries use a validated balanced fallback. These numerical bounds are regression-tested over 1,000 seeds and adversarial constant random sources.
+
+Every newly gained card in 14.19 enters discard and must reach hand through normal shuffle/draw before use, including both unit bundles and relic rewards. A single gainCard primitive enforces this default. Draws and returns of already-owned cards keep their printed effects. This supersedes 13.18’s immediate-hand Explorer bundle and relic reward.

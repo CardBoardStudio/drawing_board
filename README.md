@@ -17,7 +17,7 @@ For two human players on one computer, use separate browser profiles or a privat
 
 ## Additional prototypes
 
-[`prototypes/galactic-reach`](prototypes/galactic-reach) contains **Galactic Reach**, a self-contained browser prototype for a four-faction strategy game. It currently supports one human player against three computer-controlled factions and saves progress in the browser. The shared library links to it at `/galactic-reach/`; Voidwright is at `/voidwright/`. The Pass & Buy experiment uses rules 7.12 and separate v7 browser keys; 4.9, 5.10, and 6.11 account tables retain their archived engines. See the prototype README for local play instructions and scope.
+[`prototypes/galactic-reach`](prototypes/galactic-reach) contains **Galactic Reach**, a self-contained browser prototype for a four-faction strategy game. It currently supports one human player against three computer-controlled factions and saves progress in the browser. The shared library links to it at `/galactic-reach/`; Voidwright is at `/voidwright/`. The Streamlined Reach experiment uses rules 12.17 and separate v11 browser keys; 4.9, 5.10, 6.11, 7.12, 8.13, 9.14, and 10.15 account tables retain their archived engines. See the prototype README for local play instructions and scope.
 
 ## Included
 
@@ -35,7 +35,7 @@ For two human players on one computer, use separate browser profiles or a privat
 
 ## Rules
 
-Galactic Reach has a [canonical 7.12 rulebook](prototypes/galactic-reach/rulebook.html), served at `/galactic-reach/rulebook.html` on the live site and each PR preview. Read the [maintenance guide](docs/rules/README.md) before making changes; every gameplay-logic change must update the rulebook in the same PR. The [interactive tutorial](docs/rules/tutorial.md) is planned after rules review.
+Galactic Reach has a [canonical 12.17 rulebook](prototypes/galactic-reach/rulebook.html), served at `/galactic-reach/rulebook.html` on the live site and each PR preview. Read the [maintenance guide](docs/rules/README.md) before making changes; every gameplay-logic change must update the rulebook in the same PR. The [interactive tutorial](docs/rules/tutorial.md) is planned after rules review.
 
 ### Voidwright
 
@@ -84,6 +84,8 @@ Both Voidwright and Galactic Reach implement the shared game/AI contract and run
 
 ## Pull request previews
 
-The repository includes a multi-stage Docker image and a Render Blueprint with automatic per-PR service previews. GitHub Actions builds and smoke-tests the actual deployment image. Preview instances have an access-code-protected test login and isolated, disposable game data; the main service keeps test login disabled. Galactic Reach work targets the current stable lane, `main`; breaking rules experiments use separate pull requests and preview URLs.
+The repository includes a multi-stage Docker image and a Render Blueprint with automatic per-PR service previews. GitHub Actions builds and smoke-tests the actual deployment image. Preview instances have an access-code-protected test login and isolated, disposable game data; the main service keeps test login disabled. Galactic Reach work targets the user-designated stable lane, `codex/add-galactic-reach-prototype`; breaking rules experiments use separate pull requests and preview URLs.
 
 See [the playtest branching workflow](docs/playtest-workflow.md) for stable and experimental lanes. See [PR preview activation](docs/pr-previews.md) for the one-time Render/GitHub connection, first-PR bootstrap, access code, lifecycle, and storage limitations. The checked-in Blueprint is a disposable testing host, not durable production infrastructure.
+
+The Alien Relics iteration starts with a Colony and six Move/Construct cards. All units commission at Shipyards. Settlers grant Colonize and Explorers grant Probe. Establish a Research Station at a relic to draw one of 12 alien cards into hand; previous Relic inventory and exchanges are removed. Permanent capacity purchases and playtest annotations remain.

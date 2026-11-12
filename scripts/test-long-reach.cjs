@@ -132,13 +132,13 @@ let move=r.chooseAiMove(1);
 assert.equal(move.moveGroup,'explorer'); assert.equal(move.destination,'3,0');
 r.state.fleets['1,0']={2:{fleet:1}};
 assert(!r.chooseAiMove(1) || r.chooseAiMove(1).destination!=='3,0','Do not jump through a hostile fleet');
-// The end-of-round rule must not end at the old target or one point below the new one.
-for(const points of [10,19,20]) {
+// The end-of-round rule ends at 10 or above, and never one point below.
+for(const points of [9,10,11]) {
   const s=fresh(100); s.players[0].cardsPurchased=(points-1)*8;
   assert.equal(r.calculatePrestige(0),points);
   r.finishRound();
-  assert.equal(s.winner,points===20?0:null);
-  assert.equal(s.round,points===20?1:2);
+  assert.equal(s.winner,points>=10?0:null);
+  assert.equal(s.round,points>=10?1:2);
 }
 fresh(99); r.state.phase='operations'; r.state.activePlayer=0; r.state.turnStage='prep';
 const order=r.makeCard('move'); r.state.players[0].hand=[order];
@@ -147,14 +147,14 @@ r.playOrder(order.id); assert.equal(r.state.actionMode,'move'); assert.equal(r.s
 r.playOrder(order.id); assert.equal(r.state.actionMode,null,'Clicking again cancels without spending the card');
 assert.equal(r.state.players[0].hand.length,1);
 const old='untouched-v4-save'; storage.set('galactic-reach-save-v4',old);
-assert.equal(r.SAVE_KEY,'galactic-reach-save-v16');
-assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v16');
+assert.equal(r.SAVE_KEY,'galactic-reach-save-v17');
+assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v17');
 const saved=JSON.stringify(fresh(123)); r.saveGame(); fresh(456);
 assert(r.loadGame()); assert.equal(JSON.stringify(r.state),saved,'Reload retains randomized placement');
 assert.equal(storage.get('galactic-reach-save-v4'),old);
 const incompatible=JSON.parse(saved); incompatible.rulesRevision=9;
 storage.set(r.SAVE_KEY,JSON.stringify(incompatible)); assert.equal(r.loadGame(),false);
-console.log('Long Reach: 1,000 map layouts, 331 hexes, border starts, movement, 20-point victory, and save isolation passed.');
+console.log('Long Reach: 1,000 map layouts, 331 hexes, border starts, movement, 10-point victory, and save isolation passed.');
 if(process.env.LONG_REACH_SIMULATE) {
   fresh(1729); r.beginRound();
   let steps=0;
@@ -169,7 +169,7 @@ if(process.env.LONG_REACH_SIMULATE) {
     else if(s.phase==='buy') s.activePlayer===0?r.nextBuyPlayer():r.runAiBuy();
     else throw Error(`Unexpected phase ${s.phase}`);
   }
-  assert.notEqual(r.state.winner,null,'Reference rivals must finish a 20-point game');
+  assert.notEqual(r.state.winner,null,'Reference rivals must finish a 10-point game');
   console.log(`Long-game smoke: faction ${r.state.winner} won in round ${r.state.round}, after ${steps} decisions, with ${r.calculatePrestige(r.state.winner)} Prestige.`);
 }
 

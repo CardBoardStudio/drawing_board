@@ -15,8 +15,8 @@ function createGalacticReach(options = {}) {
   }
   const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
-  const SAVE_FORMAT_VERSION = 16;
-  const RULES_REVISION = 21;
+  const SAVE_FORMAT_VERSION = 17;
+  const RULES_REVISION = 22;
   const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
   const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${SAVE_FORMAT_VERSION}`;
   const RESOURCES = ['matter', 'energy', 'biomass', 'data'];
@@ -43,7 +43,7 @@ function createGalacticReach(options = {}) {
   const PLAYER_NAMES = ['You', 'Ember Directorate', 'Violet Assembly', 'Helios Compact'];
   const PLAYER_STRATEGIES = ['human', 'military', 'economy', 'expansion'];
   const BOARD_RADIUS = 10;
-  const VICTORY_TARGET = 20;
+  const VICTORY_TARGET = 10;
   const CARDS_PER_PRESTIGE = 8;
   const HOME_STARTS = [
     { cluster: 0, owner: 0, colonySector: 0, inwardSector: 1 },
@@ -369,7 +369,7 @@ function createGalacticReach(options = {}) {
   }
 
   function generateGalaxy() {
-    // Seven-hex home worlds touch the rim; the starting shipyards face inward.
+    // Seven-hex home worlds touch the rim; first AI Shipyards use the inward Energy hex.
     const edge = BOARD_RADIUS - 1;
     const homeCenters = [[-edge,0],[0,-edge],[edge,0],[0,edge]];
     const layout = balancedTerrainPositions(homeCenters);
@@ -425,7 +425,7 @@ function createGalacticReach(options = {}) {
     return {
       id: index, name: PLAYER_NAMES[index], color: PLAYER_COLORS[index], strategy: PLAYER_STRATEGIES[index],
       resources: { matter: 0, energy: 0, biomass: 2, data: 0 }, deck: shuffled(deck), discard: [], hand: [],
-      storageUpgrades: 0, cardsPurchased: 0, relicsExcavated: 0, passed: false, tradeUsed: false, bought: 0, buyLimit: 1,
+      storageUpgrades: 0, initialShipyardCoord: null, cardsPurchased: 0, relicsExcavated: 0, passed: false, tradeUsed: false, bought: 0, buyLimit: 1,
       buyDiscountData: 0, marketManipulated: false, buyStartDiscardIds: [], combatBonus: 0,
       tradesWith: [0,0,0,0]
     };
@@ -1770,6 +1770,7 @@ function createGalacticReach(options = {}) {
     planet.hasColony = false;
     planet.upgrade = type;
     planet.upgradeLevel = improving ? 2 : 1;
+    if (type==='starbase' && !player.initialShipyardCoord) player.initialShipyardCoord=coord;
     return true;
   }
 
@@ -1877,6 +1878,25 @@ function createGalacticReach(options = {}) {
     }) || null;
   }
 
+  function aiHomeCluster(playerId) {
+    // The original home stays fixed through conquest and is independent of seat order.
+    return state.clusters.slice(0,4).find(cluster=>state.planets[cluster.center]?.originalFounder===playerId)
+      || state.clusters[HOME_STARTS.find(start=>start.owner===playerId)?.cluster];
+  }
+
+  function aiInitialShipyard(playerId) {
+    return aiHomeCluster(playerId)?.coords.slice(1).sort((a,b)=>hexDistance(a,'0,0')-hexDistance(b,'0,0'))[0];
+  }
+
+  function aiMovementNeighbors(coord, playerId) {
+    const home=aiHomeCluster(playerId);
+    const [hq,hr]=parseCoord(home?.center || ['-1,0','0,-1','1,0','0,1'][playerId]);
+    const physical=hq<0?0:hr<0?1:hq>0?2:3;
+    const transform=([q,r])=>physical===0?[q,r]:physical===1?[r,q]:physical===2?[-q,-r]:[-r,-q];
+    const [q,r]=parseCoord(coord);
+    return DIRECTIONS.map(transform).map(([dq,dr])=>coordKey(q+dq,r+dr)).filter(boardHas);
+  }
+
   function chooseAiBuild(playerId) {
     const player = state.players[playerId];
     const openPlanets = Object.entries(state.planets).filter(([coord]) => canBuildStructureAt(playerId,coord));
@@ -1895,7 +1915,7 @@ function createGalacticReach(options = {}) {
     }
     for (const [coord,planet] of openPlanets) {
       options.push({kind:'harvester',coord,cost:STRUCTURES.harvester.cost,score:(planet.type==='data'?9:7)+(player.strategy==='economy'?3:0)});
-      options.push({kind:'starbase',coord,cost:STRUCTURES.starbase.cost,score:starbases.length===0?16:5+(player.strategy==='military'?4:0)});
+      options.push({kind:'starbase',coord,cost:STRUCTURES.starbase.cost,score:starbases.length===0?16+(!player.initialShipyardCoord&&coord===aiInitialShipyard(playerId)?0.1:0):5+(player.strategy==='military'?4:0)});
     }
 
     controlledPlanets(playerId).filter(([,p])=>p.upgrade&&(p.upgradeLevel||1)<2&&p.occupiedBy===null).forEach(([coord,planet])=>{
@@ -1907,7 +1927,16 @@ function createGalacticReach(options = {}) {
     for (const [coord] of starbases) {
       for (const type of ['settler','fleet']) if (canPlaceShip(playerId,type) && fleetCount(getFleet(coord,playerId)) < 5) options.push({kind:type,coord,cost:SHIP_STATS[type].cost,score:generalShipScores[type]});
     }
-    return options.sort((a,b)=>b.score-a.score)[0] || null;
+    const ranked=options.sort((a,b)=>b.score-a.score);
+    if (starbases.length) {
+      const order=player.hand.find(card=>ALL_CARDS[card.key].order==='construct');
+      const affordable=ranked.filter(build=>{
+        const discount=order?.upgraded?[...RESOURCES].filter(r=>build.cost[r]>0).sort((a,b)=>((build.cost[b]||0)-player.resources[b])-((build.cost[a]||0)-player.resources[a]))[0]||null:null;
+        return canAfford(player,constructionCost(playerId,build.coord,build.kind,discount));
+      });
+      if (affordable.length) return affordable[0];
+    }
+    return ranked[0] || null;
   }
 
   function nearestGoal(source, playerId, military) {
@@ -1918,7 +1947,7 @@ function createGalacticReach(options = {}) {
       const current = queue.shift();
       const planet = state.planets[current];
       if (current !== source && planet && (military ? planet.owner !== null && planet.owner !== playerId : isColonySite(current) && planet.owner === null && !hasBuilding(planet))) { goal = current; break; }
-      for (const next of movementNeighbors(current)) if (!came.has(next)) { came.set(next,current); queue.push(next); }
+      for (const next of aiMovementNeighbors(current,playerId)) if (!came.has(next)) { came.set(next,current); queue.push(next); }
     }
     if (!goal) return null;
     const path = [goal];
@@ -1926,12 +1955,12 @@ function createGalacticReach(options = {}) {
     return path;
   }
 
-  function pathToCoord(source, goal) {
+  function pathToCoord(source, goal, playerId) {
     const queue = [source];
     const came = new Map([[source,null]]);
     while (queue.length && !came.has(goal)) {
       const current = queue.shift();
-      for (const next of movementNeighbors(current)) if (!came.has(next)) { came.set(next,current); queue.push(next); }
+      for (const next of aiMovementNeighbors(current,playerId)) if (!came.has(next)) { came.set(next,current); queue.push(next); }
     }
     if (!came.has(goal)) return null;
     const path = [goal];
@@ -1949,7 +1978,7 @@ function createGalacticReach(options = {}) {
         const relicTargets = state.clusters.filter(cluster=>clusterKnown(cluster,playerId)||clusterScanned(cluster,playerId)).map(relicCoordInCluster).filter(Boolean);
         if (!relicTargets.length) relicTargets.push(...state.clusters.filter(cluster=>!clusterKnown(cluster,playerId)).map(cluster=>cluster.center));
         const relicGoal = relicTargets.sort((a,b)=>hexDistance(source,a)-hexDistance(source,b))[0];
-        const path = relicGoal && pathToCoord(source,relicGoal);
+        const path = relicGoal && pathToCoord(source,relicGoal,playerId);
         if (path?.length) {
           const explorers = fleetGroup(fleet,'explorer');
           const reachable = new Set(reachableFrom(source,playerId,movementRange(explorers,card),true,explorers));
@@ -1964,12 +1993,14 @@ function createGalacticReach(options = {}) {
         if (!path?.length) return;
         const ships = fleetGroup(fleet,'ships');
         const range = movementRange(ships,card);
-        let destination = source;
+        const reachable=new Set(reachableFrom(source,playerId,range,(card.tag||ALL_CARDS[card.key]?.tag)==='pathfinder',ships));
+        let destination = null;
         for (let i=0;i<Math.min(range,path.length);i+=1) {
           const candidate = path[i];
-          destination = candidate;
+          if (reachable.has(candidate)) destination = candidate;
           if (hostileAt(candidate,playerId)) break;
         }
+        if (!destination) return;
         const score = (military ? fleetPower(ships) : ships.settler * 3) - path.length * .1;
         if (!best || score > best.score) best = { source,destination,score,moveGroup:'ships' };
       }
@@ -2027,8 +2058,7 @@ function createGalacticReach(options = {}) {
     const move = chooseAiMove(id,moveCard);
     if (moveCard && move && move.destination !== move.source) {
       const definition = ALL_CARDS[moveCard.key];
-      performMoveOrder(id,move.source,move.destination,moveCard,{tag:definition.tag,moveGroup:move.moveGroup});
-      return;
+      if (performMoveOrder(id,move.source,move.destination,moveCard,{tag:definition.tag,moveGroup:move.moveGroup})) return;
     }
     const alien=player.hand.find(card=>RELIC_CARDS[card.key]?.order==='special');
     if (alien) {resolveHumanSpecial(alien,ALL_CARDS[alien.key],id);return;}

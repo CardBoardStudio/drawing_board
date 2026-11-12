@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060911">
-  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for the Compact Frontier experiment 16.21.">
-  <meta name="rules-version" content="galactic-reach/16.21">
-  <title>Galactic Reach · Rulebook · 16.21</title>
+  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 10 Prestige. The canonical rules for the Ten Prestige experiment 17.22.">
+  <meta name="rules-version" content="galactic-reach/17.22">
+  <title>Galactic Reach · Rulebook · 17.22</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="rulebook.css">
 </head>
@@ -28,7 +28,7 @@
   <a class="skip-link" href="#start">Skip to rules</a>
   <header class="book-header">
     <a href="./" class="button button-ghost">← Galactic Reach</a>
-    <span class="eyebrow">CANONICAL RULES · COMPACT FRONTIER EXPERIMENT · 16.21</span>
+    <span class="eyebrow">CANONICAL RULES · TEN PRESTIGE EXPERIMENT · 17.22</span>
   </header>
   <div class="book-layout">
     <nav class="book-nav" aria-label="Rulebook sections">
@@ -46,12 +46,12 @@
       <a href="#politics">End of the round</a>
       <a href="#victory">Prestige &amp; victory</a>
       <a href="#cards">Card reference</a>
-      <a href="#clarifications">16.21 clarifications</a>
+      <a href="#clarifications">17.22 clarifications</a>
     </nav>
     <main id="start" tabindex="-1">
       <div class="eyebrow">A GALAXY. FOUR FACTIONS. YOUR NEXT MOVE.</div>
       <h1>Make your mark<br>among the stars.</h1>
-      <p class="book-lead">Explore new worlds, turn a small deck into an engine, and race to <strong>20 Prestige</strong>. Expand, research, build, or bargain: you’ll need more than one route to the top.</p>
+      <p class="book-lead">Explore new worlds, turn a small deck into an engine, and race to <strong>10 Prestige</strong>. Expand, research, build, or bargain: you’ll need more than one route to the top.</p>
       <div class="book-brief">
         <h2>Your first minute</h2>
         <ol>
@@ -62,7 +62,7 @@
         </ol>
         <p><strong>Try this:</strong> save a Construct card for its order; convert another card to help pay for a Settler. You cannot use the same card both ways.</p>
       </div>
-      <p class="book-note">This manual describes the <strong>16.21 Compact Frontier experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
+      <p class="book-note">This manual describes the <strong>17.22 Ten Prestige experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
 
       <section id="setup">
         <h2>01 / Your starting faction</h2>
@@ -197,7 +197,8 @@
           </tbody></table>
         </div>
         <p>Public awards are removed. Prestige comes from Colonies, pairs of Shipyards, excavated relics, and card-purchase milestones. Occupation alone does not remove ownership-based Prestige.</p>
-        <p>After everyone finishes Buy and the round is cleaned up, if anyone has at least <strong>20 Prestige</strong>, the highest Prestige wins. Break ties by most Colonies, then most stored resources. An exact tie selects the earliest seat in the browser; arena standings share that rank. Reaching 20 earlier does not lock in a win: finish the round before checking the standings. There is no round limit.</p>
+        <p>After everyone finishes Buy and the round is cleaned up, if anyone has at least <strong>10 Prestige</strong>, the highest Prestige wins. Break ties by most Colonies, then most stored resources. An exact tie selects the earliest seat in the browser; arena standings share that rank. Reaching 10 earlier does not lock in a win: finish the round before checking the standings. There is no round limit.</p>
+        <p>This local experiment lowers the victory threshold to 10 Prestige. Resource costs, production, and scoring sources stay the same.</p>
         <p>AI arena games use this same victory check. Only completed games earn placement ratings. A simulation that stops before victory awards no ratings.</p>
       </section>
 
@@ -238,7 +239,7 @@
         <details>
           <summary>Advanced and relic orders</summary>
           <div class="book-table" tabindex="0" role="region" aria-label="Advanced card effects">
-            <table><thead><tr><th>Card</th><th>Current 16.21 effect</th></tr></thead><tbody>
+            <table><thead><tr><th>Card</th><th>Current 17.22 effect</th></tr></thead><tbody>
               <tr><th>Survey Drones</th><td>Normal movement at the selected group’s speed. Survey Drones does not add range or filter cards.</td></tr>
               <tr><th>Pathfinder Network</th><td>Move with +1 range; cannot enter hostile hexes.</td></tr>
               <tr><th>Drop Colony Modules</th><td>Found or capture for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> without consuming the Settler.</td></tr>
@@ -282,6 +283,7 @@
       <section id="clarifications">
         <p id="development-reveal">For development playtests, open the game with <code>?dev=1</code> to show the <strong>Reveal entire map</strong> toggle. It displays terrain, resources, relics, buildings, and units. Switch it off to restore normal fog immediately. This viewing aid changes no discovery, turn, save, or opponent information. Units remain visible under normal fog.</p>
         <h2>13 / Current playtest clarifications</h2>
+        <p id="computer-rivals">Local computer rivals build their first Shipyard on their home world’s inward Energy hex. They break equal-distance path choices relative to their home’s orientation. Once they have a usable Shipyard, they prefer a build they can afford now. These choices spend the same cards and resources as human actions. A blocked or illegal move never spends its Move card or prevents the rival from considering another action.</p>
         <p>These are recorded behaviors, not new rules introduced by this manual. Resolving them requires a separate rules change and playtest.</p>
         <details>
           <summary>Occupation, retreats, and civilian combat</summary>
@@ -294,7 +296,7 @@
           </ul>
         </details>
       </section>
-      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 16.21 · The game and this rulebook travel together in every deployment.</p></footer>
+      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 17.22 · The game and this rulebook travel together in every deployment.</p></footer>
     </main>
   </div>
 </body>

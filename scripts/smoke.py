@@ -59,8 +59,8 @@ assert b"Drawing Board" in request("/")[2]
 assert b"Galactic Reach" in request("/galactic-reach/")[2]
 status, headers, rulebook = request("/galactic-reach/rulebook.html")
 assert status == 200 and "text/html" in headers["Content-Type"]
-assert b'<meta name="rules-version" content="galactic-reach/16.21">' in rulebook
-assert b'id="victory"' in rulebook and b'20 Prestige' in rulebook
+assert b'<meta name="rules-version" content="galactic-reach/17.22">' in rulebook
+assert b'id="victory"' in rulebook and b'10 Prestige' in rulebook
 status, headers, css = request("/galactic-reach/rulebook.css")
 assert status == 200 and "text/css" in headers["Content-Type"] and b'.book-layout' in css
 
@@ -152,7 +152,7 @@ gr_series = {'request_id': str(uuid.uuid4()), 'game': 'galactic-reach', 'bots': 
 status, _, gr_result = request('/api/arena/series', gr_series, account_cookie, timeout=4 * 300 + 30)
 assert status == 200, gr_result
 assert len(gr_result['matches']) == 4
-assert all(m['result']['rules_version'] == 'galactic-reach/16.21' for m in gr_result['matches'])
+assert all(m['result']['rules_version'] == 'galactic-reach/17.22' for m in gr_result['matches'])
 assert request('/api/arena/series', gr_series, account_cookie)[2] == gr_result
 gr_ladder = request('/api/arena?game=galactic-reach', cookie=account_cookie)[2]
 assert len(gr_ladder['bots']) == 4 and all(b['games'] == 4 for b in gr_ladder['bots'])

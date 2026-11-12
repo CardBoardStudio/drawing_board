@@ -8,10 +8,11 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/16.21";
+pub const RULES: &str = "galactic-reach/17.22";
 mod legacy_v1;
 mod legacy_v10;
 mod legacy_v11;
+mod legacy_v12;
 mod legacy_v2;
 mod legacy_v3;
 mod legacy_v4;
@@ -60,6 +61,7 @@ impl GalacticReach {
             "galactic-reach/13.18" => "galactic-reach/13.18",
             "galactic-reach/14.19" => "galactic-reach/14.19",
             "galactic-reach/15.20" => "galactic-reach/15.20",
+            "galactic-reach/16.21" => "galactic-reach/16.21",
             _ => return Err("Unsupported rules version.".into()),
         };
         Self::initialize(seed, MATCH_TIMEOUT, rules)
@@ -81,6 +83,7 @@ impl GalacticReach {
                 )?;
                 ctx.eval::<(), _>(match rules {
                     RULES => ADAPTER,
+                    "galactic-reach/16.21" => include_str!("../rules/v16-adapter.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-adapter.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-adapter.js"),
                     "galactic-reach/13.18" => include_str!("../rules/v13-adapter.js"),
@@ -97,6 +100,7 @@ impl GalacticReach {
                 ctx.eval::<(), _>(include_str!("../rules/replay-view.js"))?;
                 ctx.eval::<(), _>(match rules {
                     RULES => ENGINE,
+                    "galactic-reach/16.21" => include_str!("../rules/v16-app.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-app.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-app.js"),
                     "galactic-reach/13.18" => include_str!("../rules/v13-app.js"),
@@ -204,18 +208,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/12",
-            Self::Economy => "gr-economy/12",
-            Self::Expansion => "gr-expansion/12",
-            Self::Wanderer => "gr-wanderer/12",
+            Self::Military => "gr-military/13",
+            Self::Economy => "gr-economy/13",
+            Self::Expansion => "gr-expansion/13",
+            Self::Wanderer => "gr-wanderer/13",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/12" => Some(Self::Military),
-            "gr-economy/12" => Some(Self::Economy),
-            "gr-expansion/12" => Some(Self::Expansion),
-            "gr-wanderer/12" => Some(Self::Wanderer),
+            "gr-military/13" => Some(Self::Military),
+            "gr-economy/13" => Some(Self::Economy),
+            "gr-expansion/13" => Some(Self::Expansion),
+            "gr-wanderer/13" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -603,6 +607,9 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
     if let Some(strategy) = legacy_v11::Strategy::parse(version) {
         return Ok(Box::new(legacy_v11::BuiltinAgent::new(strategy, seed)));
     }
+    if let Some(strategy) = legacy_v12::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v12::BuiltinAgent::new(strategy, seed)));
+    }
     Err("Unsupported Galactic Reach policy version.".into())
 }
 
@@ -670,6 +677,7 @@ mod tests {
             "galactic-reach/13.18",
             "galactic-reach/14.19",
             "galactic-reach/15.20",
+            "galactic-reach/16.21",
         ] {
             let game = GalacticReach::with_rules([19; 32], rules).unwrap();
             assert_eq!(game.rules_version(), rules);
@@ -689,6 +697,7 @@ mod tests {
                             | "galactic-reach/13.18"
                             | "galactic-reach/14.19"
                             | "galactic-reach/15.20"
+                            | "galactic-reach/16.21"
                     ) {
                         0
                     } else {
@@ -711,6 +720,7 @@ mod tests {
             "gr-military/10",
             "gr-military/11",
             "gr-military/12",
+            "gr-military/13",
         ] {
             assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
         }

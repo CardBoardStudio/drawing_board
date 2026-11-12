@@ -19,7 +19,7 @@ function effect(key) {
 }
 function special(g) {const action=g.a.legalActions(0).find(a=>a.type==='special');assert(action);g.a.applyAction(0,action);assert(g.p.discard.some(c=>c.id==='relic-order'));assert.equal(g.s.activePlayer,1);}
 {
-  const {e,a,s}=game();assert.equal(a.rulesVersion,'galactic-reach/13.18');assert.deepEqual(plain(s.fleets),{});
+  const {e,a,s}=game();assert.equal(a.rulesVersion,'galactic-reach/14.19');assert.deepEqual(plain(s.fleets),{});
   for(const p of s.players) {
     const cards=[...p.deck,...p.hand,...p.discard];assert.equal(cards.length,6);
     assert.equal(cards.filter(c=>c.key==='move').length,3);assert.equal(cards.filter(c=>c.key==='construct').length,3);
@@ -38,8 +38,8 @@ function special(g) {const action=g.a.legalActions(0).find(a=>a.type==='special'
   assert(!e.buildShip(0,yard,'explorer'),'Level-II buildings cannot commission Explorers');
   s.planets[yard].upgrade='starbase';
   const count=p.discard.length;assert(e.buildShip(0,yard,'settler'));assert.equal(p.discard.at(-1).key,'colonize');assert(!p.discard.at(-1).starter);
-  const hand=p.hand.length;assert(e.buildShip(0,yard,'explorer'));assert.equal(p.hand.at(-1).key,'excavate');assert.equal(p.hand.length,hand+1);assert.equal(p.discard.length,count+1);
-  assert(e.buildShip(0,yard,'fleet'));assert.equal(p.discard.length,count+1,'Fleets grant no order card');assert.equal(p.cardsPurchased,0);
+  const hand=p.hand.length;assert(e.buildShip(0,yard,'explorer'));assert.equal(p.discard.at(-1).key,'excavate');assert.equal(p.hand.length,hand);assert.equal(p.discard.length,count+2);
+  assert(e.buildShip(0,yard,'fleet'));assert.equal(p.discard.length,count+2,'Fleets grant no order card');assert.equal(p.cardsPurchased,0);
   const before=JSON.stringify(s);assert(e.buildShip(0,yard,'settler',0,true));assert.equal(JSON.stringify(s),before,'Legality checks do not grant cards');
   s.phase='buy';assert(!e.buyCard(0,'basic','colonize'));assert(!e.buyCard(0,'basic','excavate'));
   assert(!a.legalActions(0).some(x=>x.type==='buy'&&['colonize','excavate'].includes(x.key)));
@@ -78,7 +78,7 @@ function special(g) {const action=g.a.legalActions(0).find(a=>a.type==='special'
 }
 {
   const g=effect('worldweaverSpore'),world=g.s.clusters[0];g.s.planets[world.coords[1]].owner=0;
-  special(g);assert(g.s.planets[world.center].rich&&g.s.planets[world.coords[1]].rich);assert.equal(g.e.totalResources(g.p),2);
+  special(g);assert(!('rich' in g.s.planets[world.center])&&!('rich' in g.s.planets[world.coords[1]]));assert.equal(g.e.totalResources(g.p),2);
 }
 {
   const g=effect('cradleOfLostSuns'),capacity=g.e.playerCapacity(0);special(g);assert.equal(g.e.playerCapacity(0),capacity+5);assert.equal(g.p.resources.biomass,2);assert.equal(g.p.hand.length,1);

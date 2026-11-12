@@ -54,8 +54,8 @@ function assertGalaxy(s) {
   }
   for (let id=0;id<4;id++) {
     const world=s.clusters[id];
-    assert.equal(distance(world.center),11);
-    assert(world.coords.some(key=>distance(key)===12),'Each home world touches the outer ring');
+    assert.equal(distance(world.center),10);
+    assert(world.coords.some(key=>distance(key)===11),'Each home world touches the outer ring');
     const colony=s.planets[world.center];
     assert.equal(colony.owner,id); assert.equal(colony.hasColony,true);
     assert.equal(Object.values(s.planets).filter(p=>p.owner===id).length,1,'Only the starting Colony is owned');
@@ -64,6 +64,28 @@ function assertGalaxy(s) {
   }
   assert.equal(Object.values(s.planets).filter(p=>p.special==='relic').length,12);
   assert.equal(Object.values(s.planets).filter(p=>p.special==='gate').length,0);
+  assert(Object.values(s.planets).every(p=>!('rich' in p)&&p.special!=='rich'),'Rich is absent, not just visually hidden');
+  const homes=s.clusters.slice(0,4), worlds=s.clusters.slice(4,12), moons=s.clusters.slice(12);
+  const territory=group=>{
+    const distances=homes.map(h=>r.hexDistance(h.center,group.center)), closest=Math.min(...distances);
+    assert.equal(distances.filter(n=>n===closest).length,1,'Terrain belongs to an unambiguous home region');
+    return distances.indexOf(closest);
+  };
+  for(let seat=0;seat<4;seat++) {
+    assert.equal(worlds.filter(w=>territory(w)===seat).length,2);
+    assert.equal(moons.filter(m=>territory(m)===seat).length,1);
+  }
+  const opportunity=homes.map(h=>worlds.map(w=>r.hexDistance(h.center,w.center)).sort((a,b)=>a-b));
+  assert(Math.max(...opportunity.map(d=>d[0]))-Math.min(...opportunity.map(d=>d[0]))<=1,'Nearest worlds have comparable access');
+  assert(Math.max(...opportunity.map(d=>d[1]))-Math.min(...opportunity.map(d=>d[1]))<=2,'Second worlds have comparable access');
+  const moonDistances=homes.map(h=>Math.min(...moons.map(m=>r.hexDistance(h.center,m.center))));
+  assert(Math.max(...moonDistances)-Math.min(...moonDistances)<=1,'Moons have comparable access');
+  const terrain=s.clusters.map(c=>[...c.center.split(',').map(Number),c.kind==='moon'?0:1]);
+  for(let q=-11;q<=11;q++) for(let y=-11;y<=11;y++) if(Math.max(Math.abs(q),Math.abs(y),Math.abs(q+y))<=11) {
+    const nearest=Math.min(...terrain.map(([a,b,radius])=>Math.max(Math.abs(q-a),Math.abs(y-b),Math.abs(q+y-a-b))-radius));
+    assert(nearest<=6,'No large underserved region may remain');
+  }
+
 }
 const layouts=new Set();
 for(let n=1;n<=1000;n++) {
@@ -77,7 +99,7 @@ for(const constant of [0,0.5,1-Number.EPSILON]) {
 }
 let cells=0;
 for(let q=-13;q<=13;q++) for(let y=-13;y<=13;y++) if(r.boardHas(`${q},${y}`)) cells++;
-assert.equal(cells,469); assert.equal(r.BOARD_RADIUS,12);
+assert.equal(cells,397); assert.equal(r.BOARD_RADIUS,11);
 assert.equal(JSON.stringify(fresh(42)),JSON.stringify(fresh(42)),'A seeded fixture remains reproducible');
 assert.equal(r.fleetMove({explorer:1}),3);
 assert.equal(r.fleetMove({explorer:1,settler:1}),1);
@@ -90,8 +112,8 @@ assert.equal(r.state.reachable.length,36);
 assert(r.state.reachable.includes('3,0')); assert(!r.state.reachable.includes('4,0'));
 r.state.actionOptions={tag:'pathfinder'}; r.prepareHumanMove('0,0','explorer');
 assert(r.state.reachable.includes('4,0')); assert(!r.state.reachable.includes('5,0'));
-const atEdge=r.reachableFrom('-12,0',0,2,false,{explorer:1});
-assert(atEdge.every(key=>distance(key)<=12));
+const atEdge=r.reachableFrom('-11,0',0,2,false,{explorer:1});
+assert(atEdge.every(key=>distance(key)<=11));
 // A real AI choice uses three steps toward a scanned relic, respecting hostile blockers.
 r.state.planets={'5,0':{special:'relic',owner:null,upgrade:null,hasColony:false,researchStationOwner:null,relicClaimed:false}};
 r.state.clusters=[{id:4,coords:['5,0'],scannedBy:[1]}];
@@ -115,14 +137,14 @@ r.playOrder(order.id); assert.equal(r.state.actionMode,'move'); assert.equal(r.s
 r.playOrder(order.id); assert.equal(r.state.actionMode,null,'Clicking again cancels without spending the card');
 assert.equal(r.state.players[0].hand.length,1);
 const old='untouched-v4-save'; storage.set('galactic-reach-save-v4',old);
-assert.equal(r.SAVE_KEY,'galactic-reach-save-v13');
-assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v13');
+assert.equal(r.SAVE_KEY,'galactic-reach-save-v14');
+assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v14');
 const saved=JSON.stringify(fresh(123)); r.saveGame(); fresh(456);
 assert(r.loadGame()); assert.equal(JSON.stringify(r.state),saved,'Reload retains randomized placement');
 assert.equal(storage.get('galactic-reach-save-v4'),old);
 const incompatible=JSON.parse(saved); incompatible.rulesRevision=9;
 storage.set(r.SAVE_KEY,JSON.stringify(incompatible)); assert.equal(r.loadGame(),false);
-console.log('Long Reach: 1,000 map layouts, 469 hexes, border starts, movement, 20-point victory, and save isolation passed.');
+console.log('Long Reach: 1,000 map layouts, 397 hexes, border starts, movement, 20-point victory, and save isolation passed.');
 if(process.env.LONG_REACH_SIMULATE) {
   fresh(1729); r.beginRound();
   let steps=0;

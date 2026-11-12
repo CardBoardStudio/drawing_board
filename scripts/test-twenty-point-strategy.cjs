@@ -59,4 +59,5 @@ for(const [file,expected] of Object.entries(hashes)){
  assert.equal(crypto.createHash('sha256').update(contents).digest('hex'),expected,'Preserved '+file);
 }
 assert(read('prototypes/galactic-reach/table.js').includes("'galactic-reach/22.27':{format:22,path:'/galactic-reach/rules/22.27/'}"));
+assert(!read('prototypes/galactic-reach/index.html').includes('extra point per pair'),'Point dialog help must follow the new scoring');
 console.log('Twenty Point Strategy: weighted scoring, 1/2/3 escalating storage, free relic isolation, per-player prices, atomic rejection, report threat regression, private information, rallying, Data opening and frozen22.27/policy18 passed.');

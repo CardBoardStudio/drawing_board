@@ -46,8 +46,23 @@ jobs:
           node-version: 24
       - run: node --check prototypes/galactic-reach/app.js
       - run: node scripts/test-galactic-reach.cjs
+      - run: node scripts/test-playtest-notes.cjs
       - run: node scripts/test-long-reach.cjs
       - run: node scripts/test-pass-and-buy.cjs
+      - run: node scripts/test-resource-actions.cjs
+      - run: node scripts/test-settlers.cjs
+      - run: node scripts/test-capacity.cjs
+      - run: node scripts/test-alien-relics.cjs
+      - run: node scripts/test-streamlined-rules.cjs
+      - run: node scripts/test-excavation.cjs
+      - run: node scripts/test-fair-frontier.cjs
+      - run: node scripts/test-compact-frontier.cjs
+      - run: node scripts/test-ten-prestige.cjs
+      - run: node scripts/test-central-frontier.cjs
+      - run: node scripts/test-game-reports.cjs
+      - run: node scripts/test-no-shipyard-upgrades.cjs
+      - run: node scripts/test-combat-prestige.cjs
+      - run: node scripts/test-tactical-combat.cjs
       - run: node scripts/test-replay-view.cjs
       - run: node scripts/test-galactic-reach-dialogs.cjs
       - name: Balance harness smoke run

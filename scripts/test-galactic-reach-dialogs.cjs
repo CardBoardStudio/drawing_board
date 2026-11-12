@@ -9,6 +9,7 @@ const sourcePath = path.resolve(__dirname, '../prototypes/galactic-reach/app.js'
 const adapterPath = path.resolve(__dirname, '../prototypes/galactic-reach/adapter.js');
 const adapterSource = fs.readFileSync(adapterPath, 'utf8');
 const source = fs.readFileSync(sourcePath, 'utf8');
+const indexHtml=fs.readFileSync(path.resolve(__dirname,'../prototypes/galactic-reach/index.html'),'utf8');
 const formatVersion = Number(source.match(/const SAVE_FORMAT_VERSION = (\d+);/)[1]);
 const SAVE_KEY = `galactic-reach-save-v${formatVersion}`;
 const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${formatVersion}`;
@@ -57,9 +58,9 @@ function createTimers() {
   };
 }
 
-function fire(target, type, { cancelable = false } = {}) {
+function fire(target, type, { cancelable = false, key } = {}) {
   const event = {
-    type, target, currentTarget: target, cancelable, defaultPrevented: false,
+    type, key, target, currentTarget: target, cancelable, defaultPrevented: false,
     preventDefault() { if (this.cancelable) this.defaultPrevented = true; }
   };
   (target.listeners[type] || []).forEach(listener => listener(event));
@@ -100,8 +101,9 @@ function createDom(timers) {
     showPopover() {}
     hidePopover() {}
     remove() {}
-    focus() {}
-    click() { fire(this, 'click'); }
+    focus() {this.focused=true;}
+    scrollIntoView() {this.scrolledIntoView=true;}
+    click() { if(!this.disabled)fire(this, 'click'); }
     // Dialog semantics: showModal on an open dialog throws, and close fires asynchronously.
     showModal() {
       if (this.open) throw new Error(`${this.id} is already open`);
@@ -127,11 +129,25 @@ function createDom(timers) {
     const found = [...byId.values()].flatMap(parent => [...parent.innerHTML.matchAll(pattern)].map(match => {
       const button = new FakeElement('button');
       button.dataset[key] = match[1];
+      const tag=parent.innerHTML.slice(parent.innerHTML.lastIndexOf('<',match.index),parent.innerHTML.indexOf('>',match.index)+1);
+      button.disabled=/\sdisabled(?:\s|>|=)/.test(tag);
       return button;
     }));
     queried.set(selector, found);
     return found;
   }
+
+  const controls=(pattern,dataName)=>[...indexHtml.matchAll(pattern)].map(match=>{
+    const tag=match[0],id=tag.match(/\bid="([^"]+)"/)[1],node=element(id);
+    if(!node.dataset[dataName]) {
+      node.dataset[dataName]=match[1];node.hidden=/\shidden(?:\s|>)/.test(tag);
+      for(const attr of ['role','aria-selected','aria-controls','aria-labelledby']) {const value=tag.match(new RegExp(attr+'="([^"]+)"'));if(value)node.setAttribute(attr,value[1]);}
+      node.tabIndex=Number(tag.match(/tabindex="([^"]+)"/)?.[1] || 0);
+    }
+    return node;
+  });
+  const tabs=controls(/<button[^>]*data-tab="([^"]+)"[^>]*>/g,'tab');
+  const panels=controls(/<div[^>]*data-panel="([^"]+)"[^>]*>/g,'panel');
 
   const document = {
     body: new FakeElement('body'),
@@ -139,9 +155,9 @@ function createDom(timers) {
     addEventListener() {},
     createElement: tag => {const e=new FakeElement(tag);created.push(e);return e;},
     querySelector: selector => (selector.startsWith('#') ? element(selector.slice(1)) : selector.startsWith('.hex[data-coord=') ? created.find(e=>e.dataset.coord===selector.match(/"([^"]+)"/)[1]) : null),
-    querySelectorAll: selector => (selector==='.hex'?created.filter(e=>e.dataset.coord):/^\[data-[a-z-]+\]$/.test(selector) ? byDataAttribute(selector) : [])
+    querySelectorAll: selector => (selector==='.console-tab'?tabs:selector==='.tab-panel'?panels:selector==='.hex'?created.filter(e=>e.dataset.coord):/^\[data-[a-z-]+\]$/.test(selector) ? byDataAttribute(selector) : [])
   };
-  return { document, element, hex:key=>created.find(e=>e.dataset.coord===key), lastQuery: selector => queried.get(selector) || [] };
+  return { document, element, tabs, panels, contextButton:label=>created.filter(e=>e.tagName==='BUTTON'&&(e.textContent===label||e.innerHTML===label)).at(-1), hex:key=>created.find(e=>e.dataset.coord===key), lastQuery: selector => queried.get(selector) || [] };
 }
 
 function boot(storage, seed = 20261013, location = {hostname:'localhost',search:''}) {
@@ -472,6 +488,42 @@ test('trashing uses three of the selected resource type in the live Buy UI', () 
   assert.equal(game.saved().players[0].discard.length,0);
 });
 
+
+function excavationStorage({selected=true,affordable=false}={}) {
+  const storage=createStorage(),state=boot(storage).saved(),coord=Object.keys(state.planets).find(k=>state.planets[k].special==='relic');
+  state.clusters[state.planets[coord].cluster].revealedBy=[0,1,2,3];state.selected=selected?coord:null;
+  state.players[0].hand=[{key:'excavate',id:'tab-dig'},{key:'construct',id:'tab-matter'},{key:'move',id:'tab-energy'},{key:'targetingAlgorithms',id:'tab-data'}];
+  state.players[0].resources=affordable?{matter:1,energy:1,biomass:0,data:2}:{matter:0,energy:0,biomass:0,data:0};state.fleets[coord]={0:{explorer:1,fleet:1}};
+  writeSave(storage,state);return {storage,coord};
+}
+function assertTab(game,name){
+  for(const tab of game.dom.tabs){const active=tab.dataset.tab===name;assert.equal(tab.getAttribute('aria-selected'),String(active));assert.equal(tab.tabIndex,active?0:-1);}
+  for(const panel of game.dom.panels)assert.equal(panel.hidden,panel.dataset.panel!==name);
+}
+test('Relics tab browses read-only and participates in keyboard tab navigation',()=>{
+  const {storage}=excavationStorage(),game=boot(storage);assert.deepEqual(game.dom.tabs.map(t=>t.dataset.tab),['hand','market','trade','fleet','relics']);
+  const before=JSON.stringify(game.saved());game.click('relics-tab');assertTab(game,'relics');assert.equal(JSON.stringify(game.saved()),before);
+  const relics=game.dom.element('relics-tab');assert.equal(relics.getAttribute('role'),'tab');assert.equal(relics.getAttribute('aria-controls'),'relics-panel');assert.equal(game.dom.element('relics-panel').getAttribute('aria-labelledby'),'relics-tab');
+  fire(relics,'keydown',{key:'ArrowRight',cancelable:true});assertTab(game,'hand');fire(game.dom.element('hand-tab'),'keydown',{key:'End',cancelable:true});assertTab(game,'relics');fire(relics,'keydown',{key:'Home',cancelable:true});assertTab(game,'hand');
+  game.dom.hex(game.saved().clusters[0].center).click();assertTab(game,'hand');assert.equal(game.saved().actionMode,null,'Ordinary map inspection does not start excavation');
+});
+test('Hand Excavate opens Relics with disabled choices, permits conversions, and cancels without spending',()=>{
+  const {storage}=excavationStorage(),game=boot(storage),before=game.saved();
+  game.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='tab-dig').click();assertTab(game,'relics');assert.equal(game.saved().actionMode,'excavate');
+  assert(game.dom.lastQuery('[data-excavate-relic]').every(b=>b.disabled));assert.match(game.dom.element('relic-row-help').textContent,/Switch to Hand/);assert.match(game.dom.element('relic-cost').innerHTML,/Matter|matter/);
+  const resumed=boot(storage);assertTab(resumed,'relics');resumed.click('hand-tab');
+  for(const id of ['tab-matter','tab-energy','tab-data']){resumed.dom.lastQuery('[data-resource-card]').find(b=>b.dataset.resourceCard===id).click();assertTab(resumed,'hand');}
+  assert.equal(resumed.saved().actionMode,'excavate');resumed.click('relics-tab');assert(resumed.dom.lastQuery('[data-excavate-relic]').every(b=>!b.disabled));
+  const ready=resumed.saved();resumed.click('cancel-excavate');assertTab(resumed,'hand');assert.equal(resumed.saved().actionMode,null);assert.deepEqual(resumed.saved().players,ready.players);assert.deepEqual(resumed.saved().fleets,before.fleets);assert.deepEqual(resumed.saved().relicRow,before.relicRow);
+});
+test('Context Excavate and selecting a valid active site open Relics without redirecting other inspection',()=>{
+  for(const path of ['context','site']){
+    const {storage,coord}=excavationStorage({selected:path==='context',affordable:true}),game=boot(storage);
+    if(path==='context'){game.dom.contextButton('Excavate relic · Excavate').click();}
+    else{game.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='tab-dig').click();assertTab(game,'hand');game.dom.hex(game.saved().clusters[0].center).click();assertTab(game,'hand');game.dom.hex(coord).click();}
+    assertTab(game,'relics');assert(game.dom.lastQuery('[data-excavate-relic]').every(b=>!b.disabled));assert.equal(game.saved().activePlayer,0);assert.equal(game.saved().players[0].hand.length,4);
+  }
+});
 
 test('excavation UI chooses a visible reward and survives reload without its spent order', () => {
   const storage=createStorage(), state=boot(storage).saved();

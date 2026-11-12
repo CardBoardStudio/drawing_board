@@ -95,3 +95,5 @@ Confirmed card treatment: remove Terraforming Protocols from the new market; Wor
 - After three volleys defenders hold. Attackers retreat to a safe adjacent hex with room or are destroyed. Remove power-ratio automatic retreats; preserve Emergency Jump’s printed condition.
 - Pause human or AI Operations for a serializable battle continuation, including human defense during an AI turn. Keep commitments private and complete the original Move exactly once.
 - Show available tactics, public used cards and unit damage, plus base/bonus/shield breakdowns. Preserve 14.19 tables/replays and policy 10.
+
+- Put the shared relic row in a dedicated Relics console tab. Browse anytime; starting or targeting a valid excavation site opens it automatically. Keep payment help, disabled unaffordable choices, resource conversions through Hand, and cancellation together without changing excavation mechanics.

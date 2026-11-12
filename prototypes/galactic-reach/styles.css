@@ -768,7 +768,7 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
 /* Excavation playtest: shared face-up rewards and non-producing moons. */
 .hex.moon { --hex-fill: #626b7c; color: #f1f3f6; }
 
-.relic-row-panel { margin-top: 14px; }
+.relic-payment { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; }
 .relic-row { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 10px; }
 .relic-row > div { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .relic-row .game-card { flex: 1; min-width: 0; }
@@ -789,3 +789,9 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
 .combat-options .button { white-space: normal; overflow-wrap: anywhere; text-align: left; }
 .combat-history { border-top: 1px solid var(--line); margin-top: 16px; font-size: .85rem; }
 @media(max-width: 520px) { .combat-forces { grid-template-columns: 1fr; gap: 8px; } }
+
+@media (max-width:460px) {
+  .console-tabs { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); overflow: visible; }
+  .console-tab { min-width: 0; padding-inline: 4px; font-size: 12px; }
+  .console-tab span { min-width: 14px; margin-left: 2px; padding: 1px 3px; font-size: 11px; }
+}

@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060911">
-  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for the Fair Frontier experiment 14.19.">
-  <meta name="rules-version" content="galactic-reach/14.19">
-  <title>Galactic Reach · Rulebook · 14.19</title>
+  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for the Tactical Combat experiment 15.20.">
+  <meta name="rules-version" content="galactic-reach/15.20">
+  <title>Galactic Reach · Rulebook · 15.20</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="rulebook.css">
 </head>
@@ -28,7 +28,7 @@
   <a class="skip-link" href="#start">Skip to rules</a>
   <header class="book-header">
     <a href="./" class="button button-ghost">← Galactic Reach</a>
-    <span class="eyebrow">CANONICAL RULES · FAIR FRONTIER EXPERIMENT · 14.19</span>
+    <span class="eyebrow">CANONICAL RULES · TACTICAL COMBAT EXPERIMENT · 15.20</span>
   </header>
   <div class="book-layout">
     <nav class="book-nav" aria-label="Rulebook sections">
@@ -46,7 +46,7 @@
       <a href="#politics">End of the round</a>
       <a href="#victory">Prestige &amp; victory</a>
       <a href="#cards">Card reference</a>
-      <a href="#clarifications">14.19 clarifications</a>
+      <a href="#clarifications">15.20 clarifications</a>
     </nav>
     <main id="start" tabindex="-1">
       <div class="eyebrow">A GALAXY. FOUR FACTIONS. YOUR NEXT MOVE.</div>
@@ -62,12 +62,12 @@
         </ol>
         <p><strong>Try this:</strong> save a Construct card for its order; convert another card to help pay for a Settler. You cannot use the same card both ways.</p>
       </div>
-      <p class="book-note">This manual describes the <strong>14.19 Fair Frontier experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
+      <p class="book-note">This manual describes the <strong>15.20 Tactical Combat experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
 
       <section id="setup">
         <h2>01 / Your starting faction</h2>
         <p>Four factions share twelve seven-hex worlds and four single-hex moons on a radius-11 galaxy (397 hexes). Four home worlds touch the rim. Eight inner worlds and four moons are randomized across balanced home regions: each faction has two nearby inner worlds and one nearby moon. Travel distances are kept comparable, and large empty regions are avoided. At least one empty hex separates every pair of worlds, every world and moon, and every pair of moons. Larger gaps are allowed. Home worlds are visible to everyone. Each inner world and each moon has one relic: twelve sites total.</p>
-        <p>You start with only a central <strong>Colony</strong>: no Settler, Explorer, Fleet, Shipyard, or other building. Your six starter cards are <strong>3 Move and 3 Construct</strong>. There are no starting Colonize or Excavate cards. Each faction also has its own shuffled 12-card military deck.</p>
+        <p>You start with only a central <strong>Colony</strong>: no Settler, Explorer, Fleet, Shipyard, or other building. Your six starter cards are <strong>3 Move and 3 Construct</strong>. There are no starting Colonize or Excavate cards. Combat uses a separate four-card tactic hand, refreshed at the start of every battle.</p>
         <p>Production happens before the first five-card draw. Your Colony produces <strong>1 Matter</strong>, so you open with <strong>1 Matter and 2 Biomass</strong>. Build a Shipyard with Construct, then commission your first units. Use the 4:1 bank to obtain Data before you have an Excavate.</p>
       </section>
 
@@ -123,16 +123,16 @@
         <p>Commission all units at an unoccupied Shipyard you own. Commission Explorers only at an unoccupied Shipyard you own. Colonies and other structures cannot commission them.</p>
         <p class="book-note">Costs use the same colored symbols as your cards and resource bar. Each symbol is labeled, so you can learn them as you play.</p>
         <div class="book-table" tabindex="0" role="region" aria-label="Ships and their costs">
-          <table><thead><tr><th>Unit</th><th>Cost</th><th>Speed / power / hull</th><th>Faction limit</th></tr></thead><tbody>
-            <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-settler"></use></svg>Settler</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span></td><td>1 / 1 / 1</td><td>8</td></tr>
-            <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-explorer"></use></svg>Explorer</span></th><td><span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>2 Data</span></td><td>3 / 0 / 1</td><td>5</td></tr>
-            <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-fleet"></use></svg>Fleet</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span></td><td>2 / 2 / 2</td><td>6</td></tr>
+          <table><thead><tr><th>Unit</th><th>Cost</th><th>Speed / attack / hull</th><th>Faction limit</th></tr></thead><tbody>
+            <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-settler"></use></svg>Settler</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span></td><td>1 / 1 / 2 (4 defending)</td><td>8</td></tr>
+            <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-explorer"></use></svg>Explorer</span></th><td><span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>2 Data</span></td><td>3 / 1 / 1</td><td>5</td></tr>
+            <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-fleet"></use></svg>Fleet</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span></td><td>2 / 3 / 7</td><td>6</td></tr>
           </tbody></table>
         </div>
         <div class="book-table" tabindex="0" role="region" aria-label="Structures and their costs">
           <table><thead><tr><th>Structure</th><th>Build / upgrade to II</th><th>Benefit</th></tr></thead><tbody>
             <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-harvester"></use></svg>Harvester</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> / <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span></td><td>+1 local production per level.</td></tr>
-            <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-starbase"></use></svg>Shipyard</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span> / <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>2 Energy</span> <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>2 Data</span></td><td>Build combat ships; defends its own hex with 3 power and hull (4 at II).</td></tr>
+            <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-starbase"></use></svg>Shipyard</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span> / <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>2 Energy</span> <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>2 Data</span></td><td>Build combat ships; defends its own hex with 3 attack and hull (4 at II).</td></tr>
           </tbody></table>
         </div>
         <p><strong>Unit cards:</strong> each Settler you successfully commission adds one <strong>Colonize</strong> card to your discard. Each commissioned Explorer adds one <strong>Excavate to your discard pile</strong>. These cards are included in the unit price, are not starter cards, and do not count as card purchases. A Fleet adds no card. Colonize and Excavate cannot be bought separately.</p>
@@ -142,9 +142,19 @@
 
       <section id="combat">
         <h2>07 / Combat &amp; conquest</h2>
-        <p>Combat resolves automatically in up to <strong>three volleys</strong>. Each side deals one base hit per four surviving power, rounded up, then reveals a military tactic. Tactics add hits, shields, piercing, or withdrawal. Damage is simultaneous; hits go to the piece with the least remaining hull. Surviving units repair after the battle.</p>
-        <p>Each military deck contains 3 Concentrated Fire (+1 hit), 2 Defensive Screen (2 shields), 2 Flanking Run (+2 hits with a Settler or Fleet, otherwise +1), 2 Heavy Barrage (+2 with a Shipyard, otherwise +1), 1 Electronic Warfare (+1 hit, 1 shield, ignore 1 enemy shield), and 2 Tactical Withdrawal (1 shield, then withdraw if able). Used tactics reshuffle when exhausted. Reactions in hand trigger automatically.</p>
-        <p>If defenders remain after the battle, the attacker attempts to retreat to a non-hostile adjacent hex. Tactical Withdrawal and a badly outmatched attacker can end combat earlier. Fleet Overdrive prevents the attacker’s early withdrawal. Explorers contribute no base power and can be destroyed.</p>
+        <p>Choose a tactic in each of up to <strong>three volleys</strong>. Every battle starts each side with <strong>2 Concentrated Fire</strong> (+1 hit) and <strong>2 Defensive Screen</strong> (prevent 2 hits). These four temporary tactics are separate from your regular deck. There is no military draw pile, shuffle, or replacement draw. Every ship type can use either tactic.</p>
+        <table><thead><tr><th>Piece</th><th>Attack</th><th>Hull</th></tr></thead><tbody>
+          <tr><th>Fleet</th><td>3</td><td>7</td></tr>
+          <tr><th>Explorer</th><td>1</td><td>1</td></tr>
+          <tr><th>Settler</th><td>1</td><td>2 attacking; 4 defending</td></tr>
+          <tr><th>Shipyard</th><td>3 (4 at II)</td><td>3 (4 at II)</td></tr>
+        </tbody></table>
+        <h3 id="explorer-escape">Escape before combat</h3>
+        <p>Before either side chooses its first tactic, the attacker and then the defender may move some or all of their Explorers to one adjacent, enemy-free hex. Pay <strong>1 Energy per escaping Explorer</strong>. The destination must be on the map and must fit within the five-unit limit. Ships left behind fight. Without enough Energy or a safe destination, choose to stay. This is the only paid Explorer escape window. If every defender escapes and no defending Shipyard remains, the attacker takes the hex without a volley.</p>
+        <h3 id="combat-tactics">Commit, reveal, resolve</h3>
+        <p>Each side privately commits one of its available tactics. You can see whether your opponent has committed, but never their choice before you commit. Once both have chosen, reveal both cards and remove them from this battle’s hand. A used card cannot be chosen again. Public used tactics and remaining card counts help you plan later volleys. Each new battle restores all four cards.</p>
+        <p>Add the attack of all your surviving pieces, your chosen tactic, and applicable card bonuses. Subtract the opponent’s shields to find the damage they receive, to a minimum of zero. Both sides deal damage <strong>simultaneously</strong>, using the pieces alive at the start of the volley. Hits target the piece with the least remaining hull; ties target Explorers, Settlers, Fleets, then Shipyards. Damage stays on pieces between volleys. For example, one Fleet using Concentrated Fire deals 3 + 1 − 2 = 2 damage to an opponent using Defensive Screen. Reactions held in your regular hand still trigger automatically at their printed timing.</p>
+        <p>If either side has no pieces left, the battle ends. If defenders survive the third volley, the surviving attacker must retreat to an adjacent, enemy-free hex with enough unit capacity, preferring its origin when legal. <strong>If no retreat can fit, those attacking survivors are destroyed.</strong> Emergency Jump may end a battle earlier as described in the card reference; there is no automatic retreat based only on relative attack strength. Surviving pieces repair fully after the battle. Combat pauses normal play, including during a rival’s turn, until all choices are resolved; reloading resumes the pending choice. The moving order is spent once and its Operations turn ends once, after the battle.</p>
         <p>Winning at an enemy-owned planet <strong>occupies</strong> it, stopping its owner’s production. Ownership does not transfer. To capture its central Colony, later play Colonize there with a Settler and <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span>. Only the center changes owner; surrounding structures do not transfer. The captured Colony gains a conquest marker.</p>
       </section>
 
@@ -226,7 +236,7 @@
         <details>
           <summary>Advanced and relic orders</summary>
           <div class="book-table" tabindex="0" role="region" aria-label="Advanced card effects">
-            <table><thead><tr><th>Card</th><th>Current 14.19 effect</th></tr></thead><tbody>
+            <table><thead><tr><th>Card</th><th>Current 15.20 effect</th></tr></thead><tbody>
               <tr><th>Survey Drones</th><td>Normal movement at the selected group’s speed. Survey Drones does not add range or filter cards.</td></tr>
               <tr><th>Pathfinder Network</th><td>Move with +1 range; cannot enter hostile hexes.</td></tr>
               <tr><th>Drop Colony Modules</th><td>Found or capture for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> without consuming the Settler.</td></tr>
@@ -234,7 +244,7 @@
               <tr><th>Industrial Surge</th><td>Immediately collect 1 resource from each of up to three unoccupied owned planet hexes in the world with the most such hexes. Add no Harvester bonus. For example, a Matter hex and an Energy hex give 1 Matter and 1 Energy. This does not replace normal round production. Local computer rivals instead use their first three eligible hexes across worlds.</td></tr>
 
               <tr><th>Trade Consortium</th><td>Choose: gain 1 resource of any type, or make up to two bank exchanges at 2:1. For each exchange, choose two of one resource to give and one different resource to receive. You may stop after one exchange. Cancel before gaining or exchanging to keep the card; otherwise, discard it and end your Operations action when finished. Finish this choice before doing anything else. A gain that exceeds storage pauses play for your discard choice; exchanging frees one storage. The player-trade allowance is not used. Converting this card instead gives 2 Data.</td></tr>
-              <tr><th>Fleet Overdrive</th><td>Move with +2 range; attacker cannot withdraw early.</td></tr>
+              <tr><th>Fleet Overdrive</th><td>Move with +2 range; Emergency Jump cannot interrupt the battle. Explorer escape before tactics and compulsory retreat after volley three still apply.</td></tr>
               <tr><th>Coordinated Assault</th><td>Move normally; add 1 hit in the first volley if you attack.</td></tr>
               <tr><th>Tactical Foresight</th><td>Draw three, then automatically discard the first card in your hand. There is no selection prompt.</td></tr>
               <tr><th>Data Brokerage</th><td>Trash the first basic card in discard, including an original or upgraded starter, if any, then draw two. It does not scrap a card from hand.</td></tr>
@@ -247,7 +257,7 @@
         <details>
           <summary>Automatic reactions</summary>
           <p>Keep these in hand to use them; converting one spends it. Targeting Algorithms adds 1 hit and Ablative Plating prevents 2 hits in a volley, each consuming one available copy. Additional copies can trigger in later volleys.</p>
-          <p>Emergency Jump applies only to an attacker with surviving power below 55% of the defender’s after a volley: suffer one extra hit, then attempt withdrawal. It cannot interrupt Fleet Overdrive. Salvage Crews grants <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>Matter</span> equal to destroyed pieces, up to three, after combat; both factions can use it.</p>
+          <p>Emergency Jump applies only to an attacker with surviving attack below 55% of the defender’s after a volley: suffer one extra hit, then attempt withdrawal. It cannot interrupt Fleet Overdrive. Salvage Crews grants <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>Matter</span> equal to destroyed pieces, up to three, after combat; both factions can use it.</p>
         </details>
         <h3 id="alien-relics">Alien relic deck</h3>
         <p>Terraforming Protocols is removed from the new market. Each excavation lets you choose one face-up card for your discard pile. On your turn, use a relic for its order or convert it for its listed resources. Reaction relics trigger automatically while held. All resource gains respect storage capacity.</p>
@@ -260,9 +270,9 @@
 <tr data-card="precursorMatterLoom"><th>Precursor Matter Loom<small>It weaves continents from the dust between suns.</small></th><td>Settlement</td><td>Gain 4 Matter and 2 Biomass, subject to storage capacity.</td><td>3 Matter, 1 Data</td></tr>
 <tr data-card="worldweaverSpore"><th>Worldweaver Spore<small>The garden outlived its gods.</small></th><td>Settlement</td><td>Gain 1 printed resource from each of up to two of your unoccupied owned planet hexes, chosen automatically. This creates no permanent production bonus.</td><td>3 Biomass, 1 Data</td></tr>
 <tr data-card="cradleOfLostSuns"><th>Cradle of Lost Suns<small>A pocket universe, still warm from its creation.</small></th><td>Settlement</td><td>Permanently add 5 storage, gain 2 Biomass, and draw one card.</td><td>2 Biomass, 2 Energy</td></tr>
-<tr data-card="obeliskOfAnnihilation"><th>Obelisk of Annihilation<small>Its shadow arrives before its light.</small></th><td>Military</td><td>Move one group with +2 range. A battle you initiate gains +2 hits in its first volley.</td><td>2 Matter, 2 Energy</td></tr>
+<tr data-card="obeliskOfAnnihilation"><th>Obelisk of Annihilation<small>Its shadow arrives before its light.</small></th><td>Military</td><td>Move one group with +2 range. A battle you initiate with a surviving Fleet gains +2 hits in its first volley.</td><td>2 Matter, 2 Energy</td></tr>
 <tr data-card="aegisOfSilentArchitects"><th>Aegis of the Silent Architects<small>An impossible wall built by hands that never existed.</small></th><td>Military</td><td>Automatic reaction: prevent up to 4 incoming hits in your next combat volley.</td><td>3 Matter</td></tr>
-<tr data-card="warSongOfHollowStars"><th>War-Song of the Hollow Stars<small>The weapon is the song. Your fleet is its instrument.</small></th><td>Military</td><td>Automatic reaction: add 3 hits to your next combat volley.</td><td>2 Energy, 1 Data</td></tr>
+<tr data-card="warSongOfHollowStars"><th>War-Song of the Hollow Stars<small>The weapon is the song. Your fleet is its instrument.</small></th><td>Military</td><td>Automatic reaction: with a surviving Fleet, add 3 hits to your next combat volley. Without a Fleet, keep this card in hand.</td><td>2 Energy, 1 Data</td></tr>
 <tr data-card="naniteOssuary"><th>Nanite Ossuary<small>The bones of alien war machines learn to live again.</small></th><td>Military</td><td>After a battle with destroyed pieces, gain 1 Matter per destroyed piece, up to 6, plus 2 Data. Storage limits apply.</td><td>2 Matter, 2 Data</td></tr>
         </tbody></table></div>
       </section>
@@ -275,14 +285,14 @@
           <summary>Occupation, retreats, and civilian combat</summary>
           <ul>
             <li>Occupation markers currently persist after the occupying fleet leaves. They continue to block production and building.</li>
-            <li>If a retreat cannot be completed, the combat report says the fleet was lost, but the current engine leaves survivors on the contested hex.</li>
-            <li>Explorers have zero base power, but a Explorer-only side can still receive hits and shields from tactics. Do not treat civilians as immune to combat.</li>
-            <li>Combat damage ties target Explorers, Settlers, Fleets, then Shipyards. A surviving attacker below 65% of defending power after the second volley attempts withdrawal unless using Overdrive.</li>
+            <li>The 15.20 experiment resolves the earlier retreat discrepancy: attacking survivors that cannot retreat are destroyed, matching the report.</li>
+            <li>Explorers and Settlers may attack. Both contribute 1 attack and use either basic tactic. War-Song and Obelisk’s offensive bonus require a surviving Fleet.</li>
+            <li>Combat damage ties target Explorers, Settlers, Fleets, then Shipyards. The old power-ratio withdrawal and random military deck are removed.</li>
             <li>Purchased storage capacity is permanent. Occupation and combat never reduce it; collect excess resources in full and choose the discards that bring you back to capacity.</li>
           </ul>
         </details>
       </section>
-      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 14.19 · The game and this rulebook travel together in every deployment.</p></footer>
+      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 15.20 · The game and this rulebook travel together in every deployment.</p></footer>
     </main>
   </div>
 </body>

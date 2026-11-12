@@ -50,6 +50,7 @@ const weight = { bank_trade: 0, discard_resources: 0, colony_build: 60, colonize
 const truth = state => JSON.parse(JSON.stringify({
   pending: state.pendingColonyBuild ? { playerId: state.pendingColonyBuild.playerId, colony: state.pendingColonyBuild.colony } : null,
   pendingConsortium: state.pendingConsortium,
+  pendingCombat: state.pendingCombat,
   tradesWith: state.players.map(p => [...p.tradesWith]),
   cardsPurchased: state.players.map(p => p.cardsPurchased || 0),
 }));
@@ -89,12 +90,14 @@ const view = ui.createGalacticReach({ replay: true });
 const names = ['Vanguard', 'Architect <b>', 'You', 'Ember Directorate'];
 const analysis = analyse(data, view.describeDecision, names);
 assert.equal(analysis.steps.length, frames.length + 1);
-const seen = { pending: 0, trades: 0, combat: 0, buys: 0, upgraded: 0 };
+const seen = { battleChoice: 0, pending: 0, trades: 0, combat: 0, buys: 0, upgraded: 0 };
 for (let index = 0; index <= frames.length; index++) {
   const step = analysis.steps[index];
   const raw = stateAt(data, analysis, index);
   if (index % 5 === 0 || step.pendingColonyBuild || step.decision?.combat) assert.deepEqual(raw, views[index], `Replay deltas rebuild decision ${index}`);
   assert(!('policyVotes' in raw), `No policy votes at decision ${index}`);
+  assert.deepEqual(raw.pendingCombat,truths[index].pendingCombat,`Pending combat and hidden commitments reconstruct at decision ${index}`);
+  if(raw.pendingCombat)seen.battleChoice++;
   assert.deepEqual(raw.pendingConsortium,truths[index].pendingConsortium,`Trade Consortium choice at decision ${index}`);
   assert.deepEqual(step.pendingColonyBuild, truths[index].pending, `Pending Colonize II at decision ${index}`);
   assert.deepEqual(step.tradesWith, truths[index].tradesWith, `Completed trades at decision ${index}`);

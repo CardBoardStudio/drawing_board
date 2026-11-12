@@ -1,6 +1,6 @@
 # Galactic Reach rules maintenance
 
-The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 14.19 / Fair Frontier experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
+The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 15.20 / Tactical Combat experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
 
 ## Read, change, verify
 
@@ -51,3 +51,5 @@ The 14.19 Fair Frontier experiment consumes one Explorer per successful excavati
 The radius-11 map has 397 cells. Generation places two inner worlds and one moon in each unique-nearest-home region. Near worlds are 5–6 center steps from home; the other world is 7–9. Nearest-world and nearest-moon distances differ by at most one step across factions; second-nearest-world distances differ by at most two. Worlds have center gaps of at least four, moons stay at least three from world centers and two from each other, and every board cell is within six steps of terrain. Bounded random retries use a validated balanced fallback. These numerical bounds are regression-tested over 1,000 seeds and adversarial constant random sources.
 
 Every newly gained card in 14.19 enters discard and must reach hand through normal shuffle/draw before use, including both unit bundles and relic rewards. A single gainCard primitive enforces this default. Draws and returns of already-owned cards keep their printed effects. This supersedes 13.18’s immediate-hand Explorer bundle and relic reward.
+
+The 15.20 Tactical Combat experiment replaces random military draws with two Fire and two Screen tactics per battle, consumed only after simultaneous secret reveal. Test values are Fleet attack 3/hull 7, Explorer 1/1, Settler 1/2 (4 defending), with Fire +1 and Screen 2. Attack is the sum of surviving piece attack, rather than the old quarter-power formula. Paid Explorer escape precedes commitments. Serializable combat and moving-order continuation preserve each stage across reloads and defer Operations completion exactly once. Forced retreats check adjacent safety and full-group capacity; trapped attackers are destroyed. War-Song and Obelisk offensive bonuses require a Fleet. Complete 14.19 assets and policy 10 remain immutable.

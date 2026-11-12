@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070b13">
-  <title>Galactic Reach · 14.19 · Fair Frontier experiment</title>
+  <title>Galactic Reach · 15.20 · Tactical Combat experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
   <link rel="stylesheet" href="styles.css?v=fair-frontier-14-19">
   <link rel="stylesheet" href="playtest-notes.css?v=1">
@@ -16,7 +16,7 @@
     <header class="topbar">
       <div class="brand-block">
         <div class="eyebrow">FAIR FRONTIER EXPERIMENT · 20 PRESTIGE</div>
-        <h1>Galactic Reach <small class="rules-badge">Rules 14.19 · experiment</small></h1>
+        <h1>Galactic Reach <small class="rules-badge">Rules 15.20 · experiment</small></h1>
       </div>
       <div class="round-block" aria-live="polite">
         <div><span class="label">Round</span><strong id="round-value">1</strong></div>
@@ -31,17 +31,15 @@
       </div>
     </header>
     <details class="playtest-changes" id="playtest-changes" open>
-      <summary><span class="new-feature">New in this playtest</span> Smaller, fairer maps · inspect your deck · new upgrade costs</summary>
+      <summary><span class="new-feature">New in this playtest</span> Secret tactics · ship roles · Explorer escape</summary>
       <ul>
-        <li><strong>See your deck:</strong> click Deck to browse remaining cards and quantities, with draw order hidden. <a href="rulebook.html#deck-inspection">Deck rules</a></li>
-        <li><strong>A smaller, balanced galaxy:</strong> radius 11, with eight randomized inner worlds and four moons spread across balanced home regions. Empty-space gaps remain. <a href="rulebook.html#setup">Map rules</a></li>
-        <li><strong>No Rich planets:</strong> stars and their production bonuses are removed. Terraforming Protocols leaves the market; Worldweaver Spore keeps its immediate resource gain. <a href="rulebook.html#cards">Card rules</a></li>
-        <li><strong>Upgrade with any resource type:</strong> pay two of one chosen type per starter upgrade. <a href="rulebook.html#buy">Upgrade rules</a></li>
-        <li><strong>New cards go to discard:</strong> purchases, unit-bundled orders, and relic rewards enter normal shuffle/draw circulation. <a href="rulebook.html#gaining-cards">Card-gain rules</a></li>
-        <li><strong>Excavation consumes the Explorer:</strong> a successful excavation removes one Explorer, trashes Excavate, and puts the chosen relic reward in discard. <a href="rulebook.html#excavation">Excavation rules</a></li>
+        <li><strong>Secret combat choices:</strong> every battle starts with two Fire and two Screen tactics. Commit privately, reveal together, and spend each tactic once. Up to three volleys; no random tactic draws. <a href="rulebook.html#combat-tactics">Tactic rules</a></li>
+        <li><strong>Distinct ship roles:</strong> Fleet has 3 attack/7 hull. Explorer has 1/1. Settler has 1 attack and 2 hull, rising to 4 when defending. War-Song and Obelisk’s big attack bonuses require a Fleet. <a href="rulebook.html#combat">Combat rules</a></li>
+        <li><strong>Explorer escape:</strong> before tactics, pay 1 Energy per Explorer to escape to a legal adjacent hex. Remaining ships fight. <a href="rulebook.html#explorer-escape">Escape rules</a></li>
+        <li><strong>Clear battle reports:</strong> see base attack, bonuses, shields, and simultaneous damage. After three volleys, surviving defenders force attackers to retreat; trapped attackers are destroyed. Saved games resume pending battle choices. <a href="rulebook.html#combat">Battle resolution</a></li>
       </ul>
       <button class="button button-ghost" id="open-relic-catalog" type="button">Preview all 12 alien relics</button>
-      <p>Rules 14.19 experiment · Start a new game. Earlier games keep their archived rules.</p>
+      <p>Rules 15.20 experiment · Start a new game. Earlier games keep their archived rules.</p>
     </details>
 
     <section class="score-ribbon" id="score-ribbon" aria-label="Player standings"></section>
@@ -155,7 +153,7 @@
         <div class="tab-panel" id="fleet-panel" data-panel="fleet" role="tabpanel" aria-labelledby="fleet-tab" tabindex="0" hidden>
           <div class="section-intro"><div><h2>Fleet manifest</h2><p>Settlers move 1 and colonize. Fleets move 2. Explorers move 3 and excavate relics.</p></div></div>
           <div class="fleet-summary" id="fleet-summary"></div>
-          <div class="military-deck-heading"><div><h3>Your military deck</h3><p>Each side reveals one tactic per volley. Used tactics reshuffle when the deck empties.</p></div><strong id="military-deck-count">12 ready · 0 used</strong></div>
+          <div class="military-deck-heading"><div><h3>Your combat tactic hand</h3><p>Privately choose, then reveal together. Two Fire and two Screen every battle; no replacements.</p></div><strong id="military-deck-count">4 tactics each battle</strong></div>
           <div class="military-card-grid" id="military-card-grid"></div>
         </div>
       </div>
@@ -164,13 +162,22 @@
 
   <dialog id="rules-dialog">
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
-    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 14.19 ↗</a></p>
+    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 15.20 ↗</a></p>
     <div class="rules-grid">
       <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Passing immediately starts your Buy turn. Finish Buy, then the remaining factions continue Operations.</p></section>
       <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → victory check → next round.</p></section>
       <section><h3>Your deck</h3><p>Normally buy one card. Upgrade original starters for two of one chosen resource type each. Trash eligible discarded cards, including starters, for three of one chosen resource type each. There is no one-card trash limit. Cards go to discard; stored resources carry forward.</p></section>
       <section><h3>Your goal</h3><p>Reach 20 Prestige at the end of a round. Colonies, Shipyards, Excavated relics, and purchased cards all contribute. The rulebook includes costs, scoring, and current card clarifications.</p></section>
     </div>
+  </dialog>
+
+  <dialog id="combat-dialog" class="choice-dialog combat-dialog" aria-labelledby="combat-title" aria-describedby="combat-status">
+    <div class="dialog-heading"><div><div class="eyebrow">TACTICAL COMBAT</div><h2 id="combat-title">Battle</h2><p id="combat-status" role="status" aria-live="polite"></p></div></div>
+    <div id="combat-forces" class="combat-forces"></div>
+    <p id="combat-help"></p>
+    <div id="combat-options" class="combat-options"></div>
+    <div id="combat-history" class="combat-history"></div>
+    <p class="muted">Finish the battle before normal play resumes. Your choices are saved.</p>
   </dialog>
 
   <dialog id="overflow-dialog" class="choice-dialog" aria-labelledby="overflow-title" aria-describedby="overflow-help">
@@ -254,6 +261,6 @@
   <script src="table.js?v=fair-frontier-14-19"></script>
   <script src="replay.js?v=fair-frontier-14-19"></script>
   <script src="app.js?v=fair-frontier-14-19"></script>
-  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="14.19"></script>
+  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="15.20"></script>
 </body>
 </html>

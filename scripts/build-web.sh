@@ -158,3 +158,10 @@ for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css 
 done
 cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/21.26/table.js
 cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/21.26/
+
+mkdir -p dist/galactic-reach/rules/22.27
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v22-$asset" "dist/galactic-reach/rules/22.27/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/22.27/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/22.27/

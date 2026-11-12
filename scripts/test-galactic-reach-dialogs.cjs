@@ -448,7 +448,7 @@ test('paid storage button preserves Buy and survives reload without a map buildi
   const { storage } = playFirstRound();
   const state = JSON.parse(storage.getItem(SAVE_KEY));
   Object.assign(state, { phase: 'buy', activePlayer: 0, turnStage: 'human-buy' });
-  state.players[0].resources = { matter: 2, energy: 1, biomass: 0, data: 1 };
+  state.players[0].resources = { matter: 1, energy: 1, biomass: 1, data: 1 };
   state.players[0].storageUpgrades = 0;
   writeSave(storage, state);
   const game = boot(storage), before = game.saved();
@@ -681,10 +681,10 @@ test('point buttons show all scoring components and ignore yards and purchases',
  const game=boot(storage),before=storage.snapshot(),randomBefore=game.randomCalls();
  const button=game.dom.lastQuery('[data-score-player]').find(b=>b.dataset.scorePlayer==='0');
  assert(button);button.click();assert(game.dialog('prestige').open);
- assert.match(game.dom.element('prestige-title').textContent,/7 Prestige/);
+ assert.match(game.dom.element('prestige-title').textContent,/14 Prestige/);
  const rows=game.dom.element('prestige-breakdown').innerHTML;
- assert.match(rows,/Colonies<\/dt><dd>3/);assert.match(rows,/Expansion bonus<\/dt><dd>1/);
- assert.match(rows,/Excavated relics<\/dt><dd>2/);assert.match(rows,/Decisive combat victories<\/dt><dd>1/);
+ assert.match(rows,/Colonies · 3 each<\/dt><dd>9/);assert(!rows.includes('Expansion bonus'));
+ assert.match(rows,/Excavated relics · 2 each<\/dt><dd>4/);assert.match(rows,/Decisive combat victories<\/dt><dd>1/);
  assert(!/Shipyard|Purchased/.test(rows));game.click('close-prestige');
  assert.deepEqual(storage.snapshot(),before);assert.equal(game.randomCalls(),randomBefore);
 });
@@ -697,7 +697,7 @@ test('export downloads a private read-only report without using RNG or changing 
  assert.equal(report.rulesVersion,`galactic-reach/${formatVersion}.${CURRENT_RULES_REVISION}`);
  assert(report.coverage.complete);assert(report.save.gameHistory.initialState);
  assert.deepEqual(report.save.state,game.saved());assert.equal(report.factions.length,4);
- assert.equal(report.factions[1].botProfile.strategy,'military');assert.equal(report.factions[0].points.total,1);
+ assert.equal(report.factions[1].botProfile.strategy,'military');assert.equal(report.factions[0].points.total,3);
  assert(report.logText.includes('Controlled planets produced'));assert(report.logText.includes('+1 Matter'));
  assert(report.save.gameHistory.events.some(event=>event.changes.some(change=>change.path.join('.')==='players.0.hand')));
  assert(snapshots.at(-1).gameHistory.complete,'Account payload includes the full private history');

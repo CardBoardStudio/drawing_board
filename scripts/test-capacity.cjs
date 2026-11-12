@@ -12,12 +12,12 @@ function game(version = null) {
   let e, seed = 73;
   c.createGalacticAdapter = p => {e = p; return factory(p);};
   const a = c.createGalacticReach({headless: true, random: () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2**32)});
-  return {e, a, s: e.state, p: e.state.players[0]};
+  return {e, a, s: e.state, p: e.state.players[0], fresh: () => factory(e)};
 }
 for (const phase of ['operations', 'buy']) {
-  const {e, a, s, p} = game();
+  const {e, a, s, p, fresh} = game();
   s.phase = phase;
-  p.resources = {matter: 4, energy: 2, biomass: 0, data: 2};
+  p.resources = {matter: 2, energy: 2, biomass: 2, data: 2};
   s.actionMode = 'move'; s.actionCardId = 'pending-order'; s.moveSource = s.clusters[0].center;
   const before = {map: JSON.stringify(s.planets), fleets: JSON.stringify(s.fleets), hand: JSON.stringify(p.hand), stage: s.turnStage};
   const upgrade = a.legalActions(0).find(x => x.type === 'increase_storage');
@@ -25,8 +25,11 @@ for (const phase of ['operations', 'buy']) {
   assert.throws(() => a.applyAction(0, {...upgrade, capacity: 100}), /Illegal action/);
   a.applyAction(0, upgrade);
   assert.equal(e.playerCapacity(0), 15);
-  assert.deepEqual(plain(p.resources), {matter: 2, energy: 1, biomass: 0, data: 1});
-  a.applyAction(0, upgrade);
+  assert.deepEqual(plain(p.resources), {matter: 1, energy: 1, biomass: 1, data: 1});
+  assert.equal(p.storagePurchases,1);
+  assert.throws(() => a.applyAction(0, upgrade), /Illegal action/);
+  p.resources = {matter: 2, energy: 2, biomass: 2, data: 2};
+  fresh().applyAction(0, upgrade);
   assert.equal(e.playerCapacity(0), 20);
   assert.deepEqual(plain(p.resources), {matter: 0, energy: 0, biomass: 0, data: 0});
   assert.equal(a.activeSeat(), 0); assert.equal(s.phase, phase); assert.equal(s.turnStage, before.stage);
@@ -40,15 +43,15 @@ for (const phase of ['operations', 'buy']) {
   assert.equal(e.playerCapacity(0), 20, 'Capacity does not depend on territory or occupation');
 }
 for (const phase of ['production', 'draw', 'cleanup', 'directive', 'policy', 'finished']) {
-  const {e, s, p} = game(); s.phase = phase; p.resources = {matter: 2, energy: 1, biomass: 0, data: 1};
+  const {e, s, p} = game(); s.phase = phase; p.resources = {matter: 1, energy: 1, biomass: 1, data: 1};
   const before = JSON.stringify(s); assert(!e.increaseStorage(0)); assert.equal(JSON.stringify(s), before);
 }
-for (const resource of ['matter', 'energy', 'data']) {
-  const {e, s, p} = game(); p.resources = {matter: 2, energy: 1, biomass: 0, data: 1}; p.resources[resource]--;
+for (const resource of ['matter', 'energy', 'biomass', 'data']) {
+  const {e, s, p} = game(); p.resources = {matter: 1, energy: 1, biomass: 1, data: 1}; p.resources[resource]--;
   const before = JSON.stringify(s); assert(!e.increaseStorage(0)); assert(!e.increaseStorage(1)); assert.equal(JSON.stringify(s), before);
 }
 {
-  const {e, a, s, p} = game();
+  const {e, a, s, p, fresh} = game();
   assert.deepEqual(Object.keys(e.SHIP_STATS).sort(), ['explorer', 'fleet', 'settler']);
   assert.deepEqual(Object.keys(e.STRUCTURES).sort(), ['harvester', 'starbase']);
   assert(!e.ALL_CARDS.gateSynchronization);

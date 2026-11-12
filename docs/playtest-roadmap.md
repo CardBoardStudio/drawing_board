@@ -1,11 +1,19 @@
 # Playtest roadmap
 
+## Twenty Point Strategy 23.28 experiment
+
+- Victory at 20 Prestige; each Colony 3 points, each excavated relic 2, qualifying decisive combat victory 1. No Colony pair bonus, shipyard points, or card points.
+- Paid storage upgrades: +5 capacity for 1 of each resource, then 2 each, 3 each, etc. Count paid purchases per faction; free relic storage does not advance the price.
+- Improve rival threat awareness, Settler safety and escorts, Fleet coordination, early production and starter upgrades using the supplied human report; rerun matched strategy and resource studies.
+
+Status: implementation and verification in progress. Start a new game on this experiment’s preview; older versions remain pinned.
+
 ## Probe Relics22.27 experiment
 
 - Bank exchange uses Give4/Receive1 resource buttons and Convert (also published for21.26).
 - Require Probe to privately locate a relic with an Explorer on that world or moon; movement reveals only terrain. Explorer commissions grant Probe and Excavate to discard. Preserve discovery relic cards.
 
-Status: implemented; local mechanics, dialogs, replay, native, archive and build checks passed. Render preview verification pending. Existing21.26 games keep their discovery rules.
+Status: implemented; local mechanics, dialogs, replay, native, archive and build checks passed. Published and verified on PR #31. Existing21.26 games keep their discovery rules.
 
 ## Implemented in the 21.26 Scoring Bots experiment
 

@@ -26,7 +26,7 @@ function fixture() {
 }
 {
   const {e,a,s}=game();
-  assert.equal(a.rulesVersion,'galactic-reach/22.27');
+  assert.equal(a.rulesVersion,'galactic-reach/23.28');
   assert.equal(s.clusters.filter(c=>c.kind==='world').length,13);
   assert.equal(s.clusters.filter(c=>c.kind==='moon').length,4);
   assert.equal(Object.values(s.planets).filter(p=>p.special==='relic').length,12);
@@ -54,7 +54,7 @@ for (const index of [0,1,2]) {
   assert(!g.s.fleets[g.coord],'The sole Explorer is consumed and the empty fleet record is removed');
   assert.equal(g.s.planets[g.coord].special,null,'Relic disappears from map');
   assert(!g.s.planets[g.coord].upgrade && !g.s.planets[g.coord].hasColony,'No station or ownership created');
-  assert.equal(g.p.relicsExcavated,1);assert.equal(g.e.calculatePrestige(0),2);
+  assert.equal(g.p.relicsExcavated,1);assert.equal(g.e.calculatePrestige(0),5);
   assert.equal(g.s.activePlayer,1,'Excavation uses exactly one action');
   assert.equal(g.s.relicRow[index].id,top.id);assert.equal(g.s.relicDeck.length,8);
   row.forEach((card,i)=>{if(i!==index)assert.equal(g.s.relicRow[i].id,card.id);});
@@ -89,7 +89,7 @@ for (const bad of ['missingExplorer','missingCost','wrongSeat','buy','alreadyCla
   }
   assert.equal(rewards.size,12);assert.equal(g.s.relicRow.length,0);assert.equal(g.s.relicDeck.length,0);
   assert.equal(Object.values(g.s.planets).filter(p=>p.special==='relic').length,0);
-  assert.equal(g.e.calculatePrestige(0),13,'Relic Prestige persists after its reward leaves the hand');
+  assert.equal(g.e.calculatePrestige(0),27,'Relic Prestige persists after its reward leaves the hand');
 }
 // Moons are movement/combat locations, but never construction, colonies, or production.
 {

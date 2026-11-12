@@ -87,6 +87,6 @@ for(const escaped of [false,true]){
 }
 // Reaching 10 through combat still waits for the round-end victory check.
 {
- const g=fixture();g.s.players[0].combatVictories=9;g.start();stays(g);finish(g);assert.equal(g.e.calculatePrestige(0),10);assert.equal(g.s.winner,null);g.finishRound();assert.equal(g.s.winner,0);
+ const g=fixture();g.s.players[0].combatVictories=19;g.start();stays(g);finish(g);assert.equal(g.e.calculatePrestige(0),20);assert.equal(g.s.winner,null);g.finishRound();assert.equal(g.s.winner,0);
 }
 console.log('Combat Prestige: attacker/defender and all ship types, one point per wipe, partial/full escapes, retreats/Jump, mutual loss, trapped destruction, no undefended-structure points, permanent totals, atomic continuation, reload/replay, and round-end victory passed.');

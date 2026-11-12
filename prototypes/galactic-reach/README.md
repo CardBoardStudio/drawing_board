@@ -1,6 +1,6 @@
 # Galactic Reach prototype
 
-Galactic Reach is a self-contained browser prototype for a four-faction strategy game. One human player competes against three computer-controlled factions to explore a large hex map, gather resources, build fleets and colonies, improve a deck, choose resource directives, and reach 10 Prestige.
+Galactic Reach is a self-contained browser prototype for a four-faction strategy game. One human player competes against three computer-controlled factions to explore a large hex map, gather resources, build fleets and colonies, improve a deck, choose resource directives, and reach 20 Prestige.
 
 ## Play locally
 
@@ -26,11 +26,11 @@ node scripts/balance-simulations.cjs 1         # AI-vs-AI balance harness; raise
 
 ## Rules and scope
 
-The [canonical rulebook](rulebook.html) describes the current **Probe Relics 22.27 experiment** game: four factions race to 10 Prestige through exploration, construction, deck building, trade, excavation, and combat. Open `/galactic-reach/rulebook.html` on the deployed site, or `/rulebook.html` on the standalone local server above. It requires no account and is packaged with every PR preview.
+The [canonical rulebook](rulebook.html) describes the current **Twenty Point Strategy 23.28 experiment** game: four factions race to 20 Prestige through exploration, construction, deck building, trade, excavation, and combat. Open `/galactic-reach/rulebook.html` on the deployed site, or `/rulebook.html` on the standalone local server above. It requires no account and is packaged with every PR preview.
 
 Read the [rules maintenance guide](../../docs/rules/README.md) before changing the game. Logic changes must include a rulebook update in the same PR. The [implementation notes](../../docs/rules/implementation-notes.md) record known printed-text discrepancies; the [tutorial brief](../../docs/rules/tutorial.md) describes the later interactive learning experience.
 
-Guest play saves in the browser. Account-backed tables pin their rules version, and the authoritative AI arena uses the same JavaScript engine. Existing 4.9, 5.10, 6.11, 7.12, 8.13, 9.14, 10.15, 11.16, 12.17, 13.18, 14.19, 15.20, 16.21, 17.22, 18.23, 19.24, 20.25, and 21.26 tables retain their archived engines; this rulebook applies to 22.27 only. Settlers move 1 hex, Fleets 2, and Explorers 3. Start with only one Colony and no units or Shipyard. Influence tracks and policies are removed; round-end resource directives are removed. Explorer commissions grant Probe and Excavate in discard. Pay 1 Matter, 1 Energy, and 2 Data at a relic to choose one of three visible cards for discard, gain 1 Prestige, remove the site, consume one Explorer, and trash Excavate. Thirteen worlds and four non-producing gray moons use the symmetric central layout. Twelve relic sites remain; the center has none. All units stay visible under fog. Preview/local development controls are enabled with `?dev=1`. Start a new game on the experiment’s preview or a separate localhost port.
+Guest play saves in the browser. Account-backed tables pin their rules version, and the authoritative AI arena uses the same JavaScript engine. Existing 4.9, 5.10, 6.11, 7.12, 8.13, 9.14, 10.15, 11.16, 12.17, 13.18, 14.19, 15.20, 16.21, 17.22, 18.23, 19.24, 20.25, 21.26, and 22.27 tables retain their archived engines; this rulebook applies to 23.28 only. Settlers move 1 hex, Fleets 2, and Explorers 3. Start with only one Colony and no units or Shipyard. Influence tracks and policies are removed; round-end resource directives are removed. Explorer commissions grant Probe and Excavate in discard. Pay 1 Matter, 1 Energy, and 2 Data at a relic to choose one of three visible cards for discard, gain 2 Prestige, remove the site, consume one Explorer, and trash Excavate. Thirteen worlds and four non-producing gray moons use the symmetric central layout. Twelve relic sites remain; the center has none. All units stay visible under fog. Preview/local development controls are enabled with `?dev=1`. Start a new game on the experiment’s preview or a separate localhost port.
 
 The archived 11.16 Alien Relics iteration used Probe and Research Stations. Those rules remain available only to pinned historical games. Current games use Probe and Excavate with the public relic row. Permanent capacity purchases and playtest annotations remain.
 
@@ -49,3 +49,5 @@ The 20.25 preview keeps all world terrain public, independently hides unlocated 
 The 21.26 Scoring Bots experiment improves the local opponents’ scoring, movement, decks and resource planning without changing costs, topology, combat or victory. Full 20.25 engines and policy 16 remain available to pinned games.
 
 The22.27 Probe Relics experiment separates terrain surveys from private relic discovery. See the canonical [discovery rules](rulebook.html#movement). It uses v22 saves and policy18 on a separate preview; full21.26 engines, manuals and policy17 remain available to pinned games.
+
+The 23.28 Twenty Point Strategy experiment uses 20 points to win, 3 per Colony (no pair bonus), 2 per excavated relic, and 1 per qualifying combat victory. Paid +5 storage upgrades cost 1 of each resource, then 2 each, 3 each, and so on; free relic storage does not raise the paid tier. Save23 and native policy19 preserve full22.27 engines and policy18. Rivals use public threats to avoid exposed Settler moves, retreat, escort and gather Fleets, and improve opening production and starter upgrades. See [the evaluation plan](../../docs/rules/twenty-point-strategy.md).

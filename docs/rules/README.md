@@ -1,6 +1,6 @@
 # Galactic Reach rules maintenance
 
-The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 22.27 / Probe Relics experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
+The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 23.28 / Twenty Point Strategy experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
 
 ## Read, change, verify
 
@@ -75,3 +75,5 @@ Open Worlds uses fixture seed 8 with bot-identity seeds 0–3 for the full-match
 The 21.26 Scoring Bots experiment changes rival decisions while preserving all human mechanics and the exact 20.25 setup/RNG sequence. Rivals prioritize points, keep scoring units on their sites, route Settlers to neutral worlds and captures, select favorable public fights, reinforce against public threats, and avoid unnecessary deck/storage growth. Funding plans use ordinary conversions, banking and overflow discards, including wildcard conversion gains. The full 20.25 browser assets and native policy 16 remain immutable. See [the policy and evaluation design](scoring-bots.md).
 
 The22.27 Probe Relics experiment separates arrival surveys from private relic discovery. Explorer commissions grant Probe and Excavate to discard. Probe requires the Explorer on the chosen world or moon, spends an Operations action and keeps the Explorer. Discovery relic abilities remain explicit exceptions. Excavation requires a located site. Save22/visibility4/policy18 isolate this change;21.26 engines and policy17 remain archived. See [the intended behavior and validation plan](probe-relics.md).
+
+The 23.28 Twenty Point Strategy experiment changes scoring to 20 points, with 3 per Colony and 2 per relic, and removes the Colony pair bonus. Paid storage costs escalate per faction independently of free storage. Public threat-aware rivals gather and escort Fleets, avoid exposed Settlers, and improve starter upgrades. Save23/rules28/policy19 preserve22.27 and policy18. See [the intended behavior and matched study](twenty-point-strategy.md).

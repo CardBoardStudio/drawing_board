@@ -8,7 +8,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/22.27";
+pub const RULES: &str = "galactic-reach/23.28";
 mod legacy_v1;
 mod legacy_v10;
 mod legacy_v11;
@@ -18,6 +18,7 @@ mod legacy_v14;
 mod legacy_v15;
 mod legacy_v16;
 mod legacy_v17;
+mod legacy_v18;
 mod legacy_v2;
 mod legacy_v3;
 mod legacy_v4;
@@ -81,6 +82,7 @@ impl GalacticReach {
             "galactic-reach/19.24" => "galactic-reach/19.24",
             "galactic-reach/20.25" => "galactic-reach/20.25",
             "galactic-reach/21.26" => "galactic-reach/21.26",
+            "galactic-reach/22.27" => "galactic-reach/22.27",
             _ => return Err("Unsupported rules version.".into()),
         };
         Self::initialize(seed, MATCH_TIMEOUT, rules)
@@ -107,6 +109,7 @@ impl GalacticReach {
                     "galactic-reach/19.24" => include_str!("../rules/v19-adapter.js"),
                     "galactic-reach/20.25" => include_str!("../rules/v20-adapter.js"),
                     "galactic-reach/21.26" => include_str!("../rules/v21-adapter.js"),
+                    "galactic-reach/22.27" => include_str!("../rules/v22-adapter.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-adapter.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-adapter.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-adapter.js"),
@@ -129,6 +132,7 @@ impl GalacticReach {
                     "galactic-reach/19.24" => include_str!("../rules/v19-app.js"),
                     "galactic-reach/20.25" => include_str!("../rules/v20-app.js"),
                     "galactic-reach/21.26" => include_str!("../rules/v21-app.js"),
+                    "galactic-reach/22.27" => include_str!("../rules/v22-app.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-app.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-app.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-app.js"),
@@ -256,18 +260,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/18",
-            Self::Economy => "gr-economy/18",
-            Self::Expansion => "gr-expansion/18",
-            Self::Wanderer => "gr-wanderer/18",
+            Self::Military => "gr-military/19",
+            Self::Economy => "gr-economy/19",
+            Self::Expansion => "gr-expansion/19",
+            Self::Wanderer => "gr-wanderer/19",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/18" => Some(Self::Military),
-            "gr-economy/18" => Some(Self::Economy),
-            "gr-expansion/18" => Some(Self::Expansion),
-            "gr-wanderer/18" => Some(Self::Wanderer),
+            "gr-military/19" => Some(Self::Military),
+            "gr-economy/19" => Some(Self::Economy),
+            "gr-expansion/19" => Some(Self::Expansion),
+            "gr-wanderer/19" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -393,6 +397,47 @@ fn bot_safe_fight(view: &Value, seat: usize, moving: &Value, target: &str) -> bo
     }
     attack * 3.0 - 4.0 >= enemy_hull && hull > enemy_attack * 3.0 + 2.0
 }
+// Public one-Move threat envelope. Never inspect another faction's hand.
+fn bot_threat(view: &Value, seat: usize, moving: &Value, destination: &str, source: &str) -> f64 {
+    let standing = &view["fleets"][destination][seat.to_string()];
+    let own_fleets = number(&moving["fleet"])
+        + if source == destination {
+            0.0
+        } else {
+            number(&standing["fleet"])
+        };
+    let p = &view["planets"][destination];
+    let yard = p["owner"] == json!(seat) && p["upgrade"] == "starbase" && p["occupiedBy"].is_null();
+    let defense = own_fleets + if yard { 0.7 } else { 0.0 };
+    view["fleets"]
+        .as_object()
+        .into_iter()
+        .flatten()
+        .flat_map(|(coord, groups)| {
+            groups
+                .as_object()
+                .into_iter()
+                .flatten()
+                .filter_map(move |(owner, enemy)| {
+                    let range = if number(&enemy["settler"]) > 0.0 {
+                        2.0
+                    } else {
+                        3.0
+                    };
+                    let fleets = number(&enemy["fleet"]);
+                    if owner != &seat.to_string()
+                        && fleets > 0.0
+                        && distance(coord, destination) <= range
+                    {
+                        Some(if fleets > defense { 1.0 } else { 0.0 })
+                    } else {
+                        None
+                    }
+                })
+        })
+        .fold(0.0_f64, f64::max)
+}
+
 impl BuiltinAgent {
     pub fn new(strategy: Strategy, seed: [u8; 32]) -> Self {
         Self {
@@ -584,8 +629,12 @@ impl BuiltinAgent {
                     }
                 }
                 _ => {
-                    if military && bot_units(view, seat, "fleet") < 3.0 {
-                        78.0
+                    let coord = action["coord"].as_str().unwrap();
+                    let group = &view["fleets"][coord][seat.to_string()];
+                    if bot_threat(view, seat, group, coord, coord) > 0.0 {
+                        115.0
+                    } else if military && bot_units(view, seat, "fleet") < 4.0 {
+                        81.0
                     } else {
                         8.0
                     }
@@ -718,6 +767,33 @@ impl BuiltinAgent {
                         }
                     }
                 }
+                if !explorer {
+                    let here_risk = bot_threat(view, seat, fleet, from, from);
+                    let there_risk = bot_threat(view, seat, fleet, to, from);
+                    if here_risk > there_risk {
+                        best = best.max(105.0);
+                    }
+                    if settlers == 0.0 {
+                        for (coord, group) in view["fleets"].as_object().unwrap() {
+                            let ally = &group[seat.to_string()];
+                            let escort = number(&ally["settler"]) > 0.0
+                                && bot_threat(view, seat, ally, coord, coord) > 0.0;
+                            if coord != from
+                                && (escort || number(&ally["fleet"]) > 0.0)
+                                && distance(to, coord) < distance(from, coord)
+                            {
+                                best = best.max(if escort {
+                                    99.0
+                                } else if military {
+                                    87.0
+                                } else {
+                                    65.0
+                                });
+                            }
+                        }
+                    }
+                    best -= there_risk * if settlers > 0.0 { 130.0 } else { 50.0 };
+                }
                 best
             }
             "probe" => 150.0,
@@ -729,9 +805,13 @@ impl BuiltinAgent {
                 let cost = bot_cost(view, seat);
                 let r = action["resource"].as_str().unwrap();
                 if bot_yards(view, seat) > 0
-                    && number(&me["resources"][r]) >= number(&cost[r]) + 2.0
+                    && number(&me["resources"][r]) >= (number(&cost[r]).min(2.0) + 2.0)
                 {
-                    65.0
+                    if action["key"] == "construct" {
+                        76.0
+                    } else {
+                        70.0
+                    }
                 } else {
                     -5.0
                 }
@@ -769,9 +849,10 @@ impl BuiltinAgent {
                 let reserve = bot_cost(view, seat);
                 if number(&me["capacity"]) < 30.0
                     && number(&me["capacity"]) - used <= 2.0
-                    && [("matter", 2.0), ("energy", 1.0), ("data", 1.0)]
-                        .iter()
-                        .all(|(r, n)| number(&me["resources"][r]) >= number(&reserve[r]) + n)
+                    && ["matter", "energy", "biomass", "data"].iter().all(|r| {
+                        number(&me["resources"][r])
+                            >= number(&reserve[r]) + number(&me["storageUpgradeCost"][r])
+                    })
                 {
                     55.0
                 } else {
@@ -923,6 +1004,9 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
     if let Some(strategy) = legacy_v17::Strategy::parse(version) {
         return Ok(Box::new(legacy_v17::BuiltinAgent::new(strategy, seed)));
     }
+    if let Some(strategy) = legacy_v18::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v18::BuiltinAgent::new(strategy, seed)));
+    }
     Err("Unsupported Galactic Reach policy version.".into())
 }
 
@@ -1043,6 +1127,7 @@ mod tests {
             "galactic-reach/19.24",
             "galactic-reach/20.25",
             "galactic-reach/21.26",
+            "galactic-reach/22.27",
         ] {
             let game = GalacticReach::with_rules([19; 32], rules).unwrap();
             assert_eq!(game.rules_version(), rules);
@@ -1068,6 +1153,7 @@ mod tests {
                             | "galactic-reach/19.24"
                             | "galactic-reach/20.25"
                             | "galactic-reach/21.26"
+                            | "galactic-reach/22.27"
                     ) {
                         0
                     } else {
@@ -1096,6 +1182,7 @@ mod tests {
             "gr-military/16",
             "gr-military/17",
             "gr-military/18",
+            "gr-military/19",
         ] {
             assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
         }

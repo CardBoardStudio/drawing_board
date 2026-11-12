@@ -691,7 +691,14 @@ test('export downloads a private read-only report without using RNG or changing 
 test('history is uncapped, persists resource transactions, and marks unavailable history partial', () => {
  const storage=createStorage(),state=boot(storage).saved();
  state.players[0].storageUpgrades=1000;state.players[0].resources={matter:400,energy:0,biomass:0,data:0};writeSave(storage,state);
- const game=boot(storage);game.dom.element('bank-give-type').value='matter';game.dom.element('bank-get-type').value='data';
+ const game=boot(storage),before=game.saved(),calls=game.randomCalls();
+ assert(game.dom.element('bank-exchange-button').disabled);
+ game.click('bank-give-matter');assert(game.dom.element('bank-exchange-button').disabled);
+ game.click('bank-get-matter');assert(game.dom.element('bank-exchange-button').disabled,'Same-type exchange stays unavailable');
+ game.click('bank-get-data');assert(!game.dom.element('bank-exchange-button').disabled);
+ assert.equal(game.dom.element('bank-get-data').getAttribute('aria-pressed'),'true');
+ assert.equal(game.dom.element('bank-get-matter').getAttribute('aria-pressed'),'false');
+ assert.deepEqual(game.saved(),before,'Selecting bank buttons spends no resources or cards');assert.equal(game.randomCalls(),calls);
  for(let n=0;n<95;n++)fire(game.dom.element('bank-trade-form'),'submit',{cancelable:true});
  game.click('export-game-report');const report=game.downloads.at(-1);
  assert(!report.coverage.complete);assert.equal(report.save.state.log.length,80);

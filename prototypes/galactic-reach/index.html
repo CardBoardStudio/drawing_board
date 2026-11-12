@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#070b13">
   <title>Galactic Reach · 21.26 · Scoring Bots experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=scoring-bots-21-26">
+  <link rel="stylesheet" href="styles.css?v=scoring-bots-21-26-bank-buttons">
   <link rel="stylesheet" href="playtest-notes.css?v=1">
 </head>
 <body>
@@ -33,6 +33,7 @@
     <details class="playtest-changes" id="playtest-changes" open>
       <summary><span class="new-feature">New in this playtest</span> Rivals that pursue Prestige</summary>
       <ul>
+        <li><strong>Bank resource buttons:</strong> select a resource on each side, then Convert four for one. Works in ongoing 21.26 games. <a href="rulebook.html#trade">Bank exchanges</a>.</li>
         <li><strong>Points before infrastructure:</strong> rivals claim Colonies and excavate before discretionary construction. <a href="rulebook.html#computer-rivals">Computer rivals</a>.</li>
         <li><strong>Purposeful movement:</strong> Settlers seek neutral worlds or captures, Explorers hold relic sites, and fleets favor useful fights. They reinforce against visible threats. <a href="rulebook.html#movement">Movement</a> · <a href="rulebook.html#combat">Combat</a>.</li>
         <li><strong>Useful decks and spending:</strong> rivals preserve needed orders, buy selectively, and keep resources for scoring. Costs, map, and points stay the same. <a href="rulebook.html#buy">Deck building</a> · <a href="rulebook.html#victory">Scoring</a>.</li>
@@ -78,11 +79,14 @@
           <details class="resource-tools" id="resource-tools">
             <summary>Bank exchange &amp; discards <span class="new-feature">New</span></summary>
             <p id="resource-tools-help">Free during your Operations or Buy turn.</p>
-            <form id="bank-trade-form" class="resource-form">
-              <label>Give 4 of<select id="bank-give-type" aria-label="Bank: give four"></select></label>
-              <label>Receive 1 of<select id="bank-get-type" aria-label="Bank: receive one"></select></label>
-              <div id="bank-exchange-preview" class="resource-exchange-preview"></div>
-              <button class="button" id="bank-exchange-button" type="submit">Exchange 4 for 1</button>
+            <form id="bank-trade-form" class="bank-trade-form">
+              <div class="bank-resource-picker">
+                <fieldset><legend>Give 4</legend><div class="bank-resource-options" id="bank-give-options"></div></fieldset>
+                <span class="bank-resource-arrow" aria-hidden="true">→</span>
+                <fieldset><legend>Receive 1</legend><div class="bank-resource-options" id="bank-get-options"></div></fieldset>
+              </div>
+              <div id="bank-exchange-preview" class="resource-exchange-preview" role="status"></div>
+              <button class="button button-primary" id="bank-exchange-button" type="submit" disabled>Convert</button>
             </form>
             <form id="discard-resource-form" class="resource-form">
               <label>Discard<select id="discard-resource-type" aria-label="Resource to discard"></select></label>
@@ -283,7 +287,7 @@
 
   <script src="table.js?v=scoring-bots-21-26"></script>
   <script src="replay.js?v=scoring-bots-21-26"></script>
-  <script src="app.js?v=scoring-bots-21-26"></script>
+  <script src="app.js?v=scoring-bots-21-26-bank-buttons"></script>
   <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="21.26"></script>
 </body>
 </html>

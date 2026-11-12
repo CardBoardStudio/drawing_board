@@ -747,6 +747,17 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
 .resource-form input, .resource-form select { width: 100%; min-width: 0; min-height: 42px; border: 1px solid var(--line-bright); border-radius: 3px; background: var(--surface-2); color: var(--text); padding: 9px; font-size: 16px; }
 .resource-form button, .resource-exchange-preview { grid-column: 1 / -1; }
 .resource-exchange-preview { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.bank-trade-form { display: grid; gap: 12px; margin: 12px 0 20px; }
+.bank-resource-picker { display: grid; grid-template-columns: minmax(0,1fr) 16px minmax(0,1fr); align-items: center; gap: 8px; }
+.bank-resource-picker fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.bank-resource-picker legend { margin-bottom: 8px; padding: 0; font-size: 13px; font-weight: 700; }
+.bank-resource-options { display: grid; gap: 6px; }
+.bank-resource-arrow { color: var(--muted); text-align: center; }
+.bank-resource-button { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 44px; padding: 8px; border: 1px solid var(--line-bright); border-radius: 4px; background: var(--surface-2); color: var(--text); font: inherit; font-size: 13px; cursor: pointer; }
+.bank-resource-button .resource-symbol { color: var(--resource); flex: none; }
+.bank-resource-button[aria-pressed="true"] { border-color: var(--resource); background: color-mix(in srgb,var(--resource) 18%,var(--surface-2)); box-shadow: inset 0 0 0 1px var(--resource); }
+.bank-resource-button:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+.bank-resource-button:disabled { opacity: .45; cursor: default; }
 .context-order-list { display: grid; gap: 8px; padding-top: 8px; }
 .context-order-list .button { white-space: normal; }
 

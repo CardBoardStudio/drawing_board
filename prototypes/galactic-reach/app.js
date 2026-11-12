@@ -299,6 +299,7 @@ function createGalacticReach(options = {}) {
 
   let cardSerial = 1;
   let state;
+  const bankSelection = { give: null, get: null };
   let aiTimer = null;
   let displayingCombatReport = false;
   let turnHistory = { pending: null, undo: null };
@@ -2810,9 +2811,16 @@ function createGalacticReach(options = {}) {
     const enabled = canManageResources(0);
     const player = state.players[0];
     $('#resource-tools-help').textContent = enabled ? 'Free actions: exchange four of one kind for one different resource, or discard to make room.' : 'Available during your own Operations or Buy turn.';
-    for (const selector of ['#bank-give-type','#bank-get-type','#discard-resource-type']) $(selector).disabled = !enabled;
-    const give = $('#bank-give-type').value, get = $('#bank-get-type').value;
-    $('#bank-exchange-preview').innerHTML = `${resourceDots({[give]:4})}<span aria-hidden="true">→</span>${resourceDots({[get]:1})}`;
+    $('#discard-resource-type').disabled = !enabled;
+    for (const side of ['give','get']) for (const resource of RESOURCES) {
+      const button = $(`#bank-${side}-${resource}`);
+      button.disabled = !enabled;
+      button.setAttribute('aria-pressed', String(bankSelection[side] === resource));
+    }
+    const {give,get} = bankSelection;
+    $('#bank-exchange-preview').innerHTML = give && get
+      ? `${resourceDots({[give]:4})}<span aria-hidden="true">→</span>${resourceDots({[get]:1})}${give===get?'<span>Choose two different resources.</span>':enabled&&player.resources[give]<4?`<span>You need 4 ${RESOURCE_NAMES[give]}.</span>`:''}`
+      : '<span>Choose one resource on each side.</span>';
     $('#bank-exchange-button').disabled = !canBankTrade(0,give,get);
     const resource = $('#discard-resource-type').value, amount = Number($('#discard-resource-amount').value);
     $('#discard-resource-amount').max = player.resources[resource] || 0;
@@ -3373,17 +3381,20 @@ function createGalacticReach(options = {}) {
       revealEntireMap=event.target.checked;
       render();
     });
-    for (const selector of ['#bank-give-type','#bank-get-type','#discard-resource-type']) {
-      $(selector).innerHTML = RESOURCES.map(resource => `<option value="${resource}">${RESOURCE_NAMES[resource]}</option>`).join('');
-      $(selector).addEventListener('change',renderResourceTools);
+    for (const side of ['give','get']) {
+      $(`#bank-${side}-options`).innerHTML = RESOURCES.map(resource => `<button class="bank-resource-button" id="bank-${side}-${resource}" type="button" style="--resource:var(--${resource})" aria-label="${side==='give'?'Give 4':'Receive 1'} ${RESOURCE_NAMES[resource]}" aria-pressed="false">${resourceDot(resource)}<span>${RESOURCE_NAMES[resource]}</span></button>`).join('');
+      for (const resource of RESOURCES) $(`#bank-${side}-${resource}`).addEventListener('click',()=>{
+        bankSelection[side] = resource;
+        renderResourceTools();
+      });
     }
-    $('#bank-give-type').value = 'matter';
-    $('#bank-get-type').value = 'data';
+    $('#discard-resource-type').innerHTML = RESOURCES.map(resource => `<option value="${resource}">${RESOURCE_NAMES[resource]}</option>`).join('');
+    $('#discard-resource-type').addEventListener('change',renderResourceTools);
     $('#discard-resource-type').value = 'matter';
     $('#discard-resource-amount').addEventListener('input',renderResourceTools);
     $('#bank-trade-form').addEventListener('submit',event => {
       event.preventDefault();
-      bankTrade(0,$('#bank-give-type').value,$('#bank-get-type').value);
+      bankTrade(0,bankSelection.give,bankSelection.get);
     });
     $('#discard-resource-form').addEventListener('submit',event => {
       event.preventDefault();

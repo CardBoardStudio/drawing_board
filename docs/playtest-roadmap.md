@@ -97,3 +97,7 @@ Confirmed card treatment: remove Terraforming Protocols from the new market; Wor
 - Show available tactics, public used cards and unit damage, plus base/bonus/shield breakdowns. Preserve 14.19 tables/replays and policy 10.
 
 - Put the shared relic row in a dedicated Relics console tab. Browse anytime; starting or targeting a valid excavation site opens it automatically. Keep payment help, disabled unaffordable choices, resource conversions through Hand, and cancellation together without changing excavation mechanics.
+
+## Implemented in the 16.21 Compact Frontier experiment
+
+- Shrink the board by one hex on every side: radius 11/397 cells → radius 10/331 cells. Keep twelve complete worlds, four moons, twelve relics and comparable access, with the same separation and fairness bounds. Preserve 15.20 games and policy 11; change no other mechanics.

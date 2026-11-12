@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070b13">
-  <title>Galactic Reach · 15.20 · Tactical Combat experiment</title>
+  <title>Galactic Reach · 16.21 · Compact Frontier experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=fair-frontier-14-19">
+  <link rel="stylesheet" href="styles.css?v=compact-frontier-16-21">
   <link rel="stylesheet" href="playtest-notes.css?v=1">
 </head>
 <body>
@@ -15,8 +15,8 @@
   <main class="app-shell">
     <header class="topbar">
       <div class="brand-block">
-        <div class="eyebrow">TACTICAL COMBAT EXPERIMENT · 20 PRESTIGE</div>
-        <h1>Galactic Reach <small class="rules-badge">Rules 15.20 · experiment</small></h1>
+        <div class="eyebrow">COMPACT FRONTIER EXPERIMENT · 20 PRESTIGE</div>
+        <h1>Galactic Reach <small class="rules-badge">Rules 16.21 · experiment</small></h1>
       </div>
       <div class="round-block" aria-live="polite">
         <div><span class="label">Round</span><strong id="round-value">1</strong></div>
@@ -31,16 +31,14 @@
       </div>
     </header>
     <details class="playtest-changes" id="playtest-changes" open>
-      <summary><span class="new-feature">New in this playtest</span> Secret tactics · ship roles · Explorer escape · Relics tab</summary>
+      <summary><span class="new-feature">New in this playtest</span> A smaller galaxy with fair access</summary>
       <ul>
-        <li><strong>Secret combat choices:</strong> every battle starts with two Fire and two Screen tactics. Commit privately, reveal together, and spend each tactic once. Up to three volleys; no random tactic draws. <a href="rulebook.html#combat-tactics">Tactic rules</a></li>
-        <li><strong>Distinct ship roles:</strong> Fleet has 3 attack/7 hull. Explorer has 1/1. Settler has 1 attack and 2 hull, rising to 4 when defending. War-Song and Obelisk’s big attack bonuses require a Fleet. <a href="rulebook.html#combat">Combat rules</a></li>
-        <li><strong>Explorer escape:</strong> before tactics, pay 1 Energy per Explorer to escape to a legal adjacent hex. Remaining ships fight. <a href="rulebook.html#explorer-escape">Escape rules</a></li>
-        <li><strong>Clear battle reports:</strong> see base attack, bonuses, shields, and simultaneous damage. After three volleys, surviving defenders force attackers to retreat; trapped attackers are destroyed. Saved games resume pending battle choices. <a href="rulebook.html#combat">Battle resolution</a></li>
-        <li><strong>Relics have their own tab:</strong> browse the shared rewards anytime. Starting or targeting excavation opens Relics, with payment and reward choices together. <a href="rulebook.html#excavation">Excavation guide</a></li>
+        <li><strong>One hex smaller on every side:</strong> the radius-10 board has 331 hexes, removing 66 from the previous map. <a href="rulebook.html#setup">Map setup</a></li>
+        <li><strong>All the destinations remain:</strong> twelve full worlds, four moons and twelve relic sites, with randomized terrain, balanced home regions and empty-space gaps. <a href="rulebook.html#setup">Fair access</a></li>
+        <li><strong>Keep using the current tools:</strong> the Relics tab, excavation, secret combat tactics and ship roles continue unchanged. <a href="rulebook.html#excavation">Excavation</a> · <a href="rulebook.html#combat">Combat</a></li>
       </ul>
       <button class="button button-ghost" id="open-relic-catalog" type="button">Preview all 12 alien relics</button>
-      <p>Rules 15.20 experiment · Start a new game. Earlier games keep their archived rules.</p>
+      <p>Rules 16.21 experiment · Start a new game. Earlier games keep their archived rules.</p>
     </details>
 
     <section class="score-ribbon" id="score-ribbon" aria-label="Player standings"></section>
@@ -165,7 +163,7 @@
 
   <dialog id="rules-dialog">
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
-    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 15.20 ↗</a></p>
+    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 16.21 ↗</a></p>
     <div class="rules-grid">
       <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Passing immediately starts your Buy turn. Finish Buy, then the remaining factions continue Operations.</p></section>
       <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → victory check → next round.</p></section>
@@ -261,9 +259,9 @@
     <div class="relic-catalog-grid" id="relic-catalog-grid"></div>
   </dialog>
 
-  <script src="table.js?v=fair-frontier-14-19"></script>
-  <script src="replay.js?v=fair-frontier-14-19"></script>
-  <script src="app.js?v=fair-frontier-14-19"></script>
-  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="15.20"></script>
+  <script src="table.js?v=compact-frontier-16-21"></script>
+  <script src="replay.js?v=compact-frontier-16-21"></script>
+  <script src="app.js?v=compact-frontier-16-21"></script>
+  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="16.21"></script>
 </body>
 </html>

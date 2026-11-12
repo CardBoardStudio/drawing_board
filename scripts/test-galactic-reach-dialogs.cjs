@@ -207,9 +207,9 @@ function combatStorage(attacker=0,stage='escape') {
   let engine;const factory=c.createGalacticAdapter;c.createGalacticAdapter=e=>{engine=e;return factory(e);};
   const a=c.createGalacticReach({headless:true,random:seededRandom(1729)}),state=engine.state,defender=attacker===0?1:0;
   state.activePlayer=attacker;state.phase='operations';state.turnStage=attacker===0?'action':'ai';
-  state.fleets={'11,-11':{[attacker]:{fleet:1,explorer:0,settler:0}},'10,-11':{[defender]:{fleet:1,explorer:0,settler:0}}};
+  state.fleets={'10,-10':{[attacker]:{fleet:1,explorer:0,settler:0}},'9,-10':{[defender]:{fleet:1,explorer:0,settler:0}}};
   state.players.forEach((p,id)=>{p.hand=id===attacker?[{key:'move',id:'dialog-combat-move'}]:[];p.resources={matter:0,energy:0,biomass:0,data:0};});
-  a.applyAction(attacker,a.legalActions(attacker).find(x=>x.type==='move'&&x.source==='11,-11'&&x.destination==='10,-11'));
+  a.applyAction(attacker,a.legalActions(attacker).find(x=>x.type==='move'&&x.source==='10,-10'&&x.destination==='9,-10'));
   if(stage!=='escape') {
     engine.applyCombatAction(attacker,{type:'combat_stay'});engine.applyCombatAction(defender,{type:'combat_stay'});
     if(stage==='committed')engine.applyCombatAction(attacker,{type:'combat_tactic',tactic:'defensiveScreen'});
@@ -547,7 +547,7 @@ test('excavation UI chooses a visible reward and survives reload without its spe
 
 test('map and Sector Scan show every faction in fog and empty space', () => {
   const storage=createStorage(), state=boot(storage).saved(), coord=state.clusters[4].coords[1];
-  const empty=['-11,11','11,-11','0,0'].find(key=>!state.planets[key]);assert(empty);
+  const empty=['-10,10','10,-10','0,0'].find(key=>!state.planets[key]);assert(empty);
   state.clusters[4].revealedBy=[];state.clusters[4].scannedBy=[];
   state.fleets[coord]={2:{explorer:1,fleet:2}};state.fleets[empty]={3:{settler:1}};
   writeSave(storage,state);const game=boot(storage);

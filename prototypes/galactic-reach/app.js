@@ -15,8 +15,8 @@ function createGalacticReach(options = {}) {
   }
   const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
-  const SAVE_FORMAT_VERSION = 15;
-  const RULES_REVISION = 20;
+  const SAVE_FORMAT_VERSION = 16;
+  const RULES_REVISION = 21;
   const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
   const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${SAVE_FORMAT_VERSION}`;
   const RESOURCES = ['matter', 'energy', 'biomass', 'data'];
@@ -42,7 +42,7 @@ function createGalacticReach(options = {}) {
   const PLAYER_COLORS = ['#55d9f4', '#ff9f6e', '#a58cff', '#f2cf66'];
   const PLAYER_NAMES = ['You', 'Ember Directorate', 'Violet Assembly', 'Helios Compact'];
   const PLAYER_STRATEGIES = ['human', 'military', 'economy', 'expansion'];
-  const BOARD_RADIUS = 11;
+  const BOARD_RADIUS = 10;
   const VICTORY_TARGET = 20;
   const CARDS_PER_PRESTIGE = 8;
   const HOME_STARTS = [
@@ -363,8 +363,8 @@ function createGalacticReach(options = {}) {
     }
     // Fully validated fallback for bounded retries, including constant random sources.
     return {
-      worlds:[[-7,2],[2,-7],[7,-2],[-2,7],[-3,1],[1,-3],[3,-1],[-1,3]],
-      moons:[[-8,5],[5,-8],[8,-5],[-5,8]]
+      worlds:[[-7,3],[3,-7],[7,-3],[-3,7],[-3,1],[1,-3],[3,-1],[-1,3]],
+      moons:[[-8,6],[6,-8],[8,-6],[-6,8]]
     };
   }
 

@@ -6,7 +6,7 @@
 - Paid storage upgrades: +5 capacity for 1 of each resource, then 2 each, 3 each, etc. Count paid purchases per faction; free relic storage does not advance the price.
 - Improve rival threat awareness, Settler safety and escorts, Fleet coordination, early production and starter upgrades using the supplied human report; rerun matched strategy and resource studies.
 
-Status: implementation and verification in progress. Start a new game on this experiment’s preview; older versions remain pinned.
+Status: implemented in PR #32. See that PR for deployment verification and balance-study results. Start a new game on its successful preview; older versions remain pinned.
 
 ## Probe Relics22.27 experiment
 

@@ -2,7 +2,7 @@
 
 This study evaluates the browser bots a solo player faces. Native arena policy 19 has separate behavior and replay tests; it is not the policy measured here.
 
-The freeze manifest identifies the engine and study source. Development used seed blocks 1000, 1100 and 1101. Evaluation uses blocks 2000–2063, three duplicated-profile mixed lineups and four seat rotations per block (768 games), plus 96 identical-profile mirrors. Each block reuses its randomized map, resource tiles, decks and market across rotations. World geometry stays fixed; moon positions vary by seed.
+The freeze manifest identifies the engine and study source. Development used seed blocks 1000, 1100 and 1101. Post-freeze plain-engine verification used1102 without changing policies. Evaluation uses blocks 2000–2063, three duplicated-profile mixed lineups and four seat rotations per block (768 games), plus 96 identical-profile mirrors. Each block reuses its randomized map, resource tiles, decks and market across rotations. World geometry stays fixed; moon positions vary by seed.
 
 Conditions:
 

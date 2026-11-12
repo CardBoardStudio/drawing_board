@@ -8,6 +8,6 @@
     "analysis/galactic-reach-23.28/engine.cjs": "74f8974ab13f5b4fafbd3e6cd8ce3c86defd625841c778ad9c94221772660799",
     "analysis/galactic-reach-23.28/run.cjs": "0e37594aebd4b0b922ed5b288c745ff5a9912481b958e88e2ac99e4be323bc28"
   },
-  "developmentSeeds": "1000,1100,1101",
+  "developmentSeeds": "1000,1100,1101; post-freeze plain-engine parity1102",
   "evaluationSeeds": "2000\u20132063"
 }

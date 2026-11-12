@@ -1,6 +1,6 @@
 # Galactic Reach rules maintenance
 
-The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 15.20 / Tactical Combat experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
+The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 16.21 / Compact Frontier experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
 
 ## Read, change, verify
 
@@ -53,3 +53,5 @@ The radius-11 map has 397 cells. Generation places two inner worlds and one moon
 Every newly gained card in 14.19 enters discard and must reach hand through normal shuffle/draw before use, including both unit bundles and relic rewards. A single gainCard primitive enforces this default. Draws and returns of already-owned cards keep their printed effects. This supersedes 13.18’s immediate-hand Explorer bundle and relic reward.
 
 The 15.20 Tactical Combat experiment replaces random military draws with two Fire and two Screen tactics per battle, consumed only after simultaneous secret reveal. Test values are Fleet attack 3/hull 7, Explorer 1/1, Settler 1/2 (4 defending), with Fire +1 and Screen 2. Attack is the sum of surviving piece attack, rather than the old quarter-power formula. Paid Explorer escape precedes commitments. Serializable combat and moving-order continuation preserve each stage across reloads and defer Operations completion exactly once. Forced retreats check adjacent safety and full-group capacity; trapped attackers are destroyed. War-Song and Obelisk offensive bonuses require a Fleet. Complete 14.19 assets and policy 10 remain immutable.
+
+The 16.21 Compact Frontier experiment reduces the board to radius 10 (331 cells), with homes at radius 9. Twelve complete worlds, four moons and twelve relics remain. The existing fairness bands and bounds are retained: near-world center distances 5–6, second-world band 7–9, common two-distance moon bands, nearest-world/moon spread at most 1, second-nearest-world spread at most 2, terrain gaps and coverage at most 6. The radius 7 inner pools and the bounded-retry fallback are validated for the smaller board. Complete 15.20 browser assets and policy 11 remain immutable. No other mechanic changes.

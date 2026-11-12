@@ -3,7 +3,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const source = fs.readFileSync(path.join(__dirname,'../prototypes/galactic-reach/app.js'),'utf8');
+const source = fs.readFileSync(path.join(__dirname,'../prototypes/galactic-reach/app.js'),'utf8')
+  .replace('    // Fully validated fallback', '    globalThis.__mapFallbacks=(globalThis.__mapFallbacks||0)+1;\n    // Fully validated fallback')
+  .replace('return {worlds,moons};','globalThis.__mapRetries.push(attempt); return {worlds,moons};')
+  .replace('attempt<64','attempt<(globalThis.__forceMapFallback?0:64)');
 const boot = source.indexOf('\n  if (headless) {\n    state = newState();');
 assert(boot > 0, 'Locate the browser bootstrap before instrumenting the rules');
 const storage = new Map();
@@ -54,8 +57,8 @@ function assertGalaxy(s) {
   }
   for (let id=0;id<4;id++) {
     const world=s.clusters[id];
-    assert.equal(distance(world.center),10);
-    assert(world.coords.some(key=>distance(key)===11),'Each home world touches the outer ring');
+    assert.equal(distance(world.center),9);
+    assert(world.coords.some(key=>distance(key)===10),'Each home world touches the outer ring');
     const colony=s.planets[world.center];
     assert.equal(colony.owner,id); assert.equal(colony.hasColony,true);
     assert.equal(Object.values(s.planets).filter(p=>p.owner===id).length,1,'Only the starting Colony is owned');
@@ -72,7 +75,10 @@ function assertGalaxy(s) {
     return distances.indexOf(closest);
   };
   for(let seat=0;seat<4;seat++) {
-    assert.equal(worlds.filter(w=>territory(w)===seat).length,2);
+    const own=worlds.filter(w=>territory(w)===seat);
+    assert.equal(own.length,2);
+    const access=own.map(w=>r.hexDistance(homes[seat].center,w.center)).sort((a,b)=>a-b);
+    assert(access[0]>=5 && access[0]<=6 && access[1]>=7 && access[1]<=9,'Retain each home region’s near and inner distance bands');
     assert.equal(moons.filter(m=>territory(m)===seat).length,1);
   }
   const opportunity=homes.map(h=>worlds.map(w=>r.hexDistance(h.center,w.center)).sort((a,b)=>a-b));
@@ -81,25 +87,29 @@ function assertGalaxy(s) {
   const moonDistances=homes.map(h=>Math.min(...moons.map(m=>r.hexDistance(h.center,m.center))));
   assert(Math.max(...moonDistances)-Math.min(...moonDistances)<=1,'Moons have comparable access');
   const terrain=s.clusters.map(c=>[...c.center.split(',').map(Number),c.kind==='moon'?0:1]);
-  for(let q=-11;q<=11;q++) for(let y=-11;y<=11;y++) if(Math.max(Math.abs(q),Math.abs(y),Math.abs(q+y))<=11) {
+  for(let q=-10;q<=10;q++) for(let y=-10;y<=10;y++) if(Math.max(Math.abs(q),Math.abs(y),Math.abs(q+y))<=10) {
     const nearest=Math.min(...terrain.map(([a,b,radius])=>Math.max(Math.abs(q-a),Math.abs(y-b),Math.abs(q+y-a-b))-radius));
     assert(nearest<=6,'No large underserved region may remain');
   }
 
 }
+context.__mapRetries=[]; context.__mapFallbacks=0;
 const layouts=new Set();
 for(let n=1;n<=1000;n++) {
   const s=fresh(n); assertGalaxy(s);
   layouts.add(s.clusters.slice(4).map(c=>c.center).join('|'));
 }
 assert.equal(layouts.size,1000,'Interior coordinates vary with each new game');
+assert.equal(context.__mapFallbacks,0,'Seeded radius10 layouts must not collapse onto the fallback');
+console.log(`Map generation: ${layouts.size} unique layouts /1000 seeds; ${context.__mapFallbacks} fallbacks; mean retries ${(context.__mapRetries.reduce((a,b)=>a+b,0)/1000).toFixed(3)}, max ${Math.max(...context.__mapRetries)}.`);
 for(const constant of [0,0.5,1-Number.EPSILON]) {
   const saved=math.random; math.random=()=>constant;
   assertGalaxy(r.newState()); math.random=saved;
 }
+context.__forceMapFallback=true;assertGalaxy(r.newState());context.__forceMapFallback=false;
 let cells=0;
 for(let q=-13;q<=13;q++) for(let y=-13;y<=13;y++) if(r.boardHas(`${q},${y}`)) cells++;
-assert.equal(cells,397); assert.equal(r.BOARD_RADIUS,11);
+assert.equal(cells,331); assert.equal(r.BOARD_RADIUS,10);
 assert.equal(JSON.stringify(fresh(42)),JSON.stringify(fresh(42)),'A seeded fixture remains reproducible');
 assert.equal(r.fleetMove({explorer:1}),3);
 assert.equal(r.fleetMove({explorer:1,settler:1}),1);
@@ -112,8 +122,8 @@ assert.equal(r.state.reachable.length,36);
 assert(r.state.reachable.includes('3,0')); assert(!r.state.reachable.includes('4,0'));
 r.state.actionOptions={tag:'pathfinder'}; r.prepareHumanMove('0,0','explorer');
 assert(r.state.reachable.includes('4,0')); assert(!r.state.reachable.includes('5,0'));
-const atEdge=r.reachableFrom('-11,0',0,2,false,{explorer:1});
-assert(atEdge.every(key=>distance(key)<=11));
+const atEdge=r.reachableFrom('-10,0',0,2,false,{explorer:1});
+assert(atEdge.every(key=>distance(key)<=10));
 // A real AI choice uses three steps toward a scanned relic, respecting hostile blockers.
 r.state.planets={'5,0':{special:'relic',owner:null,upgrade:null,hasColony:false,researchStationOwner:null,relicClaimed:false}};
 r.state.clusters=[{id:4,coords:['5,0'],scannedBy:[1]}];
@@ -137,14 +147,14 @@ r.playOrder(order.id); assert.equal(r.state.actionMode,'move'); assert.equal(r.s
 r.playOrder(order.id); assert.equal(r.state.actionMode,null,'Clicking again cancels without spending the card');
 assert.equal(r.state.players[0].hand.length,1);
 const old='untouched-v4-save'; storage.set('galactic-reach-save-v4',old);
-assert.equal(r.SAVE_KEY,'galactic-reach-save-v15');
-assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v15');
+assert.equal(r.SAVE_KEY,'galactic-reach-save-v16');
+assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v16');
 const saved=JSON.stringify(fresh(123)); r.saveGame(); fresh(456);
 assert(r.loadGame()); assert.equal(JSON.stringify(r.state),saved,'Reload retains randomized placement');
 assert.equal(storage.get('galactic-reach-save-v4'),old);
 const incompatible=JSON.parse(saved); incompatible.rulesRevision=9;
 storage.set(r.SAVE_KEY,JSON.stringify(incompatible)); assert.equal(r.loadGame(),false);
-console.log('Long Reach: 1,000 map layouts, 397 hexes, border starts, movement, 20-point victory, and save isolation passed.');
+console.log('Long Reach: 1,000 map layouts, 331 hexes, border starts, movement, 20-point victory, and save isolation passed.');
 if(process.env.LONG_REACH_SIMULATE) {
   fresh(1729); r.beginRound();
   let steps=0;

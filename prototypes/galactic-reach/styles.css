@@ -563,7 +563,7 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
   .round-block > div { flex: 1; }
   .game-layout { grid-template-columns: 1fr; }
   .command-column { grid-template-columns: repeat(2, minmax(0,1fr)); }
-  .prestige-legend { grid-column: 1 / -1; }
+  .prestige-legend, .log-panel { grid-column: 1 / -1; }
   .log-panel { max-height: none; }
   .game-log { max-height: 220px; }
   .card-row { grid-template-columns: repeat(3,minmax(150px,1fr)); }

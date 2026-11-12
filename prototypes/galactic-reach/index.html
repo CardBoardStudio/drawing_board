@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#070b13">
   <title>Galactic Reach · 20.25 · Open Worlds experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=open-worlds-20-25">
+  <link rel="stylesheet" href="styles.css?v=open-worlds-20-25-comms">
   <link rel="stylesheet" href="playtest-notes.css?v=1">
 </head>
 <body>
@@ -36,6 +36,7 @@
         <li><strong>All worlds are public:</strong> see every planet’s resources, ownership, and buildings from setup. Relics and unvisited moons remain hidden. <a href="rulebook.html#movement">Visibility rules</a>.</li>
         <li><strong>Moons move each new game:</strong> four randomized positions keep comparable travel from every home and wide spacing across the map. The approved world layout stays in place. <a href="rulebook.html#setup">Map setup</a>.</li>
         <li>Surveying a world with any ship reveals its relic. Voidglass Astrolabe surveys two worlds; Omniscient Chorus privately locates relic signals. <a href="rulebook.html#alien-relics">Relic cards</a>.</li>
+        <li>The Comms Feed now sits below the Victory points box. <a href="rulebook.html#game-report">Game reports</a> remain available there, including in ongoing 20.25 games.</li>
       </ul>
       <button class="button button-ghost" id="open-relic-catalog" type="button">Preview all 12 alien relics</button>
       <p>Rules 20.25 experiment · Start a new game. Earlier games keep their archived rules.</p>
@@ -92,14 +93,6 @@
         </section>
 
 
-        <section class="panel log-panel">
-          <div class="panel-heading">
-            <div><div class="eyebrow">COMMS FEED</div><h2>Game log</h2></div>
-            <button class="button button-ghost" id="export-game-report" type="button">Export game report</button>
-          </div>
-          <p class="muted" id="history-status" role="status"></p>
-          <ol id="game-log" class="game-log" aria-live="polite"></ol>
-        </section>
         <section class="panel prestige-legend" aria-labelledby="prestige-legend-title">
           <div class="prestige-legend-heading">
             <h2 id="prestige-legend-title">Victory points · Prestige</h2>
@@ -111,6 +104,14 @@
             <dt>Combat</dt><dd>1 per fight won with all enemy units destroyed. None if any escape or retreat.</dd>
           </dl>
           <p>Reach <strong>10 Prestige</strong>. Victory is checked at round end.</p>
+        </section>
+        <section class="panel log-panel">
+          <div class="panel-heading">
+            <div><div class="eyebrow">COMMS FEED</div><h2>Game log</h2></div>
+            <button class="button button-ghost" id="export-game-report" type="button">Export game report</button>
+          </div>
+          <p class="muted" id="history-status" role="status"></p>
+          <ol id="game-log" class="game-log" aria-live="polite"></ol>
         </section>
       </aside>
     </section>

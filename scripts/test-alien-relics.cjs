@@ -19,7 +19,7 @@ function effect(key) {
 }
 function special(g) {const action=g.a.legalActions(0).find(a=>a.type==='special');assert(action);g.a.applyAction(0,action);assert(g.p.discard.some(c=>c.id==='relic-order'));assert.equal(g.s.activePlayer,1);}
 {
-  const {e,a,s}=game();assert.equal(a.rulesVersion,'galactic-reach/14.19');assert.deepEqual(plain(s.fleets),{});
+  const {e,a,s}=game();assert.equal(a.rulesVersion,'galactic-reach/15.20');assert.deepEqual(plain(s.fleets),{});
   for(const p of s.players) {
     const cards=[...p.deck,...p.hand,...p.discard];assert.equal(cards.length,6);
     assert.equal(cards.filter(c=>c.key==='move').length,3);assert.equal(cards.filter(c=>c.key==='construct').length,3);
@@ -95,7 +95,7 @@ for(const capture of [false,true]) {
   assert.equal(g.e.movementRange({fleet:1},{key:'obeliskOfAnnihilation'}),4);
 }
 function battle(key,units=1,tag=null) {
-  const g=game();g.s.planets={};g.s.fleets={'0,0':{0:{settler:0,explorer:0,fleet:units}},'1,0':{1:{settler:0,explorer:0,fleet:units}}};
+  const g=game(14);g.s.planets={};g.s.fleets={'0,0':{0:{settler:0,explorer:0,fleet:units}},'1,0':{1:{settler:0,explorer:0,fleet:units}}};
   g.p.hand=key?[{key,id:'reaction'}]:[];g.s.players[1].hand=[];g.p.resources={matter:0,energy:0,biomass:0,data:0};
   for(const p of g.s.players){p.militaryDeck=['concentratedFire','concentratedFire','concentratedFire'];p.militaryDiscard=[];}
   assert(g.e.executeMove(0,'0,0','1,0',{moveGroup:'ships',tag}));return g;

@@ -23,8 +23,8 @@ function makeGame(seed, seatStrategies, fleetProduction) {
   let source = original;
   source = replaceOrFail(
     source,
-    "if (state.phase !== 'operations' || state.activePlayer === 0 || state.winner !== null) return;",
-    "if (state.phase !== 'operations' || state.winner !== null) return;",
+    "if (state.pendingCombat || state.phase !== 'operations' || state.activePlayer === 0 || state.winner !== null) return;",
+    "if (state.pendingCombat || state.phase !== 'operations' || state.winner !== null) return;",
     'AI operation guard'
   );
 
@@ -101,6 +101,7 @@ function makeGame(seed, seatStrategies, fleetProduction) {
     getState: () => state,
     step: () => {
       if (state.winner !== null) return;
+      if (state.pendingCombat) { const seat=combatActor(); applyCombatAction(seat,chooseCombatAction(combatView(seat),combatActions(seat))); return; }
       const overflow = overflowPlayer();
       if (overflow >= 0) { trimResourcesToCapacity(overflow); return; }
       if (state.phase === 'operations') runAiOperation();

@@ -186,6 +186,22 @@ function writeSave(storage, state) {
   storage.setItem(SAVE_KEY, JSON.stringify(state));
 }
 
+function combatStorage(attacker=0,stage='escape') {
+  const c=vm.createContext({});vm.runInContext(adapterSource+source,c);
+  let engine;const factory=c.createGalacticAdapter;c.createGalacticAdapter=e=>{engine=e;return factory(e);};
+  const a=c.createGalacticReach({headless:true,random:seededRandom(1729)}),state=engine.state,defender=attacker===0?1:0;
+  state.activePlayer=attacker;state.phase='operations';state.turnStage=attacker===0?'action':'ai';
+  state.fleets={'11,-11':{[attacker]:{fleet:1,explorer:0,settler:0}},'10,-11':{[defender]:{fleet:1,explorer:0,settler:0}}};
+  state.players.forEach((p,id)=>{p.hand=id===attacker?[{key:'move',id:'dialog-combat-move'}]:[];p.resources={matter:0,energy:0,biomass:0,data:0};});
+  a.applyAction(attacker,a.legalActions(attacker).find(x=>x.type==='move'&&x.source==='11,-11'&&x.destination==='10,-11'));
+  if(stage!=='escape') {
+    engine.applyCombatAction(attacker,{type:'combat_stay'});engine.applyCombatAction(defender,{type:'combat_stay'});
+    if(stage==='committed')engine.applyCombatAction(attacker,{type:'combat_tactic',tactic:'defensiveScreen'});
+    if(stage==='later') {engine.applyCombatAction(attacker,{type:'combat_tactic',tactic:'defensiveScreen'});engine.applyCombatAction(defender,{type:'combat_tactic',tactic:'defensiveScreen'});}
+  }
+  const storage=createStorage();writeSave(storage,state);return storage;
+}
+
 const tests = [];
 function test(name, body) { tests.push({ name, body }); }
 
@@ -204,6 +220,24 @@ function playFirstRound() {
   game.click('finish-buy-button');
   return { storage, game };
 }
+
+for(const attacker of [0,1]) for(const stage of ['escape','tactic','committed','later']) test(`combat choice reload stays mandatory: human ${attacker===0?'attacker':'defender'}, ${stage}`,()=>{
+  const storage=combatStorage(attacker,stage),game=boot(storage);
+  assert(game.saved().pendingCombat);assert(game.dialog('combat').open);
+  const before=JSON.stringify(game.saved());
+  game.pressEscape('combat');assert(game.dialog('combat').open);assert.equal(JSON.stringify(game.saved()),before);
+  game.dialog('combat').close();game.settle();assert(game.dialog('combat').open);
+  assert(game.dom.element('undo-turn-button').disabled);
+  game.click('convert-all-button');game.click('pass-button');game.click('finish-buy-button');assert.equal(JSON.stringify(game.saved()),before,'Normal turn controls cannot act during combat');
+  const reload=boot(storage);assert(reload.dialog('combat').open);
+  assert.doesNotMatch(reload.dom.element('combat-forces').innerHTML,/choice|commitments/,'No unrevealed opponent tactic rendered');
+  let choices=0;
+  while(reload.saved().pendingCombat){assert(choices++<8);const buttons=reload.dom.lastQuery('[data-combat-action]');assert(buttons.length,'Must offer the human a legal continuation');buttons[0].click();reload.settle();}
+  assert(!reload.dialog('combat').open);assert(!reload.saved().pendingMove);
+  assert.equal(reload.saved().players[attacker].discard.filter(c=>c.id==='dialog-combat-move').length,1);
+  assert.equal(reload.saved().log.filter(line=>line.includes('moved a group from')).length,1,'Movement completes once despite reload and repeated close');
+  assert(reload.saved().lastCombat.volleys.length>0);
+});
 
 test('pass opens Buy before any rival acts, and a Buy reload can finish', () => {
   const storage = createStorage();

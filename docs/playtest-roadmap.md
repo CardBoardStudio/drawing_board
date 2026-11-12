@@ -85,3 +85,13 @@ Confirmed defaults: excavation costs 1 Matter, 1 Energy, and 2 Data; keep the Ex
 Confirmed card treatment: remove Terraforming Protocols from the new market; Worldweaver Spore keeps its immediate gain from up to two unoccupied owned planet hexes, without a permanent production effect.
 
 - All newly gained cards enter discard by default: unit-bundled orders (including Excavate), relic rewards, and purchases. Drawing/shuffling owned cards and returning an existing card to hand keep their printed behavior. No gain-to-hand exceptions are introduced.
+
+## Implemented in the 15.20 Tactical Combat experiment
+
+- Replace the shuffled military deck with two Concentrated Fire and two Defensive Screen per side per battle. Secret commitments reveal together, consume cards, and offer no replacement draws. Maximum three volleys.
+- Try Fleet attack 3/hull 7, Explorer 1/1, Settler 1/2 (4 defending), Fire +1 and Screen 2. Damage is the direct surviving attack sum, simultaneous, and persists between volleys.
+- Before tactics, allow paid adjacent Explorer escape at 1 Energy per Explorer, respecting safety and unit capacity. Remaining mixed-group ships fight.
+- Require a Fleet for War-Song and Obelisk’s largest offensive bonuses; keep normal reactions automatic.
+- After three volleys defenders hold. Attackers retreat to a safe adjacent hex with room or are destroyed. Remove power-ratio automatic retreats; preserve Emergency Jump’s printed condition.
+- Pause human or AI Operations for a serializable battle continuation, including human defense during an AI turn. Keep commitments private and complete the original Move exactly once.
+- Show available tactics, public used cards and unit damage, plus base/bonus/shield breakdowns. Preserve 14.19 tables/replays and policy 10.

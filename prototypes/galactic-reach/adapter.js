@@ -4,6 +4,7 @@ function createGalacticAdapter(e) {
   const s = () => e.state;
   const activeSeat = () => {
     if (s().winner !== null) return null;
+    if (s().pendingCombat) return e.combatActor();
     const pending = e.overflowPlayer();
     return pending >= 0 ? pending : s().activePlayer;
   };
@@ -13,13 +14,13 @@ function createGalacticAdapter(e) {
     if (!Number.isInteger(seat) || seat < 0 || seat >= 4) return null;
     const state = s();
     return e.clone({
-      seat, round: state.round, phase: state.phase, firstPlayer: state.firstPlayer, overflowPlayer: e.overflowPlayer(),
+      combat: e.combatView(seat), seat, round: state.round, phase: state.phase, firstPlayer: state.firstPlayer, overflowPlayer: e.overflowPlayer(),
       players: state.players.map((p, id) => ({
         id, resources: p.resources, relicsExcavated: e.excavatedRelicCount(id), storageUpgrades: p.storageUpgrades,
         prestige: e.calculatePrestige(id), capacity: e.playerCapacity(id),
         hand: id === seat ? p.hand : undefined, discard: p.discard,
         handCount: p.hand.length, deckCount: p.deck.length, deckContents: id === seat ? e.deckContents(p) : undefined,
-        militaryDiscard: p.militaryDiscard, passed: p.passed
+        passed: p.passed
       })),
       planets: Object.fromEntries(Object.entries(state.planets).map(([coord, p]) => [coord,
         visible(coord, seat) ? { ...p } : { cluster: p.cluster, unknown: true,
@@ -34,6 +35,9 @@ function createGalacticAdapter(e) {
     if (seat === null || activeSeat() !== seat) return [];
     if (cached) return e.clone(cached);
     const state = s(), p = state.players[seat], actions = [];
+    if (state.pendingCombat) {
+      cached=e.combatActions(seat);return e.clone(cached);
+    }
     if (e.overflowPlayer() >= 0) {
       const excess = e.totalResources(p) - e.playerCapacity(seat);
       for (const resource of e.RESOURCES) for (let amount = 1; amount <= Math.min(excess,p.resources[resource]); amount++)
@@ -145,6 +149,7 @@ function createGalacticAdapter(e) {
     const state = s(), p = state.players[seat], card = p.hand.find(c => c.id === action.card);
     const def = card && e.ALL_CARDS[card.key];
     switch (action.type) {
+      case 'combat_escape': case 'combat_stay': case 'combat_tactic': e.applyCombatAction(seat,action); return;
       case 'consortium_gain': e.consortiumGain(seat,action.resource); return;
       case 'consortium_exchange': e.consortiumExchange(seat,action.giveType,action.getType); return;
       case 'finish_consortium': e.finishConsortium(seat); return;
@@ -168,7 +173,7 @@ function createGalacticAdapter(e) {
       case 'colony_build': e.finishColonyBuild(seat,action.coord,action.kind); return;
       case 'colonize': e.applyColonizeOrder(seat, action.coord, card); return;
       case 'build': e.constructAt(seat,action.coord,action.kind,action.discountResource); break;
-      case 'move': e.executeMove(seat, action.source, action.destination, { tag: def.tag, moveGroup: action.moveGroup }); break;
+      case 'move': e.performMoveOrder(seat, action.source, action.destination, card, { tag: def.tag, moveGroup: action.moveGroup }); return;
       case 'excavate': e.excavate(seat,action.coord,action.card,action.relic); return;
       case 'special': e.resolveHumanSpecial(card, def, seat); return;
       default: throw new Error('Unknown action.');
@@ -191,6 +196,6 @@ function createGalacticAdapter(e) {
     const seat = activeSeat();
     return { active: seat, observation: seat === null ? null : observe(seat), legal: legalActions(seat), scores: scores() };
   }
-  return { rulesVersion: 'galactic-reach/14.19', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
+  return { rulesVersion: 'galactic-reach/15.20', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = createGalacticAdapter;

@@ -20,9 +20,9 @@ function game() {
 
 {
   const { e, s, adapter } = game();
-  assert.equal(adapter().rulesVersion, 'galactic-reach/14.19');
-  assert.equal(s.version, 14);
-  assert.equal(s.rulesRevision, 19);
+  assert.equal(adapter().rulesVersion, 'galactic-reach/15.20');
+  assert.equal(s.version, 15);
+  assert.equal(s.rulesRevision, 20);
   assert(!('awards' in s));
   assert(!('DIRECTIVES' in e));
   const score = e.calculatePrestige(0);
@@ -158,10 +158,9 @@ for (const key of ['salvageCrews', 'naniteOssuary']) {
   for (const seat of [0, 1]) {
     s.players[seat].resources = { matter: 0, energy: 0, biomass: 0, data: 10 };
     s.players[seat].hand = [{ key, id: `salvage-${seat}` }];
-    s.players[seat].militaryDeck = ['concentratedFire', 'concentratedFire', 'concentratedFire'];
-    s.players[seat].militaryDiscard = [];
   }
   assert(e.executeMove(0, '0,0', '1,0', { moveGroup: 'ships' }));
+  while(s.pendingCombat) { const seat=e.combatActor(); assert(e.applyCombatAction(seat,s.pendingCombat.stage==='escape'?{type:'combat_stay'}:{type:'combat_tactic',tactic:'concentratedFire'})); }
   const excess = key === 'naniteOssuary' ? 4 : 2;
   const a = adapter();
   for (const seat of [0, 1]) {

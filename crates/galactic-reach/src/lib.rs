@@ -8,8 +8,9 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/14.19";
+pub const RULES: &str = "galactic-reach/15.20";
 mod legacy_v1;
+mod legacy_v10;
 mod legacy_v2;
 mod legacy_v3;
 mod legacy_v4;
@@ -56,6 +57,7 @@ impl GalacticReach {
             "galactic-reach/11.16" => "galactic-reach/11.16",
             "galactic-reach/12.17" => "galactic-reach/12.17",
             "galactic-reach/13.18" => "galactic-reach/13.18",
+            "galactic-reach/14.19" => "galactic-reach/14.19",
             _ => return Err("Unsupported rules version.".into()),
         };
         Self::initialize(seed, MATCH_TIMEOUT, rules)
@@ -77,6 +79,7 @@ impl GalacticReach {
                 )?;
                 ctx.eval::<(), _>(match rules {
                     RULES => ADAPTER,
+                    "galactic-reach/14.19" => include_str!("../rules/v14-adapter.js"),
                     "galactic-reach/13.18" => include_str!("../rules/v13-adapter.js"),
                     "galactic-reach/12.17" => include_str!("../rules/v12-adapter.js"),
                     "galactic-reach/11.16" => include_str!("../rules/v11-adapter.js"),
@@ -91,6 +94,7 @@ impl GalacticReach {
                 ctx.eval::<(), _>(include_str!("../rules/replay-view.js"))?;
                 ctx.eval::<(), _>(match rules {
                     RULES => ENGINE,
+                    "galactic-reach/14.19" => include_str!("../rules/v14-app.js"),
                     "galactic-reach/13.18" => include_str!("../rules/v13-app.js"),
                     "galactic-reach/12.17" => include_str!("../rules/v12-app.js"),
                     "galactic-reach/11.16" => include_str!("../rules/v11-app.js"),
@@ -196,18 +200,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/10",
-            Self::Economy => "gr-economy/10",
-            Self::Expansion => "gr-expansion/10",
-            Self::Wanderer => "gr-wanderer/10",
+            Self::Military => "gr-military/11",
+            Self::Economy => "gr-economy/11",
+            Self::Expansion => "gr-expansion/11",
+            Self::Wanderer => "gr-wanderer/11",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/10" => Some(Self::Military),
-            "gr-economy/10" => Some(Self::Economy),
-            "gr-expansion/10" => Some(Self::Expansion),
-            "gr-wanderer/10" => Some(Self::Wanderer),
+            "gr-military/11" => Some(Self::Military),
+            "gr-economy/11" => Some(Self::Economy),
+            "gr-expansion/11" => Some(Self::Expansion),
+            "gr-wanderer/11" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -241,6 +245,81 @@ impl BuiltinAgent {
         let military = matches!(self.strategy, Strategy::Military);
         let economy = matches!(self.strategy, Strategy::Economy);
         match action["type"].as_str().unwrap_or("") {
+            "combat_stay" => 30.0,
+            "combat_escape" => {
+                let combat = &view["combat"];
+                let side = combat["side"].as_str().unwrap();
+                let own = &combat["sides"][side];
+                let enemy = &combat["sides"][if side == "attacker" {
+                    "defender"
+                } else {
+                    "attacker"
+                }];
+                let all_explorers = own["pieces"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .all(|p| p["type"] == "explorer");
+                let enemy_attack: f64 = enemy["pieces"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .filter(|p| number(&p["damage"]) < number(&p["hull"]))
+                    .map(|p| number(&p["power"]))
+                    .sum();
+                if all_explorers || enemy_attack >= 3.0 {
+                    80.0 + number(&action["amount"])
+                } else {
+                    10.0
+                }
+            }
+            "combat_tactic" => {
+                // Only public used tactics and our own hand are in this view.
+                // An opponent's pending commitment is deliberately unavailable.
+                let combat = &view["combat"];
+                let side = combat["side"].as_str().unwrap();
+                let own = &combat["sides"][side];
+                let enemy = &combat["sides"][if side == "attacker" {
+                    "defender"
+                } else {
+                    "attacker"
+                }];
+                let stats = |force: &Value| -> (f64, f64) {
+                    force["pieces"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .filter(|p| number(&p["damage"]) < number(&p["hull"]))
+                        .fold((0.0, 0.0), |(power, hull), p| {
+                            (
+                                power + number(&p["power"]),
+                                hull + number(&p["hull"]) - number(&p["damage"]),
+                            )
+                        })
+                };
+                let (own_attack, own_hull) = stats(own);
+                let (enemy_attack, enemy_hull) = stats(enemy);
+                let used = enemy["used"].as_array().unwrap();
+                let fire = 2.0
+                    - used
+                        .iter()
+                        .filter(|key| **key == "concentratedFire")
+                        .count() as f64;
+                let probability = fire / (4.0 - used.len() as f64);
+                let screen = action["tactic"] == "defensiveScreen";
+                let dealt = (own_attack + if screen { 0.0 } else { 1.0 }
+                    - (1.0 - probability) * 2.0)
+                    .max(0.0);
+                let received =
+                    (enemy_attack + probability - if screen { 2.0 } else { 0.0 }).max(0.0);
+                50.0 + dealt - received * 0.75 + if dealt >= enemy_hull { 8.0 } else { 0.0 }
+                    - if received >= own_hull { 10.0 } else { 0.0 }
+                    + if screen && side == "defender" && combat["volley"] == 3 {
+                        2.0
+                    } else {
+                        0.0
+                    }
+            }
             "trade_accept" => {
                 let offer = view["tradeOffers"]
                     .as_array()
@@ -514,6 +593,9 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
     if let Some(strategy) = legacy_v9::Strategy::parse(version) {
         return Ok(Box::new(legacy_v9::BuiltinAgent::new(strategy, seed)));
     }
+    if let Some(strategy) = legacy_v10::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v10::BuiltinAgent::new(strategy, seed)));
+    }
     Err("Unsupported Galactic Reach policy version.".into())
 }
 
@@ -521,6 +603,37 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
 mod tests {
     use super::*;
     use game_core::run_match;
+    #[test]
+    fn combat_policy_uses_public_damage_and_used_tactics() {
+        let agent = BuiltinAgent::new(Strategy::Military, [7; 32]);
+        let mut view = json!({"seat":0,"players":[{"resources":{}}],"combat":{
+            "side":"attacker","volley":2,"sides":{
+                "attacker":{"pieces":[{"type":"fleet","power":3,"hull":7,"damage":0}],"used":[]},
+                "defender":{"pieces":[{"type":"fleet","power":3,"hull":7,"damage":5}],"used":["concentratedFire","concentratedFire"],"committed":true}
+            }
+        }});
+        let fire = json!({"type":"combat_tactic","tactic":"concentratedFire"});
+        let screen = json!({"type":"combat_tactic","tactic":"defensiveScreen"});
+        assert!(
+            agent.score(&view, &fire) > agent.score(&view, &screen),
+            "Fire can finish a damaged enemy through its remaining Screens"
+        );
+        view["combat"]["sides"]["attacker"]["pieces"][0]["damage"] = json!(5);
+        view["combat"]["sides"]["defender"]["pieces"][0]["damage"] = json!(0);
+        view["combat"]["sides"]["defender"]["used"] = json!([]);
+        assert!(
+            agent.score(&view, &screen) > agent.score(&view, &fire),
+            "Screen can preserve a damaged Fleet for another decision"
+        );
+        let scores = (agent.score(&view, &fire), agent.score(&view, &screen));
+        view["combat"]["sides"]["defender"]["committed"] = json!(false);
+        assert_eq!(
+            scores,
+            (agent.score(&view, &fire), agent.score(&view, &screen)),
+            "Commitment status does not reveal or predict its card"
+        );
+    }
+
     #[test]
     fn current_agents_bootstrap_data_before_explorers() {
         let agent = BuiltinAgent::new(Strategy::Military, [7; 32]);
@@ -548,6 +661,7 @@ mod tests {
             "galactic-reach/11.16",
             "galactic-reach/12.17",
             "galactic-reach/13.18",
+            "galactic-reach/14.19",
         ] {
             let game = GalacticReach::with_rules([19; 32], rules).unwrap();
             assert_eq!(game.rules_version(), rules);
@@ -565,6 +679,7 @@ mod tests {
                             | "galactic-reach/11.16"
                             | "galactic-reach/12.17"
                             | "galactic-reach/13.18"
+                            | "galactic-reach/14.19"
                     ) {
                         0
                     } else {
@@ -585,6 +700,7 @@ mod tests {
             "gr-military/8",
             "gr-military/9",
             "gr-military/10",
+            "gr-military/11",
         ] {
             assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
         }

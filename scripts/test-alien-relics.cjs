@@ -63,7 +63,9 @@ function special(g) {const action=g.a.legalActions(0).find(a=>a.type==='special'
 {
   const g=effect('voidglassAstrolabe'),known=g.s.clusters.filter(c=>g.e.clusterKnown(c,0)).length;
   special(g);assert.equal(g.s.clusters.filter(c=>g.e.clusterKnown(c,0)).length,known);
-  assert.equal(g.s.clusters.filter(c=>g.e.clusterRevealed(c,0)).length,6);
+  assert.equal(g.s.clusters.filter(c=>g.e.clusterRevealed(c,0)).length,4,'Astrolabe discovery does not alter terrain surveys');
+  assert.equal(g.s.clusters.filter(c=>g.e.clusterScanned(c,0)).length,6);
+  assert.equal(g.s.clusters.filter(c=>c.id>=4&&c.scannedBy.length===4).length,2,'Both relics become public');
   assert.equal(g.s.clusters.filter(c=>g.e.clusterKnown(c,0)).length,13);
 }
 {

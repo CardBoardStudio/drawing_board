@@ -14,7 +14,7 @@ function engine() {
   return {port,adapter};
 }
 const {port,adapter}=engine();
-assert.equal(adapter.rulesVersion,'galactic-reach/13.18');
+assert.equal(adapter.rulesVersion,'galactic-reach/14.19');
 const before=JSON.stringify(port.state);
 adapter.legalActions(0);adapter.observe(0);
 assert.equal(JSON.stringify(port.state),before,'Observation and legality must not mutate state');
@@ -33,7 +33,7 @@ assert(e.increaseStorage(0));
 const center=e.state.clusters[4].center;
 e.state.fleets[center]={0:{settler:1,explorer:0,fleet:0}};
 assert(e.colonizePlanet(0,center));assert(!e.colonizePlanet(0,center));
-e.state.phase='buy';assert(e.buyCard(0,'market',0));assert(e.upgradeStarter(0,p.hand.find(c=>c.starter).id));
+e.state.phase='buy';assert(e.buyCard(0,'market',0));assert(e.upgradeStarter(0,p.hand.find(c=>c.starter).id,'energy'));
 // Open offers and free responses use exactly the same rule functions in the arena.
 const t=engine();
 for (const player of t.port.state.players) player.resources={matter:3,energy:3,biomass:0,data:0};

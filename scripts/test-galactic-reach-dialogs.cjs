@@ -430,8 +430,8 @@ test('excavation UI chooses a visible reward and survives reload without its spe
   const choices=game.dom.lastQuery('[data-excavate-relic]');assert.equal(choices.length,3);
   choices.find(b=>b.dataset.excavateRelic===chosen.id).click();
   const after=game.saved(), p=after.players[0];
-  assert.equal(after.planets[coord].special,null);assert.equal(after.fleets[coord][0].explorer,1);
-  assert.equal(p.relicsExcavated,1);assert.equal(p.hand.find(c=>c.id===chosen.id).key,chosen.key);
+  assert.equal(after.planets[coord].special,null);assert(!after.fleets[coord]);
+  assert.equal(p.relicsExcavated,1);assert.equal(p.discard.find(c=>c.id===chosen.id).key,chosen.key);assert(!p.hand.some(c=>c.id===chosen.id));
   assert(![...p.hand,...p.discard,...p.deck].some(c=>c.id==='ui-dig'));
   assert.equal(after.relicRow[1].id,replacement.id);
   assert.equal(boot(storage).saved().players[0].relicsExcavated,1);
@@ -439,7 +439,7 @@ test('excavation UI chooses a visible reward and survives reload without its spe
 
 test('map and Sector Scan show every faction in fog and empty space', () => {
   const storage=createStorage(), state=boot(storage).saved(), coord=state.clusters[4].coords[1];
-  const empty=['-12,12','12,-12','0,0'].find(key=>!state.planets[key]);assert(empty);
+  const empty=['-11,11','11,-11','0,0'].find(key=>!state.planets[key]);assert(empty);
   state.clusters[4].revealedBy=[];state.clusters[4].scannedBy=[];
   state.fleets[coord]={2:{explorer:1,fleet:2}};state.fleets[empty]={3:{settler:1}};
   writeSave(storage,state);const game=boot(storage);
@@ -466,6 +466,34 @@ test('development reveal restores fog and leaves saved discovery unchanged', () 
   assert(hex.className.includes('unknown-world'));assert.equal(hex.querySelector('.hex-buildings').innerHTML,'');
   assert(hex.querySelector('.hex-fleets').innerHTML);assert.equal(storage.getItem(SAVE_KEY),before);
   assert.equal(boot(storage,20261013,{hostname:'drawing-board-p0g3.onrender.com',search:'?dev=1'}).dom.element('development-tools').hidden,true,'Stable host never exposes development controls');
+});
+
+
+test('Deck opens grouped remaining cards without draw order or save changes', () => {
+ const storage=createStorage(),state=boot(storage).saved();
+ state.players[0].deck=[{key:'move',id:'c2001',starter:true,upgraded:true},{key:'construct',id:'c2002',starter:true},{key:'construct',id:'c2003',starter:true}];
+ writeSave(storage,state);const game=boot(storage),before=storage.getItem(SAVE_KEY);
+ game.click('deck-button');assert(game.dom.element('deck-dialog').open);
+ const content=game.dom.element('deck-row').innerHTML;
+ assert(content.includes('2×'));assert(content.includes('Construct'));assert(content.includes('Move II'));
+ assert(content.indexOf('Construct')<content.indexOf('Move II'),'Names use alphabetical order');
+ assert(!content.includes('c2001')&&!content.includes('c2002'),'Card IDs cannot reveal ordering');
+ game.click('close-deck');assert(!game.dom.element('deck-dialog').open);
+ assert.equal(storage.getItem(SAVE_KEY),before,'Opening/closing never rewrites the save');
+ state.players[0].deck.reverse();writeSave(storage,state);const reversed=boot(storage);reversed.click('deck-button');
+ assert.equal(reversed.dom.element('deck-row').innerHTML,content);
+});
+
+test('starter upgrade UI pays two of the selected resource and preserves Buy', () => {
+ const storage=createStorage(),state=boot(storage).saved();
+ state.phase='buy';state.activePlayer=0;state.turnStage='buy';
+ state.players[0].hand=[{key:'move',id:'ui-upgrade',starter:true}];state.players[0].discard=[];
+ state.players[0].resources={matter:3,energy:3,biomass:0,data:0};writeSave(storage,state);
+ const game=boot(storage);game.dom.element('upgrade-resource').value='energy';fire(game.dom.element('upgrade-resource'),'change');
+ game.dom.lastQuery('[data-upgrade-card]').find(b=>b.dataset.upgradeCard==='ui-upgrade').click();
+ const after=game.saved();assert(after.players[0].hand[0].upgraded);assert.equal(after.players[0].resources.energy,1);
+ assert.equal(after.players[0].resources.matter,3);assert.equal(after.phase,'buy');assert.equal(after.players[0].bought,0);
+ assert(boot(storage).saved().players[0].hand[0].upgraded);
 });
 
 let failed = 0;

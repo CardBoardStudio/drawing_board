@@ -18,7 +18,7 @@ function createGalacticAdapter(e) {
         id, resources: p.resources, relicsExcavated: e.excavatedRelicCount(id), storageUpgrades: p.storageUpgrades,
         prestige: e.calculatePrestige(id), capacity: e.playerCapacity(id),
         hand: id === seat ? p.hand : undefined, discard: p.discard,
-        handCount: p.hand.length, deckCount: p.deck.length,
+        handCount: p.hand.length, deckCount: p.deck.length, deckContents: id === seat ? e.deckContents(p) : undefined,
         militaryDiscard: p.militaryDiscard, passed: p.passed
       })),
       planets: Object.fromEntries(Object.entries(state.planets).map(([coord, p]) => [coord,
@@ -59,7 +59,8 @@ function createGalacticAdapter(e) {
         });
       }
       [...p.hand, ...p.discard].forEach(card => {
-        if (card.starter && !card.upgraded && p.resources.data >= 1) actions.push({ type: 'upgrade', card: card.id });
+        if (card.starter && !card.upgraded) for (const resource of e.RESOURCES)
+          if (p.resources[resource] >= 2) actions.push({type:'upgrade',card:card.id,resource});
       });
       p.hand.forEach(card => {
         const effect = e.ALL_CARDS[card.key].buyEffect;
@@ -121,12 +122,7 @@ function createGalacticAdapter(e) {
             if(e.excavate(seat,coord,card.id,relic.id,true)) actions.push({type:'excavate',...base,coord,relic:relic.id});
           });
         });
-        if (def.order === 'special') {
-          if (def.tag === 'terraform') Object.entries(state.planets).forEach(([coord, planet]) => {
-            if (planet.owner === seat && planet.type!=='moon' && !planet.rich && p.resources.biomass >= 2) actions.push({ type: 'terraform', ...base, coord });
-          });
-          else actions.push({ type: 'special', ...base });
-        }
+        if (def.order === 'special') actions.push({ type: 'special', ...base });
       });
     }
     if (e.canIncreaseStorage(seat)) actions.push({type:'increase_storage'});
@@ -164,7 +160,7 @@ function createGalacticAdapter(e) {
       case 'finish_buy': e.nextBuyPlayer(); return;
       case 'resource': e.addResources(p, action.gain); e.removeHandCard(p, action.card); return;
       case 'buy': e.buyCard(seat, action.source, action.source === 'market' ? action.index : action.key); return;
-      case 'upgrade': e.upgradeStarter(seat, action.card); return;
+      case 'upgrade': e.upgradeStarter(seat, action.card, action.resource); return;
       case 'buy_effect': e.useBuyEffect(action.card, seat); return;
       case 'decommission': e.decommission(seat, action.card, action.resource); return;
       case 'discard_overflow': e.discardOverflow(seat,{[action.resource]:action.amount}); return;
@@ -174,7 +170,6 @@ function createGalacticAdapter(e) {
       case 'build': e.constructAt(seat,action.coord,action.kind,action.discountResource); break;
       case 'move': e.executeMove(seat, action.source, action.destination, { tag: def.tag, moveGroup: action.moveGroup }); break;
       case 'excavate': e.excavate(seat,action.coord,action.card,action.relic); return;
-      case 'terraform': p.resources.biomass -= 2; state.planets[action.coord].rich = true; break;
       case 'special': e.resolveHumanSpecial(card, def, seat); return;
       default: throw new Error('Unknown action.');
     }
@@ -196,6 +191,6 @@ function createGalacticAdapter(e) {
     const seat = activeSeat();
     return { active: seat, observation: seat === null ? null : observe(seat), legal: legalActions(seat), scores: scores() };
   }
-  return { rulesVersion: 'galactic-reach/13.18', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
+  return { rulesVersion: 'galactic-reach/14.19', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = createGalacticAdapter;

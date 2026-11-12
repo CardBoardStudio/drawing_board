@@ -25,7 +25,7 @@ function fixture() {
 }
 {
   const {e,a,s}=game();
-  assert.equal(a.rulesVersion,'galactic-reach/13.18');
+  assert.equal(a.rulesVersion,'galactic-reach/14.19');
   assert.equal(s.clusters.filter(c=>c.kind==='world').length,12);
   assert.equal(s.clusters.filter(c=>c.kind==='moon').length,4);
   assert.equal(Object.values(s.planets).filter(p=>p.special==='relic').length,12);
@@ -47,10 +47,10 @@ for (const index of [0,1,2]) {
   assert.throws(()=>g.a.applyAction(0,{...action,relic:'hidden-card'}),/Illegal action/);
   assert.equal(JSON.stringify(g.s),before,'Forged rewards do not charge resources or remove relics');
   g.a.applyAction(0,action);
-  assert(g.p.hand.some(c=>c.id===prize.id));
+  assert(g.p.discard.some(c=>c.id===prize.id));assert(!g.p.hand.some(c=>c.id===prize.id));
   assert(![...g.p.hand,...g.p.deck,...g.p.discard].some(c=>c.id==='dig'),'Used Excavate is permanently trashed');
   assert.deepEqual(plain(g.p.resources),{matter:0,energy:0,biomass:0,data:0});
-  assert.equal(g.s.fleets[g.coord][0].explorer,1,'Explorer survives');
+  assert(!g.s.fleets[g.coord],'The sole Explorer is consumed and the empty fleet record is removed');
   assert.equal(g.s.planets[g.coord].special,null,'Relic disappears from map');
   assert(!g.s.planets[g.coord].upgrade && !g.s.planets[g.coord].hasColony,'No station or ownership created');
   assert.equal(g.p.relicsExcavated,1);assert.equal(g.e.calculatePrestige(0),2);
@@ -107,4 +107,4 @@ for (const bad of ['missingExplorer','missingCost','wrongSeat','buy','alreadyCla
   for(let n=0;n<8;n++){const a=g.freshAdapter(),seat=a.activeSeat();a.applyAction(seat,a.legalActions(seat).find(x=>x.type===(g.s.phase==='buy'?'finish_buy':'pass')));}
   for(const p of g.s.players){assert.equal(p.resources.matter,before[p.id].matter+1);assert(!('moon' in p.resources));}
 }
-console.log('Excavation: public three-card choices, exact costs, atomic invalid choices, immediate refill, finite exhaustion, permanent trash/Prestige, surviving Explorers, and non-producing moons passed.');
+console.log('Excavation: public three-card choices, exact costs, atomic invalid choices, immediate refill, finite exhaustion, permanent trash/Prestige, consumed Explorers, and non-producing moons passed.');

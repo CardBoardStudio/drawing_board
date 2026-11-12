@@ -47,3 +47,41 @@ Make the local/Tailscale test service repeatable: documented port selection, iso
 - The existing stable and 5.10 local services remain playable throughout the experiment.
 
 The companion tracking issue records the remaining decisions and links the next implementation work: [Playtest roadmap after PR #5](https://github.com/CardBoardStudio/drawing_board/issues/6).
+
+## Streamlined Reach 12.17 requested modifications
+
+- Remove public awards and their Prestige.
+- Compact the Your Command resource totals and remove their descriptions.
+- Remove the council directive and its resource bonuses.
+- Trash each eligible discarded card for three of one chosen resource type.
+- Collect full gains and let the player choose excess-resource discards.
+- Let Settlers, Fleets, and Explorers discover worlds.
+
+## Implemented in the 13.18 excavation experiment
+
+These requests follow the six-change 12.17 playtest and are implemented together in the 13.18 experiment.
+
+- Remove Research Stations.
+- Purchasing an Explorer adds an Excavate card directly to that player's hand.
+- Excavate collects a relic, removes it from the board, and grants a relic-deck card into the player's hand. Trash the Excavate card immediately after use.
+- Replace the random relic draw with a visible row of three relic cards. The excavating player chooses one.
+- Increase the map to eight inner worlds and four home worlds, for twelve worlds total.
+- Add single gray Moons that produce no resources. Relics may appear on planet hexes and moons.
+- Keep at least one empty space tile between separate worlds and moons, and between moons. Larger gaps are allowed.
+- Add a development-only Reveal entire map toggle for worlds, moons, relics, resources, buildings, and units. Switching it off restores normal fog of war.
+- Keep every player's units visible to every other player, including in unexplored regions and empty space, independently of the development toggle. Map icons and Sector Scan must agree.
+
+Confirmed defaults: excavation costs 1 Matter, 1 Energy, and 2 Data; keep the Explorer; gain 1 permanent Prestige; four moons and twelve relics total; refill the chosen row slot immediately. Trash the used Excavate card.
+
+## Implemented in the 14.19 Fair Frontier experiment
+
+- Make the player's **Deck** count clickable to inspect the cards currently in that deck. Show card identities and quantities grouped or sorted, without revealing their draw order.
+- Keep world and moon positions randomized, but distribute each fairly evenly across the map. Give every starting faction comparable access and travel distances to nearby worlds and moons; avoid excessive clustering or large underserved regions while preserving the minimum empty-space gaps.
+- Remove the Rich planet mechanic, its ★ markers, and its extra production bonus. Keep those planet hexes as ordinary resource planets, and update affected card effects and rules consistently.
+- Reduce the map by one hex on every side: board radius 12 → 11. Fit the home worlds, randomized inner worlds, and moons inside the smaller board while preserving fair access and minimum empty-space gaps.
+- Change each starter upgrade from 1 Data to two of one chosen resource type, as confirmed by the user.
+- On successful excavation, consume one Explorer at the relic site as well as permanently trashing the used Excavate card. This supersedes the 13.18 rule that keeps the Explorer; unsuccessful or canceled choices consume neither.
+
+Confirmed card treatment: remove Terraforming Protocols from the new market; Worldweaver Spore keeps its immediate gain from up to two unoccupied owned planet hexes, without a permanent production effect.
+
+- All newly gained cards enter discard by default: unit-bundled orders (including Excavate), relic rewards, and purchases. Drawing/shuffling owned cards and returning an existing card to hand keep their printed behavior. No gain-to-hand exceptions are introduced.

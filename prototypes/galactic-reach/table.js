@@ -78,7 +78,7 @@
       if (!/^[a-f0-9]{32}$/.test(id)) throw new Error('Invalid table link. Return to Your tables.');
       const table = await api(`/api/tables/${id}`);
       const rules=table.rules_version;
-      const versions={'galactic-reach/4.9':{format:4,path:'/galactic-reach/rules/4.9/'},'galactic-reach/5.10':{format:5,path:'/galactic-reach/rules/5.10/'},'galactic-reach/6.11':{format:6,path:'/galactic-reach/rules/6.11/'},'galactic-reach/7.12':{format:7,path:'/galactic-reach/'}};
+      const versions={'galactic-reach/4.9':{format:4,path:'/galactic-reach/rules/4.9/'},'galactic-reach/5.10':{format:5,path:'/galactic-reach/rules/5.10/'},'galactic-reach/6.11':{format:6,path:'/galactic-reach/rules/6.11/'},'galactic-reach/7.12':{format:7,path:'/galactic-reach/rules/7.12/'},'galactic-reach/8.13':{format:8,path:'/galactic-reach/rules/8.13/'},'galactic-reach/9.14':{format:9,path:'/galactic-reach/rules/9.14/'},'galactic-reach/10.15':{format:10,path:'/galactic-reach/rules/10.15/'},'galactic-reach/11.16':{format:11,path:'/galactic-reach/rules/11.16/'},'galactic-reach/12.17':{format:12,path:'/galactic-reach/rules/12.17/'},'galactic-reach/13.18':{format:13,path:'/galactic-reach/rules/13.18/'},'galactic-reach/14.19':{format:14,path:'/galactic-reach/'}};
       const version=versions[rules];
       if(!version) throw new Error(`Rules ${rules || 'unknown'} are not available on this host. Your table is preserved.`);
       if(location.pathname!==version.path) {location.replace(`${version.path}?table=${id}`);return;}

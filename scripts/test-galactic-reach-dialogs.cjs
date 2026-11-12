@@ -69,6 +69,7 @@ function fire(target, type, { cancelable = false } = {}) {
 function createDom(timers) {
   const byId = new Map();
   const queried = new Map();
+  const created = [];
 
   class FakeElement {
     constructor(tag = 'div', id = '') {
@@ -88,12 +89,12 @@ function createDom(timers) {
       this.elements = new Proxy({}, { get: (fields, name) => (fields[name] ??= new FakeElement('input')) });
     }
     addEventListener(type, listener) { (this.listeners[type] ||= []).push(listener); }
-    querySelector() { return new FakeElement(); }
+    querySelector(selector) { return (this.childQueries ||= new Map()).get(selector) || (this.childQueries.set(selector,new FakeElement()),this.childQueries.get(selector)); }
     querySelectorAll() { return []; }
     appendChild(child) { return child; }
     insertAdjacentHTML(_, html) { this.innerHTML += html; }
-    setAttribute() {}
-    getAttribute() { return null; }
+    setAttribute(key,value) { (this.attributes ||= {})[key]=String(value); }
+    getAttribute(key) { return this.attributes?.[key] ?? null; }
     matches() { return false; }
     contains() { return false; }
     showPopover() {}
@@ -136,21 +137,21 @@ function createDom(timers) {
     body: new FakeElement('body'),
     documentElement: { clientWidth: 1280 },
     addEventListener() {},
-    createElement: tag => new FakeElement(tag),
-    querySelector: selector => (selector.startsWith('#') ? element(selector.slice(1)) : null),
-    querySelectorAll: selector => (/^\[data-[a-z-]+\]$/.test(selector) ? byDataAttribute(selector) : [])
+    createElement: tag => {const e=new FakeElement(tag);created.push(e);return e;},
+    querySelector: selector => (selector.startsWith('#') ? element(selector.slice(1)) : selector.startsWith('.hex[data-coord=') ? created.find(e=>e.dataset.coord===selector.match(/"([^"]+)"/)[1]) : null),
+    querySelectorAll: selector => (selector==='.hex'?created.filter(e=>e.dataset.coord):/^\[data-[a-z-]+\]$/.test(selector) ? byDataAttribute(selector) : [])
   };
-  return { document, element, lastQuery: selector => queried.get(selector) || [] };
+  return { document, element, hex:key=>created.find(e=>e.dataset.coord===key), lastQuery: selector => queried.get(selector) || [] };
 }
 
-function boot(storage, seed = 20261013) {
+function boot(storage, seed = 20261013, location = {hostname:'localhost',search:''}) {
   const timers = createTimers();
   const dom = createDom(timers);
   const errors = [];
   const math = Object.create(Math);
   math.random = seededRandom(seed);
   const context = vm.createContext({
-    Math: math,
+    Math: math, URLSearchParams, location,
     document: dom.document,
     window: { innerHeight: 900, addEventListener() {} },
     localStorage: storage,
@@ -189,7 +190,7 @@ const tests = [];
 function test(name, body) { tests.push({ name, body }); }
 
 // Plays the fresh game's first round: the human leads Operations and Buy in round 1.
-function playToRoundOneDirective() {
+function playFirstRound() {
   const storage = createStorage();
   const game = boot(storage);
   let state = game.saved();
@@ -219,89 +220,80 @@ test('pass opens Buy before any rival acts, and a Buy reload can finish', () => 
   const reloaded = boot(storage);
   assert.equal(JSON.stringify(reloaded.saved()), JSON.stringify(state));
   reloaded.click('finish-buy-button');
-  assert.equal(reloaded.saved().phase, 'directive');
+  assert.equal(reloaded.saved().phase, 'operations');
+  assert.equal(reloaded.saved().round, 2);
 });
 
-test('a new game reaches the human-chosen directive at the end of round 1', () => {
-  const { game } = playToRoundOneDirective();
-  assert.equal(game.saved().phase, 'directive');
-  assert.equal(game.dialog('directive').open, true);
-  game.saved().players.forEach(player => {
-    const stored = Object.values(player.resources).reduce((sum, value) => sum + value, 0);
-    assert.ok(stored <= 10, `${player.name} stores ${stored} resources without a Warehouse`);
-  });
+test('a completed first round advances directly into round two', () => {
+  const { game } = playFirstRound();
+  assert.equal(game.saved().phase, 'operations');
+  assert.equal(game.saved().round, 2);
+  assert(!('awards' in game.saved()));
+  assert(!game.dialog('directive').open);
 });
 
-test('Escape cannot dismiss the directive dialog', () => {
-  const { game } = playToRoundOneDirective();
-  game.pressEscape('directive');
-  assert.equal(game.dialog('directive').open, true);
-  assert.equal(game.saved().phase, 'directive');
-});
-
-test('a directive dialog closed without a choice reopens', () => {
-  const { game } = playToRoundOneDirective();
-  game.dialog('directive').close();
-  game.settle();
-  assert.equal(game.dialog('directive').open, true);
-});
-
-test('reloading during the directive reopens it and the choice continues the game', () => {
-  const { storage } = playToRoundOneDirective();
-  const reloaded = boot(storage);
-  assert.equal(reloaded.dialog('directive').open, true);
-  const [choice] = reloaded.dom.lastQuery('[data-directive]');
-  assert.ok(choice, 'the directive dialog rendered its choices');
-  choice.click();
-  reloaded.settle();
-  const state = reloaded.saved();
-  assert.equal(state.round, 2);
-  assert.equal(state.phase, 'operations');
-  assert.equal(reloaded.dialog('directive').open, false);
-});
-
-// The review's reproduction: the last AI Buy turn of round 3 opens the policy ballot.
-function reachRoundThreeBallot() {
-  const { storage } = playToRoundOneDirective();
-  const state = JSON.parse(storage.getItem(SAVE_KEY));
-  Object.assign(state, { round: 3, phase: 'buy', firstPlayer: 0, activePlayer: 3, turnStage: 'ai-buy' });
-  writeSave(storage, state);
-  storage.removeItem(TURN_HISTORY_KEY);
-  const game = boot(storage);
-  assert.equal(game.saved().phase, 'policy');
-  assert.equal(game.dialog('policy').open, true);
-  return { storage, game };
+function overflowStorage() {
+  const storage = createStorage();
+  const state = boot(storage).saved();
+  state.players[0].resources = { matter: 8, energy: 2, biomass: 0, data: 3 };
+  state.activePlayer = 1;
+  state.turnStage = 'ai';
+  writeSave(storage,state);
+  return storage;
 }
 
-test('Escape cannot dismiss the policy ballot', () => {
-  const { game } = reachRoundThreeBallot();
-  game.pressEscape('policy');
-  assert.equal(game.dialog('policy').open, true);
-  assert.equal(game.saved().phase, 'policy');
+test('excess resources wait for the player and survive Escape', () => {
+  const game = boot(overflowStorage());
+  assert.equal(game.saved().players[0].resources.data, 3);
+  assert.equal(game.saved().activePlayer, 1);
+  assert(game.dialog('overflow').open);
+  game.pressEscape('overflow');
+  assert(game.dialog('overflow').open);
+  assert.deepEqual(game.saved().players[0].resources,{matter:8,energy:2,biomass:0,data:3});
 });
 
-test('a policy ballot closed without a vote reopens', () => {
-  const { game } = reachRoundThreeBallot();
-  game.dialog('policy').close();
+test('closing or reloading an overflow choice preserves the full collection', () => {
+  const storage = overflowStorage();
+  const game = boot(storage);
+  game.dialog('overflow').close();
   game.settle();
-  assert.equal(game.dialog('policy').open, true);
+  assert(game.dialog('overflow').open);
+  const before = storage.getItem(SAVE_KEY);
+  const reloaded = boot(storage);
+  assert(reloaded.dialog('overflow').open);
+  assert.equal(storage.getItem(SAVE_KEY),before);
 });
 
-test('reloading during the ballot reopens it and voting moves on to the directive', () => {
-  const { storage } = reachRoundThreeBallot();
-  const reloaded = boot(storage);
-  assert.equal(reloaded.dialog('policy').open, true);
-  fire(reloaded.dom.element('policy-form'), 'submit');
-  reloaded.settle();
-  const state = reloaded.saved();
-  assert.ok(state.activePolicy, 'a policy was enacted');
-  assert.equal(state.phase, 'directive');
-  assert.equal(reloaded.dialog('policy').open, false);
-  assert.equal(reloaded.dialog('directive').open, true);
+test('the player can discard old resources and keep newly collected resources', () => {
+  const game = boot(overflowStorage());
+  game.dom.element('overflow-matter').value='3';
+  game.dom.element('overflow-energy').value='0';
+  game.dom.element('overflow-biomass').value='0';
+  game.dom.element('overflow-data').value='0';
+  fire(game.dom.element('overflow-matter'),'input');
+  assert.equal(game.dom.element('overflow-confirm').disabled,false);
+  fire(game.dom.element('overflow-form'),'submit',{cancelable:true});
+  game.settle();
+  assert(!game.dialog('overflow').open);
+  assert.deepEqual(game.saved().players[0].resources,{matter:5,energy:2,biomass:0,data:3});
+  assert.equal(game.saved().activePlayer,0);
+});
+
+test('round three skips the council and proceeds to round four', () => {
+  const { storage } = playFirstRound();
+  const state = JSON.parse(storage.getItem(SAVE_KEY));
+  Object.assign(state,{round:3,phase:'buy',firstPlayer:0,activePlayer:3,turnStage:'ai-buy'});
+  state.players.forEach(player=>{player.passed=true;player.resources={matter:0,energy:0,biomass:0,data:0};});
+  writeSave(storage,state);
+  storage.removeItem(TURN_HISTORY_KEY);
+  const game = boot(storage);
+  assert.equal(game.saved().round,4);
+  assert.equal(game.saved().phase,'operations');
+  assert(!game.dialog('directive').open);
 });
 
 test('a current save loads without being rewritten', () => {
-  const { storage } = playToRoundOneDirective();
+  const { storage } = playFirstRound();
   const before = storage.getItem(SAVE_KEY);
   const history = storage.getItem(TURN_HISTORY_KEY);
   const state = JSON.parse(before);
@@ -314,7 +306,7 @@ test('a current save loads without being rewritten', () => {
 });
 
 test('a save from an older format version is replaced by a new game', () => {
-  const { storage } = playToRoundOneDirective();
+  const { storage } = playFirstRound();
   const stale = JSON.parse(storage.getItem(SAVE_KEY));
   stale.version = formatVersion - 1;
   writeSave(storage, stale);
@@ -326,7 +318,7 @@ test('a save from an older format version is replaced by a new game', () => {
 });
 
 test('a save from an incompatible rules revision is replaced by a current game', () => {
-  const { storage } = playToRoundOneDirective();
+  const { storage } = playFirstRound();
   const legacy = JSON.parse(storage.getItem(SAVE_KEY));
   legacy.rulesRevision = CURRENT_RULES_REVISION - 1;
   writeSave(storage, legacy);
@@ -341,6 +333,167 @@ test('a save from an incompatible rules revision is replaced by a current game',
   const history = JSON.parse(storage.getItem(TURN_HISTORY_KEY));
   assert.equal(history.undo, null, 'the reset clears the previous undo snapshot');
   assert.ok(history.pending, 'the new Operations turn records its own pending snapshot');
+});
+
+function consortiumSave() {
+  const storage=createStorage(),game=boot(storage),state=game.saved();
+  Object.assign(state,{phase:'operations',activePlayer:0,turnStage:'consortium',pendingConsortium:{playerId:0,cardId:'choice-card',trades:0}});
+  state.players[0].hand=[{id:'choice-card',key:'tradeConsortium'}];
+  state.players[0].resources={matter:6,energy:0,biomass:0,data:0};
+  writeSave(storage,state);return storage;
+}
+test('Trade Consortium waits, preserves an exchange across reload, and finishes once',()=>{
+  const storage=consortiumSave(),game=boot(storage);
+  assert(game.dialog('consortium').open);assert.equal(game.saved().players[0].resources.matter,6);
+  game.pressEscape('consortium');assert(game.dialog('consortium').open);
+  game.dom.element('consortium-give').value='matter';game.dom.element('consortium-get').value='energy';
+  fire(game.dom.element('consortium-form'),'submit');game.settle();
+  assert.equal(game.saved().pendingConsortium.trades,1);
+  assert.equal(game.saved().players[0].resources.energy,1);
+  const reloaded=boot(storage);assert(reloaded.dialog('consortium').open);
+  assert.equal(reloaded.saved().pendingConsortium.trades,1);assert.equal(reloaded.saved().players[0].resources.matter,4);
+  assert(reloaded.dom.element('consortium-cancel').hidden);
+  reloaded.click('consortium-finish');assert(!reloaded.dialog('consortium').open);
+  assert.equal(reloaded.saved().players[0].discard.filter(c=>c.id==='choice-card').length,1);
+});
+test('Trade Consortium gain and cancellation buttons resolve explicitly',()=>{
+  const storage=consortiumSave(),game=boot(storage);game.click('consortium-cancel');
+  assert(!game.saved().pendingConsortium);assert.equal(game.saved().players[0].hand.length,1);
+  const gainGame=boot(consortiumSave());
+  gainGame.dom.lastQuery('[data-consortium-gain]').find(b=>b.dataset.consortiumGain==='biomass').click();gainGame.settle();
+  assert(!gainGame.saved().pendingConsortium);assert.equal(gainGame.saved().players[0].resources.biomass,1);
+});
+
+
+test('paid storage button preserves Buy and survives reload without a map building', () => {
+  const { storage } = playFirstRound();
+  const state = JSON.parse(storage.getItem(SAVE_KEY));
+  Object.assign(state, { phase: 'buy', activePlayer: 0, turnStage: 'human-buy' });
+  state.players[0].resources = { matter: 2, energy: 1, biomass: 0, data: 1 };
+  state.players[0].storageUpgrades = 0;
+  writeSave(storage, state);
+  const game = boot(storage), before = game.saved();
+  game.click('upgrade-storage-button');
+  assert.equal(game.saved().players[0].storageUpgrades, 1);
+  assert.equal(game.saved().phase, 'buy');
+  assert.equal(game.saved().players[0].bought, before.players[0].bought);
+  assert.deepEqual(game.saved().planets, before.planets);
+  assert.equal(game.dom.element('capacity-value').textContent, '0 of 15 stored');
+  const reloaded = boot(storage);
+  assert.equal(reloaded.saved().players[0].storageUpgrades, 1);
+  assert.equal(reloaded.dom.element('capacity-value').textContent, '0 of 15 stored');
+});
+
+test('converting at full storage opens the discard choice without losing the gain', () => {
+  const storage=createStorage(),state=boot(storage).saved();
+  state.players[0].resources={matter:9,energy:0,biomass:0,data:1};
+  state.players[0].hand=[{id:'full-conversion',key:'construct',starter:true},{id:'keep-conversion',key:'move',starter:true}];
+  writeSave(storage,state);
+  const game=boot(storage);
+  assert.equal(game.dom.element('convert-all-button').disabled,false);
+  game.click('convert-all-button');
+  assert(game.dialog('overflow').open);
+  assert.equal(game.saved().players[0].resources.matter,10);
+  assert.equal(game.saved().players[0].resources.data,1);
+  assert.equal(game.saved().players[0].hand.length,1);
+});
+
+test('trashing uses three of the selected resource type in the live Buy UI', () => {
+  const storage=createStorage(),state=boot(storage).saved();
+  Object.assign(state,{phase:'buy',activePlayer:0,turnStage:'human-buy'});
+  state.players[0].resources={matter:3,energy:3,biomass:0,data:0};
+  state.players[0].hand=[];
+  state.players[0].discard=[{id:'selected-trash',key:'move',starter:true}];
+  state.players[0].buyStartDiscardIds=['selected-trash'];
+  writeSave(storage,state);
+  const game=boot(storage);
+  game.dom.element('trash-resource').value='energy';
+  fire(game.dom.element('trash-resource'),'change');
+  game.dom.lastQuery('[data-trash]').find(button=>button.dataset.trash==='selected-trash').click();
+  game.settle();
+  assert.equal(game.saved().players[0].resources.matter,3);
+  assert.equal(game.saved().players[0].resources.energy,0);
+  assert.equal(game.saved().players[0].discard.length,0);
+});
+
+
+test('excavation UI chooses a visible reward and survives reload without its spent order', () => {
+  const storage=createStorage(), state=boot(storage).saved();
+  const coord=Object.keys(state.planets).find(k=>state.planets[k].special==='relic');
+  state.clusters[state.planets[coord].cluster].revealedBy=[0,1,2,3];
+  state.selected=coord;state.players[0].hand=[{key:'excavate',id:'ui-dig'}];
+  state.players[0].resources={matter:1,energy:1,biomass:0,data:2};
+  state.fleets[coord]={0:{explorer:1}};
+  writeSave(storage,state);
+  const game=boot(storage), chosen=state.relicRow[1], replacement=state.relicDeck.at(-1);
+  game.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='ui-dig').click();
+  const choices=game.dom.lastQuery('[data-excavate-relic]');assert.equal(choices.length,3);
+  choices.find(b=>b.dataset.excavateRelic===chosen.id).click();
+  const after=game.saved(), p=after.players[0];
+  assert.equal(after.planets[coord].special,null);assert(!after.fleets[coord]);
+  assert.equal(p.relicsExcavated,1);assert.equal(p.discard.find(c=>c.id===chosen.id).key,chosen.key);assert(!p.hand.some(c=>c.id===chosen.id));
+  assert(![...p.hand,...p.discard,...p.deck].some(c=>c.id==='ui-dig'));
+  assert.equal(after.relicRow[1].id,replacement.id);
+  assert.equal(boot(storage).saved().players[0].relicsExcavated,1);
+});
+
+test('map and Sector Scan show every faction in fog and empty space', () => {
+  const storage=createStorage(), state=boot(storage).saved(), coord=state.clusters[4].coords[1];
+  const empty=['-11,11','11,-11','0,0'].find(key=>!state.planets[key]);assert(empty);
+  state.clusters[4].revealedBy=[];state.clusters[4].scannedBy=[];
+  state.fleets[coord]={2:{explorer:1,fleet:2}};state.fleets[empty]={3:{settler:1}};
+  writeSave(storage,state);const game=boot(storage);
+  for (const [key,name] of [[coord,'Violet Assembly'],[empty,'Helios Compact']]) {
+    const hex=game.dom.hex(key);assert(hex.querySelector('.hex-fleets').innerHTML.includes('hex-fleet-group'));
+    assert(hex.getAttribute('aria-label').includes(name));
+    hex.click();assert(game.dom.element('inspect-facts').innerHTML.includes(name));
+  }
+  assert(game.dom.hex(coord).className.includes('unknown-world'),'Visible units do not reveal terrain');
+});
+
+test('development reveal restores fog and leaves saved discovery unchanged', () => {
+  const storage=createStorage(), state=boot(storage).saved(), coord=state.clusters[4].coords[1];
+  state.planets[coord].owner=2;state.planets[coord].upgrade='harvester';state.planets[coord].upgradeLevel=1;
+  state.fleets[coord]={2:{fleet:1}};state.selected=coord;
+  writeSave(storage,state);
+  const game=boot(storage,20261013,{hostname:'localhost',search:'?dev=1'}), before=storage.getItem(SAVE_KEY);
+  assert.equal(game.dom.element('development-tools').hidden,false);
+  const toggle=game.dom.element('reveal-entire-map'), hex=game.dom.hex(coord);
+  assert(hex.className.includes('unknown-world'));assert.equal(hex.querySelector('.hex-buildings').innerHTML,'');
+  toggle.checked=true;fire(toggle,'change');
+  assert(!hex.className.includes('unknown-world'));assert(hex.querySelector('.hex-buildings').innerHTML);
+  toggle.checked=false;fire(toggle,'change');
+  assert(hex.className.includes('unknown-world'));assert.equal(hex.querySelector('.hex-buildings').innerHTML,'');
+  assert(hex.querySelector('.hex-fleets').innerHTML);assert.equal(storage.getItem(SAVE_KEY),before);
+  assert.equal(boot(storage,20261013,{hostname:'drawing-board-p0g3.onrender.com',search:'?dev=1'}).dom.element('development-tools').hidden,true,'Stable host never exposes development controls');
+});
+
+
+test('Deck opens grouped remaining cards without draw order or save changes', () => {
+ const storage=createStorage(),state=boot(storage).saved();
+ state.players[0].deck=[{key:'move',id:'c2001',starter:true,upgraded:true},{key:'construct',id:'c2002',starter:true},{key:'construct',id:'c2003',starter:true}];
+ writeSave(storage,state);const game=boot(storage),before=storage.getItem(SAVE_KEY);
+ game.click('deck-button');assert(game.dom.element('deck-dialog').open);
+ const content=game.dom.element('deck-row').innerHTML;
+ assert(content.includes('2×'));assert(content.includes('Construct'));assert(content.includes('Move II'));
+ assert(content.indexOf('Construct')<content.indexOf('Move II'),'Names use alphabetical order');
+ assert(!content.includes('c2001')&&!content.includes('c2002'),'Card IDs cannot reveal ordering');
+ game.click('close-deck');assert(!game.dom.element('deck-dialog').open);
+ assert.equal(storage.getItem(SAVE_KEY),before,'Opening/closing never rewrites the save');
+ state.players[0].deck.reverse();writeSave(storage,state);const reversed=boot(storage);reversed.click('deck-button');
+ assert.equal(reversed.dom.element('deck-row').innerHTML,content);
+});
+
+test('starter upgrade UI pays two of the selected resource and preserves Buy', () => {
+ const storage=createStorage(),state=boot(storage).saved();
+ state.phase='buy';state.activePlayer=0;state.turnStage='buy';
+ state.players[0].hand=[{key:'move',id:'ui-upgrade',starter:true}];state.players[0].discard=[];
+ state.players[0].resources={matter:3,energy:3,biomass:0,data:0};writeSave(storage,state);
+ const game=boot(storage);game.dom.element('upgrade-resource').value='energy';fire(game.dom.element('upgrade-resource'),'change');
+ game.dom.lastQuery('[data-upgrade-card]').find(b=>b.dataset.upgradeCard==='ui-upgrade').click();
+ const after=game.saved();assert(after.players[0].hand[0].upgraded);assert.equal(after.players[0].resources.energy,1);
+ assert.equal(after.players[0].resources.matter,3);assert.equal(after.phase,'buy');assert.equal(after.players[0].bought,0);
+ assert(boot(storage).saved().players[0].hand[0].upgraded);
 });
 
 let failed = 0;

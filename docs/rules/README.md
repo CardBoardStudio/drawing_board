@@ -1,6 +1,6 @@
 # Galactic Reach rules maintenance
 
-The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 7.12 / Pass & Buy experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
+The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 14.19 / Fair Frontier experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
 
 ## Read, change, verify
 
@@ -15,11 +15,11 @@ The rulebook is authoritative for intended play. The initial version documents e
 
 | Rulebook anchor | Implementation starting points | Behavior checks |
 | --- | --- | --- |
-| `#setup`, `#round` | `newState`, `generateGalaxy`, `beginRound`, `cleanupRound` in `app.js` | `test-long-reach.cjs`, `test-pass-and-buy.cjs`, `test-galactic-reach-dialogs.cjs` |
+| `#setup`, `#round` | `newState`, `generateGalaxy`, `beginRound`, `cleanupRound` in `app.js` | `test-long-reach.cjs`, `test-pass-and-buy.cjs`, `test-resource-actions.cjs`, `test-galactic-reach-dialogs.cjs` |
 | `#resources`, `#orders`, `#movement` | `produceAll`, `cardResources`, `movementRange`, `reachableFrom`, `applyColonizeOrder` | `test-galactic-reach.cjs`, `test-long-reach.cjs` |
-| `#building`, `#combat` | `constructAt`, `buildResearchStation`, `resolveCombat`, `colonizePlanet` | `test-galactic-reach.cjs` |
-| `#trade`, `#buy` | `offerTrade`, `respondTrade`, `buyCard`, `upgradeStarter`, `decommission` | `test-galactic-reach.cjs`, `test-long-reach.cjs` |
-| `#politics`, `#victory` | `enactPolicy`, `applyDirective`, `calculatePrestige`, `finishRound` | `test-long-reach.cjs`, `test-pass-and-buy.cjs`, `test-galactic-reach-dialogs.cjs` |
+| `#building`, `#combat` | `constructAt`, `excavate`, `resolveCombat`, `colonizePlanet` | `test-galactic-reach.cjs` |
+| `#resources`, `#trade`, `#buy` | `offerTrade`, `respondTrade`, `buyCard`, `upgradeStarter`, `decommission`, `increaseStorage` | `test-galactic-reach.cjs`, `test-long-reach.cjs` |
+| `#politics`, `#victory` | `cleanupRound`, `calculatePrestige`, `finishRound` | `test-long-reach.cjs`, `test-pass-and-buy.cjs`, `test-resource-actions.cjs`, `test-galactic-reach-dialogs.cjs` |
 | `#cards`, `#clarifications` | card definitions, `resolveHumanSpecial`, `useBuyEffect`, `resolveCombat`; legal actions in `adapter.js` | relevant mechanic regression, added when resolving each discrepancy |
 
 Engine files are under `prototypes/galactic-reach/`; check scripts are under `scripts/`. The Rust adapter in `crates/galactic-reach/` embeds the same JavaScript. Historical engines remain under `crates/galactic-reach/rules/`. Do not revise an archived ruleset's meaning to match the current manual.
@@ -32,4 +32,22 @@ Engine files are under `prototypes/galactic-reach/`; check scripts are under `sc
 - GitHub's `Rules contract` job checks every PR's grounding declaration. Known rule-bearing paths require the canonical rulebook in the diff; a declaration of changed gameplay also requires it. UI-only changes inside shared engine files are conservatively included. A reviewer must still catch logic changes elsewhere and assess whether the document update is meaningful.
 - `scripts/build-web.sh` copies the HTML and CSS directly into `dist/galactic-reach/`; Docker copies that same directory. No account, external publishing service, client script, or game save is needed to read rules.
 
-The 7.12 experiment buys immediately on passing and permits starter trashing. The archived 6.11 manual and browser remain at `/galactic-reach/rules/6.11/`. Every deployment is a snapshot: a preview serves that PR's rulebook and the stable deployment serves the adopted rulebook. The new v7 guest keys and version-pinned tables isolate this experiment from ongoing games. The [tutorial brief](tutorial.md) is the next stage after rules review, not an implemented tutorial.
+The 9.14 experiment removes influence and policy voting. Settlers replace Scouts at movement 1, Explorers replace Researchers at movement 3, and Frigates move 2. Each faction starts with a Colony and one Settler on it, without a Shipyard. Resource directives and the 8.13 resource actions remain. Archived engines and manuals preserve earlier games, and v9 guest keys isolate new games. The [tutorial brief](tutorial.md) is the next stage after rules review, not an implemented tutorial.
+
+## Preview change summaries
+
+Every player-facing preview has a visible “What’s new in this playtest” summary in the game. Update it for the PR’s changes, link the relevant rulebook sections, and state when testers need a new game. Keep it concise and distinguish a stacked PR’s additions from its parent. Verify it on localhost and the successful Render preview; review the wording again when adopting the change.
+
+The 10.15 iteration removes Research Stations, Dreadnoughts, Gates, and Gate Synchronization. Fleet replaces Frigate at movement 2. Capacity grows by 5 for 2 Matter, 1 Energy, and 1 Data during Operations or Buy without using a card, action, purchase, or map hex. Explorers recover relics for the former station cost using Construct, and three recoveries unlock relic exchanges. The complete 9.14 rules remain archived; new games use v10 saves.
+
+The 11.16 revision overrides the earlier Relic infrastructure. Start with only a Colony and a six-card deck; commission all units at Shipyards. Settler and Explorer purchases grant Colonize and Probe respectively, outside the basic market. Research Stations grant 1 Prestige and an immediate private draw from the 12-card alien deck; inventory, recovery counters, and exchanges are gone. The 11.16 saves use v11 and prior 10.15 assets and AI policies remain archived.
+
+The 12.17 playtest removes public awards and council directives, reduces the resource panel, permits discovery by every ship type, and prices each trash at three of one chosen resource type. Full resource gains remain stored until the owning player chooses the excess discards, including across reloads. New guest saves use v12; 11.16 browser assets and policy-v7 agents remain archived.
+
+The 13.18 experiment removes stations, replaces Explorer-bundled Probe with Excavate directly in hand, and uses a public three-card relic row. Excavation costs 1 Matter, 1 Energy, and 2 Data, keeps the Explorer, removes the site, grants one permanent Prestige and the chosen relic to hand, and trashes Excavate. The map has 12 worlds, four non-producing moons, and 12 relics with separated terrain. All units remain visible under fog; the preview-only development reveal changes only local rendering. Complete 12.17 assets and policy-v8 remain immutable.
+
+The 14.19 Fair Frontier experiment consumes one Explorer per successful excavation, prices starter upgrades at two of a selected resource type, removes Rich and Terraforming Protocols, and allows private unordered deck inspection. Worldweaver Spore retains its one-time resource gain. Complete 13.18 browser assets and policy-v9 remain immutable.
+
+The radius-11 map has 397 cells. Generation places two inner worlds and one moon in each unique-nearest-home region. Near worlds are 5–6 center steps from home; the other world is 7–9. Nearest-world and nearest-moon distances differ by at most one step across factions; second-nearest-world distances differ by at most two. Worlds have center gaps of at least four, moons stay at least three from world centers and two from each other, and every board cell is within six steps of terrain. Bounded random retries use a validated balanced fallback. These numerical bounds are regression-tested over 1,000 seeds and adversarial constant random sources.
+
+Every newly gained card in 14.19 enters discard and must reach hand through normal shuffle/draw before use, including both unit bundles and relic rewards. A single gainCard primitive enforces this default. Draws and returns of already-owned cards keep their printed effects. This supersedes 13.18’s immediate-hand Explorer bundle and relic reward.

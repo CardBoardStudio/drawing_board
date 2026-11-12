@@ -1,0 +1,14 @@
+// New-map/save isolation and immutable Ten Prestige assets/policy.
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),crypto=require('node:crypto'),path=require('node:path');
+const root=path.join(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p),'utf8'),hash=s=>crypto.createHash('sha256').update(s).digest('hex');
+const hashes={"app.js": "556237ff7a64ea8af22172a14e8283085d171cd80235d4d392c29404be80268c", "adapter.js": "a52c87552a9064d21b3615748772c2c6b8b394c92ad8004e9c36344c058822fa", "index.html": "7ba4b88963a1e88705b8df7f1e5afa4e75c5a17f3acfab52750645f3b78f3ac7", "styles.css": "f4ef51fc6b513bc66de56a12557430d8c4538dc16cdc3882150935da4220af0c", "rulebook.html": "1a0ec3e4681f0be9c75be2c81776cbeb1e7b8f170f07d5a8f8f30f03c0a61599", "rulebook.css": "c89d7ff15fc902e2dda07d2ef54213e9ec09796a736c596dbc411c12fa5c1e5b", "replay.js": "0bc37bf1ec18de7916f4823589412aa2144a5c74448923f81e6caba5b09bc836"};
+for(const [name,expected] of Object.entries(hashes))assert.equal(hash(read('crates/galactic-reach/rules/v17-'+name)),expected,'Archived17.22 '+name);
+function load(prefix){const c=vm.createContext({});let e;vm.runInContext(read(prefix+'adapter.js')+read(prefix+'app.js'),c);const original=c.createGalacticAdapter;c.createGalacticAdapter=p=>{e=p;return original(p);};const a=c.createGalacticReach({headless:true,random:()=>0});return{a,e,s:e.state};}
+const old=load('crates/galactic-reach/rules/v17-'),current=load('prototypes/galactic-reach/');
+assert.equal(old.a.rulesVersion,'galactic-reach/17.22');assert.equal(old.s.version,17);assert.equal(old.s.clusters.length,16);assert(!('combatVictories' in old.s.players[0]));assert(old.e.STRUCTURES.starbase.upgradeCost);
+assert.equal(current.a.rulesVersion,'galactic-reach/20.25');assert.equal(current.s.version,20);assert.equal(current.s.rulesRevision,25);assert.equal(current.s.clusters.length,17);assert.equal(Object.keys(current.s.planets).length,95);assert.equal(current.s.players[0].combatVictories,0);assert(!current.e.STRUCTURES.starbase.upgradeCost);
+assert(read('prototypes/galactic-reach/table.js').includes("'galactic-reach/17.22':{format:17,path:'/galactic-reach/rules/17.22/'}"));assert(read('prototypes/lab/replay.js').includes("'galactic-reach/17.22':'/galactic-reach/rules/17.22/'"));assert(read('scripts/build-web.sh').includes('dist/galactic-reach/rules/17.22'));
+const policy=read('crates/galactic-reach/src/legacy_v13.rs').slice(read('crates/galactic-reach/src/legacy_v13.rs').indexOf('#[derive(Clone, Copy, Debug)]')).trim();
+assert.equal(hash(policy),'e2e737fbd376bd28e46b7cb26703dffe7f1d7b122dfbc7d179f6c1f6d451ccef');
+assert(policy.includes('gr-military/13'));assert(read('crates/galactic-reach/src/lib.rs').includes('gr-military/16'));
+console.log('Central Frontier:13-world map,95 terrain hexes,20.25/save20 isolation, archived17.22 browser/policy13 and pinned routes passed.');

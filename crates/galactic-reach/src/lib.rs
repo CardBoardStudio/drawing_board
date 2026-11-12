@@ -8,13 +8,35 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/7.12";
+pub const RULES: &str = "galactic-reach/20.25";
 mod legacy_v1;
+mod legacy_v10;
+mod legacy_v11;
+mod legacy_v12;
+mod legacy_v13;
+mod legacy_v14;
+mod legacy_v15;
 mod legacy_v2;
+mod legacy_v3;
+mod legacy_v4;
+mod legacy_v5;
+mod legacy_v6;
+mod legacy_v7;
+mod legacy_v8;
+mod legacy_v9;
 mod replay;
 pub use replay::Trace;
 const ENGINE: &str = include_str!("../../../prototypes/galactic-reach/app.js");
 const ADAPTER: &str = include_str!("../../../prototypes/galactic-reach/adapter.js");
+const MATCH_TIMEOUT: Duration = Duration::from_secs(300);
+pub const SIMULATION_TIMEOUT: &str = "Galactic Reach simulation exceeded its time limit.";
+fn execution_error(deadline: Instant, error: impl ToString) -> String {
+    if Instant::now() >= deadline {
+        SIMULATION_TIMEOUT.into()
+    } else {
+        error.to_string()
+    }
+}
 #[derive(Deserialize)]
 struct Snapshot {
     active: Option<usize>,
@@ -24,13 +46,14 @@ struct Snapshot {
 }
 pub struct GalacticReach {
     context: Context,
+    deadline: Instant,
     snapshot: Snapshot,
     rules: &'static str,
     trace: Option<Trace>,
 }
 impl GalacticReach {
     pub fn new(seed: [u8; 32]) -> Result<Self, String> {
-        Self::with_timeout(seed, Duration::from_secs(90))
+        Self::with_timeout(seed, MATCH_TIMEOUT)
     }
     fn with_timeout(seed: [u8; 32], timeout: Duration) -> Result<Self, String> {
         Self::initialize(seed, timeout, RULES)
@@ -41,9 +64,22 @@ impl GalacticReach {
             "galactic-reach/4.9" => "galactic-reach/4.9",
             "galactic-reach/5.10" => "galactic-reach/5.10",
             "galactic-reach/6.11" => "galactic-reach/6.11",
+            "galactic-reach/7.12" => "galactic-reach/7.12",
+            "galactic-reach/8.13" => "galactic-reach/8.13",
+            "galactic-reach/9.14" => "galactic-reach/9.14",
+            "galactic-reach/10.15" => "galactic-reach/10.15",
+            "galactic-reach/11.16" => "galactic-reach/11.16",
+            "galactic-reach/12.17" => "galactic-reach/12.17",
+            "galactic-reach/13.18" => "galactic-reach/13.18",
+            "galactic-reach/14.19" => "galactic-reach/14.19",
+            "galactic-reach/15.20" => "galactic-reach/15.20",
+            "galactic-reach/16.21" => "galactic-reach/16.21",
+            "galactic-reach/17.22" => "galactic-reach/17.22",
+            "galactic-reach/18.23" => "galactic-reach/18.23",
+            "galactic-reach/19.24" => "galactic-reach/19.24",
             _ => return Err("Unsupported rules version.".into()),
         };
-        Self::initialize(seed, Duration::from_secs(90), rules)
+        Self::initialize(seed, MATCH_TIMEOUT, rules)
     }
     fn initialize(seed: [u8; 32], timeout: Duration, rules: &'static str) -> Result<Self, String> {
         let runtime = Runtime::new().map_err(|e| e.to_string())?;
@@ -62,6 +98,19 @@ impl GalacticReach {
                 )?;
                 ctx.eval::<(), _>(match rules {
                     RULES => ADAPTER,
+                    "galactic-reach/17.22" => include_str!("../rules/v17-adapter.js"),
+                    "galactic-reach/18.23" => include_str!("../rules/v18-adapter.js"),
+                    "galactic-reach/19.24" => include_str!("../rules/v19-adapter.js"),
+                    "galactic-reach/16.21" => include_str!("../rules/v16-adapter.js"),
+                    "galactic-reach/15.20" => include_str!("../rules/v15-adapter.js"),
+                    "galactic-reach/14.19" => include_str!("../rules/v14-adapter.js"),
+                    "galactic-reach/13.18" => include_str!("../rules/v13-adapter.js"),
+                    "galactic-reach/12.17" => include_str!("../rules/v12-adapter.js"),
+                    "galactic-reach/11.16" => include_str!("../rules/v11-adapter.js"),
+                    "galactic-reach/10.15" => include_str!("../rules/v10-adapter.js"),
+                    "galactic-reach/9.14" => include_str!("../rules/v9-adapter.js"),
+                    "galactic-reach/8.13" => include_str!("../rules/v8-adapter.js"),
+                    "galactic-reach/7.12" => include_str!("../rules/v7-adapter.js"),
                     "galactic-reach/6.11" => include_str!("../rules/v6-adapter.js"),
                     "galactic-reach/5.10" => include_str!("../rules/v5-adapter.js"),
                     _ => include_str!("../rules/v4-adapter.js"),
@@ -69,6 +118,19 @@ impl GalacticReach {
                 ctx.eval::<(), _>(include_str!("../rules/replay-view.js"))?;
                 ctx.eval::<(), _>(match rules {
                     RULES => ENGINE,
+                    "galactic-reach/17.22" => include_str!("../rules/v17-app.js"),
+                    "galactic-reach/18.23" => include_str!("../rules/v18-app.js"),
+                    "galactic-reach/19.24" => include_str!("../rules/v19-app.js"),
+                    "galactic-reach/16.21" => include_str!("../rules/v16-app.js"),
+                    "galactic-reach/15.20" => include_str!("../rules/v15-app.js"),
+                    "galactic-reach/14.19" => include_str!("../rules/v14-app.js"),
+                    "galactic-reach/13.18" => include_str!("../rules/v13-app.js"),
+                    "galactic-reach/12.17" => include_str!("../rules/v12-app.js"),
+                    "galactic-reach/11.16" => include_str!("../rules/v11-app.js"),
+                    "galactic-reach/10.15" => include_str!("../rules/v10-app.js"),
+                    "galactic-reach/9.14" => include_str!("../rules/v9-app.js"),
+                    "galactic-reach/8.13" => include_str!("../rules/v8-app.js"),
+                    "galactic-reach/7.12" => include_str!("../rules/v7-app.js"),
                     "galactic-reach/6.11" => include_str!("../rules/v6-app.js"),
                     "galactic-reach/5.10" => include_str!("../rules/v5-app.js"),
                     _ => include_str!("../rules/v4-app.js"),
@@ -77,10 +139,16 @@ impl GalacticReach {
                     "globalThis.game = createGalacticReach({headless: true, random: gameRandom});",
                 )
             })
-            .map_err(|e| format!("Galactic Reach initialization failed: {e}"))?;
-        let snapshot = Self::read_snapshot(&context)?;
+            .map_err(|e| {
+                execution_error(
+                    deadline,
+                    format!("Galactic Reach initialization failed: {e}"),
+                )
+            })?;
+        let snapshot = Self::read_snapshot(&context, deadline)?;
         Ok(Self {
             context,
+            deadline,
             snapshot,
             rules,
             trace: None,
@@ -94,16 +162,24 @@ impl GalacticReach {
         self.trace.take()
     }
     fn replay_view(&self) -> Result<Value, String> {
+        if Instant::now() >= self.deadline {
+            return Err(SIMULATION_TIMEOUT.into());
+        }
         let json = self
             .context
             .with(|ctx| ctx.eval::<String, _>("JSON.stringify(game.replayView())"))
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| execution_error(self.deadline, e))?;
         serde_json::from_str(&json).map_err(|e| e.to_string())
     }
-    fn read_snapshot(context: &Context) -> Result<Snapshot, String> {
+    fn read_snapshot(context: &Context, deadline: Instant) -> Result<Snapshot, String> {
+        if Instant::now() >= deadline {
+            return Err(SIMULATION_TIMEOUT.into());
+        }
         let json = context
             .with(|ctx| ctx.eval::<String, _>("JSON.stringify(game.snapshot())"))
-            .map_err(|e| format!("Galactic Reach execution failed: {e}"))?;
+            .map_err(|e| {
+                execution_error(deadline, format!("Galactic Reach execution failed: {e}"))
+            })?;
         serde_json::from_str(&json).map_err(|e| e.to_string())
     }
 }
@@ -137,13 +213,18 @@ impl GameAdapter for GalacticReach {
         }
     }
     fn apply_action(&mut self, seat: usize, action: Value) -> Result<(), String> {
+        if Instant::now() >= self.deadline {
+            return Err(SIMULATION_TIMEOUT.into());
+        }
         if self.snapshot.active != Some(seat) || !self.snapshot.legal.contains(&action) {
             return Err("Illegal action.".into());
         }
         self.context
             .with(|ctx| ctx.eval::<(), _>(format!("game.applyAction({seat}, {});", action)))
-            .map_err(|e| format!("Galactic Reach action failed: {e}"))?;
-        self.snapshot = Self::read_snapshot(&self.context)?;
+            .map_err(|e| {
+                execution_error(self.deadline, format!("Galactic Reach action failed: {e}"))
+            })?;
+        self.snapshot = Self::read_snapshot(&self.context, self.deadline)?;
         if self.trace.is_some() {
             let view = self.replay_view()?;
             if let Some(trace) = self.trace.as_mut() {
@@ -167,18 +248,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/3",
-            Self::Economy => "gr-economy/3",
-            Self::Expansion => "gr-expansion/3",
-            Self::Wanderer => "gr-wanderer/3",
+            Self::Military => "gr-military/16",
+            Self::Economy => "gr-economy/16",
+            Self::Expansion => "gr-expansion/16",
+            Self::Wanderer => "gr-wanderer/16",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/3" => Some(Self::Military),
-            "gr-economy/3" => Some(Self::Economy),
-            "gr-expansion/3" => Some(Self::Expansion),
-            "gr-wanderer/3" => Some(Self::Wanderer),
+            "gr-military/16" => Some(Self::Military),
+            "gr-economy/16" => Some(Self::Economy),
+            "gr-expansion/16" => Some(Self::Expansion),
+            "gr-wanderer/16" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -211,14 +292,82 @@ impl BuiltinAgent {
         let me = &view["players"][seat];
         let military = matches!(self.strategy, Strategy::Military);
         let economy = matches!(self.strategy, Strategy::Economy);
-        let track = if military {
-            "technology"
-        } else if economy {
-            "economy"
-        } else {
-            "expansion"
-        };
         match action["type"].as_str().unwrap_or("") {
+            "combat_stay" => 30.0,
+            "combat_escape" => {
+                let combat = &view["combat"];
+                let side = combat["side"].as_str().unwrap();
+                let own = &combat["sides"][side];
+                let enemy = &combat["sides"][if side == "attacker" {
+                    "defender"
+                } else {
+                    "attacker"
+                }];
+                let all_explorers = own["pieces"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .all(|p| p["type"] == "explorer");
+                let enemy_attack: f64 = enemy["pieces"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .filter(|p| number(&p["damage"]) < number(&p["hull"]))
+                    .map(|p| number(&p["power"]))
+                    .sum();
+                if all_explorers || enemy_attack >= 3.0 {
+                    80.0 + number(&action["amount"])
+                } else {
+                    10.0
+                }
+            }
+            "combat_tactic" => {
+                // Only public used tactics and our own hand are in this view.
+                // An opponent's pending commitment is deliberately unavailable.
+                let combat = &view["combat"];
+                let side = combat["side"].as_str().unwrap();
+                let own = &combat["sides"][side];
+                let enemy = &combat["sides"][if side == "attacker" {
+                    "defender"
+                } else {
+                    "attacker"
+                }];
+                let stats = |force: &Value| -> (f64, f64) {
+                    force["pieces"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .filter(|p| number(&p["damage"]) < number(&p["hull"]))
+                        .fold((0.0, 0.0), |(power, hull), p| {
+                            (
+                                power + number(&p["power"]),
+                                hull + number(&p["hull"]) - number(&p["damage"]),
+                            )
+                        })
+                };
+                let (own_attack, own_hull) = stats(own);
+                let (enemy_attack, enemy_hull) = stats(enemy);
+                let used = enemy["used"].as_array().unwrap();
+                let fire = 2.0
+                    - used
+                        .iter()
+                        .filter(|key| **key == "concentratedFire")
+                        .count() as f64;
+                let probability = fire / (4.0 - used.len() as f64);
+                let screen = action["tactic"] == "defensiveScreen";
+                let dealt = (own_attack + if screen { 0.0 } else { 1.0 }
+                    - (1.0 - probability) * 2.0)
+                    .max(0.0);
+                let received =
+                    (enemy_attack + probability - if screen { 2.0 } else { 0.0 }).max(0.0);
+                50.0 + dealt - received * 0.75 + if dealt >= enemy_hull { 8.0 } else { 0.0 }
+                    - if received >= own_hull { 10.0 } else { 0.0 }
+                    + if screen && side == "defender" && combat["volley"] == 3 {
+                        2.0
+                    } else {
+                        0.0
+                    }
+            }
             "trade_accept" => {
                 let offer = view["tradeOffers"]
                     .as_array()
@@ -265,19 +414,11 @@ impl BuiltinAgent {
             }
             "colonize" => 100.0,
             "build" | "colony_build" => match action["kind"].as_str().unwrap_or("") {
-                "research" => 95.0,
                 "starbase" => {
                     if military {
                         72.0
                     } else {
                         64.0
-                    }
-                }
-                "warehouse" => {
-                    if number(&me["capacity"]) < 20.0 {
-                        85.0
-                    } else {
-                        25.0
                     }
                 }
                 "harvester" => {
@@ -287,16 +428,16 @@ impl BuiltinAgent {
                         65.0
                     }
                 }
-                "scout" => {
-                    let scouts: f64 = view["fleets"]
+                "settler" => {
+                    let settlers: f64 = view["fleets"]
                         .as_object()
                         .unwrap()
                         .values()
-                        .map(|g| number(&g[seat.to_string()]["scout"]))
+                        .map(|g| number(&g[seat.to_string()]["settler"]))
                         .sum();
-                    if scouts < 3.0 { 82.0 } else { 20.0 }
+                    if settlers < 3.0 { 82.0 } else { 20.0 }
                 }
-                "researcher" => 30.0,
+                "explorer" => 30.0,
                 _ => {
                     if military {
                         78.0
@@ -317,20 +458,24 @@ impl BuiltinAgent {
                 let from = action["source"].as_str().unwrap();
                 let to = action["destination"].as_str().unwrap();
                 let fleet = &view["fleets"][from][seat.to_string()];
-                let researcher = action["moveGroup"] == "researcher";
+                let explorer = action["moveGroup"] == "explorer";
                 let mut best = -10.0_f64;
                 for (coord, p) in view["planets"].as_object().unwrap() {
                     let center = view["clusters"][p["cluster"].as_u64().unwrap() as usize]["center"]
                         == *coord;
-                    let goal = if researcher {
+                    let goal = if explorer {
                         p["relicSignal"] == true
-                            || p["special"] == "relic" && p["researchStationOwner"].is_null()
-                    } else if military
-                        && number(&fleet["frigate"]) + number(&fleet["dreadnought"]) > 1.0
-                    {
+                            || p["special"] == "relic"
+                            || (center
+                                && view["clusters"][p["cluster"].as_u64().unwrap() as usize]["surveyed"]
+                                    == false)
+                    } else if military && number(&fleet["fleet"]) > 1.0 {
                         !p["owner"].is_null() && p["owner"] != json!(seat)
                     } else {
-                        center && p["owner"].is_null() && number(&fleet["scout"]) > 0.0
+                        center
+                            && p["type"] != "moon"
+                            && p["owner"].is_null()
+                            && number(&fleet["settler"]) > 0.0
                     };
                     if !goal {
                         continue;
@@ -343,18 +488,12 @@ impl BuiltinAgent {
                 }
                 best
             }
-            "probe" => 15.0,
+            "excavate" => 95.0,
             "special" => 50.0,
-            "terraform" => {
-                if economy {
-                    75.0
-                } else {
-                    45.0
-                }
-            }
+
             "buy_effect" => 100.0,
             "upgrade" => {
-                if number(&me["resources"]["data"]) >= 2.0 {
+                if number(&me["resources"][action["resource"].as_str().unwrap()]) >= 2.0 {
                     95.0
                 } else {
                     5.0
@@ -372,7 +511,7 @@ impl BuiltinAgent {
                     [
                         "industrialSurge",
                         "modularConstruction",
-                        "terraformingProtocols",
+                        "tradeConsortium",
                         "construct",
                     ]
                 } else {
@@ -389,20 +528,61 @@ impl BuiltinAgent {
                     70.0
                 }
             }
-            "directive" => {
-                if action["directive"] == track {
-                    10.0
+            "increase_storage" => {
+                let used: f64 = me["resources"]
+                    .as_object()
+                    .unwrap()
+                    .values()
+                    .map(number)
+                    .sum();
+                if number(&me["capacity"]) - used <= 2.0 {
+                    90.0
                 } else {
-                    0.0
+                    -20.0
                 }
             }
-            "vote" => {
-                let target = (1.0 + (number(&view["round"]) / 6.0).floor())
-                    .min(number(&me["tracks"][action["track"].as_str().unwrap()]));
-                (if action["track"] == track { 20.0 } else { 0.0 })
-                    - (number(&action["bid"]) - target).abs()
+            "bank_trade" => {
+                let give = action["giveType"].as_str().unwrap();
+                let get = action["getType"].as_str().unwrap();
+                if get == "data"
+                    && number(&me["resources"][give]) >= 4.0
+                    && number(&me["resources"]["data"]) < 2.0
+                {
+                    // The Colony-only deck has no Data conversion before its first Explorer.
+                    if view["phase"] == "buy" { 35.0 } else { 75.0 }
+                } else if number(&me["resources"][give]) >= 5.0
+                    && number(&me["resources"][get]) < 2.0
+                {
+                    // Keep one of the given resource; favor scarce Data during Buy.
+                    if view["phase"] == "buy" && get == "data" {
+                        35.0
+                    } else {
+                        12.0
+                    }
+                } else {
+                    -20.0
+                }
             }
-            "decommission" | "exchange_relic" => -10.0,
+            // Voluntary discards are exposed for players; policies never discard blindly.
+            "consortium_gain" => {
+                30.0 - number(&me["resources"][action["resource"].as_str().unwrap()])
+            }
+            "consortium_exchange" => {
+                let give = number(&me["resources"][action["giveType"].as_str().unwrap()]);
+                let get = number(&me["resources"][action["getType"].as_str().unwrap()]);
+                if give > get + 1.0 {
+                    20.0 + give - get
+                } else {
+                    -5.0
+                }
+            }
+            "finish_consortium" => 0.0,
+            "cancel_consortium" | "discard_resources" => -50.0,
+            "discard_overflow" => {
+                let resource = action["resource"].as_str().unwrap();
+                number(&me["resources"][resource]) + number(&action["amount"]) * 0.01
+            }
+            "decommission" => -10.0,
             _ => 0.0,
         }
     }
@@ -444,6 +624,45 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
     if let Some(strategy) = legacy_v2::Strategy::parse(version) {
         return Ok(Box::new(legacy_v2::BuiltinAgent::new(strategy, seed)));
     }
+    if let Some(strategy) = legacy_v3::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v3::BuiltinAgent::new(strategy, seed)));
+    }
+    if let Some(strategy) = legacy_v4::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v4::BuiltinAgent::new(strategy, seed)));
+    }
+    if let Some(strategy) = legacy_v5::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v5::BuiltinAgent::new(strategy, seed)));
+    }
+    if let Some(strategy) = legacy_v6::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v6::BuiltinAgent::new(strategy, seed)));
+    }
+    if let Some(strategy) = legacy_v7::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v7::BuiltinAgent::new(strategy, seed)));
+    }
+    if let Some(strategy) = legacy_v8::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v8::BuiltinAgent::new(strategy, seed)));
+    }
+    if let Some(strategy) = legacy_v9::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v9::BuiltinAgent::new(strategy, seed)));
+    }
+    if let Some(strategy) = legacy_v10::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v10::BuiltinAgent::new(strategy, seed)));
+    }
+    if let Some(strategy) = legacy_v11::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v11::BuiltinAgent::new(strategy, seed)));
+    }
+    if let Some(strategy) = legacy_v12::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v12::BuiltinAgent::new(strategy, seed)));
+    }
+    if let Some(strategy) = legacy_v13::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v13::BuiltinAgent::new(strategy, seed)));
+    }
+    if let Some(strategy) = legacy_v14::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v14::BuiltinAgent::new(strategy, seed)));
+    }
+    if let Some(strategy) = legacy_v15::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v15::BuiltinAgent::new(strategy, seed)));
+    }
     Err("Unsupported Galactic Reach policy version.".into())
 }
 
@@ -452,11 +671,69 @@ mod tests {
     use super::*;
     use game_core::run_match;
     #[test]
+    fn combat_policy_uses_public_damage_and_used_tactics() {
+        let agent = BuiltinAgent::new(Strategy::Military, [7; 32]);
+        let mut view = json!({"seat":0,"players":[{"resources":{}}],"combat":{
+            "side":"attacker","volley":2,"sides":{
+                "attacker":{"pieces":[{"type":"fleet","power":3,"hull":7,"damage":0}],"used":[]},
+                "defender":{"pieces":[{"type":"fleet","power":3,"hull":7,"damage":5}],"used":["concentratedFire","concentratedFire"],"committed":true}
+            }
+        }});
+        let fire = json!({"type":"combat_tactic","tactic":"concentratedFire"});
+        let screen = json!({"type":"combat_tactic","tactic":"defensiveScreen"});
+        assert!(
+            agent.score(&view, &fire) > agent.score(&view, &screen),
+            "Fire can finish a damaged enemy through its remaining Screens"
+        );
+        view["combat"]["sides"]["attacker"]["pieces"][0]["damage"] = json!(5);
+        view["combat"]["sides"]["defender"]["pieces"][0]["damage"] = json!(0);
+        view["combat"]["sides"]["defender"]["used"] = json!([]);
+        assert!(
+            agent.score(&view, &screen) > agent.score(&view, &fire),
+            "Screen can preserve a damaged Fleet for another decision"
+        );
+        let scores = (agent.score(&view, &fire), agent.score(&view, &screen));
+        view["combat"]["sides"]["defender"]["committed"] = json!(false);
+        assert_eq!(
+            scores,
+            (agent.score(&view, &fire), agent.score(&view, &screen)),
+            "Commitment status does not reveal or predict its card"
+        );
+    }
+
+    #[test]
+    fn current_agents_bootstrap_data_before_explorers() {
+        let agent = BuiltinAgent::new(Strategy::Military, [7; 32]);
+        let view = json!({
+            "seat": 0,
+            "phase": "operations",
+            "players": [{
+                "resources": {"matter": 4, "energy": 4, "biomass": 2, "data": 0},
+                "capacity": 10
+            }]
+        });
+        let bank = json!({"type":"bank_trade","giveType":"energy","getType":"data"});
+        assert!(agent.score(&view, &bank) > agent.score(&view, &json!({"type":"pass"})));
+    }
+    #[test]
     fn archived_rules_and_policies_still_load() {
         for rules in [
             "galactic-reach/4.9",
             "galactic-reach/5.10",
             "galactic-reach/6.11",
+            "galactic-reach/7.12",
+            "galactic-reach/8.13",
+            "galactic-reach/9.14",
+            "galactic-reach/10.15",
+            "galactic-reach/11.16",
+            "galactic-reach/12.17",
+            "galactic-reach/13.18",
+            "galactic-reach/14.19",
+            "galactic-reach/15.20",
+            "galactic-reach/16.21",
+            "galactic-reach/17.22",
+            "galactic-reach/18.23",
+            "galactic-reach/19.24",
         ] {
             let game = GalacticReach::with_rules([19; 32], rules).unwrap();
             assert_eq!(game.rules_version(), rules);
@@ -464,11 +741,49 @@ mod tests {
             game.apply_action(0, json!({"type":"pass"})).unwrap();
             assert_eq!(
                 game.active_seat(),
-                Some(1),
-                "Archived passes still advance Operations"
+                Some(
+                    if matches!(
+                        rules,
+                        "galactic-reach/7.12"
+                            | "galactic-reach/8.13"
+                            | "galactic-reach/9.14"
+                            | "galactic-reach/10.15"
+                            | "galactic-reach/11.16"
+                            | "galactic-reach/12.17"
+                            | "galactic-reach/13.18"
+                            | "galactic-reach/14.19"
+                            | "galactic-reach/15.20"
+                            | "galactic-reach/16.21"
+                            | "galactic-reach/17.22"
+                            | "galactic-reach/18.23"
+                            | "galactic-reach/19.24"
+                    ) {
+                        0
+                    } else {
+                        1
+                    },
+                ),
+                "Archived passes retain their original timing"
             );
         }
-        for policy in ["gr-military/1", "gr-economy/2"] {
+        for policy in [
+            "gr-military/1",
+            "gr-economy/2",
+            "gr-expansion/3",
+            "gr-military/4",
+            "gr-expansion/5",
+            "gr-economy/6",
+            "gr-military/7",
+            "gr-military/8",
+            "gr-military/9",
+            "gr-military/10",
+            "gr-military/11",
+            "gr-military/12",
+            "gr-military/13",
+            "gr-military/14",
+            "gr-military/15",
+            "gr-military/16",
+        ] {
             assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
         }
     }
@@ -484,12 +799,22 @@ mod tests {
         assert!(me.get("deck").is_none());
         assert!(me.get("militaryDeck").is_none());
         assert!(before.get("advancedDeck").is_none());
+        assert_eq!(before["planets"].as_object().unwrap().len(), 91);
         assert!(
             before["planets"]
                 .as_object()
                 .unwrap()
                 .values()
-                .any(|p| p["unknown"] == true && p.get("type").is_none())
+                .all(|p| p.get("type").is_some() && p["special"].is_null())
+        );
+        assert_eq!(
+            before["clusters"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|c| c["kind"] == "unknown" && c["center"].is_null())
+                .count(),
+            4
         );
         assert!(g.legal_actions(1).is_empty());
         assert!(g.apply_action(1, json!({"type":"pass"})).is_err());
@@ -511,7 +836,7 @@ mod tests {
     #[test]
     fn reference_policies_complete_reproducible_four_player_matches() {
         let play = || {
-            let mut game = GalacticReach::new([17; 32]).unwrap();
+            let mut game = GalacticReach::new([8; 32]).unwrap();
             let mut agents: Vec<Box<dyn PlayerAgent<GalacticReach>>> = [
                 Strategy::Military,
                 Strategy::Economy,
@@ -535,6 +860,25 @@ mod tests {
     }
     #[test]
     fn execution_deadline_interrupts_javascript() {
-        assert!(GalacticReach::with_timeout([1; 32], Duration::ZERO).is_err());
+        assert_eq!(
+            GalacticReach::with_timeout([1; 32], Duration::ZERO)
+                .err()
+                .unwrap(),
+            SIMULATION_TIMEOUT
+        );
+        let mut game = GalacticReach::new([17; 32]).unwrap();
+        let before = game.observe(0).unwrap();
+        let action = game.legal_actions(0)[0].clone();
+        game.deadline = Instant::now();
+        assert_eq!(
+            game.apply_action(0, action).unwrap_err(),
+            SIMULATION_TIMEOUT
+        );
+        assert_eq!(
+            game.observe(0).unwrap(),
+            before,
+            "An expired simulation never applies another action"
+        );
+        assert!(game.scores().is_none());
     }
 }

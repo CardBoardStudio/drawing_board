@@ -1,0 +1,711 @@
+{
+  "main10": {
+    "games": 768,
+    "status": {
+      "finished": 768
+    },
+    "medianRound": 22.0,
+    "meanRound": 22.479166666666668,
+    "p10Round": 18.0,
+    "p90Round": 27.0,
+    "byStrategy": {
+      "military": {
+        "wins": 91,
+        "appearances": 1024,
+        "winShare": 11.848958333333334,
+        "winRatePerAppearance": 8.88671875,
+        "winShareCI95": [
+          9.505208333333334,
+          14.453125
+        ],
+        "prestige": 6.912109375,
+        "colonies": 1.0986328125,
+        "yards": 3.10546875,
+        "relics": 2.96875,
+        "bought": 15.4248046875,
+        "frontierPrestige": 0.00390625,
+        "yardPrestige": 1.3466796875,
+        "deckPrestige": 1.494140625,
+        "ships": {
+          "settler": 3.0625,
+          "explorer": 3.796875,
+          "fleet": 4.3935546875
+        }
+      },
+      "economy": {
+        "wins": 215,
+        "appearances": 1024,
+        "winShare": 27.994791666666668,
+        "winRatePerAppearance": 20.99609375,
+        "winShareCI95": [
+          24.996744791666668,
+          31.119791666666668
+        ],
+        "prestige": 7.060546875,
+        "colonies": 2.0869140625,
+        "yards": 0.90234375,
+        "relics": 2.9267578125,
+        "bought": 16.900390625,
+        "frontierPrestige": 0.337890625,
+        "yardPrestige": 0,
+        "deckPrestige": 1.708984375,
+        "ships": {
+          "settler": 2.7421875,
+          "explorer": 3.73828125,
+          "fleet": 0.0498046875
+        }
+      },
+      "expansion": {
+        "wins": 462,
+        "appearances": 1024,
+        "winShare": 60.15625,
+        "winRatePerAppearance": 45.1171875,
+        "winShareCI95": [
+          56.640625,
+          63.41471354166665
+        ],
+        "prestige": 8.396484375,
+        "colonies": 3.1103515625,
+        "yards": 0.9755859375,
+        "relics": 2.7841796875,
+        "bought": 16.458984375,
+        "frontierPrestige": 0.8310546875,
+        "yardPrestige": 0,
+        "deckPrestige": 1.6708984375,
+        "ships": {
+          "settler": 3.0400390625,
+          "explorer": 3.8095703125,
+          "fleet": 0.03125
+        }
+      }
+    },
+    "bySeat": {
+      "0": {
+        "wins": 211,
+        "winShare": 27.473958333333332,
+        "CI95": [
+          23.697916666666668,
+          31.510416666666668
+        ]
+      },
+      "1": {
+        "wins": 191,
+        "winShare": 24.869791666666668,
+        "CI95": [
+          21.614583333333332,
+          27.994791666666668
+        ]
+      },
+      "2": {
+        "wins": 169,
+        "winShare": 22.005208333333332,
+        "CI95": [
+          19.140625,
+          25.0
+        ]
+      },
+      "3": {
+        "wins": 197,
+        "winShare": 25.651041666666668,
+        "CI95": [
+          22.262369791666668,
+          29.039713541666647
+        ]
+      }
+    },
+    "winnerScore": {
+      "prestige": 10.276041666666666,
+      "colonies": 3.3346354166666665,
+      "frontierPrestige": 0.9856770833333334,
+      "yardPrestige": 0.22395833333333334,
+      "relics": 3.9856770833333335,
+      "deckPrestige": 1.74609375,
+      "bought": 16.421875
+    }
+  },
+  "control20": {
+    "games": 384,
+    "status": {
+      "finished": 384
+    },
+    "medianRound": 72.5,
+    "meanRound": 73.30729166666667,
+    "p10Round": 56.0,
+    "p90Round": 90.0,
+    "byStrategy": {
+      "military": {
+        "wins": 76,
+        "appearances": 512,
+        "winShare": 19.791666666666668,
+        "winRatePerAppearance": 14.84375,
+        "winShareCI95": [
+          15.885416666666668,
+          23.697916666666668
+        ],
+        "prestige": 14.76953125,
+        "colonies": 1.609375,
+        "yards": 4.7890625,
+        "relics": 2.970703125,
+        "bought": 66.345703125,
+        "frontierPrestige": 0.14453125,
+        "yardPrestige": 2.171875,
+        "deckPrestige": 7.873046875,
+        "ships": {
+          "settler": 4.845703125,
+          "explorer": 4.21875,
+          "fleet": 5.333984375
+        }
+      },
+      "economy": {
+        "wins": 66,
+        "appearances": 512,
+        "winShare": 17.1875,
+        "winRatePerAppearance": 12.890625,
+        "winShareCI95": [
+          13.802083333333334,
+          20.572916666666668
+        ],
+        "prestige": 15.255859375,
+        "colonies": 2.96875,
+        "yards": 0.95703125,
+        "relics": 2.9296875,
+        "bought": 71.9765625,
+        "frontierPrestige": 0.734375,
+        "yardPrestige": 0,
+        "deckPrestige": 8.623046875,
+        "ships": {
+          "settler": 3.30078125,
+          "explorer": 3.798828125,
+          "fleet": 0.357421875
+        }
+      },
+      "expansion": {
+        "wins": 242,
+        "appearances": 512,
+        "winShare": 63.020833333333336,
+        "winRatePerAppearance": 47.265625,
+        "winShareCI95": [
+          58.85416666666667,
+          67.1875
+        ],
+        "prestige": 17.84765625,
+        "colonies": 4.392578125,
+        "yards": 0.994140625,
+        "relics": 2.91796875,
+        "bought": 74.599609375,
+        "frontierPrestige": 1.451171875,
+        "yardPrestige": 0,
+        "deckPrestige": 9.0859375,
+        "ships": {
+          "settler": 2.931640625,
+          "explorer": 3.802734375,
+          "fleet": 0.087890625
+        }
+      }
+    },
+    "bySeat": {
+      "0": {
+        "wins": 93,
+        "winShare": 24.21875,
+        "CI95": [
+          19.791666666666668,
+          28.90625
+        ]
+      },
+      "1": {
+        "wins": 88,
+        "winShare": 22.916666666666668,
+        "CI95": [
+          19.270833333333336,
+          26.822916666666668
+        ]
+      },
+      "2": {
+        "wins": 94,
+        "winShare": 24.479166666666668,
+        "CI95": [
+          20.572916666666668,
+          28.385416666666668
+        ]
+      },
+      "3": {
+        "wins": 109,
+        "winShare": 28.385416666666668,
+        "CI95": [
+          24.21875,
+          32.552083333333336
+        ]
+      }
+    },
+    "winnerScore": {
+      "prestige": 20.002604166666668,
+      "colonies": 4.692708333333333,
+      "frontierPrestige": 1.6197916666666667,
+      "yardPrestige": 0.9296875,
+      "relics": 3.578125,
+      "deckPrestige": 9.182291666666666,
+      "bought": 73.69791666666667
+    }
+  },
+  "resources": {
+    "matter": {
+      "playerGames": 3072,
+      "generatedPerPlayerGame": 63.195963541666664,
+      "generatedPerPlayerRound": 2.811312557924004,
+      "fixedSpendPerPlayerGame": 42.374348958333336,
+      "flexibleSpendPerPlayerGame": 15.695963541666666,
+      "bankRequestsPerPlayerGame": 0.466796875,
+      "bankOffersPerPlayerGame": 0.23404947916666666,
+      "overflowPerPlayerGame": 1.7301432291666667,
+      "meanEndStock": 2.9261067708333335,
+      "medianEndStock": 2.0,
+      "shortageBeforePerPlayer": 2.7649739583333335,
+      "shortageAfterPerPlayer": 0.8880208333333334,
+      "incomeBySourcePerPlayer": {
+        "production": 50.401041666666664,
+        "conversion": 7.584635416666667,
+        "card_effect": 2.9694010416666665,
+        "player_trade": 4.197265625,
+        "other": 1.30859375,
+        "consortium_gain": 0.6363932291666666,
+        "bank": 0.466796875,
+        "colonize": 0.13606770833333334,
+        "combat_reward": 0.15983072916666666
+      },
+      "outflowByUsePerPlayer": {
+        "overflow": 1.7301432291666667,
+        "starter_upgrade": 4.975260416666667,
+        "purchase": 8.617838541666666,
+        "bank": 0.9361979166666666,
+        "structure": 11.128580729166666,
+        "ship": 5.0283203125,
+        "storage": 14.706380208333334,
+        "excavate": 2.8932291666666665,
+        "player_trade": 4.197265625,
+        "trash": 10.720703125
+      }
+    },
+    "energy": {
+      "playerGames": 3072,
+      "generatedPerPlayerGame": 63.964192708333336,
+      "generatedPerPlayerRound": 2.845487720111214,
+      "fixedSpendPerPlayerGame": 43.6640625,
+      "flexibleSpendPerPlayerGame": 9.948567708333334,
+      "bankRequestsPerPlayerGame": 0.24381510416666666,
+      "bankOffersPerPlayerGame": 0.8489583333333334,
+      "overflowPerPlayerGame": 1.7845052083333333,
+      "meanEndStock": 5.4150390625,
+      "medianEndStock": 3.0,
+      "shortageBeforePerPlayer": 3.0087890625,
+      "shortageAfterPerPlayer": 0.33984375,
+      "incomeBySourcePerPlayer": {
+        "conversion": 11.728190104166666,
+        "production": 51.597981770833336,
+        "bank": 0.24381510416666666,
+        "player_trade": 2.8968098958333335,
+        "consortium_gain": 0.16569010416666666,
+        "card_effect": 0.15234375,
+        "other": 0.3199869791666667
+      },
+      "outflowByUsePerPlayer": {
+        "starter_upgrade": 4.149739583333333,
+        "bank": 3.3958333333333335,
+        "ship": 8.672526041666666,
+        "structure": 9.989908854166666,
+        "purchase": 14.4755859375,
+        "storage": 7.353190104166667,
+        "excavate": 2.8932291666666665,
+        "trash": 5.798828125,
+        "player_trade": 2.8968098958333335,
+        "combat": 0.2796223958333333,
+        "overflow": 1.7845052083333333
+      }
+    },
+    "biomass": {
+      "playerGames": 3072,
+      "generatedPerPlayerGame": 34.912434895833336,
+      "generatedPerPlayerRound": 1.5531018303985171,
+      "fixedSpendPerPlayerGame": 17.356119791666668,
+      "flexibleSpendPerPlayerGame": 5.527018229166667,
+      "bankRequestsPerPlayerGame": 0.3020833333333333,
+      "bankOffersPerPlayerGame": 0.140625,
+      "overflowPerPlayerGame": 3.6419270833333335,
+      "meanEndStock": 10.126953125,
+      "medianEndStock": 8.0,
+      "shortageBeforePerPlayer": 1.125,
+      "shortageAfterPerPlayer": 0.5504557291666666,
+      "incomeBySourcePerPlayer": {
+        "production": 29.805013020833332,
+        "conversion": 2.0162760416666665,
+        "player_trade": 1.9798177083333333,
+        "card_effect": 2.2080078125,
+        "bank": 0.3020833333333333,
+        "other": 0.7825520833333334,
+        "consortium_gain": 0.1005859375
+      },
+      "outflowByUsePerPlayer": {
+        "structure": 7.525716145833333,
+        "starter_upgrade": 0.6276041666666666,
+        "bank": 0.5625,
+        "player_trade": 1.9798177083333333,
+        "purchase": 6.35546875,
+        "trash": 4.8994140625,
+        "overflow": 3.6419270833333335,
+        "colonize": 1.9752604166666667,
+        "ship": 1.4996744791666667
+      }
+    },
+    "data": {
+      "playerGames": 3072,
+      "generatedPerPlayerGame": 85.52083333333333,
+      "generatedPerPlayerRound": 3.804448563484708,
+      "fixedSpendPerPlayerGame": 44.218098958333336,
+      "flexibleSpendPerPlayerGame": 11.051432291666666,
+      "bankRequestsPerPlayerGame": 0.8824869791666666,
+      "bankOffersPerPlayerGame": 0.6715494791666666,
+      "overflowPerPlayerGame": 12.89453125,
+      "meanEndStock": 15.553059895833334,
+      "medianEndStock": 15.0,
+      "shortageBeforePerPlayer": 4.488932291666667,
+      "shortageAfterPerPlayer": 3.818359375,
+      "incomeBySourcePerPlayer": {
+        "bank": 0.8824869791666666,
+        "production": 82.59212239583333,
+        "conversion": 1.8743489583333333,
+        "player_trade": 2.3837890625,
+        "other": 0.6767578125,
+        "consortium_gain": 0.017903645833333332,
+        "card_effect": 0.2848307291666667,
+        "combat_reward": 0.07486979166666667
+      },
+      "outflowByUsePerPlayer": {
+        "purchase": 17.007486979166668,
+        "structure": 2.4173177083333335,
+        "ship": 11.653645833333334,
+        "storage": 7.353190104166667,
+        "player_trade": 2.3837890625,
+        "trash": 8.8046875,
+        "excavate": 5.786458333333333,
+        "overflow": 12.89453125,
+        "starter_upgrade": 2.2467447916666665,
+        "bank": 2.6861979166666665
+      }
+    }
+  },
+  "gifts": {
+    "1": {
+      "matter": {
+        "pairs": 192,
+        "applied": 192,
+        "baseWinRate": 22.916666666666664,
+        "giftWinRate": 23.958333333333336,
+        "effectPP": 1.0416666666666667,
+        "CI95": [
+          -5.729166666666666,
+          7.812500000000001
+        ],
+        "meanFirstYardRoundChange": -0.046875,
+        "byStrategy": {
+          "military": {
+            "pairs": 64,
+            "effectPP": 3.125,
+            "CI95": [
+              -6.25,
+              12.5
+            ]
+          },
+          "economy": {
+            "pairs": 64,
+            "effectPP": 0,
+            "CI95": [
+              -14.0625,
+              15.625
+            ]
+          },
+          "expansion": {
+            "pairs": 64,
+            "effectPP": 0,
+            "CI95": [
+              -15.625,
+              14.0625
+            ]
+          }
+        }
+      },
+      "energy": {
+        "pairs": 192,
+        "applied": 192,
+        "baseWinRate": 22.916666666666664,
+        "giftWinRate": 26.041666666666668,
+        "effectPP": 3.125,
+        "CI95": [
+          -4.6875,
+          9.375
+        ],
+        "meanFirstYardRoundChange": -1.3020833333333333,
+        "byStrategy": {
+          "military": {
+            "pairs": 64,
+            "effectPP": 0,
+            "CI95": [
+              -6.289062499999998,
+              7.8125
+            ]
+          },
+          "economy": {
+            "pairs": 64,
+            "effectPP": 9.375,
+            "CI95": [
+              -1.5625,
+              20.3125
+            ]
+          },
+          "expansion": {
+            "pairs": 64,
+            "effectPP": 0,
+            "CI95": [
+              -15.625,
+              14.0625
+            ]
+          }
+        }
+      },
+      "biomass": {
+        "pairs": 192,
+        "applied": 192,
+        "baseWinRate": 22.916666666666664,
+        "giftWinRate": 27.604166666666668,
+        "effectPP": 4.6875,
+        "CI95": [
+          -0.5208333333333334,
+          9.375
+        ],
+        "meanFirstYardRoundChange": -0.2552083333333333,
+        "byStrategy": {
+          "military": {
+            "pairs": 64,
+            "effectPP": 1.5625,
+            "CI95": [
+              -4.6875,
+              7.8125
+            ]
+          },
+          "economy": {
+            "pairs": 64,
+            "effectPP": 4.6875,
+            "CI95": [
+              -3.125,
+              12.5
+            ]
+          },
+          "expansion": {
+            "pairs": 64,
+            "effectPP": 7.8125,
+            "CI95": [
+              -4.6875,
+              21.875
+            ]
+          }
+        }
+      },
+      "data": {
+        "pairs": 192,
+        "applied": 192,
+        "baseWinRate": 22.916666666666664,
+        "giftWinRate": 26.5625,
+        "effectPP": 3.6458333333333335,
+        "CI95": [
+          -3.125,
+          10.416666666666666
+        ],
+        "meanFirstYardRoundChange": -1.7135416666666667,
+        "byStrategy": {
+          "military": {
+            "pairs": 64,
+            "effectPP": -4.6875,
+            "CI95": [
+              -14.0625,
+              3.125
+            ]
+          },
+          "economy": {
+            "pairs": 64,
+            "effectPP": 3.125,
+            "CI95": [
+              -7.851562499999998,
+              14.0625
+            ]
+          },
+          "expansion": {
+            "pairs": 64,
+            "effectPP": 12.5,
+            "CI95": [
+              -6.25,
+              29.6875
+            ]
+          }
+        }
+      }
+    },
+    "10": {
+      "matter": {
+        "pairs": 192,
+        "applied": 192,
+        "baseWinRate": 22.916666666666664,
+        "giftWinRate": 21.354166666666664,
+        "effectPP": -1.5625,
+        "CI95": [
+          -8.333333333333334,
+          5.208333333333334
+        ],
+        "meanFirstYardRoundChange": 0,
+        "byStrategy": {
+          "military": {
+            "pairs": 64,
+            "effectPP": -1.5625,
+            "CI95": [
+              -9.375,
+              6.25
+            ]
+          },
+          "economy": {
+            "pairs": 64,
+            "effectPP": -3.125,
+            "CI95": [
+              -10.9375,
+              3.125
+            ]
+          },
+          "expansion": {
+            "pairs": 64,
+            "effectPP": 0,
+            "CI95": [
+              -15.625,
+              14.0625
+            ]
+          }
+        }
+      },
+      "energy": {
+        "pairs": 192,
+        "applied": 192,
+        "baseWinRate": 22.916666666666664,
+        "giftWinRate": 21.354166666666664,
+        "effectPP": -1.5625,
+        "CI95": [
+          -7.291666666666667,
+          4.6875
+        ],
+        "meanFirstYardRoundChange": 0,
+        "byStrategy": {
+          "military": {
+            "pairs": 64,
+            "effectPP": 3.125,
+            "CI95": [
+              -9.375,
+              14.0625
+            ]
+          },
+          "economy": {
+            "pairs": 64,
+            "effectPP": -7.8125,
+            "CI95": [
+              -15.625,
+              0.0
+            ]
+          },
+          "expansion": {
+            "pairs": 64,
+            "effectPP": 0,
+            "CI95": [
+              -15.625,
+              15.625
+            ]
+          }
+        }
+      },
+      "biomass": {
+        "pairs": 192,
+        "applied": 192,
+        "baseWinRate": 22.916666666666664,
+        "giftWinRate": 25.0,
+        "effectPP": 2.0833333333333335,
+        "CI95": [
+          -4.6875,
+          8.854166666666668
+        ],
+        "meanFirstYardRoundChange": 0,
+        "byStrategy": {
+          "military": {
+            "pairs": 64,
+            "effectPP": 0,
+            "CI95": [
+              -6.25,
+              6.25
+            ]
+          },
+          "economy": {
+            "pairs": 64,
+            "effectPP": -1.5625,
+            "CI95": [
+              -12.5,
+              9.375
+            ]
+          },
+          "expansion": {
+            "pairs": 64,
+            "effectPP": 7.8125,
+            "CI95": [
+              -9.375,
+              26.5625
+            ]
+          }
+        }
+      },
+      "data": {
+        "pairs": 192,
+        "applied": 192,
+        "baseWinRate": 22.916666666666664,
+        "giftWinRate": 26.041666666666668,
+        "effectPP": 3.125,
+        "CI95": [
+          -5.208333333333333,
+          10.416666666666668
+        ],
+        "meanFirstYardRoundChange": 0,
+        "byStrategy": {
+          "military": {
+            "pairs": 64,
+            "effectPP": 6.25,
+            "CI95": [
+              -1.5625,
+              14.0625
+            ]
+          },
+          "economy": {
+            "pairs": 64,
+            "effectPP": 1.5625,
+            "CI95": [
+              -6.25,
+              9.375
+            ]
+          },
+          "expansion": {
+            "pairs": 64,
+            "effectPP": 1.5625,
+            "CI95": [
+              -15.625,
+              17.1875
+            ]
+          }
+        }
+      }
+    }
+  },
+  "validation": {
+    "allResourceLedgersClosed": 3024,
+    "matchedGiftBaselines": 192,
+    "observedVersusPlainPilotMatched": true,
+    "updatedPolicyVersusPriorAllPolicy20MatchedGames": 12
+  }
+}

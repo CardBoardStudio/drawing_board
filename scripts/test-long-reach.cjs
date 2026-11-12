@@ -43,8 +43,8 @@ const r = context.createGalacticReach({random:()=>math.random()});
 const distance = key => r.hexDistance('0,0',key);
 function fresh(n) { seed=n; r.state=r.newState(); return r.state; }
 function assertGalaxy(s) {
-  assert.equal(s.clusters.length,16);
-  assert.equal(Object.keys(s.planets).length,88,'Worlds must never overwrite one another');
+  assert.equal(s.clusters.length,17);
+  assert.equal(Object.keys(s.planets).length,95,'Worlds must never overwrite one another');
   for (const world of s.clusters) {
     assert.equal(world.coords.length,world.kind==='moon'?1:7);
     for (const key of world.coords) {
@@ -68,24 +68,19 @@ function assertGalaxy(s) {
   assert.equal(Object.values(s.planets).filter(p=>p.special==='relic').length,12);
   assert.equal(Object.values(s.planets).filter(p=>p.special==='gate').length,0);
   assert(Object.values(s.planets).every(p=>!('rich' in p)&&p.special!=='rich'),'Rich is absent, not just visually hidden');
-  const homes=s.clusters.slice(0,4), worlds=s.clusters.slice(4,12), moons=s.clusters.slice(12);
-  const territory=group=>{
-    const distances=homes.map(h=>r.hexDistance(h.center,group.center)), closest=Math.min(...distances);
-    assert.equal(distances.filter(n=>n===closest).length,1,'Terrain belongs to an unambiguous home region');
-    return distances.indexOf(closest);
-  };
-  for(let seat=0;seat<4;seat++) {
-    const own=worlds.filter(w=>territory(w)===seat);
-    assert.equal(own.length,2);
-    const access=own.map(w=>r.hexDistance(homes[seat].center,w.center)).sort((a,b)=>a-b);
-    assert(access[0]>=5 && access[0]<=6 && access[1]>=7 && access[1]<=9,'Retain each home region’s near and inner distance bands');
-    assert.equal(moons.filter(m=>territory(m)===seat).length,1);
+  const homes=s.clusters.slice(0,4), worlds=s.clusters.filter(c=>c.kind==='world'&&c.id>=4), moons=s.clusters.filter(c=>c.kind==='moon');
+  const expected=['9,-9','-9,9','6,-3','3,-6','-3,-3','-6,3','-3,6','3,3','0,0'];
+  assert.deepEqual(new Set(Array.from(worlds,w=>w.center)),new Set(expected),'The approved world geometry stays fixed');
+  assert.deepEqual(new Set(Array.from(moons,m=>m.center)),new Set(['-3,0','0,-3','3,0','0,3']));
+  const opportunity=homes.map(h=>Array.from(worlds,w=>r.hexDistance(h.center,w.center)).sort((a,b)=>a-b));
+  const moonOpportunity=homes.map(h=>Array.from(moons,m=>r.hexDistance(h.center,m.center)).sort((a,b)=>a-b));
+  for(let seat=0;seat<4;seat++){
+    assert.deepEqual(opportunity[seat],opportunity[0],'Every home has the same complete world-distance profile');
+    assert.deepEqual(moonOpportunity[seat],moonOpportunity[0],'Every home has the same complete moon-distance profile');
+    assert.deepEqual(opportunity[seat].slice(0,2),[6,6]);
   }
-  const opportunity=homes.map(h=>worlds.map(w=>r.hexDistance(h.center,w.center)).sort((a,b)=>a-b));
-  assert(Math.max(...opportunity.map(d=>d[0]))-Math.min(...opportunity.map(d=>d[0]))<=1,'Nearest worlds have comparable access');
-  assert(Math.max(...opportunity.map(d=>d[1]))-Math.min(...opportunity.map(d=>d[1]))<=2,'Second worlds have comparable access');
-  const moonDistances=homes.map(h=>Math.min(...moons.map(m=>r.hexDistance(h.center,m.center))));
-  assert(Math.max(...moonDistances)-Math.min(...moonDistances)<=1,'Moons have comparable access');
+  const center=worlds.find(w=>w.center==='0,0');assert(center);
+  assert(center.coords.every(k=>s.planets[k].special===null),'The additional world does not increase relic supply');
   const terrain=s.clusters.map(c=>[...c.center.split(',').map(Number),c.kind==='moon'?0:1]);
   for(let q=-10;q<=10;q++) for(let y=-10;y<=10;y++) if(Math.max(Math.abs(q),Math.abs(y),Math.abs(q+y))<=10) {
     const nearest=Math.min(...terrain.map(([a,b,radius])=>Math.max(Math.abs(q-a),Math.abs(y-b),Math.abs(q+y-a-b))-radius));
@@ -93,20 +88,20 @@ function assertGalaxy(s) {
   }
 
 }
-context.__mapRetries=[]; context.__mapFallbacks=0;
+
 const layouts=new Set();
 for(let n=1;n<=1000;n++) {
   const s=fresh(n); assertGalaxy(s);
   layouts.add(s.clusters.slice(4).map(c=>c.center).join('|'));
 }
-assert.equal(layouts.size,1000,'Interior coordinates vary with each new game');
-assert.equal(context.__mapFallbacks,0,'Seeded radius10 layouts must not collapse onto the fallback');
-console.log(`Map generation: ${layouts.size} unique layouts /1000 seeds; ${context.__mapFallbacks} fallbacks; mean retries ${(context.__mapRetries.reduce((a,b)=>a+b,0)/1000).toFixed(3)}, max ${Math.max(...context.__mapRetries)}.`);
+assert(layouts.size>900,'Neutral world identities vary across the fixed slots');
+
+console.log(`Central Frontier: ${layouts.size} neutral identity arrangements across 1000 valid fixed-geometry maps.`);
 for(const constant of [0,0.5,1-Number.EPSILON]) {
   const saved=math.random; math.random=()=>constant;
   assertGalaxy(r.newState()); math.random=saved;
 }
-context.__forceMapFallback=true;assertGalaxy(r.newState());context.__forceMapFallback=false;
+
 let cells=0;
 for(let q=-13;q<=13;q++) for(let y=-13;y<=13;y++) if(r.boardHas(`${q},${y}`)) cells++;
 assert.equal(cells,331); assert.equal(r.BOARD_RADIUS,10);
@@ -147,8 +142,8 @@ r.playOrder(order.id); assert.equal(r.state.actionMode,'move'); assert.equal(r.s
 r.playOrder(order.id); assert.equal(r.state.actionMode,null,'Clicking again cancels without spending the card');
 assert.equal(r.state.players[0].hand.length,1);
 const old='untouched-v4-save'; storage.set('galactic-reach-save-v4',old);
-assert.equal(r.SAVE_KEY,'galactic-reach-save-v17');
-assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v17');
+assert.equal(r.SAVE_KEY,'galactic-reach-save-v18');
+assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v18');
 const saved=JSON.stringify(fresh(123)); r.saveGame(); fresh(456);
 assert(r.loadGame()); assert.equal(JSON.stringify(r.state),saved,'Reload retains randomized placement');
 assert.equal(storage.get('galactic-reach-save-v4'),old);

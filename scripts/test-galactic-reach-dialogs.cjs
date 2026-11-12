@@ -157,7 +157,7 @@ function createDom(timers) {
     querySelector: selector => (selector.startsWith('#') ? element(selector.slice(1)) : selector.startsWith('.hex[data-coord=') ? created.find(e=>e.dataset.coord===selector.match(/"([^"]+)"/)[1]) : null),
     querySelectorAll: selector => (selector==='.console-tab'?tabs:selector==='.tab-panel'?panels:selector==='.hex'?created.filter(e=>e.dataset.coord):/^\[data-[a-z-]+\]$/.test(selector) ? byDataAttribute(selector) : [])
   };
-  return { document, element, tabs, panels, contextButton:label=>created.filter(e=>e.tagName==='BUTTON'&&(e.textContent===label||e.innerHTML===label)).at(-1), hex:key=>created.find(e=>e.dataset.coord===key), lastQuery: selector => queried.get(selector) || [] };
+  return { document, element, tabs, panels, contextButton:label=>created.filter(e=>e.tagName==='BUTTON'&&(e.textContent===label||e.innerHTML===label||e.innerHTML.startsWith(`<span>${label}</span>`))).at(-1), hex:key=>created.find(e=>e.dataset.coord===key), lastQuery: selector => queried.get(selector) || [] };
 }
 
 function boot(storage, seed = 20261013, location = {hostname:'localhost',search:''}) {
@@ -547,7 +547,7 @@ test('excavation UI chooses a visible reward and survives reload without its spe
 
 test('map and Sector Scan show every faction in fog and empty space', () => {
   const storage=createStorage(), state=boot(storage).saved(), coord=state.clusters[4].coords[1];
-  const empty=['-10,10','10,-10','0,0'].find(key=>!state.planets[key]);assert(empty);
+  const empty=['2,0','0,2','-2,0','0,-2'].find(key=>!state.planets[key]);assert(empty);
   state.clusters[4].revealedBy=[];state.clusters[4].scannedBy=[];
   state.fleets[coord]={2:{explorer:1,fleet:2}};state.fleets[empty]={3:{settler:1}};
   writeSave(storage,state);const game=boot(storage);
@@ -602,6 +602,40 @@ test('starter upgrade UI pays two of the selected resource and preserves Buy', (
  const after=game.saved();assert(after.players[0].hand[0].upgraded);assert.equal(after.players[0].resources.energy,1);
  assert.equal(after.players[0].resources.matter,3);assert.equal(after.phase,'buy');assert.equal(after.players[0].bought,0);
  assert(boot(storage).saved().players[0].hand[0].upgraded);
+});
+
+test('Shipyard offers commissions without an upgrade; Harvester still offers level II', () => {
+ const storage=createStorage(),state=boot(storage).saved(),coord=state.clusters[0].coords[1];
+ Object.assign(state,{selected:coord,actionMode:null,actionCardId:null,actionOptions:{}});
+ Object.assign(state.planets[coord],{owner:0,upgrade:'starbase',upgradeLevel:1});
+ state.players[0].hand=[{key:'construct',id:'yard-order',starter:true}];
+ state.players[0].storageUpgrades=20;state.players[0].resources={matter:10,energy:10,biomass:10,data:10};
+ writeSave(storage,state);
+ const yard=boot(storage);
+ yard.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='yard-order').click();
+ assert.equal(yard.dom.contextButton('Upgrade Shipyard to II'),undefined);
+ assert(yard.dom.contextButton('Commission Fleet'));
+ assert(yard.dom.contextButton('Commission Explorer + Excavate'));
+ state.planets[coord].upgrade='harvester';writeSave(storage,state);
+ const harvester=boot(storage);
+ harvester.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='yard-order').click();
+ assert(harvester.dom.contextButton('Upgrade Harvester to II'));
+});
+
+test('decisive combat awards Prestige once and the saved report preserves it', () => {
+ const storage=combatStorage(0,'tactic'),state=JSON.parse(storage.getItem(SAVE_KEY));
+ state.pendingCombat.defenderPieces=[{type:'settler',hull:4,power:1,damage:0}];
+ state.fleets['9,-10'][1]={settler:1,explorer:0,fleet:0};writeSave(storage,state);
+ const game=boot(storage);let choices=0;
+ while(game.saved().pendingCombat){assert(choices++<8);game.dom.lastQuery('[data-combat-action]')[0].click();game.settle();}
+ assert.equal(game.saved().players[0].combatVictories,1);
+ assert.equal(game.saved().lastCombat.prestigeWinner,0);
+ assert.match(game.dom.element('message-body').textContent,/gained 1 Prestige/);
+ assert(game.dialog('message').open);
+ const reloaded=boot(storage);assert(reloaded.dialog('message').open);
+ assert.equal(reloaded.saved().players[0].combatVictories,1);
+ reloaded.click('message-continue');assert.equal(reloaded.saved().players[0].combatVictories,1);
+ assert.equal(boot(storage).saved().players[0].combatVictories,1);
 });
 
 let failed = 0;

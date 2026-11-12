@@ -118,3 +118,11 @@ for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css 
 done
 cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/16.21/table.js
 cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/16.21/
+
+# Preserve the complete Ten Prestige browser for existing tables and replays.
+mkdir -p dist/galactic-reach/rules/17.22
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v17-$asset" "dist/galactic-reach/rules/17.22/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/17.22/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/17.22/

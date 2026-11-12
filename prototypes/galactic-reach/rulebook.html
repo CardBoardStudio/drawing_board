@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060911">
-  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 10 Prestige. The canonical rules for the Ten Prestige experiment 17.22.">
-  <meta name="rules-version" content="galactic-reach/17.22">
-  <title>Galactic Reach · Rulebook · 17.22</title>
+  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 10 Prestige. The canonical rules for the Central Frontier experiment 18.23.">
+  <meta name="rules-version" content="galactic-reach/18.23">
+  <title>Galactic Reach · Rulebook · 18.23</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="rulebook.css">
 </head>
@@ -28,7 +28,7 @@
   <a class="skip-link" href="#start">Skip to rules</a>
   <header class="book-header">
     <a href="./" class="button button-ghost">← Galactic Reach</a>
-    <span class="eyebrow">CANONICAL RULES · TEN PRESTIGE EXPERIMENT · 17.22</span>
+    <span class="eyebrow">CANONICAL RULES · TEN PRESTIGE EXPERIMENT · 18.23</span>
   </header>
   <div class="book-layout">
     <nav class="book-nav" aria-label="Rulebook sections">
@@ -46,7 +46,7 @@
       <a href="#politics">End of the round</a>
       <a href="#victory">Prestige &amp; victory</a>
       <a href="#cards">Card reference</a>
-      <a href="#clarifications">17.22 clarifications</a>
+      <a href="#clarifications">18.23 clarifications</a>
     </nav>
     <main id="start" tabindex="-1">
       <div class="eyebrow">A GALAXY. FOUR FACTIONS. YOUR NEXT MOVE.</div>
@@ -58,15 +58,16 @@
           <li><strong>Look at your hand.</strong> Each card is a choice: convert it into resources, or use its order.</li>
           <li><strong>Take one action.</strong> Convert any cards you need, then play one order or offer a trade. The next faction takes a turn.</li>
           <li><strong>Keep taking turns until you pass.</strong> Passing starts your Buy turn immediately. Improve your deck, then let the remaining factions continue.</li>
-          <li><strong>Build toward Prestige.</strong> Colonies, pairs of Shipyards, excavated relics, and purchases score Prestige. Victory is checked when everyone finishes the round.</li>
+          <li><strong>Build toward Prestige.</strong> Colonies, pairs of Shipyards, excavated relics, purchases, and decisive combat victories score Prestige. Victory is checked when everyone finishes the round.</li>
         </ol>
         <p><strong>Try this:</strong> save a Construct card for its order; convert another card to help pay for a Settler. You cannot use the same card both ways.</p>
       </div>
-      <p class="book-note">This manual describes the <strong>17.22 Ten Prestige experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
+      <p class="book-note">This manual describes the <strong>18.23 Central Frontier experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
 
       <section id="setup">
         <h2>01 / Your starting faction</h2>
-        <p>Four factions share twelve seven-hex worlds and four single-hex moons on a radius-10 galaxy (331 hexes). Four home worlds touch the rim. Eight inner worlds and four moons are randomized across balanced home regions: each faction has two nearby inner worlds and one nearby moon. Travel distances are kept comparable, and large empty regions are avoided. At least one empty hex separates every pair of worlds, every world and moon, and every pair of moons. Larger gaps are allowed. Home worlds are visible to everyone. Each inner world and each moon has one relic: twelve sites total.</p>
+        <p>Four factions share <strong>thirteen seven-hex worlds</strong> and four single-hex moons on a radius-10 galaxy (331 hexes). Four home worlds touch the rim. Two neutral worlds occupy the other corners. Six neutral worlds form a symmetric ring around a seventh world at the exact center. Every home has two neutral world centers six steps away. Four moons occupy symmetric positions inside the ring. The positions stay fixed; neutral world identities and resource tiles are shuffled each game. Home worlds are visible to everyone.</p>
+        <p>At least one empty hex separates terrain. Each of the eight neutral worlds outside the center and each moon has one relic: <strong>twelve sites total</strong>. The added center world has no relic. All worlds cover seven hexes; moons cover one and never produce resources.</p>
         <p>You start with only a central <strong>Colony</strong>: no Settler, Explorer, Fleet, Shipyard, or other building. Your six starter cards are <strong>3 Move and 3 Construct</strong>. There are no starting Colonize or Excavate cards. Combat uses a separate four-card tactic hand, refreshed at the start of every battle.</p>
         <p>Production happens before the first five-card draw. Your Colony produces <strong>1 Matter</strong>, so you open with <strong>1 Matter and 2 Biomass</strong>. Build a Shipyard with Construct, then commission your first units. Use the 4:1 bank to obtain Data before you have an Excavate.</p>
       </section>
@@ -101,7 +102,7 @@
         <div class="book-table" tabindex="0" role="region" aria-label="Basic orders">
           <table><thead><tr><th>Card</th><th>Convert</th><th>Use its order</th><th>Level II adds</th></tr></thead><tbody>
             <tr><th>Move</th><td><span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span></td><td>Move one group of ships or Explorers.</td><td>+1 movement.</td></tr>
-            <tr><th>Construct</th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span></td><td>Build one ship or structure, or upgrade one structure.</td><td>Reduce one chosen resource in that cost by 1.</td></tr>
+            <tr><th>Construct</th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span></td><td>Build one ship or structure, or upgrade one Harvester.</td><td>Reduce one chosen resource in that cost by 1.</td></tr>
             <tr><th>Colonize</th><td><span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span></td><td>At a world’s center, spend <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>2 Biomass</span> and consume a Settler to found a Colony. Capture an occupied enemy center for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> and a Settler.</td><td>Unit-bundled card; no starter upgrade.</td></tr>
             <tr><th>Excavate</th><td><span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span></td><td>With an Explorer at a relic, pay 1 Matter, 1 Energy, and 2 Data. Choose one face-up relic card for your discard pile, remove the relic from the map, gain 1 Prestige, and trash Excavate. Consume one Explorer at the site.</td><td>Unit-bundled card; no starter upgrade.</td></tr>
           </tbody></table>
@@ -119,7 +120,7 @@
 
       <section id="building">
         <h2>06 / Ships, buildings &amp; relics</h2>
-        <p>A Colony reserves its world for expansion; it does not immediately give ownership or production on every hex. Use Construct to claim an empty adjacent planet hex with a building. One building fits on a hex. Occupied hexes cannot build. A Colony cannot be replaced with a different building.</p>
+        <p>A Colony reserves its world for expansion; it does not immediately give ownership or production on every hex. Use Construct to claim an empty adjacent planet hex with a building. One building fits on a hex. Occupied hexes cannot build. A Colony cannot be replaced with a different building. Shipyards have one level and cannot be upgraded. Only Harvesters can upgrade to level II.</p>
         <p>Commission all units at an unoccupied Shipyard you own. Commission Explorers only at an unoccupied Shipyard you own. Colonies and other structures cannot commission them.</p>
         <p class="book-note">Costs use the same colored symbols as your cards and resource bar. Each symbol is labeled, so you can learn them as you play.</p>
         <div class="book-table" tabindex="0" role="region" aria-label="Ships and their costs">
@@ -132,7 +133,7 @@
         <div class="book-table" tabindex="0" role="region" aria-label="Structures and their costs">
           <table><thead><tr><th>Structure</th><th>Build / upgrade to II</th><th>Benefit</th></tr></thead><tbody>
             <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-harvester"></use></svg>Harvester</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> / <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span></td><td>+1 local production per level.</td></tr>
-            <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-starbase"></use></svg>Shipyard</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span> / <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>2 Energy</span> <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>2 Data</span></td><td>Build combat ships; defends its own hex with 3 attack and hull (4 at II).</td></tr>
+            <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-starbase"></use></svg>Shipyard</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span></td><td>Commission ships; defends its own hex with 3 attack and 3 hull. No upgrade.</td></tr>
           </tbody></table>
         </div>
         <p><strong>Unit cards:</strong> each Settler you successfully commission adds one <strong>Colonize</strong> card to your discard. Each commissioned Explorer adds one <strong>Excavate to your discard pile</strong>. These cards are included in the unit price, are not starter cards, and do not count as card purchases. A Fleet adds no card. Colonize and Excavate cannot be bought separately.</p>
@@ -148,7 +149,7 @@
           <tr><th>Fleet</th><td>3</td><td>7</td></tr>
           <tr><th>Explorer</th><td>1</td><td>1</td></tr>
           <tr><th>Settler</th><td>1</td><td>2 attacking; 4 defending</td></tr>
-          <tr><th>Shipyard</th><td>3 (4 at II)</td><td>3 (4 at II)</td></tr>
+          <tr><th>Shipyard</th><td>3</td><td>3</td></tr>
         </tbody></table>
         </div>
         <h3 id="explorer-escape">Escape before combat</h3>
@@ -157,6 +158,7 @@
         <p>Each side privately commits one of its available tactics. You can see whether your opponent has committed, but never their choice before you commit. Once both have chosen, reveal both cards and remove them from this battle’s hand. A used card cannot be chosen again. Public used tactics and remaining card counts help you plan later volleys. Each new battle restores all four cards.</p>
         <p>Add the attack of all your surviving pieces, your chosen tactic, and applicable card bonuses. Subtract the opponent’s shields to find the damage they receive, to a minimum of zero. Both sides deal damage <strong>simultaneously</strong>, using the pieces alive at the start of the volley. Hits target the piece with the least remaining hull; ties target Explorers, Settlers, Fleets, then Shipyards. Damage stays on pieces between volleys. For example, one Fleet using Concentrated Fire deals 3 + 1 − 2 = 2 damage to an opponent using Defensive Screen. Reactions held in your regular hand still trigger automatically at their printed timing.</p>
         <p>If either side has no pieces left, the battle ends. If defenders survive the third volley, the surviving attacker must retreat to an adjacent, enemy-free hex with enough unit capacity, preferring its origin when legal. <strong>If no retreat can fit, those attacking survivors are destroyed.</strong> Emergency Jump may end a battle earlier as described in the card reference; there is no automatic retreat based only on relative attack strength. Surviving pieces repair fully after the battle. Combat pauses normal play, including during a rival’s turn, until all choices are resolved; reloading resumes the pending choice. The moving order is spent once and its Operations turn ends once, after the battle. Review the automatic final report before normal play resumes. Resolve any excess-resource discard first. Reloading also preserves a report awaiting acknowledgment.</p>
+        <p><strong>Decisive combat victory:</strong> gain 1 permanent Prestige when your side survives a fight and destroys every opposing unit that took part. Either the attacker or defender may earn it. The enemy must have brought at least one Settler, Explorer, or Fleet; destroying an undefended Shipyard alone earns no combat Prestige. If any opposing unit escapes or retreats, gain no point, even if you destroy the units left behind. A mutual wipe earns neither side a point. Enemy survivors destroyed because no retreat is possible count as destroyed. Each fight awards at most one point.</p>
         <p>Winning at an enemy-owned planet <strong>occupies</strong> it, stopping its owner’s production. Ownership does not transfer. To capture its central Colony, later play Colonize there with a Settler and <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span>. Only the center changes owner; surrounding structures do not transfer. The captured Colony gains a conquest marker.</p>
       </section>
 
@@ -191,14 +193,15 @@
         <div class="book-table" tabindex="0" role="region" aria-label="Prestige scoring">
           <table><thead><tr><th>Source</th><th>Prestige</th></tr></thead><tbody>
             <tr><th>Colonies</th><td>1 each, plus 1 per complete pair after the first Colony. Five Colonies score 7.</td></tr>
-            <tr><th>Shipyards</th><td>1 per complete pair, regardless of level.</td></tr>
+            <tr><th>Shipyards</th><td>1 per complete pair.</td></tr>
             <tr><th>Excavated relics</th><td>1 permanent Prestige per relic you excavated, even after using or trashing its card.</td></tr>
             <tr><th>Purchased cards</th><td>1 per eight lifetime purchases; scrapping a card does not remove this score.</td></tr>
+            <tr><th>Decisive combat victories</th><td>1 permanent Prestige per fight won by destroying all opposing units. No point if any opposing unit escapes or retreats; see <a href="#combat">Combat &amp; conquest</a>.</td></tr>
           </tbody></table>
         </div>
-        <p>Public awards are removed. Prestige comes from Colonies, pairs of Shipyards, excavated relics, and card-purchase milestones. Occupation alone does not remove ownership-based Prestige.</p>
+        <p>Public awards are removed. Prestige comes from Colonies, pairs of Shipyards, excavated relics, card-purchase milestones, and decisive combat victories. Occupation alone does not remove ownership-based Prestige.</p>
         <p>After everyone finishes Buy and the round is cleaned up, if anyone has at least <strong>10 Prestige</strong>, the highest Prestige wins. Break ties by most Colonies, then most stored resources. An exact tie selects the earliest seat in the browser; arena standings share that rank. Reaching 10 earlier does not lock in a win: finish the round before checking the standings. There is no round limit.</p>
-        <p>This local experiment lowers the victory threshold to 10 Prestige. Resource costs, production, and scoring sources stay the same.</p>
+        <p>This playtest checks victory at 10 Prestige and adds decisive combat victories as a scoring source. Resource costs and production stay the same. Combat Prestige survives later losses and is saved with your faction’s score.</p>
         <p>AI arena games use this same victory check. Only completed games earn placement ratings. A simulation that stops before victory awards no ratings.</p>
       </section>
 
@@ -239,7 +242,7 @@
         <details>
           <summary>Advanced and relic orders</summary>
           <div class="book-table" tabindex="0" role="region" aria-label="Advanced card effects">
-            <table><thead><tr><th>Card</th><th>Current 17.22 effect</th></tr></thead><tbody>
+            <table><thead><tr><th>Card</th><th>Current 18.23 effect</th></tr></thead><tbody>
               <tr><th>Survey Drones</th><td>Normal movement at the selected group’s speed. Survey Drones does not add range or filter cards.</td></tr>
               <tr><th>Pathfinder Network</th><td>Move with +1 range; cannot enter hostile hexes.</td></tr>
               <tr><th>Drop Colony Modules</th><td>Found or capture for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> without consuming the Settler.</td></tr>
@@ -296,7 +299,7 @@
           </ul>
         </details>
       </section>
-      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 17.22 · The game and this rulebook travel together in every deployment.</p></footer>
+      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 18.23 · The game and this rulebook travel together in every deployment.</p></footer>
     </main>
   </div>
 </body>

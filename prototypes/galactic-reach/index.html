@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070b13">
-  <title>Galactic Reach · 17.22 · Ten Prestige experiment</title>
+  <title>Galactic Reach · 18.23 · Central Frontier experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=ten-prestige-17-22">
+  <link rel="stylesheet" href="styles.css?v=central-frontier-18-23">
   <link rel="stylesheet" href="playtest-notes.css?v=1">
 </head>
 <body>
@@ -16,7 +16,7 @@
     <header class="topbar">
       <div class="brand-block">
         <div class="eyebrow">TEN PRESTIGE EXPERIMENT · 10 PRESTIGE</div>
-        <h1>Galactic Reach <small class="rules-badge">Rules 17.22 · experiment</small></h1>
+        <h1>Galactic Reach <small class="rules-badge">Rules 18.23 · experiment</small></h1>
       </div>
       <div class="round-block" aria-live="polite">
         <div><span class="label">Round</span><strong id="round-value">1</strong></div>
@@ -31,14 +31,18 @@
       </div>
     </header>
     <details class="playtest-changes" id="playtest-changes" open>
-      <summary><span class="new-feature">New in this playtest</span> A shorter race with stronger computer rivals</summary>
+      <summary><span class="new-feature">New in this playtest</span> A symmetric frontier and decisive combat</summary>
       <ul>
-        <li><strong>Race to 10 Prestige:</strong> victory still waits until the end of the round. Resource costs and scoring sources stay the same. <a href="rulebook.html#victory">Victory</a></li>
+        <li><strong>New symmetric map:</strong> two neutral corner worlds, six in a ring, and one at the center. Resource tiles still vary; twelve relic sites remain. <a href="rulebook.html#setup">Setup</a></li>
+        <li><strong>Decisive fights score:</strong> gain 1 Prestige for winning a fight that destroys every opposing unit. No point if any enemy escapes or retreats. <a href="rulebook.html#combat">Combat scoring</a></li>
+        <li><strong>No Shipyard upgrades:</strong> every Shipyard has 3 attack and 3 hull. Harvesters can still upgrade. <a href="rulebook.html#building">Ships and buildings</a></li>
+        <li><strong>Scoring at a glance:</strong> a compact victory-point legend sits below the comms feed. <a href="rulebook.html#victory">Prestige and victory</a></li>
+        <li><strong>Race to 10 Prestige:</strong> victory still waits until the end of the round. <a href="rulebook.html#victory">Victory</a></li>
         <li><strong>Fairer rival openings:</strong> computer rivals build inward, use home-relative paths, and consider affordable builds after their first Shipyard. <a href="rulebook.html#computer-rivals">Computer rivals</a></li>
         <li><strong>Reliable movement:</strong> a blocked fleet or Pathfinder restriction cannot trap a rival on the same rejected move. <a href="rulebook.html#movement">Movement</a></li>
       </ul>
       <button class="button button-ghost" id="open-relic-catalog" type="button">Preview all 12 alien relics</button>
-      <p>Local research · Rules 17.22 experiment · Start a new game. Earlier games keep their archived rules.</p>
+      <p>Rules 18.23 experiment · Start a new game. Earlier games keep their archived rules.</p>
     </details>
 
     <section class="score-ribbon" id="score-ribbon" aria-label="Player standings"></section>
@@ -97,6 +101,20 @@
             <div><div class="eyebrow">COMMS FEED</div><h2>Game log</h2></div>
           </div>
           <ol id="game-log" class="game-log" aria-live="polite"></ol>
+        </section>
+        <section class="panel prestige-legend" aria-labelledby="prestige-legend-title">
+          <div class="prestige-legend-heading">
+            <h2 id="prestige-legend-title">Victory points · Prestige</h2>
+            <a href="rulebook.html#victory" target="_blank" rel="noopener">Rules</a>
+          </div>
+          <dl>
+            <dt>Colonies</dt><dd>1 each, plus 1 per pair beyond your first.</dd>
+            <dt>Shipyards</dt><dd>1 per pair.</dd>
+            <dt>Relics</dt><dd>1 per relic excavated.</dd>
+            <dt>Cards</dt><dd>1 per 8 cards purchased.</dd>
+            <dt>Combat</dt><dd>1 per fight won with all enemy units destroyed. None if any escape or retreat.</dd>
+          </dl>
+          <p>Reach <strong>10 Prestige</strong>. Victory is checked at round end.</p>
         </section>
       </aside>
     </section>
@@ -163,12 +181,12 @@
 
   <dialog id="rules-dialog">
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
-    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 17.22 ↗</a></p>
+    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 18.23 ↗</a></p>
     <div class="rules-grid">
       <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Passing immediately starts your Buy turn. Finish Buy, then the remaining factions continue Operations.</p></section>
       <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → victory check → next round.</p></section>
       <section><h3>Your deck</h3><p>Normally buy one card. Upgrade original starters for two of one chosen resource type each. Trash eligible discarded cards, including starters, for three of one chosen resource type each. There is no one-card trash limit. Cards go to discard; stored resources carry forward.</p></section>
-      <section><h3>Your goal</h3><p>Reach 10 Prestige at the end of a round. Colonies, Shipyards, Excavated relics, and purchased cards all contribute. The rulebook includes costs, scoring, and current card clarifications.</p></section>
+      <section><h3>Your goal</h3><p>Reach 10 Prestige at the end of a round. Colonies, Shipyards, excavated relics, purchased cards, and decisive combat victories all contribute. The rulebook includes costs, scoring, and current card clarifications.</p></section>
     </div>
   </dialog>
 
@@ -259,9 +277,9 @@
     <div class="relic-catalog-grid" id="relic-catalog-grid"></div>
   </dialog>
 
-  <script src="table.js?v=ten-prestige-17-22"></script>
-  <script src="replay.js?v=ten-prestige-17-22"></script>
-  <script src="app.js?v=ten-prestige-17-22"></script>
-  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="17.22"></script>
+  <script src="table.js?v=central-frontier-18-23"></script>
+  <script src="replay.js?v=central-frontier-18-23"></script>
+  <script src="app.js?v=central-frontier-18-23"></script>
+  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="18.23"></script>
 </body>
 </html>

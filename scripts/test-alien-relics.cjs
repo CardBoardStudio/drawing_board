@@ -19,7 +19,7 @@ function effect(key) {
 }
 function special(g) {const action=g.a.legalActions(0).find(a=>a.type==='special');assert(action);g.a.applyAction(0,action);assert(g.p.discard.some(c=>c.id==='relic-order'));assert.equal(g.s.activePlayer,1);}
 {
-  const {e,a,s}=game();assert.equal(a.rulesVersion,'galactic-reach/17.22');assert.deepEqual(plain(s.fleets),{});
+  const {e,a,s}=game();assert.equal(a.rulesVersion,'galactic-reach/18.23');assert.deepEqual(plain(s.fleets),{});
   for(const p of s.players) {
     const cards=[...p.deck,...p.hand,...p.discard];assert.equal(cards.length,6);
     assert.equal(cards.filter(c=>c.key==='move').length,3);assert.equal(cards.filter(c=>c.key==='construct').length,3);

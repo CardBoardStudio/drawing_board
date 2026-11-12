@@ -58,6 +58,9 @@ jobs:
       - run: node scripts/test-fair-frontier.cjs
       - run: node scripts/test-compact-frontier.cjs
       - run: node scripts/test-ten-prestige.cjs
+      - run: node scripts/test-central-frontier.cjs
+      - run: node scripts/test-no-shipyard-upgrades.cjs
+      - run: node scripts/test-combat-prestige.cjs
       - run: node scripts/test-tactical-combat.cjs
       - run: node scripts/test-replay-view.cjs
       - run: node scripts/test-galactic-reach-dialogs.cjs

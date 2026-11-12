@@ -193,7 +193,8 @@ fn validate(save: &serde_json::Value) -> ApiResult<()> {
         || (s["version"] == 14 && s["rulesRevision"] == 19)
         || (s["version"] == 15 && s["rulesRevision"] == 20)
         || (s["version"] == 16 && s["rulesRevision"] == 21)
-        || (s["version"] == 17 && s["rulesRevision"] == 22))
+        || (s["version"] == 17 && s["rulesRevision"] == 22)
+        || (s["version"] == 18 && s["rulesRevision"] == 23))
         || (s["version"].as_u64().unwrap_or(0) >= 12 && s["phase"] == "directive")
         || (s["version"].as_u64().is_some_and(|v| v >= 9) && s["phase"] == "policy")
         || s["players"].as_array().is_none_or(|p| p.len() != 4)
@@ -351,7 +352,7 @@ mod tests {
             galactic_reach::RULES
         );
         // A realistic size above the normal 16 KiB request limit is accepted here only.
-        let save = json!({"state":{"version":17,"rulesRevision":22,"players":[{},{},{},{}],"planets":{},"fleets":{},"clusters":[],"round":3,"activePlayer":0,"phase":"operations","winner":null,"log":"x".repeat(40000)},"turnHistory":{"pending":null,"undo":null}});
+        let save = json!({"state":{"version":18,"rulesRevision":23,"players":[{},{},{},{}],"planets":{},"fleets":{},"clusters":[],"round":3,"activePlayer":0,"phase":"operations","winner":null,"log":"x".repeat(40000)},"turnHistory":{"pending":null,"undo":null}});
         let body = json!({"revision":0,"save":save});
         let mut wrong = body.clone();
         wrong["save"]["state"]["version"] = json!(5);

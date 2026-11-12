@@ -44,6 +44,7 @@ for(let id=0;id<4;id++){
 function target(s,coord){const i=s.clusters.length,[q,r]=coord.split(',').map(Number);s.clusters.push({id:i,center:coord,coords:[coord],kind:'world',revealedBy:[],scannedBy:[]});s.planets[coord]={q,r,cluster:i,type:'matter',owner:null,occupiedBy:null,hasColony:false,upgrade:null};}
 {
  const{e,s}=game(),p=s.players[1];p.strategy='expansion';p.hand=[{id:'move',key:'move'}];s.activePlayer=1;
+ s.planets['0,0'].owner=1;s.planets['0,0'].hasColony=true;
  target(s,'2,0');s.fleets={'0,0':{1:{settler:1,explorer:0,fleet:0}},'1,0':{1:{settler:0,explorer:0,fleet:5}}};
  const move=e.chooseAiMove(1,p.hand[0]);assert(move);const moving=e.fleetGroup(s.fleets[move.source][1],move.moveGroup);
  assert(e.reachableFrom(move.source,1,e.movementRange(moving,p.hand[0]),false,moving).includes(move.destination),'Full friendly hex cannot become an illegal preferred destination');
@@ -56,7 +57,7 @@ function target(s,coord){const i=s.clusters.length,[q,r]=coord.split(',').map(Nu
 }
 for(const points of [9,10,11]){const{e,s}=game();s.players[0].cardsPurchased=(points-1)*8;assert.equal(e.calculatePrestige(0),points);e.finishRound();assert.equal(s.winner,points>=10?0:null);}
 {
- const{e,s}=game();assert.equal(e.VICTORY_TARGET,10);assert.equal(s.version,17);assert.equal(s.rulesRevision,22);assert.equal(e.SAVE_KEY,'galactic-reach-save-v17');assert.equal(e.TURN_HISTORY_KEY,'galactic-reach-turn-history-v17');
+ const{e,s}=game();assert.equal(e.VICTORY_TARGET,10);assert.equal(s.version,18);assert.equal(s.rulesRevision,23);assert.equal(e.SAVE_KEY,'galactic-reach-save-v18');assert.equal(e.TURN_HISTORY_KEY,'galactic-reach-turn-history-v18');
  assert.deepEqual(plain(e.STRUCTURES.starbase.cost),{matter:2,energy:1,biomass:1,data:1});assert.deepEqual(plain(e.EXCAVATION_COST),{matter:1,energy:1,data:2});
  assert.deepEqual(plain(e.SHIP_STATS.explorer.cost),{energy:1,data:2});assert.deepEqual(plain(e.SHIP_STATS.settler.cost),{matter:1,energy:1});assert.deepEqual(plain(e.SHIP_STATS.fleet.cost),{matter:2,energy:1,biomass:1});
 }

@@ -57,16 +57,21 @@ const truth = state => JSON.parse(JSON.stringify({
 const views = [JSON.parse(JSON.stringify(game.replayView()))];
 const truths = [truth(engine.state)];
 const frames = [];
+const opening=[
+  a=>a.type==='move'&&a.source==='10,-10'&&a.destination==='9,-10',
+  a=>a.type==='increase_storage',
+  a=>a.type==='colonize'&&a.card==='replay-colonize-II'&&a.coord===openingWorld.center,
+  a=>a.type==='colony_build'&&a.kind==='harvester'&&a.coord===openingWorld.coords[1],
+  a=>a.type==='excavate'&&a.card==='replay-recovery'
+];
+let openingStep=0;
 for (let n = 0; n < 1800 && game.activeSeat() !== null; n++) {
   const seat = game.activeSeat();
   const legal = game.legalActions(seat);
   const total = legal.reduce((sum, a) => sum + (weight[a.type] ?? 1), 0);
   let pick = random() * total, action = legal.at(-1);
   for (const a of legal) { pick -= weight[a.type] ?? 1; if (pick <= 0) { action = a; break; } }
-  if (n===0) action=legal.find(a=>a.type==='increase_storage');
-  if (n===1) action=legal.find(a=>a.type==='colonize'&&a.card==='replay-colonize-II'&&a.coord===openingWorld.center);
-  if (n===2) action=legal.find(a=>a.type==='colony_build'&&a.kind==='harvester'&&a.coord===openingWorld.coords[1]);
-  if (n>2) action=legal.find(a=>a.type==='excavate'&&a.card==='replay-recovery')||legal.find(a=>a.type==='move'&&a.source==='10,-10'&&a.destination==='9,-10')||action;
+  if(seat===0&&!engine.state.pendingCombat&&openingStep<opening.length){action=legal.find(opening[openingStep++]);}
   assert(action,'Fixed opening is legal');
   assert(action);
   game.applyAction(seat, action);

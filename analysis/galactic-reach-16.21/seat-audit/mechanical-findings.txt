@@ -1,0 +1,56 @@
+16.21 mechanical seat audit
+Source commit: 30ac7a94133b8d493c4856f95999eda255405dc8
+Source: /private/tmp/drawing-board-compact-frontier/prototypes/galactic-reach/app.js
+Production worktree stayed clean; no GitHub writes, deployments, or full tournaments.
+
+Artifacts
+- mechanical-probes.cjs: reproducible VM-based source probes; only exported/stubbed UI functions and artificial fixtures, without changing production source.
+- mechanical-probes.json: raw homes, 48 controlled build/production traces, 24 capacity-10 affordability checkpoints, 24 launch probes, 4 reflected BFS fixtures, 4 enumeration probes. Includes source hash and passing assertions.
+Run with /private/tmp/drawing-board-build-tools/node-v24.22.3-darwin-arm64/bin/node /private/tmp/galactic-seat-audit/mechanical-probes.cjs
+
+Confirmed mechanisms, NOT win-attribution estimates
+
+1. Equal-score build insertion order selects global East, not each home's inward hex.
+The six home resource slots are created in global direction order, then Energy is swapped into the marked inward slot. Object.entries order and stable descending score retain the first open neighbor for the first Shipyard (score 16). Thus:
+Seat  Center   First yard  Yield  Inward yard/yield
+0     -9,0     -8,0       E      -8,0 / E
+1     0,-9     1,-9       D      0,-8 / E
+2     9,0      10,0       M      8,0 / E
+3     0,9      1,9        D      0,8 / E
+Putting only the inward entry first changes the tie winner to inward in all homes, with zero RNG calls. This is an ordering-mediated choice, not a hard-coded rule forcing seat 2 to launch outward.
+Anchors: app.js49-52 home inward slots;94 direction order;385 coords;388-393 home resources and swap;1882/1896-1898/1910 build insertion and sorting.
+The comment at372 that 'starting shipyards face inward' is obsolete: players start with only a Colony and the AI's first Shipyard does not honor it.
+
+2. Launch geometry creates extra travel even on a symmetric fair layout.
+Using the generator's validated constant-RNG fallback: home center to nearest unowned world center is5 in all homes. East-yard to nearest unowned world center is[4,4,6,6]. Inward-yard gives[4,4,4,4]. A seat2 Settler consequently needs two extra movement orders to reach the same mirrored near-world goal in this fixture; Explorer base speed3 changes 2 moves versus2 here, though first landing/reveal positions differ. Seat3 also pays the two-step Settler penalty, so geometry alone does not explain seat2 versus3.
+Nearest other starting Colony distances from East yards are[9,10,10,9], versus[9,9,9,9] inward.
+These are exact fixture comparisons; frequency and effect on wins require matched full-game interventions.
+Anchors: app.js65-68 ship movement;372-375 home centers;1913-1926 goals;1942-1976 movement selection.
+
+3. First-yard production interacts with policy's unaffordable-choice failure.
+Capacity10 checkpoints have identical stocks, one reserved Construct, no conversions or RNG, and one real produceAll call.
+(a) Pre-production M1/E1/B1/D1: Explorer affordability is[false,true,false,true]. The expansion chooser nevertheless selects Explorer for all seats. Seats0/2 could build a Settler or Fleet, but the policy does not select an affordable fallback.
+(b) Pre-production M0/E0/B1/D2: only seat0 can afford any ship; its Energy yield permits Explorer/Settler. Seat2's second Matter does not replace missing Energy.
+(c) Pre-production M0/E1/B1/D0: seat2 alone can afford Fleet, showing Matter can help other plans. Expansion still selects an unaffordable Explorer; do not call Matter intrinsically worse.
+Explorer is inserted before the equally scored expansion Settler (both11), so stable sorting picks it until excavation count3 or launch capacity constraints intervene. No-yield compensation comes from a better policy plan automatically.
+Anchors: app.js579 production amount;967-980 production;1885-1889 ship scores;1904-1910 Explorer/Settler insertion;2007-2018 preferred build only.
+
+4. Identical fixed-card traces confirm bank/hand interactions, but are not live opening predictions.
+The raw openingTraces deliberately replenish the same five starter cards every round, skip Buy/movement/combat, and raise storage to110 so conversions can reach 4:1 bank thresholds without overflow interrupting the affordability probe.
+With two Construct plus three Move every round, all first yards build at controlled step-round2; seat2's first Explorer is4 versus3 elsewhere. Inward-first makes all3. With three Construct plus two Move, seat2's Matter yard gets Explorer3 versus4 for its inward Energy yard. Thus the sign can reverse with the hand mix because bankPlanForCost preserves the whole desired cost and will not perform a partial plan.
+Actual shuffled hands, storage resolution, purchases, movement and trades must be assessed by root's whole-game runs; these artificial traces establish only a possible resource-affordability mechanism.
+Anchors: app.js1843-1854 bank planner;1857-1870 conversion ordering.
+
+5. BFS ties do not respect the four-home isometries.
+Fixture has two equidistant unclaimed center goals[(2,0),(0,2)]. Apply per-home coordinate transforms identity,swap(q,r),negate,negative-swap. Fixed global directions choose the canonical first goal only for transforms0/3, and the second goal for1/2. Transforming the neighbor order with each home restores the same relative goal for all4. Path lengths are unchanged. This demonstrates a policy directional bias matching the strong/weak seat grouping, not its effect on wins.
+Anchors: app.js94 direction array;823-830 adjacent/movement neighbors;1913-1926 nearestGoal BFS;1929-1939 path BFS.
+
+Clean analysis-only causal contrasts suggested
+- First-yard geometry only: force inward while holding its production yield at the original first-yard yield. A production hook can isolate this without changing what other hexes later produce. Compare with yield-only and full inward interventions. Ordinary inward-first changes BOTH geometry and yield.
+- Yield only: retain East launch position, substitute Energy for the first yard's production, leaving build/path order fixed. Treat this as an artificial intervention rather than legal gameplay.
+- Per-player path tie order: transform only movementNeighbors/nearestGoal/pathToCoord order using home isometry. Do not globally rewrite DIRECTIONS before generateGalaxy, because that changes resource/sector construction as well as paths.
+- Build tie order: reorder only equal-score candidate tie breaks relative to the player's home; avoid changing scores or affordability simultaneously. Explicit inward-first is a narrower initial intervention than changing every build tie.
+- Equal complete resource palette: reflect the complete home palette, not just its first yard. Then cross with path ordering; later Data-Harvester ties could mediate the outcome too.
+
+Interpretation limit
+These probes establish deterministic routes by which home orientation and stable heuristic order can alter the same bot's choices. They do not quantify how much of the observed win-share gap each route causes. Root's paired interventions are needed for that claim. The evidence does not support attributing the gap solely to planet-distance fairness or solely to turn order.

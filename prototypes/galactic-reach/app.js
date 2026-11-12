@@ -459,11 +459,15 @@ function createGalacticReach(options = {}) {
     historyPosition = position;
   }
 
-  function stateSignature(position) {
+  function stateSignature(position, version = 2) {
     // Detect an interrupted two-key write or a different game's history. This is
     // an integrity marker, not a security primitive or a seed for the game RNG.
     let hash = 2166136261;
-    const text = JSON.stringify(position);
+    // Account storage may reorder object keys. Array order (including decks)
+    // still matters. Version 1 remains readable for existing browser histories.
+    const canonical = value=>Array.isArray(value)?value.map(canonical):value && typeof value==='object'
+      ? Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])) : value;
+    const text = JSON.stringify(version===1?position:canonical(position));
     for (let n=0;n<text.length;n++) hash = Math.imul(hash ^ text.charCodeAt(n),16777619) >>> 0;
     return `${text.length}:${hash.toString(16)}`;
   }
@@ -472,7 +476,7 @@ function createGalacticReach(options = {}) {
     let saved;
     try { saved = JSON.parse(storage.getItem(HISTORY_KEY) || 'null'); } catch (_) {}
     const rulesVersion = `galactic-reach/${SAVE_FORMAT_VERSION}.${RULES_REVISION}`;
-    if (saved?.format===1 && saved.rulesVersion===rulesVersion && saved.stateSignature===stateSignature(state) && Array.isArray(saved.events)) {
+    if (saved?.format===1 && saved.rulesVersion===rulesVersion && saved.stateSignature===stateSignature(state,saved.signatureVersion || 1) && Array.isArray(saved.events)) {
       gameHistory = saved;
     } else {
       for (const snapshot of [turnHistory.pending,turnHistory.undo]) if (snapshot) snapshot.historyCursor = null;
@@ -486,6 +490,7 @@ function createGalacticReach(options = {}) {
   function saveGame() {
     if (headless || replayMode) return;
     appendHistory();
+    gameHistory.signatureVersion = 2;
     gameHistory.stateSignature = stateSignature(state);
     historySaveFailed = false;
     try {
@@ -513,6 +518,7 @@ function createGalacticReach(options = {}) {
     const history = clone(gameHistory);
     const changes = auditChanges(historyPosition,auditPosition());
     if (changes.length) history.events.push({seq:history.events.length+1,round:state.round,phase:state.phase,actor:null,kind:'position',text:'Current position at export.',changes});
+    history.signatureVersion = 2;
     history.stateSignature = stateSignature(state);
     const changeText = change=>{
       const path=change.path;

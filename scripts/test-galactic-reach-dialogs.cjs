@@ -758,6 +758,35 @@ test('Undo with missing history never claims an invented earlier event range', (
  assert.match(report.logText,/earlier event range unavailable/);assert(!report.logText.includes('#null'));
 });
 
+
+test('account JSON field reordering preserves full history, Undo cursors, and subsequent recording', () => {
+ const storage=createStorage(),snapshots=[];
+ const game=boot(storage,20261013,undefined,{onSave:value=>snapshots.push(JSON.parse(JSON.stringify(value)))});
+ game.click('pass-button').click('finish-buy-button');
+ const saved=snapshots.at(-1);
+ const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
+ const server=canonical(saved),account=createStorage({[SAVE_KEY]:JSON.stringify(server.state),[TURN_HISTORY_KEY]:JSON.stringify(server.turnHistory),[HISTORY_KEY]:JSON.stringify(server.gameHistory)});
+ assert.notEqual(account.getItem(SAVE_KEY),JSON.stringify(saved.state),'Account fixture actually reorders state fields');
+ const reload=boot(account,20261013,undefined,{requireSave:true});reload.click('export-game-report');
+ const report=reload.downloads.at(-1);assert(report.coverage.complete);assert.equal(report.save.gameHistory.signatureVersion,2);
+ assert.deepEqual(report.save.gameHistory.events,saved.gameHistory.events);
+ reload.click('undo-turn-button').click('export-game-report');
+ const after=reload.downloads.at(-1);assert(after.coverage.complete);assert(after.save.gameHistory.events.some(e=>e.kind==='undo'&&Number.isInteger(e.undone.from)));
+ assert(boot(account,20261013,undefined,{requireSave:true}).dom.element('history-status').textContent.includes('Full history'));
+});
+
+test('legacy browser history markers load without loss and array order remains significant', () => {
+ const storage=createStorage(),game=boot(storage),history=JSON.parse(storage.getItem(HISTORY_KEY));
+ let hash=2166136261;const raw=JSON.stringify(game.saved());
+ for(let n=0;n<raw.length;n++)hash=Math.imul(hash^raw.charCodeAt(n),16777619)>>>0;
+ delete history.signatureVersion;history.stateSignature=`${raw.length}:${hash.toString(16)}`;storage.setItem(HISTORY_KEY,JSON.stringify(history));
+ const reload=boot(storage);reload.click('export-game-report');assert(reload.downloads.at(-1).coverage.complete);
+ assert.equal(reload.downloads.at(-1).save.gameHistory.signatureVersion,2,'Export copy uses the canonical marker');
+ reload.click('pass-button');assert.equal(JSON.parse(storage.getItem(HISTORY_KEY)).signatureVersion,2,'Next save upgrades the marker');
+ const state=reload.saved();state.players[0].hand.reverse();writeSave(storage,state);
+ const changed=boot(storage);changed.click('export-game-report');assert(!changed.downloads.at(-1).coverage.complete,'Canonicalization never hides changes to ordered arrays');
+});
+
 let failed = 0;
 for (const { name, body } of tests) {
   try {

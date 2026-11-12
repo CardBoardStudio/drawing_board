@@ -748,6 +748,16 @@ test('a complete browser game exports setup through victory and retains its hist
  const reload=boot(storage);reload.click('export-game-report');assert.deepEqual(reload.downloads[0].save.gameHistory,report.save.gameHistory);
 });
 
+
+test('Undo with missing history never claims an invented earlier event range', () => {
+ const storage=createStorage(),game=boot(storage);game.click('pass-button').click('finish-buy-button');
+ storage.removeItem(HISTORY_KEY);
+ const reload=boot(storage);reload.click('undo-turn-button').click('export-game-report');
+ const report=reload.downloads.at(-1),undo=report.save.gameHistory.events.find(e=>e.kind==='undo');
+ assert(!report.coverage.complete);assert(undo);assert.equal(undo.undone.from,null);assert.equal(undo.undone.to,null);
+ assert.match(report.logText,/earlier event range unavailable/);assert(!report.logText.includes('#null'));
+});
+
 let failed = 0;
 for (const { name, body } of tests) {
   try {

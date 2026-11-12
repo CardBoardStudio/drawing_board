@@ -475,6 +475,7 @@ function createGalacticReach(options = {}) {
     if (saved?.format===1 && saved.rulesVersion===rulesVersion && saved.stateSignature===stateSignature(state) && Array.isArray(saved.events)) {
       gameHistory = saved;
     } else {
+      for (const snapshot of [turnHistory.pending,turnHistory.undo]) if (snapshot) snapshot.historyCursor = null;
       gameHistory = {format:1,rulesVersion,complete:false,initialState:null,
         coverageNote:'Full history was unavailable for this position. Only retained messages and subsequent events are included.',
         events:[...state.log].reverse().map((text,index)=>({seq:index+1,round:Number(/^R(\d+)/.exec(text)?.[1]) || null,phase:null,actor:null,kind:'retained',text,changes:[]}))};
@@ -531,7 +532,7 @@ function createGalacticReach(options = {}) {
         resources:clone(player.resources),capacity:playerCapacity(player.id),points:prestigeBreakdown(player.id),
         cards:{hand:player.hand.length,deck:player.deck.length,discard:player.discard.length,purchased:player.cardsPurchased || 0}})),
       save:{state:clone(state),turnHistory:clone(turnHistory),gameHistory:history},
-      logText:[history.complete?'Complete history from setup.':history.coverageNote,...history.events.map(event=>`#${event.seq} R${event.round ?? '?'} ${event.phase || ''} · ${event.text}${event.kind==='undo'?` [rolls back #${event.undone.from}–#${event.undone.to}]`:''}${event.changes.map(changeText).filter(Boolean).map(text=>' | '+text).join('')}`)].join('\n')
+      logText:[history.complete?'Complete history from setup.':history.coverageNote,...history.events.map(event=>`#${event.seq} R${event.round ?? '?'} ${event.phase || ''} · ${event.text}${event.kind==='undo'?(Number.isInteger(event.undone.from)?` [rolls back #${event.undone.from}–#${event.undone.to}]`:' [earlier event range unavailable]'):''}${event.changes.map(changeText).filter(Boolean).map(text=>' | '+text).join('')}`)].join('\n')
     };
   }
 
@@ -585,7 +586,8 @@ function createGalacticReach(options = {}) {
     state = clone(snapshot.state);
     cardSerial = snapshot.cardSerial;
     turnHistory.undo = null;
-    appendHistory(`${snapshot.label} restored with Undo.`,{kind:'undo',actor:0,undone:{from:(snapshot.historyCursor || 0)+1,to:lastEvent}});
+    const knownRange = Number.isInteger(snapshot.historyCursor) && snapshot.historyCursor < lastEvent;
+    appendHistory(`${snapshot.label} restored with Undo.`,{kind:'undo',actor:0,undone:knownRange?{from:snapshot.historyCursor+1,to:lastEvent}:{from:null,to:null,reason:'Earlier event range unavailable.'}});
     turnHistory.pending = { state: clone(state), cardSerial, label: snapshot.label, historyCursor:gameHistory.events.length };
     saveTurnHistory();
     const messageDialog = $('#message-dialog');

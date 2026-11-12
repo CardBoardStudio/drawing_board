@@ -300,6 +300,7 @@ function createGalacticReach(options = {}) {
   let cardSerial = 1;
   let state;
   let aiTimer = null;
+  let displayingCombatReport = false;
   let turnHistory = { pending: null, undo: null };
   // Whose command panels (resources, hand) are shown. Live play is always seat 0.
   let viewSeat = 0;
@@ -443,7 +444,7 @@ function createGalacticReach(options = {}) {
       planets: galaxy.planets, clusters: galaxy.clusters, fleets, advancedDeck, market: [], marketDiscard: [],
       selected: null, actionMode: null, actionCardId: null, actionOptions: {}, moveSource: null, reachable: [],
       turnStage: 'waiting', log: [], winner: null,
-      lastCombat: null, pendingCombat: null, pendingMove: null, relicDeck, relicRow,
+      lastCombat: null, pendingCombat: null, pendingMove: null, pendingCombatReport: null, relicDeck, relicRow,
       tradeOffers: [], nextTradeOfferId: 1, pendingColonyBuild: null, pendingConsortium: null,
       visibilityRevision: 2, rulesRevision: RULES_REVISION
     };
@@ -494,7 +495,7 @@ function createGalacticReach(options = {}) {
   }
 
   function undoLastTurn() {
-    if (!turnHistory.undo || state.pendingCombat || state.pendingMove || overflowPlayer()>=0) return;
+    if (!turnHistory.undo || state.pendingCombatReport || state.pendingCombat || state.pendingMove || overflowPlayer()>=0) return;
     const snapshot = turnHistory.undo;
     clearTimeout(aiTimer);
     state = clone(snapshot.state);
@@ -1031,13 +1032,13 @@ function createGalacticReach(options = {}) {
   }
 
   function scheduleAiTurn(phase, action, delay) {
-    if (headless || state.pendingCombat) return;
+    if (headless || state.pendingCombat || state.pendingCombatReport) return;
     clearTimeout(aiTimer);
     if (overflowPlayer() >= 0) return;
     const expectedPlayer = state.activePlayer;
     aiTimer = setTimeout(() => {
       aiTimer = null;
-      if (state.pendingCombat || overflowPlayer() >= 0 || options.paused?.() || state.phase !== phase || state.activePlayer !== expectedPlayer || state.winner !== null) return;
+      if (state.pendingCombat || state.pendingCombatReport || overflowPlayer() >= 0 || options.paused?.() || state.phase !== phase || state.activePlayer !== expectedPlayer || state.winner !== null) return;
       try {
         action();
       } catch (error) {
@@ -1543,7 +1544,7 @@ function createGalacticReach(options = {}) {
     let outcome;
     const attackers=fleetCount(getFleet(coord,attackerId));
     const defenders=aliveCombatPieces(b.defenderPieces).length;
-    if (!attackers) outcome=`${state.players[attackerId].name} has no attacking ships left on the hex.`;
+    if (!attackers) outcome=attackerId===0?'You have no attacking ships left on the hex.':`${state.players[attackerId].name} has no attacking ships left on the hex.`;
     else if (!defenders) {
       outcome=`${state.players[attackerId].name} seized the hex.`;
       if (planet && planet.owner!==null && planet.owner!==attackerId) planet.occupiedBy=attackerId;
@@ -1554,7 +1555,7 @@ function createGalacticReach(options = {}) {
         b.destroyedCount+=attackers;
         b.attackerPieces.forEach(piece=>{piece.damage=piece.hull;});
         syncCombatPieces(attackerId,coord,b.attackerPieces);
-        outcome=`${state.players[attackerId].name} could not retreat and its ${attackers} surviving ship${attackers===1?' was':'s were'} destroyed.`;
+        outcome=`${attackerId===0?'You could not retreat, and your':`${state.players[attackerId].name} could not retreat, and its`} ${attackers} surviving ship${attackers===1?' was':'s were'} destroyed.`;
       }
     }
     if (b.destroyedCount) for (const id of [attackerId,defenderId]) {
@@ -1563,6 +1564,7 @@ function createGalacticReach(options = {}) {
     }
     state.lastCombat={attackerId,defenderId,coord,summary:b.summary,volleys:b.volleys,outcome,system:'secret-fixed-hand'};
     state.pendingCombat=null;
+    if (!headless && (attackerId===0 || defenderId===0)) state.pendingCombatReport=state.lastCombat;
     logEvent(`${state.players[attackerId].name} attacked ${state.players[defenderId].name} at ${nameForCoord(coord)}. ${outcome}`);
     if (!headless && $('#combat-dialog').open) $('#combat-dialog').close();
     finishMoveOrder();
@@ -2835,7 +2837,7 @@ function createGalacticReach(options = {}) {
     $('#turn-instruction').textContent=state.pendingCombat?'Battle pending: finish escape and secret tactic choices.':state.pendingConsortium?'Choose your Trade Consortium gain or exchanges.':state.pendingColonyBuild?.playerId===0?'Colonize II: choose an adjacent building at full cost, or finish without building.':instruction;
     $('#pass-button').hidden=!!state.pendingCombat || !(state.phase==='operations'&&humanTurn&&(state.turnStage==='prep'||state.turnStage==='action'));
     const undoButton=$('#undo-turn-button');
-    undoButton.disabled=!!state.pendingCombat || !turnHistory.undo;
+    undoButton.disabled=!!state.pendingCombatReport || !!state.pendingCombat || !turnHistory.undo;
     undoButton.title=turnHistory.undo?`Restore the start of your ${turnHistory.undo.label}`:'Available after you complete a turn';
   }
 
@@ -2946,6 +2948,21 @@ function createGalacticReach(options = {}) {
     $('#overflow-confirm').disabled = chosen !== excess;
   }
 
+  function renderCombatReport() {
+    if (headless || replayMode || !state.pendingCombatReport || state.pendingCombat || overflowPlayer()>=0) return;
+    const report=state.pendingCombatReport;
+    displayingCombatReport=true;
+    showMessage('COMBAT REPORT',nameForCoord(report.coord),[...report.summary,report.outcome].join('\n\n'));
+  }
+
+  function acknowledgeCombatReport() {
+    if (!displayingCombatReport) return;
+    displayingCombatReport=false;state.pendingCombatReport=null;saveGame();render();
+    if (state.pendingCombat) scheduleCombatAi();
+    else if (state.activePlayer!==0 && state.phase==='operations') scheduleAiTurn('operations',runAiOperation,650);
+    else if (state.activePlayer!==0 && state.phase==='buy') scheduleAiTurn('buy',runAiBuy,650);
+  }
+
   function renderCombat() {
     if (headless || replayMode) return;
     const dialog=$('#combat-dialog'),b=state.pendingCombat;
@@ -3001,7 +3018,7 @@ function createGalacticReach(options = {}) {
 
   function render() {
     if (headless) return;
-    renderHeader(); renderScoreboard(); renderBoard(); renderResources(); renderInspector(); positionSectorScan(); renderLog(); renderHand(); renderMarket(); renderFleetSummary(); renderTrade(); renderRelicRow(); renderOverflow(); renderCombat();
+    renderHeader(); renderScoreboard(); renderBoard(); renderResources(); renderInspector(); positionSectorScan(); renderLog(); renderHand(); renderMarket(); renderFleetSummary(); renderTrade(); renderRelicRow(); renderOverflow(); renderCombat(); renderCombatReport();
   }
 
   function switchTab(name) {
@@ -3073,6 +3090,7 @@ function createGalacticReach(options = {}) {
     $('#rules-button').addEventListener('click',()=>$('#rules-dialog').showModal());
     $('#close-rules').addEventListener('click',()=>$('#rules-dialog').close());
     $('#message-continue').addEventListener('click',()=>$('#message-dialog').close());
+    $('#message-dialog').addEventListener('close',acknowledgeCombatReport);
     $('#report-button').addEventListener('click',showReplayReport);
     $('#deck-button').addEventListener('click',()=>{if(!replayMode){renderDeck();$('#deck-dialog').showModal();}});
     $('#close-deck').addEventListener('click',()=>$('#deck-dialog').close());

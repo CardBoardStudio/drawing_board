@@ -1679,7 +1679,7 @@ function createGalacticReach(options = {}) {
     planet.special=null; planet.relicClaimed=true;
     player.relicsExcavated+=1;
     removeHandCard(player,cardId,'trash');
-    completeAction(playerId,`${player.name} excavated a relic at ${planet.name}, chose ${ALL_CARDS[relic.key].name}, into discard and gained 1 Prestige. One Explorer was consumed and Excavate was trashed.`);
+    completeAction(playerId,`${player.name} excavated a relic at ${planet.name}, chose ${ALL_CARDS[relic.key].name} for discard, and gained 1 Prestige. One Explorer was consumed and Excavate was trashed.`);
     return true;
   }
 

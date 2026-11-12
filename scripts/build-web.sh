@@ -134,3 +134,11 @@ for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css 
 done
 cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/18.23/table.js
 cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/18.23/
+
+# Preserve the complete Game Reports browser for pinned tables and replays.
+mkdir -p dist/galactic-reach/rules/19.24
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v19-$asset" "dist/galactic-reach/rules/19.24/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/19.24/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/19.24/

@@ -22,11 +22,14 @@ function createGalacticAdapter(e) {
         handCount: p.hand.length, deckCount: p.deck.length, deckContents: id === seat ? e.deckContents(p) : undefined,
         passed: p.passed
       })),
-      planets: Object.fromEntries(Object.entries(state.planets).map(([coord, p]) => [coord,
-        visible(coord, seat) ? { ...p } : { cluster: p.cluster, unknown: true,
-          relicSignal: e.clusterScanned(state.clusters[p.cluster], seat) && p.special === 'relic' }
-      ])),
-      clusters: state.clusters.map(c => ({ center: c.center, coords: c.coords })),
+      planets: Object.fromEntries(Object.entries(state.planets).flatMap(([coord,p])=>{
+        const cluster=state.clusters[p.cluster], known=visible(coord,seat), located=e.relicKnown(cluster,seat), signal=p.special==='relic'&&located;
+        if (!known) return signal ? [[coord,{cluster:p.cluster,unknown:true,relicSignal:true}]] : [];
+        return [[coord,{...p,...(!located?{special:null,relicClaimed:false}:{})}]];
+      })),
+      clusters: state.clusters.map(c=>e.clusterKnown(c,seat)
+        ? {kind:c.kind,center:c.center,coords:c.coords,surveyed:e.clusterRevealed(c,seat)}
+        : {kind:'unknown',center:null,coords:[],surveyed:false}),
       fleets: state.fleets, market: state.market, relicRow: state.relicRow, relicDeckCount: state.relicDeck.length,
       pendingConsortium: state.pendingConsortium, tradeOffers: state.tradeOffers, pendingColonyBuild: state.pendingColonyBuild
     });
@@ -196,6 +199,6 @@ function createGalacticAdapter(e) {
     const seat = activeSeat();
     return { active: seat, observation: seat === null ? null : observe(seat), legal: legalActions(seat), scores: scores() };
   }
-  return { rulesVersion: 'galactic-reach/19.24', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
+  return { rulesVersion: 'galactic-reach/20.25', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = createGalacticAdapter;

@@ -8,13 +8,14 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/19.24";
+pub const RULES: &str = "galactic-reach/20.25";
 mod legacy_v1;
 mod legacy_v10;
 mod legacy_v11;
 mod legacy_v12;
 mod legacy_v13;
 mod legacy_v14;
+mod legacy_v15;
 mod legacy_v2;
 mod legacy_v3;
 mod legacy_v4;
@@ -75,6 +76,7 @@ impl GalacticReach {
             "galactic-reach/16.21" => "galactic-reach/16.21",
             "galactic-reach/17.22" => "galactic-reach/17.22",
             "galactic-reach/18.23" => "galactic-reach/18.23",
+            "galactic-reach/19.24" => "galactic-reach/19.24",
             _ => return Err("Unsupported rules version.".into()),
         };
         Self::initialize(seed, MATCH_TIMEOUT, rules)
@@ -98,6 +100,7 @@ impl GalacticReach {
                     RULES => ADAPTER,
                     "galactic-reach/17.22" => include_str!("../rules/v17-adapter.js"),
                     "galactic-reach/18.23" => include_str!("../rules/v18-adapter.js"),
+                    "galactic-reach/19.24" => include_str!("../rules/v19-adapter.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-adapter.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-adapter.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-adapter.js"),
@@ -117,6 +120,7 @@ impl GalacticReach {
                     RULES => ENGINE,
                     "galactic-reach/17.22" => include_str!("../rules/v17-app.js"),
                     "galactic-reach/18.23" => include_str!("../rules/v18-app.js"),
+                    "galactic-reach/19.24" => include_str!("../rules/v19-app.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-app.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-app.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-app.js"),
@@ -244,18 +248,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/15",
-            Self::Economy => "gr-economy/15",
-            Self::Expansion => "gr-expansion/15",
-            Self::Wanderer => "gr-wanderer/15",
+            Self::Military => "gr-military/16",
+            Self::Economy => "gr-economy/16",
+            Self::Expansion => "gr-expansion/16",
+            Self::Wanderer => "gr-wanderer/16",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/15" => Some(Self::Military),
-            "gr-economy/15" => Some(Self::Economy),
-            "gr-expansion/15" => Some(Self::Expansion),
-            "gr-wanderer/15" => Some(Self::Wanderer),
+            "gr-military/16" => Some(Self::Military),
+            "gr-economy/16" => Some(Self::Economy),
+            "gr-expansion/16" => Some(Self::Expansion),
+            "gr-wanderer/16" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -460,7 +464,11 @@ impl BuiltinAgent {
                     let center = view["clusters"][p["cluster"].as_u64().unwrap() as usize]["center"]
                         == *coord;
                     let goal = if explorer {
-                        p["relicSignal"] == true || p["special"] == "relic" || p["unknown"] == true
+                        p["relicSignal"] == true
+                            || p["special"] == "relic"
+                            || (center
+                                && view["clusters"][p["cluster"].as_u64().unwrap() as usize]["surveyed"]
+                                    == false)
                     } else if military && number(&fleet["fleet"]) > 1.0 {
                         !p["owner"].is_null() && p["owner"] != json!(seat)
                     } else {
@@ -652,6 +660,9 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
     if let Some(strategy) = legacy_v14::Strategy::parse(version) {
         return Ok(Box::new(legacy_v14::BuiltinAgent::new(strategy, seed)));
     }
+    if let Some(strategy) = legacy_v15::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v15::BuiltinAgent::new(strategy, seed)));
+    }
     Err("Unsupported Galactic Reach policy version.".into())
 }
 
@@ -722,6 +733,7 @@ mod tests {
             "galactic-reach/16.21",
             "galactic-reach/17.22",
             "galactic-reach/18.23",
+            "galactic-reach/19.24",
         ] {
             let game = GalacticReach::with_rules([19; 32], rules).unwrap();
             assert_eq!(game.rules_version(), rules);
@@ -744,6 +756,7 @@ mod tests {
                             | "galactic-reach/16.21"
                             | "galactic-reach/17.22"
                             | "galactic-reach/18.23"
+                            | "galactic-reach/19.24"
                     ) {
                         0
                     } else {
@@ -769,6 +782,7 @@ mod tests {
             "gr-military/13",
             "gr-military/14",
             "gr-military/15",
+            "gr-military/16",
         ] {
             assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
         }
@@ -785,12 +799,22 @@ mod tests {
         assert!(me.get("deck").is_none());
         assert!(me.get("militaryDeck").is_none());
         assert!(before.get("advancedDeck").is_none());
+        assert_eq!(before["planets"].as_object().unwrap().len(), 91);
         assert!(
             before["planets"]
                 .as_object()
                 .unwrap()
                 .values()
-                .any(|p| p["unknown"] == true && p.get("type").is_none())
+                .all(|p| p.get("type").is_some() && p["special"].is_null())
+        );
+        assert_eq!(
+            before["clusters"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .filter(|c| c["kind"] == "unknown" && c["center"].is_null())
+                .count(),
+            4
         );
         assert!(g.legal_actions(1).is_empty());
         assert!(g.apply_action(1, json!({"type":"pass"})).is_err());
@@ -812,7 +836,7 @@ mod tests {
     #[test]
     fn reference_policies_complete_reproducible_four_player_matches() {
         let play = || {
-            let mut game = GalacticReach::new([17; 32]).unwrap();
+            let mut game = GalacticReach::new([8; 32]).unwrap();
             let mut agents: Vec<Box<dyn PlayerAgent<GalacticReach>>> = [
                 Strategy::Military,
                 Strategy::Economy,

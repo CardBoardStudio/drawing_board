@@ -406,7 +406,7 @@ test('a save from an incompatible rules revision is replaced by a current game',
   const state = game.saved();
   assert.equal(state.rulesRevision, CURRENT_RULES_REVISION);
   assert.equal(state.version, formatVersion);
-  assert.equal(state.visibilityRevision, 2);
+  assert.equal(state.visibilityRevision, 3);
   assert.equal(state.round, 1);
   assert.equal(state.phase, 'operations');
   const history = JSON.parse(storage.getItem(TURN_HISTORY_KEY));
@@ -552,37 +552,45 @@ test('excavation UI chooses a visible reward and survives reload without its spe
   assert.equal(boot(storage).saved().players[0].relicsExcavated,1);
 });
 
-test('map and Sector Scan show every faction in fog and empty space', () => {
-  const storage=createStorage(), state=boot(storage).saved(), coord=state.clusters[4].coords[1];
+test('units remain visible on hidden moons and ordinary space without revealing terrain', () => {
+  const storage=createStorage(),state=boot(storage).saved(),moon=state.clusters.find(c=>c.kind==='moon'),coord=moon.center;
   const empty=['2,0','0,2','-2,0','0,-2'].find(key=>!state.planets[key]);assert(empty);
-  state.clusters[4].revealedBy=[];state.clusters[4].scannedBy=[];
   state.fleets[coord]={2:{explorer:1,fleet:2}};state.fleets[empty]={3:{settler:1}};
   writeSave(storage,state);const game=boot(storage);
-  for (const [key,name] of [[coord,'Violet Assembly'],[empty,'Helios Compact']]) {
+  for(const [key,name] of [[coord,'Violet Assembly'],[empty,'Helios Compact']]) {
     const hex=game.dom.hex(key);assert(hex.querySelector('.hex-fleets').innerHTML.includes('hex-fleet-group'));
-    assert(hex.getAttribute('aria-label').includes(name));
-    hex.click();assert(game.dom.element('inspect-facts').innerHTML.includes(name));
+    assert(hex.getAttribute('aria-label').includes(name));hex.click();assert(game.dom.element('inspect-facts').innerHTML.includes(name));
   }
-  assert(game.dom.hex(coord).className.includes('unknown-world'),'Visible units do not reveal terrain');
+  assert.equal(game.dom.hex(coord).querySelector('.special').textContent,'');
+  assert(!game.dom.hex(coord).className.includes('moon'),'Unit markers do not reveal a moon');
+  assert(!game.dom.element('inspect-facts').innerHTML.includes('Relic'));
 });
 
-test('development reveal restores fog and leaves saved discovery unchanged', () => {
-  const storage=createStorage(), state=boot(storage).saved(), coord=state.clusters[4].coords[1];
-  state.planets[coord].owner=2;state.planets[coord].upgrade='harvester';state.planets[coord].upgradeLevel=1;
-  state.fleets[coord]={2:{fleet:1}};state.selected=coord;
-  writeSave(storage,state);
-  const game=boot(storage,20261013,{hostname:'localhost',search:'?dev=1'}), before=storage.getItem(SAVE_KEY);
+test('development reveal exposes moons and relics then restores normal public-world visibility', () => {
+  const storage=createStorage(),state=boot(storage).saved(),moon=state.clusters.find(c=>c.kind==='moon'),coord=moon.center;
+  state.fleets[coord]={2:{fleet:1}};state.selected=coord;writeSave(storage,state);
+  const game=boot(storage,20261013,{hostname:'localhost',search:'?dev=1'}),before=storage.getItem(SAVE_KEY);
   assert.equal(game.dom.element('development-tools').hidden,false);
-  const toggle=game.dom.element('reveal-entire-map'), hex=game.dom.hex(coord);
-  assert(hex.className.includes('unknown-world'));assert.equal(hex.querySelector('.hex-buildings').innerHTML,'');
-  toggle.checked=true;fire(toggle,'change');
-  assert(!hex.className.includes('unknown-world'));assert(hex.querySelector('.hex-buildings').innerHTML);
-  toggle.checked=false;fire(toggle,'change');
-  assert(hex.className.includes('unknown-world'));assert.equal(hex.querySelector('.hex-buildings').innerHTML,'');
+  const toggle=game.dom.element('reveal-entire-map'),hex=game.dom.hex(coord);
+  assert(!hex.className.includes('moon'));assert.equal(hex.querySelector('.special').textContent,'');
+  toggle.checked=true;fire(toggle,'change');assert(hex.className.includes('moon'));assert.equal(hex.querySelector('.special').textContent,'◈');
+  toggle.checked=false;fire(toggle,'change');assert(!hex.className.includes('moon'));assert.equal(hex.querySelector('.special').textContent,'');
   assert(hex.querySelector('.hex-fleets').innerHTML);assert.equal(storage.getItem(SAVE_KEY),before);
-  assert.equal(boot(storage,20261013,{hostname:'drawing-board-p0g3.onrender.com',search:'?dev=1'}).dom.element('development-tools').hidden,true,'Stable host never exposes development controls');
+  assert.equal(boot(storage,20261013,{hostname:'drawing-board-p0g3.onrender.com',search:'?dev=1'}).dom.element('development-tools').hidden,true);
 });
 
+test('public worlds show resources and buildings while unlocated relics stay hidden in every panel', () => {
+  const storage=createStorage(),state=boot(storage).saved(),world=state.clusters[4];
+  const coord=world.coords.find(key=>state.planets[key].special==='relic');
+  Object.assign(state.planets[coord],{owner:2,upgrade:'harvester',upgradeLevel:1});state.selected=coord;writeSave(storage,state);
+  const game=boot(storage),hex=game.dom.hex(coord);
+  assert(hex.className.includes(state.planets[coord].type));assert(hex.querySelector('.hex-buildings').innerHTML);
+  assert.equal(hex.querySelector('.special').textContent,'');assert(!game.dom.element('inspect-facts').innerHTML.includes('Relic site'));
+  assert(!hex.getAttribute('aria-label').includes('relic'));
+  for(const world of state.clusters.filter(c=>c.kind==='world')) for(const key of world.coords) assert(!game.dom.hex(key).className.includes('unknown-world'));
+  state.clusters[4].scannedBy=[0];writeSave(storage,state);const located=boot(storage);
+  assert.equal(located.dom.hex(coord).querySelector('.special').textContent,'◈');assert(located.dom.element('inspect-facts').innerHTML.includes('Relic site'));
+});
 
 test('Deck opens grouped remaining cards without draw order or save changes', () => {
  const storage=createStorage(),state=boot(storage).saved();

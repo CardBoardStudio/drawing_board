@@ -20,9 +20,9 @@ function game() {
 
 {
   const { e, s, adapter } = game();
-  assert.equal(adapter().rulesVersion, 'galactic-reach/19.24');
-  assert.equal(s.version, 19);
-  assert.equal(s.rulesRevision, 24);
+  assert.equal(adapter().rulesVersion, 'galactic-reach/20.25');
+  assert.equal(s.version, 20);
+  assert.equal(s.rulesRevision, 25);
   assert(!('awards' in s));
   assert(!('DIRECTIVES' in e));
   const score = e.calculatePrestige(0);
@@ -37,12 +37,13 @@ for (const type of ['settler', 'fleet', 'explorer']) {
   const source = `${q - 1},${r}`;
   s.fleets = { [source]: { 0: { settler: 0, fleet: 0, explorer: 0, [type]: 1 } } };
   p.hand = [{ key: 'move', id: 'discover' }];
-  assert(!e.clusterKnown(s.clusters[4], 0));
+  assert(e.clusterKnown(s.clusters[4], 0));
+  assert(!e.clusterRevealed(s.clusters[4], 0));
   const a = adapter();
   const action = a.legalActions(0).find(item => item.type === 'move' && item.destination === target && item.moveGroup === (type === 'explorer' ? 'explorer' : 'ships'));
-  assert(action, `${type} can enter an unknown world`);
+  assert(action, `${type} can survey a public world`);
   a.applyAction(0, action);
-  assert.deepEqual(plain(s.clusters[4].revealedBy), [0, 1, 2, 3], `${type} reveals all seven world hexes to everyone`);
+  assert.deepEqual(plain(s.clusters[4].revealedBy), [0, 1, 2, 3], `${type} surveys the world and reveals its relic to everyone`);
 }
 
 {

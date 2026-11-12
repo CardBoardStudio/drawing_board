@@ -71,12 +71,20 @@ function assertGalaxy(s) {
   const homes=s.clusters.slice(0,4), worlds=s.clusters.filter(c=>c.kind==='world'&&c.id>=4), moons=s.clusters.filter(c=>c.kind==='moon');
   const expected=['9,-9','-9,9','6,-3','3,-6','-3,-3','-6,3','-3,6','3,3','0,0'];
   assert.deepEqual(new Set(Array.from(worlds,w=>w.center)),new Set(expected),'The approved world geometry stays fixed');
-  assert.deepEqual(new Set(Array.from(moons,m=>m.center)),new Set(['-3,0','0,-3','3,0','0,3']));
+  const access=homes.map(h=>Math.min(...moons.map(m=>r.hexDistance(h.center,m.center))));
+  assert(access.every(d=>d>=4&&d<=7));assert(Math.max(...access)-Math.min(...access)<=1);
+  const nearest=moons.map(m=>Math.min(...moons.filter(other=>other!==m).map(other=>r.hexDistance(m.center,other.center))));
+  assert(nearest.every(d=>d>=6));assert(Math.max(...nearest)-Math.min(...nearest)<=2);
+  const sums=moons.map(m=>m.center.split(',').map(Number)).reduce((sum,p)=>[sum[0]+p[0],sum[1]+p[1]],[0,0]);
+  assert(Math.max(Math.abs(sums[0]),Math.abs(sums[1]),Math.abs(sums[0]+sums[1]))<=8);
+  for(let seat=0;seat<4;seat++)assert.equal(moons.filter(m=>{
+    const ds=homes.map(h=>r.hexDistance(h.center,m.center)),min=Math.min(...ds);
+    return ds[seat]===min&&ds.filter(d=>d===min).length===1;
+  }).length,1,'One moon belongs to each nearest-home region');
   const opportunity=homes.map(h=>Array.from(worlds,w=>r.hexDistance(h.center,w.center)).sort((a,b)=>a-b));
   const moonOpportunity=homes.map(h=>Array.from(moons,m=>r.hexDistance(h.center,m.center)).sort((a,b)=>a-b));
   for(let seat=0;seat<4;seat++){
     assert.deepEqual(opportunity[seat],opportunity[0],'Every home has the same complete world-distance profile');
-    assert.deepEqual(moonOpportunity[seat],moonOpportunity[0],'Every home has the same complete moon-distance profile');
     assert.deepEqual(opportunity[seat].slice(0,2),[6,6]);
   }
   const center=worlds.find(w=>w.center==='0,0');assert(center);
@@ -89,12 +97,14 @@ function assertGalaxy(s) {
 
 }
 
-const layouts=new Set();
+const layouts=new Set(), moonLayouts=new Set();
 for(let n=1;n<=1000;n++) {
   const s=fresh(n); assertGalaxy(s);
   layouts.add(s.clusters.slice(4).map(c=>c.center).join('|'));
+  moonLayouts.add(s.clusters.filter(c=>c.kind==='moon').map(c=>c.center).join('|'));
 }
 assert(layouts.size>900,'Neutral world identities vary across the fixed slots');
+assert(moonLayouts.size>500,'Moons vary across hundreds of balanced placements');
 
 console.log(`Central Frontier: ${layouts.size} neutral identity arrangements across 1000 valid fixed-geometry maps.`);
 for(const constant of [0,0.5,1-Number.EPSILON]) {
@@ -142,8 +152,8 @@ r.playOrder(order.id); assert.equal(r.state.actionMode,'move'); assert.equal(r.s
 r.playOrder(order.id); assert.equal(r.state.actionMode,null,'Clicking again cancels without spending the card');
 assert.equal(r.state.players[0].hand.length,1);
 const old='untouched-v4-save'; storage.set('galactic-reach-save-v4',old);
-assert.equal(r.SAVE_KEY,'galactic-reach-save-v19');
-assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v19');
+assert.equal(r.SAVE_KEY,'galactic-reach-save-v20');
+assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v20');
 const saved=JSON.stringify(fresh(123)); r.saveGame(); fresh(456);
 assert(r.loadGame()); assert.equal(JSON.stringify(r.state),saved,'Reload retains randomized placement');
 assert.equal(storage.get('galactic-reach-save-v4'),old);

@@ -19,7 +19,7 @@ function effect(key) {
 }
 function special(g) {const action=g.a.legalActions(0).find(a=>a.type==='special');assert(action);g.a.applyAction(0,action);assert(g.p.discard.some(c=>c.id==='relic-order'));assert.equal(g.s.activePlayer,1);}
 {
-  const {e,a,s}=game();assert.equal(a.rulesVersion,'galactic-reach/19.24');assert.deepEqual(plain(s.fleets),{});
+  const {e,a,s}=game();assert.equal(a.rulesVersion,'galactic-reach/20.25');assert.deepEqual(plain(s.fleets),{});
   for(const p of s.players) {
     const cards=[...p.deck,...p.hand,...p.discard];assert.equal(cards.length,6);
     assert.equal(cards.filter(c=>c.key==='move').length,3);assert.equal(cards.filter(c=>c.key==='construct').length,3);
@@ -62,8 +62,9 @@ function special(g) {const action=g.a.legalActions(0).find(a=>a.type==='special'
 }
 {
   const g=effect('voidglassAstrolabe'),known=g.s.clusters.filter(c=>g.e.clusterKnown(c,0)).length;
-  special(g);assert.equal(g.s.clusters.filter(c=>g.e.clusterKnown(c,0)).length,known+2);
-  assert(g.s.clusters.filter(c=>g.e.clusterKnown(c,0)).every(c=>c.revealedBy.length===4));
+  special(g);assert.equal(g.s.clusters.filter(c=>g.e.clusterKnown(c,0)).length,known);
+  assert.equal(g.s.clusters.filter(c=>g.e.clusterRevealed(c,0)).length,6);
+  assert.equal(g.s.clusters.filter(c=>g.e.clusterKnown(c,0)).length,13);
 }
 {
   const g=effect('firstDawnEchoes');special(g);assert.equal(g.p.hand.length,3);

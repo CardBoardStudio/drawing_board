@@ -1,6 +1,6 @@
 # Galactic Reach rules maintenance
 
-The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 19.24 / Game Reports experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
+The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 20.25 / Open Worlds experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
 
 ## Read, change, verify
 
@@ -65,3 +65,9 @@ The 19.24 Game Reports experiment removes Shipyard-pair and lifetime-card-purcha
 Report integrity markers use canonical JSON object-key ordering (signature version 2), because account storage may reorder fields without changing a position. Array order remains significant. Version-1 browser markers remain readable and upgrade on the next save. The history is still bound to the saved position; mismatched or unavailable history stays partial.
 
 Arena integration checks use a test-only fixed map seed and bot-identity seeds for reproducible four-seat rotations. Production still uses OS randomness. Bounded incomplete series return HTTP 422 without committing ratings, series, or replays; the real container smoke validates that outcome or a completed four-match series. Runtime timeouts remain 300 seconds per game and the decision cap remains 10,000. This adds no game round limit and never invents a winner.
+
+The 20.25 Open Worlds experiment makes all thirteen worlds’ terrain/resources, ownership, and buildings public from setup. `revealedBy` now independently records a world/moon survey, and `scannedBy` remains private relic knowledge. Public terrain never implies a known relic. A ship’s arrival surveys a whole world or single moon globally. Astrolabe surveys two nearest unsurveyed worlds with remaining relics; Chorus locates signals privately. Unknown moons are absent from observer terrain and use position-free cluster placeholders; the UI treats them as ordinary space. Local and arena AI target only information their observer may know. Visibility revision 3, save 20, rules 25 and policy 16 isolate the change; full 19.24 assets/policy 15 remain archived.
+
+Moon generation samples uniformly from 2,225 feasible placements for the approved radius-10 world geometry. Each layout has one moon per unique nearest-home region, nearest-home distances 4–7 with at most one step of spread, at least three center steps from every world and six steps between moons, nearest-moon-neighbor spread at most two, and a moon centroid within radius two of the center. Enumeration is bounded and cached; no randomized retry loop or fixed fallback is needed. World positions and twelve relic sites remain unchanged.
+
+Open Worlds uses fixture seed 8 with bot-identity seeds 0–3 for the full-match/API checks. A bounded fixture search completed its four rotations in 1,518, 2,089, 1,565 and 2,066 decisions. This is a reproducible protocol fixture, not a balance sample; production maps remain random.

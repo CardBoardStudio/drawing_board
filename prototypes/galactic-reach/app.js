@@ -15,8 +15,8 @@ function createGalacticReach(options = {}) {
   }
   const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
-  const SAVE_FORMAT_VERSION = 19;
-  const RULES_REVISION = 24;
+  const SAVE_FORMAT_VERSION = 20;
+  const RULES_REVISION = 25;
   const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
   const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${SAVE_FORMAT_VERSION}`;
   const HISTORY_KEY = `galactic-reach-history-v${SAVE_FORMAT_VERSION}`;
@@ -135,7 +135,7 @@ function createGalacticReach(options = {}) {
             "energy": 2,
             "data": 2
         },
-        "text": "Reveal the two nearest unexplored worlds to everyone.",
+        "text": "Survey the two nearest unsurveyed worlds with remaining relics. Reveal those relics to everyone.",
         "lore": "A lens that remembers stars before they were born."
     },
     "phaseShearDrive": {
@@ -176,7 +176,7 @@ function createGalacticReach(options = {}) {
             "data": 2,
             "energy": 1
         },
-        "text": "Privately locate every remaining relic, then draw one card. The surrounding worlds stay hidden.",
+        "text": "Privately locate every remaining relic, then draw one card. A located signal does not reveal a hidden moon; other players do not see your private signals.",
         "lore": "Twelve dead moons hum the same coordinates."
     },
     "genesisSeedVault": {
@@ -305,6 +305,7 @@ function createGalacticReach(options = {}) {
   let gameHistory = null;
   let historyPosition = null;
   let historySaveFailed = false;
+  let moonLayoutChoices = null;
   // Whose command panels (resources, hand) are shown. Live play is always seat 0.
   let viewSeat = 0;
 
@@ -328,10 +329,43 @@ function createGalacticReach(options = {}) {
     return copy;
   }
 
+  function randomizedMoonPositions(worlds, homes) {
+    // Enumerate the bounded legal space once. Sampling it needs no random retries,
+    // including when tests supply a constant RNG. The chosen positions alone save.
+    const moonDistance=(a,b)=>Math.max(Math.abs(a[0]-b[0]),Math.abs(a[1]-b[1]),Math.abs(a[0]+a[1]-b[0]-b[1]));
+    if (!moonLayoutChoices) {
+      const pools = homes.map(()=>[]);
+      for (let q=-BOARD_RADIUS;q<=BOARD_RADIUS;q++) for (let r=-BOARD_RADIUS;r<=BOARD_RADIUS;r++) {
+        const key=coordKey(q,r);
+        if (!boardHas(key) || worlds.some(([a,b])=>moonDistance([q,r],[a,b])<3)) continue;
+        const distances=homes.map(([a,b])=>moonDistance([q,r],[a,b])), nearest=Math.min(...distances);
+        if (nearest<4 || nearest>7 || distances.filter(d=>d===nearest).length!==1) continue;
+        pools[distances.indexOf(nearest)].push({point:[q,r],distance:nearest});
+      }
+      moonLayoutChoices=[];
+      const choose=(picked,distances)=>{
+        if (picked.length===4) {
+          const nearest=picked.map((p,i)=>Math.min(...picked.filter((_,j)=>j!==i).map(other=>moonDistance(p,other))));
+          const q=picked.reduce((sum,p)=>sum+p[0],0),r=picked.reduce((sum,p)=>sum+p[1],0);
+          if (Math.max(...nearest)-Math.min(...nearest)>2 || Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r))>8) return;
+          moonLayoutChoices.push([...picked]);return;
+        }
+        for (const {point,distance} of pools[picked.length]) {
+          const nextDistances=[...distances,distance];
+          if (Math.max(...nextDistances)-Math.min(...nextDistances)>1 || picked.some(other=>moonDistance(point,other)<6)) continue;
+          choose([...picked,point],nextDistances);
+        }
+      };
+      choose([],[]);
+      if (!moonLayoutChoices.length) throw new Error('The approved world layout has no balanced moon placements.');
+    }
+    return moonLayoutChoices[Math.floor(random()*moonLayoutChoices.length)].map(point=>[...point]);
+  }
+
   function centralTerrainPositions() {
-    // The approved symmetric geometry; world identities and tiles vary each game.
-    const slots = [[9,-9],[-9,9],[6,-3],[3,-6],[-3,-3],[-6,3],[-3,6],[3,3]];
-    return {worlds:[...shuffled(slots),[0,0]],moons:[[-3,0],[0,-3],[3,0],[0,3]]};
+    const slots=[[9,-9],[-9,9],[6,-3],[3,-6],[-3,-3],[-6,3],[-3,6],[3,3]], edge=BOARD_RADIUS-1;
+    const homes=[[-edge,0],[0,-edge],[edge,0],[0,edge]];
+    return {worlds:[...shuffled(slots),[0,0]],moons:randomizedMoonPositions([...homes,...slots,[0,0]],homes)};
   }
 
   function generateGalaxy() {
@@ -412,7 +446,7 @@ function createGalacticReach(options = {}) {
       turnStage: 'waiting', log: [], winner: null,
       lastCombat: null, pendingCombat: null, pendingMove: null, pendingCombatReport: null, relicDeck, relicRow,
       tradeOffers: [], nextTradeOfferId: 1, pendingColonyBuild: null, pendingConsortium: null,
-      visibilityRevision: 2, rulesRevision: RULES_REVISION
+      visibilityRevision: 3, rulesRevision: RULES_REVISION
     };
     if (!headless) {
       gameHistory = {format:1, rulesVersion:`galactic-reach/${SAVE_FORMAT_VERSION}.${RULES_REVISION}`, complete:true, initialState:clone(initial), events:[]};
@@ -432,7 +466,7 @@ function createGalacticReach(options = {}) {
         passed:player.passed, bought:player.bought,
         hand:clone(player.hand), deck:clone(player.deck), discard:clone(player.discard)
       })),
-      planets:clone(position.planets), fleets:clone(position.fleets),
+      planets:clone(position.planets), clusters:clone(position.clusters), fleets:clone(position.fleets),
       market:clone(position.market), relicRow:clone(position.relicRow), tradeOffers:clone(position.tradeOffers),
       lastCombat:clone(position.lastCombat)
     };
@@ -622,7 +656,7 @@ function createGalacticReach(options = {}) {
         state.clusters.forEach(cluster => {
           if (cluster.revealedBy?.length) cluster.revealedBy = [...everyone];
         });
-        state.visibilityRevision = 2;
+        state.visibilityRevision = 3;
         clearTurnHistory();
         saveGame();
       }
@@ -897,8 +931,16 @@ function createGalacticReach(options = {}) {
     return Boolean(planet && planet.type!=='moon' && state.clusters[planet.cluster]?.center === coord);
   }
 
-  function clusterKnown(cluster, playerId = 0) {
+  function clusterRevealed(cluster, playerId = 0) {
     return Boolean(cluster?.revealedBy?.includes(playerId));
+  }
+
+  function clusterKnown(cluster, playerId = 0) {
+    return Boolean(cluster && (cluster.kind!=='moon' || clusterRevealed(cluster,playerId)));
+  }
+
+  function relicKnown(cluster, playerId = 0) {
+    return clusterRevealed(cluster,playerId) || clusterScanned(cluster,playerId);
   }
 
   function clusterScanned(cluster, playerId = 0) {
@@ -911,7 +953,7 @@ function createGalacticReach(options = {}) {
     if (!cluster.scannedBy.includes(playerId)) cluster.scannedBy.push(playerId);
     if (!cluster.revealedBy.includes(playerId)) {
       cluster.revealedBy = [0,1,2,3];
-      logEvent(`${state.players[playerId].name} explored ${cluster.kind==='moon'?'the moon':'the seven sectors of'} ${cluster.name}.`);
+      logEvent(`${state.players[playerId].name} surveyed ${cluster.kind==='moon'?'the moon':'the seven sectors of'} ${cluster.name}, revealing any remaining relic.`);
     }
   }
 
@@ -1277,9 +1319,9 @@ function createGalacticReach(options = {}) {
       ...controlledPlanets(playerId).map(([coord])=>coord),
       ...Object.entries(state.fleets).filter(([,group])=>fleetCount(group[playerId])).map(([coord])=>coord)
     ])];
-    return state.clusters.filter(cluster=>revealWorld?cluster.kind!=='moon'&&!clusterKnown(cluster,playerId):relicCoordInCluster(cluster)&&!clusterScanned(cluster,playerId)).sort((a,b)=>{
-      const da=Math.min(...origins.map(origin=>hexDistance(origin,relicCoordInCluster(a)||a.center)));
-      const db=Math.min(...origins.map(origin=>hexDistance(origin,relicCoordInCluster(b)||b.center)));
+    return state.clusters.filter(cluster=>revealWorld?cluster.kind!=='moon'&&relicCoordInCluster(cluster)&&!clusterRevealed(cluster,playerId):relicCoordInCluster(cluster)&&!relicKnown(cluster,playerId)).sort((a,b)=>{
+      const da=Math.min(...origins.map(origin=>hexDistance(origin,revealWorld?a.center:relicCoordInCluster(a)||a.center)));
+      const db=Math.min(...origins.map(origin=>hexDistance(origin,revealWorld?b.center:relicCoordInCluster(b)||b.center)));
       return da-db||a.id-b.id;
     })[0]||null;
   }
@@ -2089,8 +2131,17 @@ function createGalacticReach(options = {}) {
     fleets.forEach(([source,group]) => {
       const fleet = group[playerId];
       if (fleet.explorer) {
-        const relicTargets = state.clusters.filter(cluster=>clusterKnown(cluster,playerId)||clusterScanned(cluster,playerId)).map(relicCoordInCluster).filter(Boolean);
-        if (!relicTargets.length) relicTargets.push(...state.clusters.filter(cluster=>!clusterKnown(cluster,playerId)).map(cluster=>cluster.center));
+        const relicTargets = state.clusters.filter(cluster=>relicKnown(cluster,playerId)).map(relicCoordInCluster).filter(Boolean);
+        if (!relicTargets.length) relicTargets.push(...state.clusters.filter(cluster=>cluster.kind!=='moon'&&!clusterRevealed(cluster,playerId)).map(cluster=>cluster.center));
+        if (!relicTargets.length) {
+          const search=[];
+          for (let q=-BOARD_RADIUS;q<=BOARD_RADIUS;q++) for (let r=-BOARD_RADIUS;r<=BOARD_RADIUS;r++) {
+            const key=coordKey(q,r),planet=state.planets[key];
+            if (key!==source && boardHas(key) && (!planet || !clusterKnown(state.clusters[planet.cluster],playerId))) search.push(key);
+          }
+          // Unknown moons have exactly the same search weight as ordinary space.
+          relicTargets.push(...shuffled(search).slice(0,1));
+        }
         const relicGoal = relicTargets.sort((a,b)=>hexDistance(source,a)-hexDistance(source,b))[0];
         const path = relicGoal && pathToCoord(source,relicGoal,playerId);
         if (path?.length) {
@@ -2567,7 +2618,7 @@ function createGalacticReach(options = {}) {
   }
 
   function renderSymbolLegend() {
-    $('#resource-legend').innerHTML = `<strong class="legend-heading">Map key</strong>${RESOURCES.map(resource=>`<span>${resourceDot(resource)}${RESOURCE_NAMES[resource]}</span>`).join('')}<span>◈ Located relic</span><span>● Gray moon · no production</span><span>Fog = unvisited</span>`;
+    $('#resource-legend').innerHTML = `<strong class="legend-heading">Map key</strong>${RESOURCES.map(resource=>`<span>${resourceDot(resource)}${RESOURCE_NAMES[resource]}</span>`).join('')}<span>◈ Located relic</span><span>● Gray moon · no production</span><span>Worlds are public · Moons and relics start hidden</span>`;
     const entries = [
       ['settler','Settler'],['explorer','Explorer'],['fleet','Fleet'],
       ['colony','Colony'],['harvester','Harvester'],['starbase','Shipyard']
@@ -2581,6 +2632,10 @@ function createGalacticReach(options = {}) {
   // Replays reveal every faction's information, so fog never applies there.
   function knownToViewer(cluster) {
     return replayMode || revealEntireMap || clusterKnown(cluster,viewSeat);
+  }
+
+  function relicKnownToViewer(planet) {
+    return Boolean(planet?.special==='relic' && (replayMode || revealEntireMap || relicKnown(state.clusters[planet.cluster],viewSeat)));
   }
 
   function selectHex(key) {
@@ -2617,9 +2672,8 @@ function createGalacticReach(options = {}) {
       const planet = state.planets[key];
       const cluster = planet ? state.clusters[planet.cluster] : null;
       const known = knownToViewer(cluster);
-      const scanned = clusterScanned(cluster,viewSeat);
-      const relicSignal = Boolean(planet?.special === 'relic' && (scanned || planet.relicClaimed));
-      hex.className = `hex ${planet ? (known ? planet.type : relicSignal ? 'fog scanned relic-signal' : 'space unknown-world') : 'space'}`;
+      const relicSignal = relicKnownToViewer(planet);
+      hex.className = `hex ${planet ? (known ? planet.type : relicSignal ? 'fog scanned relic-signal' : 'space') : 'space'}`;
       if (state.selected === key) hex.classList.add('selected');
       if (state.moveSource === key) hex.classList.add('source');
       if (state.reachable.includes(key)) hex.classList.add('target');
@@ -2632,10 +2686,10 @@ function createGalacticReach(options = {}) {
       fleets.innerHTML = fleetSymbolsAt(key);
       if (planet) {
         buildings.innerHTML = known ? buildingSymbols(planet) : '';
-        special.textContent = known ? (planet.special==='relic'?(planet.relicClaimed?'◇':'◈'):'') : (relicSignal?(planet.relicClaimed?'◇':'◈'):'');
+        special.textContent = relicSignal ? (planet.relicClaimed?'◇':'◈') : '';
         const buildingText = hasBuilding(planet) ? `, ${buildingLabel(planet)}` : '';
         const fleetText = fleetAriaAt(key);
-        hex.setAttribute('aria-label',known?`${planet.name}, ${planet.type}, ${planet.owner===null?'unclaimed':state.players[planet.owner].name}${buildingText}${fleetText ? `, fleet ${fleetText}` : ''}${planet.occupiedBy!==null?', occupied':''}`:relicSignal?`Alien relic signal at ${key}; surrounding terrain unknown${fleetText?', fleet '+fleetText:''}`:`Uncharted space ${key}${fleetText?', fleet '+fleetText:''}`);
+        hex.setAttribute('aria-label',known?`${planet.name}, ${planet.type}, ${planet.owner===null?'unclaimed':state.players[planet.owner].name}${buildingText}${fleetText ? `, fleet ${fleetText}` : ''}${planet.occupiedBy!==null?', occupied':''}${relicSignal?', relic site':''}`:relicSignal?`Alien relic signal at ${key}; surrounding terrain unknown${fleetText?', fleet '+fleetText:''}`:`Space ${key}${fleetText?', fleet '+fleetText:''}`);
       } else {
         buildings.innerHTML = ''; special.textContent='';
         const fleetText = fleetAriaAt(key);
@@ -2711,7 +2765,7 @@ function createGalacticReach(options = {}) {
       || !['prep','action'].includes(state.turnStage) || state.pendingColonyBuild) return [];
     const planet = state.planets[coord], fleet = getFleet(coord,0);
     const known = planet && clusterKnown(state.clusters[planet.cluster],0);
-    const relicSignal = planet?.special === 'relic' && (known || clusterScanned(state.clusters[planet.cluster],0));
+    const relicSignal = planet?.special === 'relic' && relicKnown(state.clusters[planet.cluster],0);
     const orders = [], seen = new Set();
     for (const card of state.players[0].hand) {
       const def = ALL_CARDS[card.key], signature = `${card.key}:${!!card.upgraded}`;
@@ -2777,16 +2831,18 @@ function createGalacticReach(options = {}) {
     const buildButton=(label,kind)=>actionButton(label,()=>contextBuild(kind,key),constructAt(0,key,kind,discount,true),constructionCost(0,key,kind,discount));
     if (!key) { title.textContent='Select a hex'; coordinate.textContent='—'; detail.textContent='Choose a planet or space hex to inspect fleets, control, and possible actions.'; facts.innerHTML=''; return; }
     renderContextOrders(actions,key);
-    const planet = state.planets[key]; const fleets = state.fleets[key]||{};
+    const actualPlanet = state.planets[key];
+    const planet = actualPlanet && (knownToViewer(state.clusters[actualPlanet.cluster]) || relicKnownToViewer(actualPlanet)) ? actualPlanet : null;
+    const fleets = state.fleets[key]||{};
     const fleetFacts=Object.entries(fleets).filter(([,f])=>fleetCount(f)).map(([owner,f])=>`<div class="fact"><span>${esc(state.players[owner].name)}</span><strong>${formatFleet(f)}</strong></div>`).join('');
     coordinate.textContent=key;
     if (planet) {
       const cluster = state.clusters[planet.cluster];
       if (!knownToViewer(cluster)) {
-        const relicSignal = planet.special === 'relic' && (clusterScanned(cluster,viewSeat) || planet.relicClaimed);
+        const relicSignal = relicKnownToViewer(planet);
         title.textContent = relicSignal ? 'Alien relic signal' : 'Uncharted space';
-        detail.textContent = relicSignal ? 'A relic signal was located here. The surrounding terrain remains unknown.' : 'Any ship can enter this region to reveal its seven-sector world.';
-        facts.innerHTML = relicSignal ? `<div class="fact"><span>Signal</span><strong>Rosetta Stone</strong></div><div class="fact"><span>Relic</span><strong>Available</strong></div>` : '<div class="fact"><span>Status</span><strong>Unknown</strong></div>';
+        detail.textContent = relicSignal ? 'A relic signal was located here. The surrounding terrain remains unknown.' : 'End a move here with any ship to survey this space.';
+        facts.innerHTML = relicSignal ? `<div class="fact"><span>Signal</span><strong>Located privately</strong></div><div class="fact"><span>Relic</span><strong>Available</strong></div>` : '<div class="fact"><span>Status</span><strong>Unknown</strong></div>';
 
         facts.innerHTML+=fleetFacts;
         return;
@@ -2795,7 +2851,7 @@ function createGalacticReach(options = {}) {
       const owner = planet.owner===null?'Unclaimed':esc(state.players[planet.owner].name);
       detail.innerHTML=`${planet.type==='moon'?'Gray moon · no production':resourceDot(planet.type,'resource-dot-large')+' planet'} · ${owner}${planet.occupiedBy!==null?` · Occupied by ${esc(state.players[planet.occupiedBy].name)}`:''}`;
       const fleetIncome = (planet.type==='moon'?[]:fleetControllersAt(key)).map(playerId => `${esc(state.players[playerId].name)} +${resourceDots({ [planet.type]: 1 })}`).join(' · ');
-      facts.innerHTML=`<div class="fact"><span>World hex</span><strong>${planet.type==='moon'?'Moon':isColonySite(key)?'Center · Colony site':'Outer'}</strong></div><div class="fact"><span>Owner production</span><strong>${planet.type==='moon'?'None':planet.owner===null?'Unclaimed':resourceDots({ [planet.type]: ownerProductionAmount(planet) })}</strong></div><div class="fact"><span>Fleet production</span><strong>${fleetIncome||'No combat fleet'}</strong></div><div class="fact"><span>Building</span><strong>${buildingLabel(planet)}</strong></div>${planet.special==='relic'?`<div class="fact"><span>Relic site</span><strong>Available</strong></div>`:''}${Object.entries(fleets).filter(([,f])=>fleetCount(f)).map(([owner,f])=>`<div class="fact"><span>${esc(state.players[owner].name)}</span><strong>${formatFleet(f)}</strong></div>`).join('')}`;
+      facts.innerHTML=`<div class="fact"><span>World hex</span><strong>${planet.type==='moon'?'Moon':isColonySite(key)?'Center · Colony site':'Outer'}</strong></div><div class="fact"><span>Owner production</span><strong>${planet.type==='moon'?'None':planet.owner===null?'Unclaimed':resourceDots({ [planet.type]: ownerProductionAmount(planet) })}</strong></div><div class="fact"><span>Fleet production</span><strong>${fleetIncome||'No combat fleet'}</strong></div><div class="fact"><span>Building</span><strong>${buildingLabel(planet)}</strong></div>${relicKnownToViewer(planet)?`<div class="fact"><span>Relic site</span><strong>Available</strong></div>`:''}${Object.entries(fleets).filter(([,f])=>fleetCount(f)).map(([owner,f])=>`<div class="fact"><span>${esc(state.players[owner].name)}</span><strong>${formatFleet(f)}</strong></div>`).join('')}`;
     } else {
       title.textContent='Empty Space'; detail.textContent='Fleets may move, fight, and retreat here.';
       facts.innerHTML=Object.entries(fleets).filter(([,f])=>fleetCount(f)).map(([owner,f])=>`<div class="fact"><span>${esc(state.players[owner].name)}</span><strong>${formatFleet(f)}</strong></div>`).join('')||'<div class="fact"><span>Status</span><strong>Vacant</strong></div>';
@@ -3348,7 +3404,7 @@ function createGalacticReach(options = {}) {
       decommission, excavatedRelicCount, useBuyEffect, resolveHumanSpecial,
       colonizePlanet, buildUpgrade, excavate, buildShip, getFleet, fleetCount,
       fleetGroup, fleetMove, fleetPower, reachableFrom, executeMove, performMoveOrder, combatActor, combatView, combatActions, applyCombatAction, nearestUnscannedRelicCluster,
-      clusterKnown, clusterScanned, relicCoordInCluster, calculatePrestige, colonyPlanets,
+      clusterKnown, clusterRevealed, clusterScanned, relicKnown, relicCoordInCluster, calculatePrestige, colonyPlanets,
       totalResources, playerCapacity, overflowPlayer, discardOverflow,
       canConsortiumGain, canConsortiumExchange, consortiumGain, consortiumExchange, finishConsortium,
       movementRange, constructionCost, constructAt, applyColonizeOrder, canColonyBuild, finishColonyBuild,

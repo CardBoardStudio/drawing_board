@@ -1,5 +1,12 @@
 # Playtest roadmap
 
+## Implemented in the 20.25 Open Worlds experiment
+
+- Keep all planets visible to all players at all times, with resources, ownership, and buildings public. Hide only undiscovered moons and unlocated relic sites on the map. Keep private relic signals distinct from public surveys.
+- Randomize the four moons while keeping them widely spaced, fairly distributed across the map, and at comparable travel distances from each home. Preserve the approved thirteen-world layout.
+
+Status: implemented; new-game experiment preserves 19.24 tables and reports.
+
 ## Implemented in the 19.24 Game Reports experiment
 
 - **Export game report:** add a visible button to download a JSON report containing the current saved position, rules version, round/phase, factions and bot profiles, scores and scoring breakdowns, resources, and the available game log. Include readable log text so a completed human-versus-bot game can be reviewed alongside its final position.

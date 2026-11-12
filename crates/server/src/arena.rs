@@ -20,7 +20,7 @@ impl GameKind {
     fn pool(self) -> &'static str {
         match self {
             Self::Voidwright => "voidwright/2:duel:20-rounds:policies-v1",
-            Self::GalacticReach => "galactic-reach/19.24:four-player:placement:policies-v15",
+            Self::GalacticReach => "galactic-reach/20.25:four-player:placement:policies-v16",
         }
     }
     fn seats(self) -> usize {
@@ -101,10 +101,10 @@ pub async fn catalog() -> Json<serde_json::Value> {
         {"game":"voidwright","id":"explorer","version":"explorer/1","name":"Explorer","description":"Experiments with random purchases and sometimes passes."},
         {"game":"voidwright","id":"merchant","version":"merchant/1","name":"Merchant","description":"Builds a resource economy, then buys scoring colonies."},
         {"game":"voidwright","id":"kepler","version":"kepler/1","name":"Kepler","description":"Balances resource growth with a small action engine."}
-        ,{"game":"galactic-reach","id":"gr-military","version":"gr-military/15","name":"Vanguard","description":"Builds warships and shipyards, then moves toward rival colonies."}
-        ,{"game":"galactic-reach","id":"gr-economy","version":"gr-economy/15","name":"Architect","description":"Prioritizes production, storage, and industry."}
-        ,{"game":"galactic-reach","id":"gr-expansion","version":"gr-expansion/15","name":"Pathfinder","description":"Builds Settlers and seeks new colony sites."}
-        ,{"game":"galactic-reach","id":"gr-wanderer","version":"gr-wanderer/15","name":"Wanderer","description":"Samples useful legal actions with seeded randomness."}
+        ,{"game":"galactic-reach","id":"gr-military","version":"gr-military/16","name":"Vanguard","description":"Builds warships and shipyards, then moves toward rival colonies."}
+        ,{"game":"galactic-reach","id":"gr-economy","version":"gr-economy/16","name":"Architect","description":"Prioritizes production, storage, and industry."}
+        ,{"game":"galactic-reach","id":"gr-expansion","version":"gr-expansion/16","name":"Pathfinder","description":"Builds Settlers and seeks new colony sites."}
+        ,{"game":"galactic-reach","id":"gr-wanderer","version":"gr-wanderer/16","name":"Wanderer","description":"Samples useful legal actions with seeded randomness."}
     ],"pool":GameKind::Voidwright.pool()}))
 }
 #[derive(Serialize)]
@@ -174,7 +174,7 @@ pub async fn create_bot(
         "{}/{}",
         input.strategy,
         if input.game == GameKind::GalacticReach {
-            15
+            16
         } else {
             1
         }
@@ -483,10 +483,10 @@ pub fn calibrate(
     }
     let game = GameKind::GalacticReach;
     let policies: Vec<String> = [
-        "gr-military/15",
-        "gr-economy/15",
-        "gr-expansion/15",
-        "gr-wanderer/15",
+        "gr-military/16",
+        "gr-economy/16",
+        "gr-expansion/16",
+        "gr-wanderer/16",
     ]
     .into_iter()
     .map(String::from)

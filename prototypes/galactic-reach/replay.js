@@ -2,7 +2,7 @@
 // Observer only: frames are recorded state deltas; no rules or randomness run here.
 'use strict';
 (() => {
-  const RULES = 'galactic-reach/19.24';
+  const RULES = 'galactic-reach/20.25';
   const CHECKPOINT = 25;
   // Headless matches log the browser's default faction names; seat 0 is "You".
   const FACTIONS = ['You', 'Ember Directorate', 'Violet Assembly', 'Helios Compact'];

@@ -400,7 +400,7 @@ async fn arena_enforces_ownership_pairs_seats_and_rates_exactly_once() {
 async fn galactic_reach_uses_shared_accounts_rotations_and_isolated_ratings() {
     let _serial = ARENA_TEST.lock().await;
     let mut a = app(true);
-    a.arena_seed = Some([17; 32]);
+    a.arena_seed = Some([8; 32]);
     let (owner, _) = register_account(&a, "Four factions").await;
     let (other, _) = register_account(&a, "Other lab").await;
     let mut bots = vec![];

@@ -31,6 +31,8 @@ use tower_http::services::{ServeDir, ServeFile};
 
 #[derive(Clone)]
 struct App {
+    #[cfg(test)]
+    arena_seed: Option<[u8; 32]>,
     store: Arc<Store>,
     dev_auth: bool,
     preview_code_hash: Option<[u8; 32]>,
@@ -528,6 +530,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
     let config = config::Config::from_env(|key| std::env::var(key).ok())?;
     let app = App {
+        #[cfg(test)]
+        arena_seed: None,
         store: Arc::new(Store::open(
             &std::env::var("DATABASE_PATH").unwrap_or("drawing-board.sqlite".into()),
         )?),
@@ -603,6 +607,7 @@ mod tests {
     use tower::ServiceExt;
     pub(super) fn app(dev: bool) -> App {
         App {
+            arena_seed: None,
             store: Arc::new(Store::open(":memory:").unwrap()),
             dev_auth: dev,
             preview_code_hash: None,

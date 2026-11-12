@@ -491,6 +491,7 @@ mod flow_tests {
     }
     fn app(config: Config) -> App {
         App {
+            arena_seed: None,
             store: Arc::new(Store::open(":memory:").unwrap()),
             dev_auth: false,
             preview_code_hash: None,

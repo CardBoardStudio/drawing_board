@@ -342,6 +342,15 @@ pub async fn run_series(
     Ok(Json(result))
 }
 
+fn simulation_error(error: String) -> ApiError {
+    if error == galactic_reach::SIMULATION_TIMEOUT || error == "Match exceeded its decision budget."
+    {
+        ApiError(StatusCode::UNPROCESSABLE_ENTITY,"This arena series did not finish within simulation limits. No ratings changed. Try another series.".into())
+    } else {
+        internal(error)
+    }
+}
+
 fn simulate_series(
     app: &App,
     owner: &str,
@@ -355,6 +364,11 @@ fn simulate_series(
     for cycle in 0..input.games as usize / count {
         let mut seed = [0u8; 32];
         rand::rngs::OsRng.fill_bytes(&mut seed);
+        #[cfg(test)]
+        if let Some(fixture) = app.arena_seed {
+            seed = fixture;
+            seed[31] ^= cycle as u8;
+        }
         for rotation in 0..count {
             let order: Vec<_> = (0..count).map(|seat| (seat + rotation) % count).collect();
             let seats = order.iter().map(|&i| input.bots[i].clone()).collect();
@@ -362,6 +376,10 @@ fn simulate_series(
             let agent_seeds: Vec<_> = order
                 .iter()
                 .map(|&i| {
+                    #[cfg(test)]
+                    if app.arena_seed.is_some() {
+                        return [i as u8; 32];
+                    }
                     let mut agent_seed = seed;
                     agent_seed[0] ^= i as u8 + 1;
                     agent_seed[1] ^= cycle as u8;
@@ -372,7 +390,10 @@ fn simulate_series(
             let (result, replay) = input
                 .game
                 .simulate(&id, seed, &ordered_policies, &agent_seeds)
-                .map_err(internal)?;
+                .map_err(|error| {
+                    tracing::warn!(seed=%hex::encode(seed),rotation,error=%error,"Arena simulation failed before rating commit");
+                    if input.game == GameKind::GalacticReach { simulation_error(error) } else { internal(error) }
+                })?;
             tracing::info!(
                 completed = matches.len() + 1,
                 total = input.games,
@@ -543,8 +564,24 @@ pub fn calibrate(
 mod calibration_tests {
     use super::*;
     #[test]
+    fn incomplete_simulations_report_limits_instead_of_storage_failure() {
+        for reason in [
+            galactic_reach::SIMULATION_TIMEOUT,
+            "Match exceeded its decision budget.",
+        ] {
+            let error = simulation_error(reason.into());
+            assert_eq!(error.0, StatusCode::UNPROCESSABLE_ENTITY);
+            assert!(error.1.contains("No ratings changed"));
+        }
+        assert_eq!(
+            simulation_error("Unexpected engine failure".into()).0,
+            StatusCode::INTERNAL_SERVER_ERROR
+        );
+    }
+    #[test]
     fn calibration_rejects_unknown_owners_and_invalid_rotations() {
         let app = App {
+            arena_seed: None,
             store: Arc::new(Store::open(":memory:").unwrap()),
             dev_auth: false,
             preview_code_hash: None,

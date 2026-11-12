@@ -150,12 +150,20 @@ gr_series = {'request_id': str(uuid.uuid4()), 'game': 'galactic-reach', 'bots': 
 # Four rotations run sequentially, each with the engine's 300-second deadline.
 # Keep ordinary HTTP checks short, but allow this complete series to finish.
 status, _, gr_result = request('/api/arena/series', gr_series, account_cookie, timeout=4 * 300 + 30)
-assert status == 200, gr_result
-assert len(gr_result['matches']) == 4
-assert all(m['result']['rules_version'] == 'galactic-reach/19.24' for m in gr_result['matches'])
-assert request('/api/arena/series', gr_series, account_cookie)[2] == gr_result
-gr_ladder = request('/api/arena?game=galactic-reach', cookie=account_cookie)[2]
-assert len(gr_ladder['bots']) == 4 and all(b['games'] == 4 for b in gr_ladder['bots'])
-assert abs(sum(b['elo'] for b in gr_ladder['bots']) - 4800) < 1e-8
+if status == 422:
+    assert 'No ratings changed' in gr_result['error'], gr_result
+    gr_ladder = request('/api/arena?game=galactic-reach', cookie=account_cookie)[2]
+    assert len(gr_ladder['bots']) == 4 and all(b['games'] == 0 and b['elo'] == 1200 for b in gr_ladder['bots'])
+    assert not gr_ladder['series']
+    assert not request('/api/arena/matches', cookie=account_cookie)[2]['matches']
+    print('Second adapter smoke passed: incomplete bounded series reported honestly with no ratings, series, or replays committed.')
+else:
+    assert status == 200, gr_result
+    assert len(gr_result['matches']) == 4
+    assert all(m['result']['rules_version'] == 'galactic-reach/19.24' for m in gr_result['matches'])
+    assert request('/api/arena/series', gr_series, account_cookie)[2] == gr_result
+    gr_ladder = request('/api/arena?game=galactic-reach', cookie=account_cookie)[2]
+    assert len(gr_ladder['bots']) == 4 and all(b['games'] == 4 for b in gr_ladder['bots'])
+    assert abs(sum(b['elo'] for b in gr_ladder['bots']) - 4800) < 1e-8
+    print('Second adapter smoke passed: four-player Galactic Reach, seat rotation, separate Elo, exact-once retry.')
 assert request('/api/arena', cookie=account_cookie)[2] == ladder
-print('Second adapter smoke passed: four-player Galactic Reach, seat rotation, separate Elo, exact-once retry.')

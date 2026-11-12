@@ -28,6 +28,14 @@ pub use replay::Trace;
 const ENGINE: &str = include_str!("../../../prototypes/galactic-reach/app.js");
 const ADAPTER: &str = include_str!("../../../prototypes/galactic-reach/adapter.js");
 const MATCH_TIMEOUT: Duration = Duration::from_secs(300);
+pub const SIMULATION_TIMEOUT: &str = "Galactic Reach simulation exceeded its time limit.";
+fn execution_error(deadline: Instant, error: impl ToString) -> String {
+    if Instant::now() >= deadline {
+        SIMULATION_TIMEOUT.into()
+    } else {
+        error.to_string()
+    }
+}
 #[derive(Deserialize)]
 struct Snapshot {
     active: Option<usize>,
@@ -37,6 +45,7 @@ struct Snapshot {
 }
 pub struct GalacticReach {
     context: Context,
+    deadline: Instant,
     snapshot: Snapshot,
     rules: &'static str,
     trace: Option<Trace>,
@@ -126,10 +135,16 @@ impl GalacticReach {
                     "globalThis.game = createGalacticReach({headless: true, random: gameRandom});",
                 )
             })
-            .map_err(|e| format!("Galactic Reach initialization failed: {e}"))?;
-        let snapshot = Self::read_snapshot(&context)?;
+            .map_err(|e| {
+                execution_error(
+                    deadline,
+                    format!("Galactic Reach initialization failed: {e}"),
+                )
+            })?;
+        let snapshot = Self::read_snapshot(&context, deadline)?;
         Ok(Self {
             context,
+            deadline,
             snapshot,
             rules,
             trace: None,
@@ -143,16 +158,24 @@ impl GalacticReach {
         self.trace.take()
     }
     fn replay_view(&self) -> Result<Value, String> {
+        if Instant::now() >= self.deadline {
+            return Err(SIMULATION_TIMEOUT.into());
+        }
         let json = self
             .context
             .with(|ctx| ctx.eval::<String, _>("JSON.stringify(game.replayView())"))
-            .map_err(|e| e.to_string())?;
+            .map_err(|e| execution_error(self.deadline, e))?;
         serde_json::from_str(&json).map_err(|e| e.to_string())
     }
-    fn read_snapshot(context: &Context) -> Result<Snapshot, String> {
+    fn read_snapshot(context: &Context, deadline: Instant) -> Result<Snapshot, String> {
+        if Instant::now() >= deadline {
+            return Err(SIMULATION_TIMEOUT.into());
+        }
         let json = context
             .with(|ctx| ctx.eval::<String, _>("JSON.stringify(game.snapshot())"))
-            .map_err(|e| format!("Galactic Reach execution failed: {e}"))?;
+            .map_err(|e| {
+                execution_error(deadline, format!("Galactic Reach execution failed: {e}"))
+            })?;
         serde_json::from_str(&json).map_err(|e| e.to_string())
     }
 }
@@ -186,13 +209,18 @@ impl GameAdapter for GalacticReach {
         }
     }
     fn apply_action(&mut self, seat: usize, action: Value) -> Result<(), String> {
+        if Instant::now() >= self.deadline {
+            return Err(SIMULATION_TIMEOUT.into());
+        }
         if self.snapshot.active != Some(seat) || !self.snapshot.legal.contains(&action) {
             return Err("Illegal action.".into());
         }
         self.context
             .with(|ctx| ctx.eval::<(), _>(format!("game.applyAction({seat}, {});", action)))
-            .map_err(|e| format!("Galactic Reach action failed: {e}"))?;
-        self.snapshot = Self::read_snapshot(&self.context)?;
+            .map_err(|e| {
+                execution_error(self.deadline, format!("Galactic Reach action failed: {e}"))
+            })?;
+        self.snapshot = Self::read_snapshot(&self.context, self.deadline)?;
         if self.trace.is_some() {
             let view = self.replay_view()?;
             if let Some(trace) = self.trace.as_mut() {
@@ -808,6 +836,25 @@ mod tests {
     }
     #[test]
     fn execution_deadline_interrupts_javascript() {
-        assert!(GalacticReach::with_timeout([1; 32], Duration::ZERO).is_err());
+        assert_eq!(
+            GalacticReach::with_timeout([1; 32], Duration::ZERO)
+                .err()
+                .unwrap(),
+            SIMULATION_TIMEOUT
+        );
+        let mut game = GalacticReach::new([17; 32]).unwrap();
+        let before = game.observe(0).unwrap();
+        let action = game.legal_actions(0)[0].clone();
+        game.deadline = Instant::now();
+        assert_eq!(
+            game.apply_action(0, action).unwrap_err(),
+            SIMULATION_TIMEOUT
+        );
+        assert_eq!(
+            game.observe(0).unwrap(),
+            before,
+            "An expired simulation never applies another action"
+        );
+        assert!(game.scores().is_none());
     }
 }

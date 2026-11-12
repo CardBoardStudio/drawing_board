@@ -75,6 +75,7 @@ for(const resource of ['matter','energy','biomass','data']){
  const g=game(), coord=Object.keys(g.s.planets).find(k=>g.s.planets[k].special==='relic');
  g.p.hand=[{key:'excavate',id:'dig'}];g.p.discard=[];g.p.deck=[{id:'normal-draw',key:'move'}];
  g.p.resources={matter:1,energy:1,biomass:0,data:2};
+ g.s.clusters[g.s.planets[coord].cluster].scannedBy=[0];
  g.s.fleets[coord]={0:{explorer:2,fleet:1,settler:1}};
  const prize=g.s.relicRow[0], action=g.adapter().legalActions(0).find(x=>x.type==='excavate'&&x.coord===coord&&x.relic===prize.id);
  assert(action);g.adapter().applyAction(0,action);

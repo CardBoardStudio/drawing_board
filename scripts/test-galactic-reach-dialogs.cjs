@@ -406,7 +406,7 @@ test('a save from an incompatible rules revision is replaced by a current game',
   const state = game.saved();
   assert.equal(state.rulesRevision, CURRENT_RULES_REVISION);
   assert.equal(state.version, formatVersion);
-  assert.equal(state.visibilityRevision, 3);
+  assert.equal(state.visibilityRevision, 4);
   assert.equal(state.round, 1);
   assert.equal(state.phase, 'operations');
   const history = JSON.parse(storage.getItem(TURN_HISTORY_KEY));
@@ -498,7 +498,7 @@ test('trashing uses three of the selected resource type in the live Buy UI', () 
 
 function excavationStorage({selected=true,affordable=false}={}) {
   const storage=createStorage(),state=boot(storage).saved(),coord=Object.keys(state.planets).find(k=>state.planets[k].special==='relic');
-  state.clusters[state.planets[coord].cluster].revealedBy=[0,1,2,3];state.selected=selected?coord:null;
+  state.clusters[state.planets[coord].cluster].revealedBy=[0,1,2,3];state.clusters[state.planets[coord].cluster].scannedBy=[0];state.selected=selected?coord:null;
   state.players[0].hand=[{key:'excavate',id:'tab-dig'},{key:'construct',id:'tab-matter'},{key:'move',id:'tab-energy'},{key:'targetingAlgorithms',id:'tab-data'}];
   state.players[0].resources=affordable?{matter:1,energy:1,biomass:0,data:2}:{matter:0,energy:0,biomass:0,data:0};state.fleets[coord]={0:{explorer:1,fleet:1}};
   writeSave(storage,state);return {storage,coord};
@@ -514,6 +514,24 @@ test('Relics tab browses read-only and participates in keyboard tab navigation',
   fire(relics,'keydown',{key:'ArrowRight',cancelable:true});assertTab(game,'hand');fire(game.dom.element('hand-tab'),'keydown',{key:'End',cancelable:true});assertTab(game,'relics');fire(relics,'keydown',{key:'Home',cancelable:true});assertTab(game,'hand');
   game.dom.hex(game.saved().clusters[0].center).click();assertTab(game,'hand');assert.equal(game.saved().actionMode,null,'Ordinary map inspection does not start excavation');
 });
+test('Probe UI locates a relic privately and unlocated excavation never redirects to rewards',()=>{
+  const {storage,coord}=excavationStorage({affordable:true}),state=JSON.parse(storage.getItem(SAVE_KEY));
+  const cluster=state.planets[coord].cluster;state.clusters[cluster].scannedBy=[];
+  state.players[0].hand.push({id:'ui-probe',key:'probe'});writeSave(storage,state);
+  const game=boot(storage),before=game.saved();
+  assert(!game.dom.hex(coord).getAttribute('aria-label').includes('relic site'));
+  game.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='tab-dig').click();assertTab(game,'hand');
+  assert(game.dom.lastQuery('[data-excavate-relic]').every(b=>b.disabled));
+  game.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='tab-dig').click();
+  game.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='ui-probe').click();
+  game.dom.hex(coord).click();game.settle();
+  const after=game.saved();assert.deepEqual(after.clusters[cluster].scannedBy,[0]);
+  assert(after.players[0].discard.some(c=>c.id==='ui-probe'));assert(after.players[0].hand.some(c=>c.id==='tab-dig'));
+  assert.deepEqual(after.players[0].resources,before.players[0].resources);
+  assert.equal(after.fleets[coord][0].explorer,1);assert(game.dom.hex(coord).getAttribute('aria-label').includes('relic site'));
+  const reload=boot(storage);assert(reload.dom.hex(coord).getAttribute('aria-label').includes('relic site'));
+});
+
 test('Hand Excavate opens Relics with disabled choices, permits conversions, and cancels without spending',()=>{
   const {storage}=excavationStorage(),game=boot(storage),before=game.saved();
   game.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='tab-dig').click();assertTab(game,'relics');assert.equal(game.saved().actionMode,'excavate');
@@ -535,7 +553,7 @@ test('Context Excavate and selecting a valid active site open Relics without red
 test('excavation UI chooses a visible reward and survives reload without its spent order', () => {
   const storage=createStorage(), state=boot(storage).saved();
   const coord=Object.keys(state.planets).find(k=>state.planets[k].special==='relic');
-  state.clusters[state.planets[coord].cluster].revealedBy=[0,1,2,3];
+  state.clusters[state.planets[coord].cluster].revealedBy=[0,1,2,3];state.clusters[state.planets[coord].cluster].scannedBy=[0];
   state.selected=coord;state.players[0].hand=[{key:'excavate',id:'ui-dig'}];
   state.players[0].resources={matter:1,energy:1,biomass:0,data:2};
   state.fleets[coord]={0:{explorer:1}};
@@ -630,7 +648,7 @@ test('Shipyard offers commissions without an upgrade; Harvester still offers lev
  yard.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='yard-order').click();
  assert.equal(yard.dom.contextButton('Upgrade Shipyard to II'),undefined);
  assert(yard.dom.contextButton('Commission Fleet'));
- assert(yard.dom.contextButton('Commission Explorer + Excavate'));
+ assert(yard.dom.contextButton('Commission Explorer + Probe + Excavate'));
  state.planets[coord].upgrade='harvester';writeSave(storage,state);
  const harvester=boot(storage);
  harvester.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='yard-order').click();

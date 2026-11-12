@@ -37,7 +37,7 @@ const openingWorld = engine.state.clusters.find(c=>engine.state.planets[c.center
 engine.state.players[0].hand.push({id:'replay-colonize-II',key:'colonize',starter:true,upgraded:true});
 engine.state.players[0].storageUpgrades=3;
 engine.state.players[0].resources={matter:6,energy:5,biomass:3,data:5};
-engine.state.players[0].hand.push({id:'replay-recovery',key:'excavate',starter:true});
+engine.state.players[0].hand.push({id:'replay-recovery',key:'excavate',starter:true},{id:'replay-probe',key:'probe'});
 const openingRelic=openingWorld.coords.find(k=>engine.state.planets[k].special==='relic');
 engine.state.fleets[openingRelic]={0:{settler:0,explorer:1,fleet:0}};
 engine.state.fleets[openingWorld.center]={0:{settler:1,explorer:0,fleet:0}};
@@ -62,6 +62,7 @@ const opening=[
   a=>a.type==='increase_storage',
   a=>a.type==='colonize'&&a.card==='replay-colonize-II'&&a.coord===openingWorld.center,
   a=>a.type==='colony_build'&&a.kind==='harvester'&&a.coord===openingWorld.coords[1],
+  a=>a.type==='probe'&&a.card==='replay-probe',
   a=>a.type==='excavate'&&a.card==='replay-recovery'
 ];
 let openingStep=0;

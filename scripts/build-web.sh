@@ -150,3 +150,11 @@ for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css 
 done
 cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/20.25/table.js
 cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/20.25/
+
+# Preserve Scoring Bots, its discovery rules and bank-button UI for pinned games.
+mkdir -p dist/galactic-reach/rules/21.26
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v21-$asset" "dist/galactic-reach/rules/21.26/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/21.26/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/21.26/

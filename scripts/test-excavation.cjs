@@ -18,6 +18,7 @@ function game() {
 function fixture() {
   const g=game();
   g.coord=Object.keys(g.s.planets).find(k=>g.s.planets[k].special==='relic');
+  g.s.clusters[g.s.planets[g.coord].cluster].scannedBy=[0]; // Excavation fixture begins after Probe.
   g.p.hand=[{key:'excavate',id:'dig'}];
   g.p.resources={matter:1,energy:1,biomass:0,data:2};
   g.s.fleets[g.coord]={0:{explorer:1}};
@@ -25,12 +26,12 @@ function fixture() {
 }
 {
   const {e,a,s}=game();
-  assert.equal(a.rulesVersion,'galactic-reach/21.26');
+  assert.equal(a.rulesVersion,'galactic-reach/22.27');
   assert.equal(s.clusters.filter(c=>c.kind==='world').length,13);
   assert.equal(s.clusters.filter(c=>c.kind==='moon').length,4);
   assert.equal(Object.values(s.planets).filter(p=>p.special==='relic').length,12);
   assert.equal(s.relicRow.length,3); assert.equal(s.relicDeck.length,9);
-  assert(!e.STRUCTURES.research && !e.BASIC_CARDS.probe);
+  assert(!e.STRUCTURES.research && e.BASIC_CARDS.probe.order==='probe');
   assert(s.players.every(p=>p.relicsExcavated===0));
   for (const seat of [0,1,2,3]) {
     const view=a.observe(seat);
@@ -77,7 +78,7 @@ for (const bad of ['missingExplorer','missingCost','wrongSeat','buy','alreadyCla
 {
   const g=game(), sites=Object.keys(g.s.planets).filter(k=>g.s.planets[k].special==='relic'), rewards=new Set();
   for(let n=0;n<sites.length;n++) {
-    const coord=sites[n];g.s.phase='operations';g.s.activePlayer=0;
+    const coord=sites[n];g.s.clusters[g.s.planets[coord].cluster].scannedBy=[0];g.s.phase='operations';g.s.activePlayer=0;
     g.p.hand=[{key:'excavate',id:`dig-${n}`}];g.p.resources={matter:1,energy:1,biomass:0,data:2};
     g.s.fleets[coord]={0:{explorer:1}};
     const choice=g.s.relicRow[Math.min(n%3,g.s.relicRow.length-1)];rewards.add(choice.key);

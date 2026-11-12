@@ -4,8 +4,8 @@ const root=path.join(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p),'
 function game(prefix='prototypes/galactic-reach/',seed=17){const c=vm.createContext({});vm.runInContext(read(prefix+'adapter.js')+read(prefix+'app.js').replace('      clone, deckContents,','      chooseAiMove, moonLayoutCount:()=>moonLayoutChoices.length, clone, deckContents,'),c);let e;const factory=c.createGalacticAdapter;c.createGalacticAdapter=p=>{e=p;return factory(p);};const a=c.createGalacticReach({headless:true,random:()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32)});return{a,e,s:e.state,adapter:()=>factory(e)};}
 function terrain(a,seat){const view=a.observe(seat);return plain({planets:view.planets,clusters:view.clusters});}
 {
- const g=game();assert.equal(g.a.rulesVersion,'galactic-reach/21.26');assert.equal(g.s.version,21);assert.equal(g.s.rulesRevision,26);
- assert.equal(g.s.visibilityRevision,3);assert.equal(g.e.moonLayoutCount(),2225);assert.equal(g.s.clusters.length,17);
+ const g=game();assert.equal(g.a.rulesVersion,'galactic-reach/22.27');assert.equal(g.s.version,22);assert.equal(g.s.rulesRevision,27);
+ assert.equal(g.s.visibilityRevision,4);assert.equal(g.e.moonLayoutCount(),2225);assert.equal(g.s.clusters.length,17);
  for(let seat=0;seat<4;seat++){
   const view=g.a.observe(seat);assert.equal(Object.keys(view.planets).length,91);
   for(const world of g.s.clusters.filter(c=>c.kind==='world'))for(const key of world.coords){
@@ -35,7 +35,7 @@ for(const kind of ['settler','explorer','fleet'])for(const terrainKind of ['worl
  g.s.fleets={[source]:{0:{settler:0,explorer:0,fleet:0,[kind]:1}}};g.s.players[0].hand=[{key:'move',id:'survey-move'}];
  const a=g.adapter(),action=a.legalActions(0).find(x=>x.type==='move'&&x.source===source&&x.destination===target&&x.moveGroup===(kind==='explorer'?'explorer':'ships'));assert(action,`${kind} surveys ${terrainKind}`);
  a.applyAction(0,action);assert.deepEqual(plain(cluster.revealedBy),[0,1,2,3]);
- const site=g.e.relicCoordInCluster(cluster);assert(site);for(let seat=0;seat<4;seat++){assert(g.e.clusterKnown(cluster,seat));assert.equal(a.observe(seat).planets[site].special,'relic');}
+ const site=g.e.relicCoordInCluster(cluster);assert(site);for(let seat=0;seat<4;seat++){assert(g.e.clusterKnown(cluster,seat));assert.equal(a.observe(seat).planets[site].special,null,'Terrain surveys do not locate relics');}
 }
 {
  const g=game(),id=1,source=g.s.clusters[id].center;g.s.fleets={[source]:{[id]:{settler:0,fleet:0,explorer:1}}};

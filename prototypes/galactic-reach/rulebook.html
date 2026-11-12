@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060911">
-  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 10 Prestige. The canonical rules for the Scoring Bots experiment 21.26.">
-  <meta name="rules-version" content="galactic-reach/21.26">
-  <title>Galactic Reach · Rulebook · 21.26</title>
+  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 10 Prestige. The canonical rules for the Probe Relics experiment 22.27.">
+  <meta name="rules-version" content="galactic-reach/22.27">
+  <title>Galactic Reach · Rulebook · 22.27</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="rulebook.css">
 </head>
@@ -28,7 +28,7 @@
   <a class="skip-link" href="#start">Skip to rules</a>
   <header class="book-header">
     <a href="./" class="button button-ghost">← Galactic Reach</a>
-    <span class="eyebrow">CANONICAL RULES · SCORING BOTS EXPERIMENT · 21.26</span>
+    <span class="eyebrow">CANONICAL RULES · PROBE RELICS EXPERIMENT · 22.27</span>
   </header>
   <div class="book-layout">
     <nav class="book-nav" aria-label="Rulebook sections">
@@ -37,7 +37,7 @@
       <a href="#setup">Your starting faction</a>
       <a href="#round">A round of play</a>
       <a href="#resources">Resources &amp; storage</a>
-      <a href="#orders">Your four basic orders</a>
+      <a href="#orders">Your five basic orders</a>
       <a href="#movement">Exploration &amp; movement</a>
       <a href="#building">Ships &amp; buildings</a>
       <a href="#combat">Combat &amp; conquest</a>
@@ -47,7 +47,7 @@
       <a href="#victory">Prestige &amp; victory</a>
       <a href="#game-report">Game reports</a>
       <a href="#cards">Card reference</a>
-      <a href="#clarifications">21.26 clarifications</a>
+      <a href="#clarifications">22.27 clarifications</a>
     </nav>
     <main id="start" tabindex="-1">
       <div class="eyebrow">A GALAXY. FOUR FACTIONS. YOUR NEXT MOVE.</div>
@@ -63,13 +63,13 @@
         </ol>
         <p><strong>Try this:</strong> save a Construct card for its order; convert another card to help pay for a Settler. You cannot use the same card both ways.</p>
       </div>
-      <p class="book-note">This manual describes the <strong>21.26 Scoring Bots experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
+      <p class="book-note">This manual describes the <strong>22.27 Probe Relics experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
 
       <section id="setup">
         <h2>01 / Your starting faction</h2>
         <p>Four factions share <strong>thirteen seven-hex worlds</strong> and four single-hex moons on a radius-10 galaxy (331 hexes). Four home worlds touch the rim. Two neutral worlds occupy the other corners. Six neutral worlds form a symmetric ring around a seventh world at the exact center. Every home has two neutral world centers six steps away. World positions stay fixed; neutral world identities and resource tiles are shuffled each game. All thirteen worlds, including their resources, ownership, and buildings, are visible to everyone from setup. Four moons use randomized positions spread across the map, with comparable travel from every home. Moons and relic locations start hidden.</p>
         <p>At least one empty hex separates terrain. Each of the eight neutral worlds outside the center and each moon has one relic: <strong>twelve sites total</strong>. The added center world has no relic. All worlds cover seven hexes; moons cover one and never produce resources.</p>
-        <p>You start with only a central <strong>Colony</strong>: no Settler, Explorer, Fleet, Shipyard, or other building. Your six starter cards are <strong>3 Move and 3 Construct</strong>. There are no starting Colonize or Excavate cards. Combat uses a separate four-card tactic hand, refreshed at the start of every battle.</p>
+        <p>You start with only a central <strong>Colony</strong>: no Settler, Explorer, Fleet, Shipyard, or other building. Your six starter cards are <strong>3 Move and 3 Construct</strong>. There are no starting Colonize, Probe, or Excavate cards. Combat uses a separate four-card tactic hand, refreshed at the start of every battle.</p>
         <p>Production happens before the first five-card draw. Your Colony produces <strong>1 Matter</strong>, so you open with <strong>1 Matter and 2 Biomass</strong>. Build a Shipyard with Construct, then commission your first units. Use the 4:1 bank to obtain Data before you have an Excavate.</p>
       </section>
 
@@ -82,7 +82,7 @@
           <li><strong>Clean up.</strong> After the last faction finishes Buy, discard everyone’s remaining hand.</li>
           <li><strong>Check victory.</strong> If nobody wins, rotate the first-player marker and start the next round.</li>
         </ol>
-        <p id="gaining-cards"><strong>Newly gained cards always enter your discard pile.</strong> This includes purchased cards, unit-bundled Colonize and Excavate cards, and alien relic rewards. Draw them through normal deck circulation before using them. Drawing cards you already own and returning an existing card to hand follow their printed effects.</p>
+        <p id="gaining-cards"><strong>Newly gained cards always enter your discard pile.</strong> This includes purchased cards, unit-bundled Colonize, Probe, and Excavate cards, and alien relic rewards. Draw them through normal deck circulation before using them. Drawing cards you already own and returning an existing card to hand follow their printed effects.</p>
         <p>Played and converted cards go straight to discard, except a successfully used Excavate order is permanently trashed. Resources carry between turns and rounds; keep unused cards until the shared cleanup, so automatic reactions can still protect you after your Buy turn.</p>
       </section>
 
@@ -97,7 +97,7 @@
       </section>
 
       <section id="orders">
-        <h2>04 / Your four basic orders</h2>
+        <h2>04 / Your five basic orders</h2>
         <p>Select one of your units on the map to see orders available from your hand. Movement shortcuts select the card and fleet together; build and colonize shortcuts open the matching choices and costs. You still need the normal card, resources, and a legal target. The interface opens Hand when your Operations turn begins and Market when you pass into Buy; you can switch tabs yourself between these transitions.</p>
         <p class="book-note">On small screens, scroll tables sideways to read every column.</p>
         <div class="book-table" tabindex="0" role="region" aria-label="Basic orders">
@@ -105,16 +105,17 @@
             <tr><th>Move</th><td><span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span></td><td>Move one group of ships or Explorers.</td><td>+1 movement.</td></tr>
             <tr><th>Construct</th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span></td><td>Build one ship or structure, or upgrade one Harvester.</td><td>Reduce one chosen resource in that cost by 1.</td></tr>
             <tr><th>Colonize</th><td><span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span></td><td>At a world’s center, spend <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>2 Biomass</span> and consume a Settler to found a Colony. Capture an occupied enemy center for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> and a Settler.</td><td>Unit-bundled card; no starter upgrade.</td></tr>
+            <tr><th>Probe</th><td>1 Data</td><td>With your Explorer on a world or moon, privately locate its remaining relic. Spend your Operations action and discard Probe. Keep the Explorer; pay no resources. A first Probe may find no remaining relic; it still uses the card and action. You cannot Probe a world or moon you have already searched.</td><td>Unit-bundled card; no starter upgrade.</td></tr>
             <tr><th>Excavate</th><td><span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span></td><td>With an Explorer at a relic, pay 1 Matter, 1 Energy, and 2 Data. Choose one face-up relic card for your discard pile, remove the relic from the map, gain 1 Prestige, and trash Excavate. Consume one Explorer at the site.</td><td>Unit-bundled card; no starter upgrade.</td></tr>
           </tbody></table>
         </div>
-        <p>Level II also adds one resource to that card’s conversion. Only the six original Move and Construct starters can upgrade. Unit-bundled Colonize and Excavate cards remain level I. Convert other cards before resolving an order.</p>
+        <p>Level II also adds one resource to that card’s conversion. Only the six original Move and Construct starters can upgrade. Unit-bundled Colonize, Probe, and Excavate cards remain level I. Convert other cards before resolving an order.</p>
       </section>
 
       <section id="movement">
         <h2>05 / Exploration &amp; movement</h2>
         <div class="book-legend" aria-label="Map symbols"><span><b class="relic-mark" aria-hidden="true">◈</b> Located relic</span><span><b class="relic-mark" aria-hidden="true">●</b> Gray moon · no production</span></div>
-        <p>World terrain is always public, but seeing a world does not locate its relic. Any Settler, Fleet, or Explorer ending a move on a world surveys all seven hexes and reveals its remaining relic <strong>to everyone</strong>. Ending a move on a hidden moon reveals that moon and its relic to everyone. A privately located relic signal stays private until the world or moon is surveyed. All players’ units remain visible, including in empty space. Unit markers alone do not reveal a hidden moon or relic.</p>
+        <p>World terrain is always public, but seeing a world does not locate its relic. Any Settler, Fleet, or Explorer ending a move surveys that world or moon, revealing its terrain to everyone. Arrival never locates a relic. With your Explorer anywhere on that world or moon, use a <strong>Probe</strong> card to locate its remaining relic privately. Other players must locate it for themselves. Existing discovery relic cards keep their printed effects. Probe and Chorus signals stay private after later terrain surveys. Only an effect that explicitly reveals relics to everyone makes them public. All players’ units remain visible, including in empty space. Unit markers alone do not reveal a hidden moon or relic.</p>
         <p>Select a group at one hex: all its combat ships, or its Explorer team. Move up to the slowest unit’s speed. Settlers move <strong>1 hex</strong>, Fleets <strong>2 hexes</strong>, Explorers <strong>3 hexes</strong>. Move II adds 1 hex to that order. A group uses its slowest unit’s speed: a Settler and Fleet together move 1 hex. Explorers travel as a separate civilian team and use Excavate to recover relics. You cannot split individual ships from the selected group. Your destination may contain at most <strong>five of your units</strong>, including Explorers.</p>
         <p>Entering a hostile hex stops the movement and resolves combat. You cannot move through it. Pathfinder Network avoids hostile hexes; other orders may enter them.</p>
       </section>
@@ -137,8 +138,8 @@
             <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-starbase"></use></svg>Shipyard</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span></td><td>Commission ships; defends its own hex with 3 attack and 3 hull. No upgrade.</td></tr>
           </tbody></table>
         </div>
-        <p><strong>Unit cards:</strong> each Settler you successfully commission adds one <strong>Colonize</strong> card to your discard. Each commissioned Explorer adds one <strong>Excavate to your discard pile</strong>. These cards are included in the unit price, are not starter cards, and do not count as card purchases. A Fleet adds no card. Colonize and Excavate cannot be bought separately.</p>
-        <h3 id="excavation">Excavate a relic</h3><p>Browse the face-up rewards in the <strong>Relics tab</strong>, beside Hand, Market, Trade, and Fleet. Starting Excavate with your Explorer’s relic site selected, or selecting that site while Excavate is active, opens Relics automatically. Choose buttons stay disabled until the site and payment are ready. You can return to Hand to convert resources, then return to Relics; this does not spend or cancel the selected order. Use Cancel Excavate to keep the card and choose a different order. Ordinary map inspection does not change tabs.</p><p>Play Excavate with your Explorer on a remaining relic, on a planet or moon. Pay <strong>1 Matter, 1 Energy, and 2 Data</strong>. Choose one of the three face-up alien relic cards and put it <strong>in your discard pile</strong>. Remove the relic from the map, gain <strong>1 permanent Prestige</strong>, and immediately trash the used Excavate card. Remove one of your Explorers from the site. Other units there remain. Failed or canceled excavation choices spend no resources, cards, or units. Excavation uses your Operations action, leaves ownership and buildings unchanged, and cannot be discounted by Construct II. The reward enters normal deck circulation: shuffle it into your deck when needed, then draw it before using it.</p><p>Research Stations are removed. Moons are gray, produce no resources even with a combat fleet, and cannot be colonized, built on, or terraformed. Ships may move and fight there.</p>
+        <p><strong>Unit cards:</strong> each Settler you successfully commission adds one <strong>Colonize</strong> card to your discard. Each commissioned Explorer adds one <strong>Probe</strong> and one <strong>Excavate</strong> to your discard pile. These cards are included in the unit price, are not starter cards, and do not count as card purchases. A Fleet adds no card. Colonize, Probe, and Excavate cannot be bought separately.</p>
+        <h3 id="excavation">Excavate a relic</h3><p>Browse the face-up rewards in the <strong>Relics tab</strong>, beside Hand, Market, Trade, and Fleet. Starting Excavate with your Explorer’s relic site selected, or selecting that site while Excavate is active, opens Relics automatically. Choose buttons stay disabled until the site and payment are ready. You can return to Hand to convert resources, then return to Relics; this does not spend or cancel the selected order. Use Cancel Excavate to keep the card and choose a different order. Ordinary map inspection does not change tabs.</p><p>First locate the relic with Probe or a discovery relic card. Then move your Explorer onto its exact hex and play Excavate. An unlocated relic cannot be excavated. Pay <strong>1 Matter, 1 Energy, and 2 Data</strong>. Choose one of the three face-up alien relic cards and put it <strong>in your discard pile</strong>. Remove the relic from the map, gain <strong>1 permanent Prestige</strong>, and immediately trash the used Excavate card. Remove one of your Explorers from the site. Other units there remain. Failed or canceled excavation choices spend no resources, cards, or units. Excavation uses your Operations action, leaves ownership and buildings unchanged, and cannot be discounted by Construct II. The reward enters normal deck circulation: shuffle it into your deck when needed, then draw it before using it.</p><p>Research Stations are removed. Moons are gray, produce no resources even with a combat fleet, and cannot be colonized, built on, or terraformed. Ships may move and fight there.</p>
         <p>The shuffled alien relic deck has <strong>12 unique cards</strong>, one of each. Reveal a shared row of <strong>three cards</strong> at setup. After every excavation, refill the chosen slot immediately from the deck. When the deck runs out, the row shrinks; when the row is empty, excavation is unavailable. Everyone can inspect the row. Browse the <a href="#alien-relics">alien relic cards</a> below or use the in-game preview.</p>
       </section>
 
@@ -175,7 +176,7 @@
       <section id="buy">
         <h2>09 / Improve your deck</h2>
         <p id="deck-inspection">Click <strong>Deck</strong> to inspect the cards remaining in your draw pile. Cards are grouped by name, starter status, and level, with quantities. Their draw order is hidden. Opening this view does not draw, shuffle, or change cards. Other factions cannot inspect your deck. Replays show deck size only.</p>
-        <p>As soon as you pass, buy up to one Move or Construct card, or one of the five face-up advanced cards. Colonize and Excavate are bundled only with unit commissions. You cannot return to Operations this round. Purchases go to discard and refill the market. Basic supply is unlimited; the advanced deck has two copies of each card and recycles the market discard when needed.</p>
+        <p>As soon as you pass, buy up to one Move or Construct card, or one of the five face-up advanced cards. Colonize, Probe, and Excavate are bundled only with unit commissions. You cannot return to Operations this round. Purchases go to discard and refill the market. Basic supply is unlimited; the advanced deck has two copies of each card and recycles the market discard when needed.</p>
         <p>During the same Buy turn you may also:</p>
         <ul>
           <li><strong>Upgrade starters:</strong> spend <strong>two of one chosen resource type</strong> per original starter in your hand or discard to make it level II. Purchased basic cards cannot upgrade.</li>
@@ -201,7 +202,7 @@
         </div>
         <p>Shipyards and card purchases award no Prestige. For example, one Colony, four Shipyards, and sixteen purchased cards still score just 1 Prestige before relics or combat. Occupation alone does not remove ownership-based Prestige.</p>
         <p>After everyone finishes Buy and the round is cleaned up, if anyone has at least <strong>10 Prestige</strong>, the highest Prestige wins. Break ties by most Colonies, then most stored resources. An exact tie selects the earliest seat in the browser; arena standings share that rank. Reaching 10 earlier does not lock in a win: finish the round before checking the standings. There is no round limit.</p>
-        <p>Victory stays at 10 Prestige. Relic and combat Prestige survive later losses and are saved with your faction’s score. This scoring change applies to new 21.26 games; older tables keep their pinned scoring rules.</p>
+        <p>Victory stays at 10 Prestige. Relic and combat Prestige survive later losses and are saved with your faction’s score. This scoring change applies to new 22.27 games; older tables keep their pinned scoring rules.</p>
         <p>AI arena games use this same victory check. Only completed games earn placement ratings. Simulations have time and decision limits. If any game cannot finish within those limits, the arena reports an incomplete series and none of its games change ratings. Retry with another series; an unfinished game is never counted as a victory.</p>
       </section>
 
@@ -215,7 +216,7 @@
 
       <section id="cards">
         <h2>12 / Card reference</h2>
-        <p>Move and Construct cost 1 Data plus 1 Energy or 1 Matter respectively. Colonize and Excavate are bundled with units. For advanced cards, the market shows purchase cost and the hand shows conversion resources. The table below records current effects, including where printed summaries differ.</p>
+        <p>Move and Construct cost 1 Data plus 1 Energy or 1 Matter respectively. Colonize, Probe, and Excavate are bundled with units. For advanced cards, the market shows purchase cost and the hand shows conversion resources. The table below records current effects, including where printed summaries differ.</p>
         <details>
           <summary>All purchase costs and conversion gains</summary>
           <p>These are base costs and level-I gains. Move and Construct supply is unlimited, advanced supply has two of each card, and the alien relic deck has one of each of its 12 unique cards. Colonize and Excavate arrive only with unit commissions.</p>
@@ -250,7 +251,7 @@
         <details>
           <summary>Advanced and relic orders</summary>
           <div class="book-table" tabindex="0" role="region" aria-label="Advanced card effects">
-            <table><thead><tr><th>Card</th><th>Current 21.26 effect</th></tr></thead><tbody>
+            <table><thead><tr><th>Card</th><th>Current 22.27 effect</th></tr></thead><tbody>
               <tr><th>Survey Drones</th><td>Normal movement at the selected group’s speed. Survey Drones does not add range or filter cards.</td></tr>
               <tr><th>Pathfinder Network</th><td>Move with +1 range; cannot enter hostile hexes.</td></tr>
               <tr><th>Drop Colony Modules</th><td>Found or capture for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> without consuming the Settler.</td></tr>
@@ -276,7 +277,7 @@
         <h3 id="alien-relics">Alien relic deck</h3>
         <p>Terraforming Protocols is removed from the new market. Each excavation lets you choose one face-up card for your discard pile. On your turn, use a relic for its order or convert it for its listed resources. Reaction relics trigger automatically while held. All resource gains respect storage capacity.</p>
         <div class="book-table" tabindex="0" role="region" aria-label="Alien relic cards"><table><thead><tr><th>Alien relic</th><th>Focus</th><th>Order or reaction</th><th>Convert</th></tr></thead><tbody>
-<tr data-card="voidglassAstrolabe"><th>Voidglass Astrolabe<small>A lens that remembers stars before they were born.</small></th><td>Exploration</td><td>Survey the two nearest unsurveyed worlds with remaining relics. Reveal those relics to everyone.</td><td>2 Energy, 2 Data</td></tr>
+<tr data-card="voidglassAstrolabe"><th>Voidglass Astrolabe<small>A lens that remembers stars before they were born.</small></th><td>Exploration</td><td>Locate the relics on the two nearest worlds with unlocated remaining relics. Reveal those relics to everyone.</td><td>2 Energy, 2 Data</td></tr>
 <tr data-card="phaseShearDrive"><th>Phase-Shear Drive<small>Its makers folded distance into a crystal.</small></th><td>Exploration</td><td>Move one group with +3 range. Hostile hexes still stop movement.</td><td>3 Energy, 1 Data</td></tr>
 <tr data-card="firstDawnEchoes"><th>Echoes of the First Dawn<small>A vanished civilization speaks in possible futures.</small></th><td>Exploration</td><td>Draw three cards into your hand.</td><td>3 Data</td></tr>
 <tr data-card="omniscientChorus"><th>Omniscient Chorus<small>Twelve dead moons hum the same coordinates.</small></th><td>Exploration</td><td>Privately locate every remaining relic, then draw one card. A located signal does not reveal a hidden moon; other players do not see your private signals.</td><td>2 Data, 1 Energy</td></tr>
@@ -294,8 +295,8 @@
       <section id="clarifications">
         <p id="development-reveal">For development playtests, open the game with <code>?dev=1</code> to show the <strong>Reveal entire map</strong> toggle. It displays terrain, resources, relics, buildings, and units. Switch it off to restore normal fog immediately. This viewing aid changes no discovery, turn, save, or opponent information. Units remain visible under normal fog.</p>
         <h2>13 / Current playtest clarifications</h2>
-        <p id="computer-rivals">Computer rivals pursue Prestige with the same cards, costs, and legal actions as you. They take available Colony and excavation opportunities before adding infrastructure. Every profile sends Settlers toward neutral Colony sites. Fleets seek favorable fights or open enemy Colonies for capture. Explorers pursue located relics, then survey public worlds; they stop searching when the shared relic rewards are exhausted. Rivals see public terrain and units and their own private relic signals. They cannot consult hidden moon positions, unlocated relic sectors, enemy hands, or deck order.</p>
-        <p>Rivals keep useful Move, Construct, Colonize, and Excavate orders in circulation. They may skip a purchase, storage upgrade, or extra building to keep cards and resources for scoring. They reinforce against visible threats and keep seeking captures when no neutral worlds remain. Military, Economy, and Expansion profiles favor different routes, but all pursue points. Their first Shipyard still uses the inward Energy hex, and equal-distance paths use their home’s orientation. A blocked or illegal move costs no card. The rival may then choose another action or convert a card normally.</p>
+        <p id="computer-rivals">Computer rivals pursue Prestige with the same cards, costs, and legal actions as you. They take available Colony and excavation opportunities before adding infrastructure. Every profile sends Settlers toward neutral Colony sites. Explorers use Probe on their current world or moon before moving to an unlocated relic. Fleets seek favorable fights or open enemy Colonies for capture. Explorers pursue located relics, then survey public worlds; they stop searching when the shared relic rewards are exhausted. Rivals see public terrain and units and their own private relic signals. They cannot consult hidden moon positions, unlocated relic sectors, enemy hands, or deck order.</p>
+        <p>Rivals keep useful Move, Construct, Colonize, Probe, and Excavate orders in circulation. They may skip a purchase, storage upgrade, or extra building to keep cards and resources for scoring. They reinforce against visible threats and keep seeking captures when no neutral worlds remain. Military, Economy, and Expansion profiles favor different routes, but all pursue points. Their first Shipyard still uses the inward Energy hex, and equal-distance paths use their home’s orientation. A blocked or illegal move costs no card. The rival may then choose another action or convert a card normally.</p>
         <p>These are recorded behaviors, not new rules introduced by this manual. Resolving them requires a separate rules change and playtest.</p>
         <details>
           <summary>Occupation, retreats, and civilian combat</summary>
@@ -308,7 +309,7 @@
           </ul>
         </details>
       </section>
-      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 21.26 · The game and this rulebook travel together in every deployment.</p></footer>
+      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 22.27 · The game and this rulebook travel together in every deployment.</p></footer>
     </main>
   </div>
 </body>

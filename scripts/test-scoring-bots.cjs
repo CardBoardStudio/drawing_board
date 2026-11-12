@@ -13,16 +13,16 @@ function funds(p){p.storageUpgrades=100;p.resources={matter:30,energy:30,biomass
 const record={fixtures:0,matchedSetups:0};
 for(let n=0;n<32;n++){
  const current=game(undefined,20261111+n*7919),old=game('crates/galactic-reach/rules/v20-',20261111+n*7919);
- assert.equal(current.a.rulesVersion,'galactic-reach/21.26');assert.equal(old.a.rulesVersion,'galactic-reach/20.25');
- const normalize=g=>({...plain(g.s),version:0,rulesRevision:0});assert.deepEqual(normalize(current),normalize(old));assert.equal(current.calls(),old.calls());
- assert.deepEqual(plain(current.a.observe(0)),plain(old.a.observe(0)));assert.deepEqual(plain(current.a.legalActions(0)),plain(old.a.legalActions(0)));record.matchedSetups++;
+ assert.equal(current.a.rulesVersion,'galactic-reach/22.27');assert.equal(old.a.rulesVersion,'galactic-reach/20.25');
+ const normalize=g=>({...plain(g.s),version:0,rulesRevision:0,visibilityRevision:0});assert.deepEqual(normalize(current),normalize(old));assert.equal(current.calls(),old.calls());
+ const observation=g=>{const v=plain(g.a.observe(0));v.clusters.forEach(c=>delete c.located);return v;};assert.deepEqual(observation(current),observation(old));assert.deepEqual(plain(current.a.legalActions(0)),plain(old.a.legalActions(0)));record.matchedSetups++;
 }
 {
  const g=game(),p=bot(g),center=g.s.clusters[4].center;funds(p);p.hand=[{id:'col',key:'colonize'},{id:'build',key:'construct'}];g.s.fleets={[center]:{1:{settler:1,explorer:0,fleet:0}}};
  g.e.runAiOperation();assert.equal(g.s.planets[center].owner,1);assert(g.s.planets[center].hasColony);assert(p.hand.some(c=>c.id==='build'));assert.equal(p.resources.biomass,28);record.fixtures++;
 }
 {
- const g=game(),p=bot(g),world=g.s.clusters[4],site=g.e.relicCoordInCluster(world);world.revealedBy=[0,1,2,3];funds(p);p.hand=[{id:'dig',key:'excavate'},{id:'build',key:'construct'}];g.s.fleets={[site]:{1:{explorer:1,settler:0,fleet:0}}};
+ const g=game(),p=bot(g),world=g.s.clusters[4],site=g.e.relicCoordInCluster(world);world.revealedBy=[0,1,2,3];world.scannedBy=[1];funds(p);p.hand=[{id:'dig',key:'excavate'},{id:'build',key:'construct'}];g.s.fleets={[site]:{1:{explorer:1,settler:0,fleet:0}}};
  g.e.runAiOperation();assert.equal(p.relicsExcavated,1);assert.equal(g.s.planets[site].special,null);assert(p.hand.some(c=>c.id==='build'));assert.equal(g.s.fleets[site]?.[1]?.explorer||0,0);record.fixtures++;
 }
 {
@@ -35,7 +35,7 @@ for(let n=0;n<32;n++){
  assert(g.e.aiUseResources(p,'build',{matter:2,energy:1,data:1}));assert.deepEqual(plain(p.resources),{matter:4,energy:2,biomass:0,data:1});assert.equal(g.e.overflowPlayer(),-1);record.fixtures++;
 }
 {
- const g=game(),p=bot(g),world=g.s.clusters[4],site=g.e.relicCoordInCluster(world);world.revealedBy=[0,1,2,3];
+ const g=game(),p=bot(g),world=g.s.clusters[4],site=g.e.relicCoordInCluster(world);world.revealedBy=[0,1,2,3];world.scannedBy=[1];
  g.s.fleets={[site]:{1:{explorer:1,settler:0,fleet:0}}};assert.equal(g.e.chooseAiMove(1,{key:'move'}),null,'Explorer holds its scoring site');
  const source=g.s.clusters[1].center;g.s.fleets[source]={1:{settler:1,explorer:0,fleet:0}};
  const move=g.e.chooseAiMove(1,{key:'move'});assert(move);assert.equal(move.source,source);assert.equal(move.moveGroup,'ships');assert(g.s.clusters.some(c=>c.center===move.goal));record.fixtures++;

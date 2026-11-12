@@ -28,8 +28,8 @@ function createGalacticAdapter(e) {
         return [[coord,{...p,...(!located?{special:null,relicClaimed:false}:{})}]];
       })),
       clusters: state.clusters.map(c=>e.clusterKnown(c,seat)
-        ? {kind:c.kind,center:c.center,coords:c.coords,surveyed:e.clusterRevealed(c,seat)}
-        : {kind:'unknown',center:null,coords:[],surveyed:false}),
+        ? {kind:c.kind,center:c.center,coords:c.coords,surveyed:e.clusterRevealed(c,seat),located:e.relicKnown(c,seat)}
+        : {kind:'unknown',center:null,coords:[],surveyed:false,located:e.relicKnown(c,seat)}),
       fleets: state.fleets, market: state.market, relicRow: state.relicRow, relicDeckCount: state.relicDeck.length,
       pendingConsortium: state.pendingConsortium, tradeOffers: state.tradeOffers, pendingColonyBuild: state.pendingColonyBuild
     });
@@ -124,6 +124,9 @@ function createGalacticAdapter(e) {
             });
           }
         });
+        if (def.order === 'probe') state.clusters.forEach(cluster=>{
+          if(e.probeRelic(seat,cluster.center,card.id,true)) actions.push({type:'probe',...base,coord:cluster.center});
+        });
         if (def.order === 'excavate') Object.keys(state.planets).forEach(coord=>{
           state.relicRow.forEach(relic=>{
             if(e.excavate(seat,coord,card.id,relic.id,true)) actions.push({type:'excavate',...base,coord,relic:relic.id});
@@ -177,6 +180,7 @@ function createGalacticAdapter(e) {
       case 'colonize': e.applyColonizeOrder(seat, action.coord, card); return;
       case 'build': e.constructAt(seat,action.coord,action.kind,action.discountResource); break;
       case 'move': e.performMoveOrder(seat, action.source, action.destination, card, { tag: def.tag, moveGroup: action.moveGroup }); return;
+      case 'probe': e.probeRelic(seat,action.coord,action.card); return;
       case 'excavate': e.excavate(seat,action.coord,action.card,action.relic); return;
       case 'special': e.resolveHumanSpecial(card, def, seat); return;
       default: throw new Error('Unknown action.');
@@ -199,6 +203,6 @@ function createGalacticAdapter(e) {
     const seat = activeSeat();
     return { active: seat, observation: seat === null ? null : observe(seat), legal: legalActions(seat), scores: scores() };
   }
-  return { rulesVersion: 'galactic-reach/21.26', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
+  return { rulesVersion: 'galactic-reach/22.27', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = createGalacticAdapter;

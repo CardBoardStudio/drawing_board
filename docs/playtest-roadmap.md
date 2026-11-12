@@ -1,5 +1,12 @@
 # Playtest roadmap
 
+## Probe Relics22.27 experiment
+
+- Bank exchange uses Give4/Receive1 resource buttons and Convert (also published for21.26).
+- Require Probe to privately locate a relic with an Explorer on that world or moon; movement reveals only terrain. Explorer commissions grant Probe and Excavate to discard. Preserve discovery relic cards.
+
+Status: implemented; local mechanics, dialogs, replay, native, archive and build checks passed. Render preview verification pending. Existing21.26 games keep their discovery rules.
+
 ## Implemented in the 21.26 Scoring Bots experiment
 
 - Improve rivals’ ability to earn Prestige through Colonies, relics and favorable combat; coordinate units and preserve useful orders/resources.

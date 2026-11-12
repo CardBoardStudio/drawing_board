@@ -183,7 +183,25 @@ fn validate(save: &serde_json::Value) -> ApiResult<()> {
     if !((s["version"] == 4 && s["rulesRevision"] == 9)
         || (s["version"] == 5 && s["rulesRevision"] == 10)
         || (s["version"] == 6 && s["rulesRevision"] == 11)
-        || (s["version"] == 7 && s["rulesRevision"] == 12))
+        || (s["version"] == 7 && s["rulesRevision"] == 12)
+        || (s["version"] == 8 && s["rulesRevision"] == 13)
+        || (s["version"] == 9 && s["rulesRevision"] == 14)
+        || (s["version"] == 10 && s["rulesRevision"] == 15)
+        || (s["version"] == 11 && s["rulesRevision"] == 16)
+        || (s["version"] == 12 && s["rulesRevision"] == 17)
+        || (s["version"] == 13 && s["rulesRevision"] == 18)
+        || (s["version"] == 14 && s["rulesRevision"] == 19)
+        || (s["version"] == 15 && s["rulesRevision"] == 20)
+        || (s["version"] == 16 && s["rulesRevision"] == 21)
+        || (s["version"] == 17 && s["rulesRevision"] == 22)
+        || (s["version"] == 18 && s["rulesRevision"] == 23)
+        || (s["version"] == 19 && s["rulesRevision"] == 24)
+        || (s["version"] == 20 && s["rulesRevision"] == 25)
+        || (s["version"] == 21 && s["rulesRevision"] == 26)
+        || (s["version"] == 22 && s["rulesRevision"] == 27)
+        || (s["version"] == 23 && s["rulesRevision"] == 28))
+        || (s["version"].as_u64().unwrap_or(0) >= 12 && s["phase"] == "directive")
+        || (s["version"].as_u64().is_some_and(|v| v >= 9) && s["phase"] == "policy")
         || s["players"].as_array().is_none_or(|p| p.len() != 4)
         || !s["planets"].is_object()
         || !s["fleets"].is_object()
@@ -218,7 +236,15 @@ pub async fn save(
     let u = user(&app, &headers)?;
     validate(&input.save)?;
     let encoded = serde_json::to_string(&input.save).map_err(internal)?;
-    if encoded.len() > 1024 * 1024 {
+    let size_limit = if input.save["state"]["version"]
+        .as_u64()
+        .is_some_and(|v| v >= 19)
+    {
+        8 * 1024 * 1024
+    } else {
+        1024 * 1024
+    };
+    if encoded.len() > size_limit {
         return Err(bad("This save exceeds the table size limit."));
     }
     let db = app.store.0.lock().map_err(internal)?;
@@ -248,6 +274,31 @@ pub async fn save(
 mod tests {
     use super::*;
     use crate::tests::{app, call};
+    #[test]
+    fn current_tables_skip_round_choices_but_archived_tables_keep_them() {
+        let mut save = json!({"state":{
+            "version":12,"rulesRevision":17,"players":[{},{},{},{}],
+            "planets":{},"fleets":{},"clusters":[],"round":3,
+            "activePlayer":0,"phase":"operations","winner":null
+        }});
+        assert!(validate(&save).is_ok());
+        save["state"]["phase"] = json!("directive");
+        assert!(validate(&save).is_err());
+        save["state"]["version"] = json!(13);
+        save["state"]["rulesRevision"] = json!(18);
+        assert!(validate(&save).is_err());
+        save["state"]["phase"] = json!("operations");
+        assert!(validate(&save).is_ok());
+        save["state"]["phase"] = json!("directive");
+        save["state"]["version"] = json!(11);
+        save["state"]["rulesRevision"] = json!(16);
+        assert!(validate(&save).is_ok());
+        save["state"]["phase"] = json!("policy");
+        assert!(validate(&save).is_err());
+        save["state"]["version"] = json!(8);
+        save["state"]["rulesRevision"] = json!(13);
+        assert!(validate(&save).is_ok());
+    }
     #[test]
     fn old_tables_keep_their_rules_version() {
         let db = Connection::open_in_memory().unwrap();
@@ -314,11 +365,12 @@ mod tests {
             galactic_reach::RULES
         );
         // A realistic size above the normal 16 KiB request limit is accepted here only.
-        let save = json!({"state":{"version":7,"rulesRevision":12,"players":[{},{},{},{}],"planets":{},"fleets":{},"clusters":[],"round":3,"activePlayer":0,"phase":"policy","winner":null,"log":"x".repeat(40000)},"turnHistory":{"pending":null,"undo":null}});
+        let save = json!({"state":{"version":23,"rulesRevision":28,"players":[{},{},{},{}],"planets":{},"fleets":{},"clusters":[],"round":3,"activePlayer":0,"phase":"operations","winner":null,"log":"x".repeat(40000)},"turnHistory":{"pending":null,"undo":null},"gameHistory":{"format":1,"complete":true,"events":[{"text":"x".repeat(1100000)}]}});
         let body = json!({"revision":0,"save":save});
         let mut wrong = body.clone();
         wrong["save"]["state"]["version"] = json!(5);
         wrong["save"]["state"]["rulesRevision"] = json!(10);
+        wrong["save"].as_object_mut().unwrap().remove("gameHistory");
         assert_eq!(
             call(&a, "POST", &savepath, &owner, wrong).await.0,
             StatusCode::CONFLICT

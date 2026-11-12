@@ -60,7 +60,7 @@ assert b"Galactic Reach" in request("/galactic-reach/")[2]
 status, headers, rulebook = request("/galactic-reach/rulebook.html")
 assert status == 200 and "text/html" in headers["Content-Type"]
 assert b'<meta name="rules-version" content="galactic-reach/23.28">' in rulebook
-assert b'id="victory"' in rulebook and b'10 Prestige' in rulebook
+assert b'id="victory"' in rulebook and b'20 Prestige' in rulebook
 status, headers, css = request("/galactic-reach/rulebook.css")
 assert status == 200 and "text/css" in headers["Content-Type"] and b'.book-layout' in css
 

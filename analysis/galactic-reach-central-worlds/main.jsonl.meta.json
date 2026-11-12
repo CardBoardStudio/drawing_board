@@ -1,0 +1,19 @@
+{
+  "engine": "/private/tmp/drawing-board-ten-prestige",
+  "target": 10,
+  "layout": "central",
+  "suite": "main",
+  "seeds": 64,
+  "offset": 2000,
+  "games": 864,
+  "createdAt": "2026-11-12T13:05:19.561Z",
+  "engineSha256": "556237ff7a64ea8af22172a14e8283085d171cd80235d4d392c29404be80268c",
+  "harnessSha256": "c5f5616e4276ad226504d385b83fd50248cae7a2e5e1cbb92c23fa0e6f299f37",
+  "notes": [
+    "The unchanged 17.22 local game supplies all bot decisions and 10-point rules. The central condition only relocates terrain and adds one relic-free world before production.",
+    "Resource property observers account for every positive/negative write and assert the ledger closes exactly.",
+    "Gifts are counterfactual+2units at start of round1 or10, after production overflow is resolved and before any ordinary action.",
+    "Focal strategy is duplicated in its four-player lineup and rotated through every home.",
+    "Setup intervention uses an independent RNG. Paired games retain original decks, ordinary state, gameplay RNG position, resource tiles on existing worlds, and twelve relic sites. No browser source, saves, or live deployment is changed."
+  ]
+}

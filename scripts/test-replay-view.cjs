@@ -31,22 +31,50 @@ let engine, seed = 1729;
 const random = () => ((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 2 ** 32);
 context.createGalacticAdapter = e => { engine = e; return factory(e); };
 const game = context.createGalacticReach({ headless: true, random });
-const weight = { colony_build: 60, colonize: 60, trade_accept: 25, trade_offer: 3, upgrade: 20, build: 8, move: 8, buy: 6, probe: 2, pass: .3, finish_buy: 1, finish_colony_build: .5 };
+// A fixed opening exercises the optional Colonize II continuation independently of
+// later random decisions.
+const openingWorld = engine.state.clusters.find(c=>engine.state.planets[c.center].owner===null);
+engine.state.players[0].hand.push({id:'replay-colonize-II',key:'colonize',starter:true,upgraded:true});
+engine.state.players[0].storageUpgrades=3;
+engine.state.players[0].resources={matter:6,energy:5,biomass:3,data:5};
+engine.state.players[0].hand.push({id:'replay-recovery',key:'excavate',starter:true},{id:'replay-probe',key:'probe'});
+const openingRelic=openingWorld.coords.find(k=>engine.state.planets[k].special==='relic');
+engine.state.fleets[openingRelic]={0:{settler:0,explorer:1,fleet:0}};
+engine.state.fleets[openingWorld.center]={0:{settler:1,explorer:0,fleet:0}};
+engine.state.fleets['10,-10']={0:{settler:0,explorer:0,fleet:2}};
+engine.state.fleets['9,-10']={1:{settler:0,explorer:0,fleet:2}};
+engine.state.players[0].hand.push({id:'replay-combat-move',key:'move'});
+openingWorld.revealedBy.push(0);
+const weight = { bank_trade: 0, discard_resources: 0, colony_build: 60, colonize: 60, trade_accept: 25, trade_offer: 3, upgrade: 20, build: 8, move: 8, buy: 6, excavate: 20, pass: .3, finish_buy: 1, finish_colony_build: .5 };
 // JSON copies: vm-realm arrays would fail strict deep equality on their prototypes.
 const truth = state => JSON.parse(JSON.stringify({
   pending: state.pendingColonyBuild ? { playerId: state.pendingColonyBuild.playerId, colony: state.pendingColonyBuild.colony } : null,
+  pendingConsortium: state.pendingConsortium,
+  pendingCombat: state.pendingCombat,
   tradesWith: state.players.map(p => [...p.tradesWith]),
   cardsPurchased: state.players.map(p => p.cardsPurchased || 0),
 }));
 const views = [JSON.parse(JSON.stringify(game.replayView()))];
 const truths = [truth(engine.state)];
 const frames = [];
+const opening=[
+  a=>a.type==='move'&&a.source==='10,-10'&&a.destination==='9,-10',
+  a=>a.type==='increase_storage',
+  a=>a.type==='colonize'&&a.card==='replay-colonize-II'&&a.coord===openingWorld.center,
+  a=>a.type==='colony_build'&&a.kind==='harvester'&&a.coord===openingWorld.coords[1],
+  a=>a.type==='probe'&&a.card==='replay-probe',
+  a=>a.type==='excavate'&&a.card==='replay-recovery'
+];
+let openingStep=0;
 for (let n = 0; n < 1800 && game.activeSeat() !== null; n++) {
   const seat = game.activeSeat();
   const legal = game.legalActions(seat);
   const total = legal.reduce((sum, a) => sum + (weight[a.type] ?? 1), 0);
   let pick = random() * total, action = legal.at(-1);
   for (const a of legal) { pick -= weight[a.type] ?? 1; if (pick <= 0) { action = a; break; } }
+  if(seat===0&&!engine.state.pendingCombat&&openingStep<opening.length){action=legal.find(opening[openingStep++]);}
+  assert(action,'Fixed opening is legal');
+  assert(action);
   game.applyAction(seat, action);
   const view = JSON.parse(JSON.stringify(game.replayView()));
   const changes = [];
@@ -62,17 +90,21 @@ const source = read('prototypes/galactic-reach/app.js');
 const boot = source.indexOf('\n  if (headless) {\n    state = newState();');
 assert(boot > 0, 'Locate the browser bootstrap before instrumenting the replay helpers');
 const ui = vm.createContext({ module: { exports: {} }, document: { querySelector: () => ({}), querySelectorAll: () => [] }, localStorage: { getItem: () => null, setItem() {}, removeItem() {} }, setTimeout: () => 0, clearTimeout() {}, console });
-vm.runInContext(source.slice(0, boot) + '\n  return { describeDecision, replayState, calculatePrestige, playerCapacity };\n}\n', ui);
+vm.runInContext(source.slice(0, boot) + '\n  return { describeDecision, replayState, playerCapacity, calculatePrestige };\n}\n', ui);
 const view = ui.createGalacticReach({ replay: true });
 
 const names = ['Vanguard', 'Architect <b>', 'You', 'Ember Directorate'];
 const analysis = analyse(data, view.describeDecision, names);
 assert.equal(analysis.steps.length, frames.length + 1);
-const seen = { pending: 0, trades: 0, combat: 0, buys: 0, upgraded: 0 };
+const seen = { battleChoice: 0, pending: 0, trades: 0, combat: 0, buys: 0, upgraded: 0 };
 for (let index = 0; index <= frames.length; index++) {
   const step = analysis.steps[index];
   const raw = stateAt(data, analysis, index);
   if (index % 5 === 0 || step.pendingColonyBuild || step.decision?.combat) assert.deepEqual(raw, views[index], `Replay deltas rebuild decision ${index}`);
+  assert(!('policyVotes' in raw), `No policy votes at decision ${index}`);
+  assert.deepEqual(raw.pendingCombat,truths[index].pendingCombat,`Pending combat and hidden commitments reconstruct at decision ${index}`);
+  if(raw.pendingCombat)seen.battleChoice++;
+  assert.deepEqual(raw.pendingConsortium,truths[index].pendingConsortium,`Trade Consortium choice at decision ${index}`);
   assert.deepEqual(step.pendingColonyBuild, truths[index].pending, `Pending Colonize II at decision ${index}`);
   assert.deepEqual(step.tradesWith, truths[index].tradesWith, `Completed trades at decision ${index}`);
   assert.deepEqual(step.cardsPurchased, truths[index].cardsPurchased, `Purchased cards at decision ${index}`);
@@ -80,6 +112,7 @@ for (let index = 0; index <= frames.length; index++) {
   if (index > 0 && raw.log[0] !== views[index - 1].log[0]) assert.equal(step.log[0], renameFactions(raw.log[0], names, frames[index - 1].seat), `Newest log line at decision ${index}`);
   view.replayState(raw, { names, cardsPurchased: step.cardsPurchased, tradesWith: step.tradesWith, pendingColonyBuild: step.pendingColonyBuild, decision: step.decision });
   raw.players.forEach((player, seat) => assert.equal(view.calculatePrestige(seat), player.prestige, `Prestige for seat ${seat} at decision ${index}`));
+  raw.players.forEach((player,seat)=>assert.equal(view.playerCapacity(seat),player.capacity,`Storage capacity for seat ${seat} at decision ${index}`));
   if (step.decision) {
     assert.match(step.decision.text, /^[^]+$/);
     assert.doesNotMatch(step.decision.text, /undefined|NaN|\[object/, `Decision ${index}: ${step.decision.text}`);
@@ -91,6 +124,8 @@ for (let index = 0; index <= frames.length; index++) {
   if (raw.players.some(p => p.hand.some(card => card.upgraded))) seen.upgraded++;
 }
 for (const [kind, count] of Object.entries(seen)) assert(count > 0, `The recorded match should cover ${kind}`);
+assert(frames.some(frame=>frame.action.type==='excavate'));
+assert(frames.some(frame=>frame.action.type==='increase_storage'));
 assert(frames.some(frame => frame.action.type === 'colony_build' || frame.action.type === 'finish_colony_build'));
 const rounds = [...analysis.rounds];
 assert.deepEqual(rounds[0], [data.initial.round, 0]);

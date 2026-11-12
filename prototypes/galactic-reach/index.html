@@ -31,12 +31,13 @@
       </div>
     </header>
     <details class="playtest-changes" id="playtest-changes" open>
-      <summary><span class="new-feature">New in this playtest</span> Secret tactics · ship roles · Explorer escape</summary>
+      <summary><span class="new-feature">New in this playtest</span> Secret tactics · ship roles · Explorer escape · Relics tab</summary>
       <ul>
         <li><strong>Secret combat choices:</strong> every battle starts with two Fire and two Screen tactics. Commit privately, reveal together, and spend each tactic once. Up to three volleys; no random tactic draws. <a href="rulebook.html#combat-tactics">Tactic rules</a></li>
         <li><strong>Distinct ship roles:</strong> Fleet has 3 attack/7 hull. Explorer has 1/1. Settler has 1 attack and 2 hull, rising to 4 when defending. War-Song and Obelisk’s big attack bonuses require a Fleet. <a href="rulebook.html#combat">Combat rules</a></li>
         <li><strong>Explorer escape:</strong> before tactics, pay 1 Energy per Explorer to escape to a legal adjacent hex. Remaining ships fight. <a href="rulebook.html#explorer-escape">Escape rules</a></li>
         <li><strong>Clear battle reports:</strong> see base attack, bonuses, shields, and simultaneous damage. After three volleys, surviving defenders force attackers to retreat; trapped attackers are destroyed. Saved games resume pending battle choices. <a href="rulebook.html#combat">Battle resolution</a></li>
+        <li><strong>Relics have their own tab:</strong> browse the shared rewards anytime. Starting or targeting excavation opens Relics, with payment and reward choices together. <a href="rulebook.html#excavation">Excavation guide</a></li>
       </ul>
       <button class="button button-ghost" id="open-relic-catalog" type="button">Preview all 12 alien relics</button>
       <p>Rules 15.20 experiment · Start a new game. Earlier games keep their archived rules.</p>
@@ -59,11 +60,6 @@
           <div class="galaxy-board" id="galaxy-board" aria-label="Interactive galaxy map" aria-describedby="resource-legend symbol-legend"></div>
         </div>
         <div class="map-tools"><label id="development-tools" hidden><input type="checkbox" id="reveal-entire-map"> Reveal entire map <small>Development</small></label><button class="button button-ghost" type="button" id="open-map-key">Map key · resources, units &amp; costs</button><button class="button button-ghost" type="button" id="map-zoom" aria-pressed="false">Zoom map</button></div>
-        <section class="panel relic-row-panel" aria-labelledby="relic-row-title">
-          <div class="panel-heading"><h2 id="relic-row-title">Alien relics</h2><span class="muted" id="relic-deck-count"></span></div>
-          <p class="muted" id="relic-row-help">Use Excavate with an Explorer at a relic to choose a card.</p>
-          <div class="relic-row" id="relic-row"></div>
-        </section>
       </div>
 
       <aside class="command-column">
@@ -113,6 +109,7 @@
         <button class="console-tab" id="market-tab" type="button" data-tab="market" role="tab" aria-selected="false" aria-controls="market-panel" tabindex="-1">Market</button>
         <button class="console-tab" id="trade-tab" type="button" data-tab="trade" role="tab" aria-selected="false" aria-controls="trade-panel" tabindex="-1">Trade</button>
         <button class="console-tab" id="fleet-tab" type="button" data-tab="fleet" role="tab" aria-selected="false" aria-controls="fleet-panel" tabindex="-1">Fleet</button>
+        <button class="console-tab" id="relics-tab" type="button" data-tab="relics" role="tab" aria-selected="false" aria-controls="relics-panel" tabindex="-1">Relics</button>
       </div>
       <div class="console-body">
         <div class="tab-panel active" id="hand-panel" data-panel="hand" role="tabpanel" aria-labelledby="hand-tab" tabindex="0">
@@ -149,6 +146,12 @@
           <div class="trade-response" id="trade-response" role="status"></div>
           <div id="trade-offers" class="trade-offers" aria-label="Open trade offers"></div>
           <div class="trade-ledger" id="trade-ledger" aria-label="Completed trades by rival"></div>
+        </div>
+        <div class="tab-panel" id="relics-panel" data-panel="relics" role="tabpanel" aria-labelledby="relics-tab" tabindex="0" hidden>
+          <div class="section-intro"><div><h2 id="relic-row-title">Alien relics</h2><p id="relic-deck-count"></p></div><button class="button" id="cancel-excavate" type="button" hidden>Cancel Excavate</button></div>
+          <p class="muted" id="relic-row-help">Browse rewards here. Use Excavate with your Explorer at a relic to choose one.</p>
+          <p class="relic-payment">Excavation cost <span id="relic-cost"></span></p>
+          <div class="relic-row" id="relic-row"></div>
         </div>
         <div class="tab-panel" id="fleet-panel" data-panel="fleet" role="tabpanel" aria-labelledby="fleet-tab" tabindex="0" hidden>
           <div class="section-intro"><div><h2>Fleet manifest</h2><p>Settlers move 1 and colonize. Fleets move 2. Explorers move 3 and excavate relics.</p></div></div>

@@ -1161,8 +1161,10 @@ function createGalacticReach(options = {}) {
     state.actionOptions = { tag: definition.tag || null, cardName: definition.name, upgraded: !!card.upgraded, discountResource: card.upgraded && definition.order==='construct'?'matter':null };
     state.moveSource = null;
     state.reachable = [];
-    toast(definition.order === 'move' ? 'Select one of your fleets or Explorer teams.' : definition.order === 'construct' ? 'Select an empty planet hex adjacent to your Colony, an existing structure, or a Shipyard.' : definition.order === 'excavate' ? 'Select a relic with your Explorer, then choose a card from the relic row.' : 'Select an eligible planet containing your Settler.');
+    if (definition.order==='excavate') openExcavationRewards();
+    toast(definition.order === 'move' ? 'Select one of your fleets or Explorer teams.' : definition.order === 'construct' ? 'Select an empty planet hex adjacent to your Colony, an existing structure, or a Shipyard.' : definition.order === 'excavate' ? 'Select your Explorer’s relic site, then choose a reward in the Relics tab.' : 'Select an eligible planet containing your Settler.');
     render();
+    if (definition.order==='excavate') saveGame();
   }
 
   function hexDistance(a,b) {
@@ -1334,13 +1336,26 @@ function createGalacticReach(options = {}) {
     }
   }
 
+  function openExcavationRewards() {
+    const site=state.planets[state.selected];
+    if (headless || replayMode || state.pendingCombat || state.phase!=='operations' || state.activePlayer!==0 || state.actionMode!=='excavate'
+      || !site || site.special!=='relic' || site.relicClaimed || !getFleet(state.selected,0)?.explorer) return false;
+    switchTab('relics');
+    const scan=$('#sector-popover');
+    if (scan.matches(':popover-open')) scan.hidePopover();
+    $('#console').scrollIntoView?.({block:'nearest'});
+    return true;
+  }
+
   function humanSelectHex(key) {
     state.selected = key;
     if (state.phase === 'operations' && state.activePlayer === 0 && state.turnStage === 'action' && state.actionMode) {
       if (state.actionMode === 'move') handleHumanMoveSelection(key);
     }
+    const opened=openExcavationRewards();
     render();
     saveGame();
+    return opened;
   }
 
   function handleHumanMoveSelection(key) {
@@ -2422,7 +2437,7 @@ function createGalacticReach(options = {}) {
   }
 
   function selectHex(key) {
-    if (!replayMode) { humanSelectHex(key); return; }
+    if (!replayMode) return humanSelectHex(key);
     state.selected = key;
     options.onSelect?.(key);
     render();
@@ -2442,7 +2457,7 @@ function createGalacticReach(options = {}) {
           const key = coordKey(q,r);
           const button = document.createElement('button');
           button.type='button'; button.className='hex'; button.dataset.coord=key;
-          button.addEventListener('click',event=>{selectHex(key);showSectorScan(event.detail===0);});
+          button.addEventListener('click',event=>{if(!selectHex(key))showSectorScan(event.detail===0);});
           button.innerHTML='<span class="hex-fleets"></span><span class="hex-buildings"></span><span class="special"></span>';
           row.appendChild(button);
         }
@@ -2571,6 +2586,7 @@ function createGalacticReach(options = {}) {
     if (state.actionCardId !== cardId || !state.actionMode) playOrder(cardId);
     if (state.actionCardId !== cardId || !state.actionMode) return false;
     if (order.type === 'move') prepareHumanMove(coord,group);
+    if (order.type === 'excavate') openExcavationRewards();
     render(); saveGame();
     return true;
   }
@@ -2579,7 +2595,7 @@ function createGalacticReach(options = {}) {
     const orders = availableContextOrders(coord);
     if (!orders.length) return;
     if (state.actionMode) {
-      actions.appendChild(actionButton('Choose another order',()=>{clearAction();render();saveGame();}));
+      actions.appendChild(actionButton('Choose another order',()=>{const excavation=state.actionMode==='excavate';clearAction();if(excavation)switchTab('hand');render();saveGame();}));
       return;
     }
     const list = document.createElement('div');
@@ -3005,14 +3021,16 @@ function createGalacticReach(options = {}) {
 
   function renderRelicRow() {
     const row=$('#relic-row');
+    const choosing=!replayMode && !state.pendingCombat && state.phase==='operations' && state.activePlayer===0 && state.actionMode==='excavate';
     row.innerHTML=state.relicRow.map(relic=>{
-      const selected=state.selected;
-      const choose=!replayMode && state.actionMode==='excavate';
-      const allowed=choose && excavate(0,selected,state.actionCardId,relic.id,true);
-      return `<div>${cardMarkup(relic,'relic-row')}${choose?`<button class="button button-primary" data-excavate-relic="${relic.id}" ${allowed?'':'disabled'}>Choose ${esc(ALL_CARDS[relic.key].name)}</button>`:''}</div>`;
+      const allowed=choosing && excavate(0,state.selected,state.actionCardId,relic.id,true);
+      return `<div>${cardMarkup(relic,'relic-row')}${choosing?`<button class="button button-primary" data-excavate-relic="${relic.id}" ${allowed?'':'disabled'}>Choose ${esc(ALL_CARDS[relic.key].name)}</button>`:''}</div>`;
     }).join('') || '<p class="muted">All alien relic cards have been recovered.</p>';
     $('#relic-deck-count').textContent=`${replayMode?state.relicDeckCount:state.relicDeck.length} cards remaining in deck`;
-    $('#relic-row-help').textContent=state.actionMode==='excavate'?'Select your Explorer’s relic hex, then choose a card below. Pay 1 Matter, 1 Energy, and 2 Data.':'Use Excavate with an Explorer at a relic to choose one of these cards.';
+    $('#relic-cost').innerHTML=resourceDots(EXCAVATION_COST);
+    $('#cancel-excavate').hidden=!choosing;
+    const site=state.planets[state.selected],atSite=site?.special==='relic' && !site.relicClaimed && getFleet(state.selected,0)?.explorer;
+    $('#relic-row-help').textContent=!choosing?'Browse the shared rewards anytime. Use Excavate with your Explorer at a relic site to choose one.':!atSite?'Select a relic site containing your Explorer. Then choose a reward here.':!canAfford(state.players[0],EXCAVATION_COST)?'You need 1 Matter, 1 Energy, and 2 Data. Switch to Hand to convert resources, then return to Relics; your order stays selected.':'Choose one reward into discard. Pay 1 Matter, 1 Energy, and 2 Data; consume one Explorer, trash Excavate, and gain 1 Prestige.';
     $$('[data-excavate-relic]').forEach(button=>button.addEventListener('click',()=>contextExcavate(state.selected,button.dataset.excavateRelic)));
   }
 
@@ -3111,6 +3129,7 @@ function createGalacticReach(options = {}) {
       $('#relic-catalog-dialog').showModal();
     });
     $('#close-relic-catalog').addEventListener('click',()=>$('#relic-catalog-dialog').close());
+    $('#cancel-excavate').addEventListener('click',()=>{if(state.actionMode!=='excavate' || state.pendingCombat)return;clearAction();switchTab('hand');render();saveGame();});
     $('#upgrade-storage-button').addEventListener('click',()=>increaseStorage(0));
     $('#convert-all-button').addEventListener('click',convertAllResources);
     $('#trade-form').addEventListener('submit',submitTrade);
@@ -3203,6 +3222,7 @@ function createGalacticReach(options = {}) {
     render();
     resumePendingChoice();
     if (state.phase === 'buy' && state.activePlayer === 0) switchTab('market');
+    else openExcavationRewards();
     scheduleCombatAi();
     if (state.winner === null && state.activePlayer !== 0 && state.phase === 'operations') scheduleAiTurn('operations', runAiOperation, 650);
     if (state.winner === null && state.activePlayer !== 0 && state.phase === 'buy') scheduleAiTurn('buy', runAiBuy, 650);

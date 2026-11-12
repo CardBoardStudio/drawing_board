@@ -13,7 +13,7 @@ ORIGIN = os.environ.get("SMOKE_ORIGIN", "https://preview.example")
 CODE = os.environ["SMOKE_PREVIEW_CODE"]
 
 
-def request(path, body=None, cookie="", origin=ORIGIN):
+def request(path, body=None, cookie="", origin=ORIGIN, timeout=120):
     headers = {"Origin": origin, "x-drawing-board": "1"}
     if cookie:
         headers["Cookie"] = cookie
@@ -22,7 +22,7 @@ def request(path, body=None, cookie="", origin=ORIGIN):
         headers["Content-Type"] = "application/json"
     req = urllib.request.Request(BASE + path, data=data, headers=headers)
     try:
-        response = urllib.request.urlopen(req, timeout=120)
+        response = urllib.request.urlopen(req, timeout=timeout)
     except urllib.error.HTTPError as error:
         response = error
     with response:
@@ -35,10 +35,10 @@ def login(name):
     status, headers, _ = request("/api/auth/preview", {"name": name, "code": CODE})
     assert status == 200, status
     cookie = http.cookies.SimpleCookie(headers["Set-Cookie"])
-    session = cookie["drawing_board_pass_buy_v7_session"]
+    session = cookie["drawing_board_alien_v11_session"]
     assert session["httponly"] and session["secure"] and session["samesite"] == "Lax"
     # The runner connects to loopback HTTP; Render terminates HTTPS in deployment.
-    return f"drawing_board_pass_buy_v7_session={session.value}"
+    return f"drawing_board_alien_v11_session={session.value}"
 
 
 for attempt in range(60):
@@ -59,7 +59,7 @@ assert b"Drawing Board" in request("/")[2]
 assert b"Galactic Reach" in request("/galactic-reach/")[2]
 status, headers, rulebook = request("/galactic-reach/rulebook.html")
 assert status == 200 and "text/html" in headers["Content-Type"]
-assert b'<meta name="rules-version" content="galactic-reach/7.12">' in rulebook
+assert b'<meta name="rules-version" content="galactic-reach/15.20">' in rulebook
 assert b'id="victory"' in rulebook and b'20 Prestige' in rulebook
 status, headers, css = request("/galactic-reach/rulebook.css")
 assert status == 200 and "text/css" in headers["Content-Type"] and b'.book-layout' in css
@@ -116,14 +116,14 @@ print("Container smoke passed: assets, preview access, chosen market and startin
 # Persistent identity and authoritative arena through the packaged HTTP surface.
 status, headers, created = request('/api/accounts/register', {'name': 'Arena pilot', 'code': CODE})
 assert status == 200
-account_cookie = http.cookies.SimpleCookie(headers['Set-Cookie'])['drawing_board_pass_buy_v7_session'].value
-account_cookie = f'drawing_board_pass_buy_v7_session={account_cookie}'
+account_cookie = http.cookies.SimpleCookie(headers['Set-Cookie'])['drawing_board_alien_v11_session'].value
+account_cookie = f'drawing_board_alien_v11_session={account_cookie}'
 account_id = request('/api/account', cookie=account_cookie)[2]['id']
 key = created['recovery_key']
 assert request('/api/auth/logout', {}, account_cookie)[0] == 200
 status, headers, _ = request('/api/accounts/login', {'recovery_key': key})
 assert status == 200
-account_cookie = 'drawing_board_pass_buy_v7_session=' + http.cookies.SimpleCookie(headers['Set-Cookie'])['drawing_board_pass_buy_v7_session'].value
+account_cookie = 'drawing_board_alien_v11_session=' + http.cookies.SimpleCookie(headers['Set-Cookie'])['drawing_board_alien_v11_session'].value
 assert request('/api/account', cookie=account_cookie)[2]['id'] == account_id
 bots = []
 for strategy in ['explorer', 'kepler']:
@@ -147,10 +147,12 @@ for policy in ['gr-military', 'gr-economy', 'gr-expansion', 'gr-wanderer']:
     assert status == 200, bot
     gr_bots.append(bot['id'])
 gr_series = {'request_id': str(uuid.uuid4()), 'game': 'galactic-reach', 'bots': gr_bots, 'games': 4}
-status, _, gr_result = request('/api/arena/series', gr_series, account_cookie)
+# Four rotations run sequentially, each with the engine's 300-second deadline.
+# Keep ordinary HTTP checks short, but allow this complete series to finish.
+status, _, gr_result = request('/api/arena/series', gr_series, account_cookie, timeout=4 * 300 + 30)
 assert status == 200, gr_result
 assert len(gr_result['matches']) == 4
-assert all(m['result']['rules_version'] == 'galactic-reach/7.12' for m in gr_result['matches'])
+assert all(m['result']['rules_version'] == 'galactic-reach/15.20' for m in gr_result['matches'])
 assert request('/api/arena/series', gr_series, account_cookie)[2] == gr_result
 gr_ladder = request('/api/arena?game=galactic-reach', cookie=account_cookie)[2]
 assert len(gr_ladder['bots']) == 4 and all(b['games'] == 4 for b in gr_ladder['bots'])

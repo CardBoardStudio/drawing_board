@@ -23,22 +23,12 @@ function makeGame(seed, seatStrategies, fleetProduction) {
   let source = original;
   source = replaceOrFail(
     source,
-    "if (state.phase !== 'operations' || state.activePlayer === 0 || state.winner !== null) return;",
-    "if (state.phase !== 'operations' || state.winner !== null) return;",
+    "if (state.pendingCombat || state.phase !== 'operations' || state.activePlayer === 0 || state.winner !== null) return;",
+    "if (state.pendingCombat || state.phase !== 'operations' || state.winner !== null) return;",
     'AI operation guard'
   );
-  source = replaceOrFail(
-    source,
-    "if (chooser !== 0) {",
-    "if (true) {",
-    'automatic directive chooser'
-  );
-  source = replaceOrFail(
-    source,
-    "if (!headless && $('#directive-dialog').open) $('#directive-dialog').close();",
-    "",
-    'directive dialog'
-  );
+
+
   source = replaceOrFail(
     source,
     "const gains = state.players.map(()=>({ matter: 0, energy: 0, biomass: 0, data: 0 }));",
@@ -47,8 +37,8 @@ function makeGame(seed, seatStrategies, fleetProduction) {
   );
   source = replaceOrFail(
     source,
-    "gains[playerId][planet.type] += 1;",
-    "gains[playerId][planet.type] += 1; fleetGains[playerId][planet.type] += 1;",
+    "if (RESOURCES.includes(planet.type)) gains[playerId][planet.type] += 1;",
+    "if (RESOURCES.includes(planet.type)) { gains[playerId][planet.type] += 1; fleetGains[playerId][planet.type] += 1; }",
     'fleet-income instrumentation'
   );
   if (!fleetProduction) {
@@ -56,7 +46,7 @@ function makeGame(seed, seatStrategies, fleetProduction) {
       source,
       `    Object.entries(state.planets).forEach(([coord,planet]) => {
       fleetControllersAt(coord).forEach(playerId => {
-        gains[playerId][planet.type] += 1; fleetGains[playerId][planet.type] += 1;
+        if (RESOURCES.includes(planet.type)) { gains[playerId][planet.type] += 1; fleetGains[playerId][planet.type] += 1; }
       });
     });`,
       '',
@@ -89,22 +79,6 @@ function makeGame(seed, seatStrategies, fleetProduction) {
     'conquest instrumentation'
   );
   source = source.replace(
-    /  function startPolicyVote\(\) \{[\s\S]*?\n  \}\n\n  function resolvePolicyVote/,
-    `  function startPolicyVote() {
-    state.phase = 'policy';
-    const choices = POLICY_PAIRS[state.policyCycle % POLICY_PAIRS.length];
-    state.pendingPolicyChoices = choices.map(policy => ({ ...policy }));
-    const player = state.players[0];
-    const preferredTrack = player.strategy === 'military' ? 'technology' : player.strategy === 'economy' ? 'economy' : 'expansion';
-    let choice = choices.findIndex(policy => policy.track === preferredTrack);
-    if (choice < 0) choice = player.id % 2;
-    const bid = Math.min(player.tracks[choices[choice].track], 1 + Math.floor(state.round / 6));
-    resolvePolicyVote(choice, bid);
-  }
-
-  function resolvePolicyVote`
-  );
-  source = source.replace(
     /  function render\(\) \{[\s\S]*?\n  \}\n\n  function switchTab/,
     '  function render() {}\n\n  function switchTab'
   );
@@ -127,14 +101,18 @@ function makeGame(seed, seatStrategies, fleetProduction) {
     getState: () => state,
     step: () => {
       if (state.winner !== null) return;
+      if (state.pendingCombat) { const seat=combatActor(); applyCombatAction(seat,chooseCombatAction(combatView(seat),combatActions(seat))); return; }
+      const overflow = overflowPlayer();
+      if (overflow >= 0) { trimResourcesToCapacity(overflow); return; }
       if (state.phase === 'operations') runAiOperation();
       else if (state.phase === 'buy') runAiBuy();
+      else throw new Error('Unexpected simulation phase: ' + state.phase);
     },
     prestige: id => calculatePrestige(id),
     colonies: id => colonyPlanets(id).length,
     controlled: id => controlledPlanets(id).length,
     fleetPower: id => strongestFleet(id),
-    stations: id => researchStationCount(id)
+    stations: id => excavatedRelicCount(id)
   };
   return globalThis.__gr;
 }`;
@@ -201,10 +179,9 @@ function runBatch(label, fleetProduction, gamesPerAssignment = 40) {
           controlled: game.controlled(seat),
           fleetPower: game.fleetPower(seat),
           stations: game.stations(seat),
-          relics: player.relics,
+
           starbases: Object.values(state.planets).filter(planet => planet.owner === seat && planet.upgrade === 'starbase').length,
-          awards: Object.values(state.awards).filter(owner => owner === seat).length,
-          influence: Object.values(player.tracks).reduce((sum, value) => sum + value, 0),
+          awards: 0, // Public awards are removed in 12.17.
           cardsPurchased: player.cardsPurchased || 0,
           fleetIncome: state.sim.fleetIncome[seat],
           conquests: state.sim.conquests[seat]
@@ -228,10 +205,8 @@ function runBatch(label, fleetProduction, gamesPerAssignment = 40) {
     meanControlledHexes: Number(mean(rows.map(row => row.controlled)).toFixed(2)),
     meanFleetPower: Number(mean(rows.map(row => row.fleetPower)).toFixed(2)),
     meanStations: Number(mean(rows.map(row => row.stations)).toFixed(2)),
-    meanRelics: Number(mean(rows.map(row => row.relics)).toFixed(2)),
     meanStarbases: Number(mean(rows.map(row => row.starbases)).toFixed(2)),
     meanAwards: Number(mean(rows.map(row => row.awards)).toFixed(2)),
-    meanInfluence: Number(mean(rows.map(row => row.influence)).toFixed(2)),
     meanCardsPurchased: Number(mean(rows.map(row => row.cardsPurchased)).toFixed(2)),
     meanFleetIncome: Number(mean(rows.map(row => row.fleetIncome)).toFixed(2)),
     meanConquests: Number(mean(rows.map(row => row.conquests)).toFixed(2))

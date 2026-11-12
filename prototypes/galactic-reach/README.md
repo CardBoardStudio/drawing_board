@@ -1,6 +1,6 @@
 # Galactic Reach prototype
 
-Galactic Reach is a self-contained browser prototype for a four-faction strategy game. One human player competes against three computer-controlled factions to explore a large hex map, gather resources, build fleets and colonies, improve a deck, shape policy, and reach 10 Prestige.
+Galactic Reach is a self-contained browser prototype for a four-faction strategy game. One human player competes against three computer-controlled factions to explore a large hex map, gather resources, build fleets and colonies, improve a deck, choose resource directives, and reach 20 Prestige.
 
 ## Play locally
 
@@ -26,8 +26,16 @@ node scripts/balance-simulations.cjs 1         # AI-vs-AI balance harness; raise
 
 ## Rules and scope
 
-The [canonical rulebook](rulebook.html) describes the current **Pass & Buy 7.12 experiment** game: four factions race to 20 Prestige through exploration, construction, deck building, trade, politics, and combat. Open `/galactic-reach/rulebook.html` on the deployed site, or `/rulebook.html` on the standalone local server above. It requires no account and is packaged with every PR preview.
+The [canonical rulebook](rulebook.html) describes the current **Tactical Combat 15.20 experiment** game: four factions race to 20 Prestige through exploration, construction, deck building, trade, excavation, and combat. Open `/galactic-reach/rulebook.html` on the deployed site, or `/rulebook.html` on the standalone local server above. It requires no account and is packaged with every PR preview.
 
 Read the [rules maintenance guide](../../docs/rules/README.md) before changing the game. Logic changes must include a rulebook update in the same PR. The [implementation notes](../../docs/rules/implementation-notes.md) record known printed-text discrepancies; the [tutorial brief](../../docs/rules/tutorial.md) describes the later interactive learning experience.
 
-Guest play saves in the browser. Account-backed tables pin their rules version, and the authoritative AI arena uses the same JavaScript engine. Existing 4.9, 5.10, and 6.11 tables retain their archived engines; this rulebook applies to 7.12 only. Buy starts when you pass, Convert all respects storage, and discarded starters can be trashed. Start a new game on the experiment’s preview or a separate localhost port.
+Guest play saves in the browser. Account-backed tables pin their rules version, and the authoritative AI arena uses the same JavaScript engine. Existing 4.9, 5.10, 6.11, 7.12, 8.13, 9.14, 10.15, 11.16, 12.17, 13.18, and 14.19 tables retain their archived engines; this rulebook applies to 15.20 only. Settlers move 1 hex, Fleets 2, and Explorers 3. Start with only one Colony and no units or Shipyard. Influence tracks and policies are removed; round-end resource directives are removed. Explorer commissions grant Excavate in discard. Pay 1 Matter, 1 Energy, and 2 Data at a relic to choose one of three visible cards for discard, gain 1 Prestige, remove the site, consume one Explorer, and trash Excavate. Twelve worlds and four non-producing gray moons hold twelve relics. All units stay visible under fog. Preview/local development controls are enabled with `?dev=1`. Start a new game on the experiment’s preview or a separate localhost port.
+
+The archived 11.16 Alien Relics iteration used Probe and Research Stations. Those rules remain available only to pinned historical games. Current games use Excavate and the public relic row. Permanent capacity purchases and playtest annotations remain.
+
+The 14.19 map uses radius 11 and balanced randomized home regions. Rich production and Terraforming Protocols are removed; Worldweaver Spore grants only immediate resources. Starter upgrades cost two of a selected resource type. Click Deck to browse grouped remaining cards without revealing or changing draw order.
+
+Every newly gained card goes to discard, including unit orders and relic rewards. Normal draws and returns of already-owned cards keep their printed behavior.
+
+The 15.20 experiment gives each side two Fire and two Screen tactics each battle, with hidden commitments and simultaneous reveal. Fleet attack 3/hull 7, Explorer 1/1, and Settler 1/2 (4 defending) are playtest values. Explorers may pay 1 Energy each to escape before tactics. Damage persists for up to three volleys. Defenders holding at the limit force retreat; trapped attacking survivors are destroyed. Pending choices and moving-order completion survive reload.

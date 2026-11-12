@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070b13">
-  <title>Galactic Reach · 13.18 · Excavation experiment</title>
+  <title>Galactic Reach · 14.19 · Fair Frontier experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=excavation-13-18">
+  <link rel="stylesheet" href="styles.css?v=fair-frontier-14-19">
   <link rel="stylesheet" href="playtest-notes.css?v=1">
 </head>
 <body>
@@ -15,8 +15,8 @@
   <main class="app-shell">
     <header class="topbar">
       <div class="brand-block">
-        <div class="eyebrow">EXCAVATION EXPERIMENT · 20 PRESTIGE</div>
-        <h1>Galactic Reach <small class="rules-badge">Rules 13.18 · experiment</small></h1>
+        <div class="eyebrow">FAIR FRONTIER EXPERIMENT · 20 PRESTIGE</div>
+        <h1>Galactic Reach <small class="rules-badge">Rules 14.19 · experiment</small></h1>
       </div>
       <div class="round-block" aria-live="polite">
         <div><span class="label">Round</span><strong id="round-value">1</strong></div>
@@ -31,16 +31,17 @@
       </div>
     </header>
     <details class="playtest-changes" id="playtest-changes" open>
-      <summary><span class="new-feature">New in this playtest</span> Excavate relics · choose your reward · explore moons</summary>
+      <summary><span class="new-feature">New in this playtest</span> Smaller, fairer maps · inspect your deck · new upgrade costs</summary>
       <ul>
-        <li><strong>Explorer + Excavate:</strong> commissioning an Explorer puts Excavate directly in hand. Play it at a relic, pay 1 Matter, 1 Energy, and 2 Data, choose a relic card, and gain 1 Prestige. Keep the Explorer; trash Excavate. Research Stations are removed. <a href="rulebook.html#excavation">Excavation rules</a></li>
-        <li><strong>Choose your relic:</strong> everyone sees a row of three cards. Refill the chosen slot immediately. <a href="rulebook.html#alien-relics">Relic cards</a></li>
-        <li><strong>A larger galaxy:</strong> eight inner worlds, four home worlds, and four gray moons, with twelve relics and empty space between terrain. Moons produce nothing. <a href="rulebook.html#setup">Map rules</a></li>
-        <li><strong>Units stay visible:</strong> see every faction’s ships in fog and empty space. Terrain stays hidden until discovered. <a href="rulebook.html#movement">Visibility rules</a></li>
-        <li><strong>Development view:</strong> on this preview, add <code>?dev=1</code> to show the Reveal entire map toggle. Switching it off restores fog. <a href="rulebook.html#development-reveal">Viewing aid</a></li>
+        <li><strong>See your deck:</strong> click Deck to browse remaining cards and quantities, with draw order hidden. <a href="rulebook.html#deck-inspection">Deck rules</a></li>
+        <li><strong>A smaller, balanced galaxy:</strong> radius 11, with eight randomized inner worlds and four moons spread across balanced home regions. Empty-space gaps remain. <a href="rulebook.html#setup">Map rules</a></li>
+        <li><strong>No Rich planets:</strong> stars and their production bonuses are removed. Terraforming Protocols leaves the market; Worldweaver Spore keeps its immediate resource gain. <a href="rulebook.html#cards">Card rules</a></li>
+        <li><strong>Upgrade with any resource type:</strong> pay two of one chosen type per starter upgrade. <a href="rulebook.html#buy">Upgrade rules</a></li>
+        <li><strong>New cards go to discard:</strong> purchases, unit-bundled orders, and relic rewards enter normal shuffle/draw circulation. <a href="rulebook.html#gaining-cards">Card-gain rules</a></li>
+        <li><strong>Excavation consumes the Explorer:</strong> a successful excavation removes one Explorer, trashes Excavate, and puts the chosen relic reward in discard. <a href="rulebook.html#excavation">Excavation rules</a></li>
       </ul>
       <button class="button button-ghost" id="open-relic-catalog" type="button">Preview all 12 alien relics</button>
-      <p>Rules 13.18 experiment · Start a new game. Earlier games keep their archived rules.</p>
+      <p>Rules 14.19 experiment · Start a new game. Earlier games keep their archived rules.</p>
     </details>
 
     <section class="score-ribbon" id="score-ribbon" aria-label="Player standings"></section>
@@ -121,7 +122,7 @@
             <div><h2 id="hand-title">Your hand</h2><p id="hand-help">Cards may be converted into resources at any time during your Operations turn, or used for their printed order.</p></div>
             <div class="hand-tools"><button class="button" id="convert-all-button" type="button" title="Converts cards from left to right and pauses for your choice if storage is exceeded. Includes Buy and reaction cards.">Convert all to resources</button><button class="button" id="skip-colony-build" hidden>Finish without building</button>
               <div class="pile-stats" aria-label="Your card piles">
-                <span>Deck <strong id="deck-count">0</strong></span>
+                <button id="deck-button" type="button" title="Inspect remaining cards without revealing draw order">Deck <strong id="deck-count">0</strong></button>
                 <span>Hand <strong id="hand-pile-count">0</strong></span>
                 <button id="discard-button" type="button" title="Browse your discard pile">Discard <strong id="discard-count">0</strong></button>
               </div>
@@ -163,11 +164,11 @@
 
   <dialog id="rules-dialog">
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
-    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 13.18 ↗</a></p>
+    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 14.19 ↗</a></p>
     <div class="rules-grid">
       <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Passing immediately starts your Buy turn. Finish Buy, then the remaining factions continue Operations.</p></section>
       <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → victory check → next round.</p></section>
-      <section><h3>Your deck</h3><p>Normally buy one card. Upgrade original starters for 1 Data each. Trash eligible discarded cards, including starters, for three of one chosen resource type each. There is no one-card trash limit. Cards go to discard; stored resources carry forward.</p></section>
+      <section><h3>Your deck</h3><p>Normally buy one card. Upgrade original starters for two of one chosen resource type each. Trash eligible discarded cards, including starters, for three of one chosen resource type each. There is no one-card trash limit. Cards go to discard; stored resources carry forward.</p></section>
       <section><h3>Your goal</h3><p>Reach 20 Prestige at the end of a round. Colonies, Shipyards, Excavated relics, and purchased cards all contribute. The rulebook includes costs, scoring, and current card clarifications.</p></section>
     </div>
   </dialog>
@@ -207,6 +208,14 @@
     <button class="button button-primary button-wide" id="message-continue" type="button">Continue</button>
   </dialog>
 
+  <dialog id="deck-dialog" class="pile-dialog" aria-labelledby="deck-dialog-title">
+    <div class="dialog-heading">
+      <div><div class="eyebrow">YOUR CARDS</div><h2 id="deck-dialog-title">Deck <span id="deck-dialog-count">0</span></h2><p>Remaining cards grouped by name and level. Draw order is hidden.</p></div>
+      <button class="icon-button" id="close-deck" type="button" aria-label="Close deck">×</button>
+    </div>
+    <div class="discard-scroll"><div class="card-row discard-row" id="deck-row"></div></div>
+  </dialog>
+
   <dialog id="discard-dialog" class="pile-dialog">
     <div class="dialog-heading">
       <div><div class="eyebrow">YOUR CARDS</div><h2>Discard pile <span id="discard-dialog-count">0</span></h2><p>Most recently discarded cards appear first.</p></div>
@@ -232,7 +241,7 @@
           <span><i class="resource-swatch energy"></i>Energy</span>
           <span><i class="resource-swatch biomass"></i>Biomass</span>
           <span><i class="resource-swatch data"></i>Data</span>
-          <span>★ Rich</span><span>◈ Located relic</span><span>● Gray moon · no production</span><span>Fog hides unvisited worlds</span>
+          <span>◈ Located relic</span><span>● Gray moon · no production</span><span>Fog hides unvisited worlds</span>
         </div>
         <div class="map-legend symbol-legend" id="symbol-legend" aria-label="Ship and building symbol legend"></div>
   </dialog>
@@ -242,9 +251,9 @@
     <div class="relic-catalog-grid" id="relic-catalog-grid"></div>
   </dialog>
 
-  <script src="table.js?v=excavation-13-18"></script>
-  <script src="replay.js?v=excavation-13-18"></script>
-  <script src="app.js?v=excavation-13-18"></script>
-  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="13.18"></script>
+  <script src="table.js?v=fair-frontier-14-19"></script>
+  <script src="replay.js?v=fair-frontier-14-19"></script>
+  <script src="app.js?v=fair-frontier-14-19"></script>
+  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="14.19"></script>
 </body>
 </html>

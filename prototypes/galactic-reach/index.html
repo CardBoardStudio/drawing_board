@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070b13">
-  <title>Galactic Reach · 20.25 · Open Worlds experiment</title>
+  <title>Galactic Reach · 21.26 · Scoring Bots experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=open-worlds-20-25-comms">
+  <link rel="stylesheet" href="styles.css?v=scoring-bots-21-26">
   <link rel="stylesheet" href="playtest-notes.css?v=1">
 </head>
 <body>
@@ -15,8 +15,8 @@
   <main class="app-shell">
     <header class="topbar">
       <div class="brand-block">
-        <div class="eyebrow">OPEN WORLDS EXPERIMENT · 10 PRESTIGE</div>
-        <h1>Galactic Reach <small class="rules-badge">Rules 20.25 · experiment</small></h1>
+        <div class="eyebrow">SCORING BOTS EXPERIMENT · 10 PRESTIGE</div>
+        <h1>Galactic Reach <small class="rules-badge">Rules 21.26 · experiment</small></h1>
       </div>
       <div class="round-block" aria-live="polite">
         <div><span class="label">Round</span><strong id="round-value">1</strong></div>
@@ -31,15 +31,15 @@
       </div>
     </header>
     <details class="playtest-changes" id="playtest-changes" open>
-      <summary><span class="new-feature">New in this playtest</span> Public worlds and randomized moons</summary>
+      <summary><span class="new-feature">New in this playtest</span> Rivals that pursue Prestige</summary>
       <ul>
-        <li><strong>All worlds are public:</strong> see every planet’s resources, ownership, and buildings from setup. Relics and unvisited moons remain hidden. <a href="rulebook.html#movement">Visibility rules</a>.</li>
-        <li><strong>Moons move each new game:</strong> four randomized positions keep comparable travel from every home and wide spacing across the map. The approved world layout stays in place. <a href="rulebook.html#setup">Map setup</a>.</li>
-        <li>Surveying a world with any ship reveals its relic. Voidglass Astrolabe surveys two worlds; Omniscient Chorus privately locates relic signals. <a href="rulebook.html#alien-relics">Relic cards</a>.</li>
-        <li>The Comms Feed now sits below the Victory points box. <a href="rulebook.html#game-report">Game reports</a> remain available there, including in ongoing 20.25 games.</li>
+        <li><strong>Points before infrastructure:</strong> rivals claim Colonies and excavate before discretionary construction. <a href="rulebook.html#computer-rivals">Computer rivals</a>.</li>
+        <li><strong>Purposeful movement:</strong> Settlers seek neutral worlds or captures, Explorers hold relic sites, and fleets favor useful fights. They reinforce against visible threats. <a href="rulebook.html#movement">Movement</a> · <a href="rulebook.html#combat">Combat</a>.</li>
+        <li><strong>Useful decks and spending:</strong> rivals preserve needed orders, buy selectively, and keep resources for scoring. Costs, map, and points stay the same. <a href="rulebook.html#buy">Deck building</a> · <a href="rulebook.html#victory">Scoring</a>.</li>
+        <li>Public planets and randomized hidden moons remain. The Comms Feed stays below Victory points.</li>
       </ul>
       <button class="button button-ghost" id="open-relic-catalog" type="button">Preview all 12 alien relics</button>
-      <p>Rules 20.25 experiment · Start a new game. Earlier games keep their archived rules.</p>
+      <p>Rules 21.26 experiment · Start a new game. Earlier games keep their archived rules.</p>
     </details>
 
     <section class="score-ribbon" id="score-ribbon" aria-label="Player standings"></section>
@@ -185,7 +185,7 @@
 
   <dialog id="rules-dialog">
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
-    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 20.25 ↗</a></p>
+    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 21.26 ↗</a></p>
     <div class="rules-grid">
       <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Passing immediately starts your Buy turn. Finish Buy, then the remaining factions continue Operations.</p></section>
       <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → victory check → next round.</p></section>
@@ -281,9 +281,9 @@
     <div class="relic-catalog-grid" id="relic-catalog-grid"></div>
   </dialog>
 
-  <script src="table.js?v=open-worlds-20-25"></script>
-  <script src="replay.js?v=open-worlds-20-25"></script>
-  <script src="app.js?v=open-worlds-20-25"></script>
-  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="20.25"></script>
+  <script src="table.js?v=scoring-bots-21-26"></script>
+  <script src="replay.js?v=scoring-bots-21-26"></script>
+  <script src="app.js?v=scoring-bots-21-26"></script>
+  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="21.26"></script>
 </body>
 </html>

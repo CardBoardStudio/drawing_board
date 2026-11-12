@@ -8,7 +8,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/20.25";
+pub const RULES: &str = "galactic-reach/21.26";
 mod legacy_v1;
 mod legacy_v10;
 mod legacy_v11;
@@ -16,6 +16,7 @@ mod legacy_v12;
 mod legacy_v13;
 mod legacy_v14;
 mod legacy_v15;
+mod legacy_v16;
 mod legacy_v2;
 mod legacy_v3;
 mod legacy_v4;
@@ -77,6 +78,7 @@ impl GalacticReach {
             "galactic-reach/17.22" => "galactic-reach/17.22",
             "galactic-reach/18.23" => "galactic-reach/18.23",
             "galactic-reach/19.24" => "galactic-reach/19.24",
+            "galactic-reach/20.25" => "galactic-reach/20.25",
             _ => return Err("Unsupported rules version.".into()),
         };
         Self::initialize(seed, MATCH_TIMEOUT, rules)
@@ -101,6 +103,7 @@ impl GalacticReach {
                     "galactic-reach/17.22" => include_str!("../rules/v17-adapter.js"),
                     "galactic-reach/18.23" => include_str!("../rules/v18-adapter.js"),
                     "galactic-reach/19.24" => include_str!("../rules/v19-adapter.js"),
+                    "galactic-reach/20.25" => include_str!("../rules/v20-adapter.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-adapter.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-adapter.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-adapter.js"),
@@ -121,6 +124,7 @@ impl GalacticReach {
                     "galactic-reach/17.22" => include_str!("../rules/v17-app.js"),
                     "galactic-reach/18.23" => include_str!("../rules/v18-app.js"),
                     "galactic-reach/19.24" => include_str!("../rules/v19-app.js"),
+                    "galactic-reach/20.25" => include_str!("../rules/v20-app.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-app.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-app.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-app.js"),
@@ -248,18 +252,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/16",
-            Self::Economy => "gr-economy/16",
-            Self::Expansion => "gr-expansion/16",
-            Self::Wanderer => "gr-wanderer/16",
+            Self::Military => "gr-military/17",
+            Self::Economy => "gr-economy/17",
+            Self::Expansion => "gr-expansion/17",
+            Self::Wanderer => "gr-wanderer/17",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/16" => Some(Self::Military),
-            "gr-economy/16" => Some(Self::Economy),
-            "gr-expansion/16" => Some(Self::Expansion),
-            "gr-wanderer/16" => Some(Self::Wanderer),
+            "gr-military/17" => Some(Self::Military),
+            "gr-economy/17" => Some(Self::Economy),
+            "gr-expansion/17" => Some(Self::Expansion),
+            "gr-wanderer/17" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -279,6 +283,110 @@ fn distance(a: &str, b: &str) -> f64 {
         return 100.0;
     }
     ((a[0] - b[0]).abs() + (a[1] - b[1]).abs() + (a[0] + a[1] - b[0] - b[1]).abs()) / 2.0
+}
+fn bot_units(view: &Value, seat: usize, kind: &str) -> f64 {
+    view["fleets"]
+        .as_object()
+        .into_iter()
+        .flat_map(|m| m.values())
+        .map(|g| number(&g[seat.to_string()][kind]))
+        .sum()
+}
+fn bot_order(key: &str) -> &str {
+    match key {
+        "move"
+        | "surveyDrones"
+        | "pathfinderNetwork"
+        | "fleetOverdrive"
+        | "coordinatedAssault"
+        | "phaseShearDrive"
+        | "obeliskOfAnnihilation" => "move",
+        "construct" | "modularConstruction" | "orbitalShipyards" => "construct",
+        "colonize" | "dropColonyModules" | "genesisSeedVault" => "colonize",
+        "excavate" => "excavate",
+        _ => "other",
+    }
+}
+fn bot_cards(me: &Value, order: &str) -> f64 {
+    ["hand", "discard", "deckContents"]
+        .iter()
+        .flat_map(|k| me[k].as_array().into_iter().flatten())
+        .filter(|c| bot_order(c["key"].as_str().unwrap_or("")) == order)
+        .map(|c| c["count"].as_f64().unwrap_or(1.0))
+        .sum()
+}
+fn bot_yards(view: &Value, seat: usize) -> usize {
+    view["planets"]
+        .as_object()
+        .into_iter()
+        .flat_map(|m| m.values())
+        .filter(|p| {
+            p["owner"] == json!(seat) && p["upgrade"] == "starbase" && p["occupiedBy"].is_null()
+        })
+        .count()
+}
+fn bot_cost(view: &Value, seat: usize) -> Value {
+    let me = &view["players"][seat];
+    let hand = me["hand"].as_array().map(Vec::as_slice).unwrap_or(&[]);
+    for (coord, p) in view["planets"].as_object().into_iter().flatten() {
+        let f = &view["fleets"][coord][seat.to_string()];
+        let center = p["cluster"]
+            .as_u64()
+            .is_some_and(|id| view["clusters"][id as usize]["center"] == *coord);
+        if center
+            && number(&f["settler"]) > 0.0
+            && (p["owner"].is_null() || p["owner"] != json!(seat) && p["occupiedBy"] == json!(seat))
+            && hand
+                .iter()
+                .any(|c| bot_order(c["key"].as_str().unwrap_or("")) == "colonize")
+        {
+            let discount = hand.iter().any(|c| c["key"] == "dropColonyModules");
+            return json!({"biomass": if discount||!p["owner"].is_null(){1}else{2}});
+        }
+        if number(&f["explorer"]) > 0.0
+            && p["special"] == "relic"
+            && hand.iter().any(|c| c["key"] == "excavate")
+        {
+            return json!({"matter":1,"energy":1,"data":2});
+        }
+    }
+    if bot_yards(view, seat) == 0 {
+        json!({"matter":2,"energy":1,"biomass":1,"data":1})
+    } else {
+        json!({"matter":2,"energy":2,"biomass":2,"data": if view["relicRow"].as_array().is_some_and(|r|!r.is_empty()){2}else{1}})
+    }
+}
+fn bot_safe_fight(view: &Value, seat: usize, moving: &Value, target: &str) -> bool {
+    let opponent = view["fleets"][target].as_object().and_then(|g| {
+        g.iter().find(|(id, f)| {
+            *id != &seat.to_string()
+                && ["settler", "explorer", "fleet"]
+                    .iter()
+                    .any(|k| number(&f[k]) > 0.0)
+        })
+    });
+    let empty = json!({});
+    let enemy = opponent.map(|(_, f)| f).unwrap_or(&empty);
+    let p = &view["planets"][target];
+    let yard =
+        p["upgrade"] == "starbase" && p["owner"] != json!(seat) && p["occupiedBy"] != json!(seat);
+    let attack = number(&moving["settler"]) + 3.0 * number(&moving["fleet"]);
+    let hull = 2.0 * number(&moving["settler"]) + 7.0 * number(&moving["fleet"]);
+    let enemy_attack = number(&enemy["settler"])
+        + number(&enemy["explorer"])
+        + 3.0 * number(&enemy["fleet"])
+        + if yard { 3.0 } else { 0.0 };
+    let enemy_hull = 4.0 * number(&enemy["settler"])
+        + number(&enemy["explorer"])
+        + 7.0 * number(&enemy["fleet"])
+        + if yard { 3.0 } else { 0.0 };
+    if enemy_hull == 0.0 {
+        return true;
+    }
+    if number(&moving["settler"]) > 0.0 {
+        return enemy_attack <= 1.0 && attack - 2.0 >= enemy_hull;
+    }
+    attack * 3.0 - 4.0 >= enemy_hull && hull > enemy_attack * 3.0 + 2.0
 }
 impl BuiltinAgent {
     pub fn new(strategy: Strategy, seed: [u8; 32]) -> Self {
@@ -412,120 +520,229 @@ impl BuiltinAgent {
                     -20.0
                 }
             }
-            "colonize" => 100.0,
+            "colonize" => 160.0,
             "build" | "colony_build" => match action["kind"].as_str().unwrap_or("") {
                 "starbase" => {
-                    if military {
-                        72.0
+                    if bot_yards(view, seat) == 0 {
+                        110.0
                     } else {
-                        64.0
+                        -5.0
                     }
                 }
                 "harvester" => {
-                    if economy {
-                        80.0
-                    } else {
-                        65.0
-                    }
-                }
-                "settler" => {
-                    let settlers: f64 = view["fleets"]
+                    let resource = view["planets"][action["coord"].as_str().unwrap()]["type"]
+                        .as_str()
+                        .unwrap_or("");
+                    let income: f64 = view["planets"]
                         .as_object()
                         .unwrap()
                         .values()
-                        .map(|g| number(&g[seat.to_string()]["settler"]))
+                        .filter(|p| {
+                            p["owner"] == json!(seat)
+                                && p["type"] == resource
+                                && p["occupiedBy"].is_null()
+                        })
+                        .map(|p| {
+                            1.0 + if p["upgrade"] == "harvester" {
+                                number(&p["upgradeLevel"])
+                            } else {
+                                0.0
+                            }
+                        })
                         .sum();
-                    if settlers < 3.0 { 82.0 } else { 20.0 }
+                    if income < 2.0 {
+                        if economy { 79.0 } else { 68.0 }
+                    } else {
+                        4.0
+                    }
                 }
-                "explorer" => 30.0,
+                "settler" => {
+                    if bot_units(view, seat, "settler")
+                        < if matches!(self.strategy, Strategy::Expansion) {
+                            2.0
+                        } else {
+                            1.0
+                        }
+                    {
+                        86.0
+                    } else {
+                        5.0
+                    }
+                }
+                "explorer" => {
+                    if bot_units(view, seat, "explorer") < 1.0
+                        && view["relicRow"].as_array().is_some_and(|r| !r.is_empty())
+                    {
+                        83.0
+                    } else {
+                        -5.0
+                    }
+                }
                 _ => {
-                    if military {
+                    if military && bot_units(view, seat, "fleet") < 3.0 {
                         78.0
                     } else {
-                        35.0
+                        8.0
                     }
                 }
             },
             "resource" => {
+                let cost = bot_cost(view, seat);
                 let gain = action["gain"].as_object().unwrap();
                 let need: f64 = gain
                     .iter()
-                    .map(|(k, v)| number(v) * (4.0 - number(&me["resources"][k])).max(0.0))
+                    .map(|(k, v)| {
+                        number(v) * (number(&cost[k]) - number(&me["resources"][k])).max(0.0)
+                    })
                     .sum();
-                if need > 0.0 { 40.0 + need } else { -5.0 }
+                let deficit = cost
+                    .as_object()
+                    .unwrap()
+                    .iter()
+                    .any(|(k, v)| number(v) > number(&me["resources"][k]));
+                let bankable: f64 = gain
+                    .iter()
+                    .filter(|(k, _)| number(&me["resources"][*k]) < number(&cost[*k]) + 4.0)
+                    .map(|(_, v)| number(v))
+                    .sum();
+                let key = action["key"].as_str().unwrap_or("");
+                let last_build = bot_yards(view, seat) == 0
+                    && bot_order(key) == "construct"
+                    && me["hand"]
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .filter(|c| bot_order(c["key"].as_str().unwrap_or("")) == "construct")
+                        .count()
+                        == 1;
+                if last_build {
+                    -20.0
+                } else if need > 0.0 {
+                    45.0 + need * 4.0
+                } else if deficit && bankable > 0.0 {
+                    30.0 + bankable
+                } else {
+                    -5.0
+                }
             }
             "move" => {
                 let from = action["source"].as_str().unwrap();
                 let to = action["destination"].as_str().unwrap();
                 let fleet = &view["fleets"][from][seat.to_string()];
                 let explorer = action["moveGroup"] == "explorer";
+                let settlers = number(&fleet["settler"]);
+                let here = &view["planets"][from];
+                if explorer
+                    && (here["special"] == "relic"
+                        || here["relicSignal"] == true
+                        || view["relicRow"].as_array().is_none_or(|r| r.is_empty()))
+                {
+                    return -10.0;
+                }
+                let here_center = here["cluster"]
+                    .as_u64()
+                    .is_some_and(|id| view["clusters"][id as usize]["center"] == from);
+                if !explorer
+                    && settlers > 0.0
+                    && here_center
+                    && (here["owner"].is_null()
+                        || here["owner"] != json!(seat) && here["occupiedBy"] == json!(seat))
+                {
+                    return -10.0;
+                }
                 let mut best = -10.0_f64;
                 for (coord, p) in view["planets"].as_object().unwrap() {
-                    let center = view["clusters"][p["cluster"].as_u64().unwrap() as usize]["center"]
-                        == *coord;
+                    let center = p["cluster"]
+                        .as_u64()
+                        .is_some_and(|id| view["clusters"][id as usize]["center"] == *coord);
+                    let known_relic = p["special"] == "relic" || p["relicSignal"] == true;
                     let goal = if explorer {
-                        p["relicSignal"] == true
-                            || p["special"] == "relic"
-                            || (center
+                        known_relic
+                            || center
                                 && view["clusters"][p["cluster"].as_u64().unwrap() as usize]["surveyed"]
-                                    == false)
-                    } else if military && number(&fleet["fleet"]) > 1.0 {
-                        !p["owner"].is_null() && p["owner"] != json!(seat)
+                                    == false
                     } else {
-                        center
+                        settlers > 0.0
+                            && center
                             && p["type"] != "moon"
-                            && p["owner"].is_null()
-                            && number(&fleet["settler"]) > 0.0
+                            && p["owner"] != json!(seat)
+                            && bot_safe_fight(view, seat, fleet, coord)
                     };
-                    if !goal {
-                        continue;
+                    if goal && distance(from, coord) > distance(to, coord) {
+                        best = best.max(
+                            (if explorer {
+                                if known_relic { 90.0 } else { 70.0 }
+                            } else {
+                                92.0
+                            }) + distance(from, coord)
+                                - distance(to, coord)
+                                - distance(to, coord) * 0.3,
+                        );
                     }
-                    let before = distance(from, coord);
-                    let after = distance(to, coord);
-                    if before > after {
-                        best = best.max(60.0 + (before - after) * 2.0 - after * 0.2);
+                }
+                if !explorer && settlers == 0.0 {
+                    for (coord, group) in view["fleets"].as_object().unwrap() {
+                        let enemy = group
+                            .as_object()
+                            .unwrap()
+                            .iter()
+                            .find(|(id, _)| *id != &seat.to_string());
+                        if let Some((owner, other)) = enemy {
+                            let escape = number(&other["explorer"]) > 0.0
+                                && number(
+                                    &view["players"][owner.parse::<usize>().unwrap()]["resources"]
+                                        ["energy"],
+                                ) >= number(&other["explorer"]);
+                            if !escape
+                                && bot_safe_fight(view, seat, fleet, coord)
+                                && distance(from, coord) > distance(to, coord)
+                            {
+                                best = best.max(
+                                    (if military { 94.0 } else { 80.0 })
+                                        - distance(to, coord) * 0.3,
+                                );
+                            }
+                        }
                     }
                 }
                 best
             }
-            "excavate" => 95.0,
+            "excavate" => 160.0,
             "special" => 50.0,
 
             "buy_effect" => 100.0,
             "upgrade" => {
-                if number(&me["resources"][action["resource"].as_str().unwrap()]) >= 2.0 {
-                    95.0
+                let cost = bot_cost(view, seat);
+                let r = action["resource"].as_str().unwrap();
+                if bot_yards(view, seat) > 0
+                    && number(&me["resources"][r]) >= number(&cost[r]) + 2.0
+                {
+                    65.0
                 } else {
-                    5.0
+                    -5.0
                 }
             }
             "buy" => {
-                let favorites = if military {
-                    [
-                        "coordinatedAssault",
-                        "targetingAlgorithms",
-                        "orbitalShipyards",
-                        "construct",
-                    ]
-                } else if economy {
-                    [
-                        "industrialSurge",
-                        "modularConstruction",
-                        "tradeConsortium",
-                        "construct",
-                    ]
+                let key = action["key"].as_str().unwrap_or("");
+                let order = bot_order(key);
+                let size = number(&me["handCount"])
+                    + number(&me["deckCount"])
+                    + me["discard"].as_array().map_or(0, Vec::len) as f64;
+                if bot_yards(view, seat) == 0 {
+                    -10.0
+                } else if order == "move" && bot_cards(me, "move") < 5.0 {
+                    if key == "fleetOverdrive" { 94.0 } else { 88.0 }
+                } else if key == "dropColonyModules"
+                    && bot_units(view, seat, "settler") > 0.0
+                    && size < 16.0
+                {
+                    90.0
+                } else if order == "construct" && bot_cards(me, "construct") < 2.0 {
+                    80.0
+                } else if size < 14.0 && ["tradeConsortium", "tacticalForesight"].contains(&key) {
+                    75.0
                 } else {
-                    [
-                        "dropColonyModules",
-                        "surveyDrones",
-                        "pathfinderNetwork",
-                        "move",
-                    ]
-                };
-                if favorites.contains(&action["key"].as_str().unwrap_or("")) {
-                    85.0
-                } else {
-                    70.0
+                    -10.0
                 }
             }
             "increase_storage" => {
@@ -535,8 +752,14 @@ impl BuiltinAgent {
                     .values()
                     .map(number)
                     .sum();
-                if number(&me["capacity"]) - used <= 2.0 {
-                    90.0
+                let reserve = bot_cost(view, seat);
+                if number(&me["capacity"]) < 30.0
+                    && number(&me["capacity"]) - used <= 2.0
+                    && [("matter", 2.0), ("energy", 1.0), ("data", 1.0)]
+                        .iter()
+                        .all(|(r, n)| number(&me["resources"][r]) >= number(&reserve[r]) + n)
+                {
+                    55.0
                 } else {
                     -20.0
                 }
@@ -544,24 +767,14 @@ impl BuiltinAgent {
             "bank_trade" => {
                 let give = action["giveType"].as_str().unwrap();
                 let get = action["getType"].as_str().unwrap();
-                if get == "data"
-                    && number(&me["resources"][give]) >= 4.0
-                    && number(&me["resources"]["data"]) < 2.0
-                {
-                    // The Colony-only deck has no Data conversion before its first Explorer.
-                    if view["phase"] == "buy" { 35.0 } else { 75.0 }
-                } else if number(&me["resources"][give]) >= 5.0
-                    && number(&me["resources"][get]) < 2.0
-                {
-                    // Keep one of the given resource; favor scarce Data during Buy.
-                    if view["phase"] == "buy" && get == "data" {
-                        35.0
-                    } else {
-                        12.0
-                    }
-                } else {
-                    -20.0
-                }
+                let cost = bot_cost(view, seat);
+                let bootstrap = get == "data"
+                    && bot_yards(view, seat) == 0
+                    && number(&me["resources"]["data"]) < 1.0
+                    && number(&me["resources"][give]) >= 4.0;
+                let funded = number(&me["resources"][get]) < number(&cost[get])
+                    && number(&me["resources"][give]) >= number(&cost[give]) + 4.0;
+                if bootstrap || funded { 100.0 } else { -20.0 }
             }
             // Voluntary discards are exposed for players; policies never discard blindly.
             "consortium_gain" => {
@@ -580,9 +793,36 @@ impl BuiltinAgent {
             "cancel_consortium" | "discard_resources" => -50.0,
             "discard_overflow" => {
                 let resource = action["resource"].as_str().unwrap();
-                number(&me["resources"][resource]) + number(&action["amount"]) * 0.01
+                let reserve = bot_cost(view, seat);
+                number(&me["resources"][resource]) - number(&reserve[resource])
+                    + number(&action["amount"]) * 0.01
             }
-            "decommission" => -10.0,
+            "decommission" => {
+                let card = me["discard"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .find(|c| c["id"] == action["card"])
+                    .unwrap();
+                let order = bot_order(card["key"].as_str().unwrap_or(""));
+                let redundant = match order {
+                    "construct" => bot_cards(me, order) > 2.0,
+                    "move" => bot_cards(me, order) > 6.0,
+                    "colonize" => bot_cards(me, order) > 3.0,
+                    "excavate" => view["relicRow"].as_array().is_none_or(|r| r.is_empty()),
+                    _ => false,
+                };
+                let r = action["resource"].as_str().unwrap();
+                let reserve = bot_cost(view, seat);
+                if redundant
+                    && card["upgraded"] != true
+                    && number(&me["resources"][r]) >= number(&reserve[r]) + 3.0
+                {
+                    30.0
+                } else {
+                    -10.0
+                }
+            }
             _ => 0.0,
         }
     }
@@ -663,6 +903,9 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
     if let Some(strategy) = legacy_v15::Strategy::parse(version) {
         return Ok(Box::new(legacy_v15::BuiltinAgent::new(strategy, seed)));
     }
+    if let Some(strategy) = legacy_v16::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v16::BuiltinAgent::new(strategy, seed)));
+    }
     Err("Unsupported Galactic Reach policy version.".into())
 }
 
@@ -670,6 +913,53 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
 mod tests {
     use super::*;
     use game_core::run_match;
+    #[test]
+    fn scoring_policy_prefers_points_and_settler_colony_goals() {
+        let agent = BuiltinAgent::new(Strategy::Military, [9; 32]);
+        let mut view = json!({"seat":0,"phase":"operations","relicRow":[{"key":"voidglassAstrolabe"}],
+            "players":[{"resources":{"matter":5,"energy":5,"biomass":5,"data":5},"hand":[{"id":"m","key":"move"},{"id":"c","key":"construct"}],"discard":[],"deckContents":[],"handCount":2,"deckCount":0,"capacity":30},{"resources":{}},{"resources":{}},{"resources":{}}],
+            "planets":{"0,0":{"owner":0,"type":"matter","upgrade":"starbase","occupiedBy":null,"cluster":0},"3,0":{"owner":null,"type":"biomass","upgrade":null,"occupiedBy":null,"cluster":1},"-1,0":{"owner":1,"type":"energy","upgrade":"harvester","occupiedBy":null,"cluster":2}},
+            "clusters":[{"center":"0,0","surveyed":true},{"center":"3,0","surveyed":false},{"center":"-6,0","surveyed":true}],"fleets":{"0,0":{"0":{"settler":1,"fleet":0,"explorer":0}}}});
+        let progress =
+            json!({"type":"move","source":"0,0","destination":"1,0","moveGroup":"ships"});
+        let occupation =
+            json!({"type":"move","source":"0,0","destination":"-1,0","moveGroup":"ships"});
+        assert!(
+            agent.score(&view, &progress) > agent.score(&view, &occupation),
+            "Military Settlers pursue neutral Colonies instead of unrelated resource occupations"
+        );
+        assert!(
+            agent.score(&view, &json!({"type":"colonize"}))
+                > agent.score(
+                    &view,
+                    &json!({"type":"build","coord":"0,0","kind":"harvester"})
+                )
+        );
+        assert!(
+            agent.score(&view, &json!({"type":"excavate"}))
+                > agent.score(
+                    &view,
+                    &json!({"type":"build","coord":"0,0","kind":"starbase"})
+                )
+        );
+        let score = agent.score(&view, &progress);
+        view["players"][1]["hand"] = json!([{"key":"warSongOfHollowStars"}]);
+        assert_eq!(
+            agent.score(&view, &progress),
+            score,
+            "Hidden enemy cards cannot influence planning"
+        );
+        view["relicRow"] = json!([]);
+        assert!(agent.score(&view, &json!({"type":"build","kind":"explorer"})) < 0.0);
+        view["fleets"]["0,0"]["0"] = json!({"settler":0,"fleet":0,"explorer":1});
+        view["planets"]["0,0"]["special"] = json!("relic");
+        assert!(
+            agent.score(
+                &view,
+                &json!({"type":"move","source":"0,0","destination":"1,0","moveGroup":"explorer"})
+            ) < 0.0
+        );
+    }
     #[test]
     fn combat_policy_uses_public_damage_and_used_tactics() {
         let agent = BuiltinAgent::new(Strategy::Military, [7; 32]);
@@ -734,6 +1024,7 @@ mod tests {
             "galactic-reach/17.22",
             "galactic-reach/18.23",
             "galactic-reach/19.24",
+            "galactic-reach/20.25",
         ] {
             let game = GalacticReach::with_rules([19; 32], rules).unwrap();
             assert_eq!(game.rules_version(), rules);
@@ -757,6 +1048,7 @@ mod tests {
                             | "galactic-reach/17.22"
                             | "galactic-reach/18.23"
                             | "galactic-reach/19.24"
+                            | "galactic-reach/20.25"
                     ) {
                         0
                     } else {
@@ -783,6 +1075,7 @@ mod tests {
             "gr-military/14",
             "gr-military/15",
             "gr-military/16",
+            "gr-military/17",
         ] {
             assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
         }

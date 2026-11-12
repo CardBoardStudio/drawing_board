@@ -15,8 +15,8 @@ function createGalacticReach(options = {}) {
   }
   const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
-  const SAVE_FORMAT_VERSION = 20;
-  const RULES_REVISION = 25;
+  const SAVE_FORMAT_VERSION = 21;
+  const RULES_REVISION = 26;
   const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
   const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${SAVE_FORMAT_VERSION}`;
   const HISTORY_KEY = `galactic-reach-history-v${SAVE_FORMAT_VERSION}`;
@@ -823,13 +823,9 @@ function createGalacticReach(options = {}) {
 
   function trimResourcesToCapacity(playerId) {
     const player = state.players[playerId];
-    let excess = Math.max(0,totalResources(player) - playerCapacity(playerId));
-    const removed = excess;
-    [...RESOURCES].sort((a,b)=>player.resources[b]-player.resources[a]).forEach(resource=>{
-      const amount = Math.min(excess,player.resources[resource]);
-      player.resources[resource] -= amount;
-      excess -= amount;
-    });
+    const amounts=aiOverflowAmounts(player.resources,playerCapacity(playerId),aiReserves(playerId));
+    const removed=RESOURCES.reduce((n,r)=>n+amounts[r],0);
+    RESOURCES.forEach(r=>player.resources[r]-=amounts[r]);
     return removed;
   }
 
@@ -2010,20 +2006,143 @@ function createGalacticReach(options = {}) {
     return plan;
   }
 
-  function aiUseResources(player, exceptCardId, desiredCost = {}) {
-    const cards = [...player.hand].filter(card => card.id !== exceptCardId && ALL_CARDS[card.key].resource);
-    while (!canAfford(player,desiredCost) && cards.length) {
-      const missing = [...RESOURCES].sort((a,b) => ((desiredCost[b]||0)-player.resources[b])-((desiredCost[a]||0)-player.resources[a]))[0];
-      let index = cards.findIndex(card => (ALL_CARDS[card.key].resource[missing]||0) > 0);
-      if (index < 0) index = 0;
-      const [card] = cards.splice(index,1);
-      const result = addResources(player,cardResources(card));
-      if (!result.totalAdded) break;
-      removeHandCard(player,card.id);
-      logEvent(`${player.name} converted ${ALL_CARDS[card.key].name} into resources.`);
+  function aiCards(playerId) {
+    const p=state.players[playerId];
+    // Order inside an owned pile never participates in a policy decision.
+    return [...p.hand,...p.deck,...p.discard];
+  }
+
+  function aiCompareCoords(a, b, playerId) {
+    const [hq,hr]=parseCoord(aiHomeCluster(playerId)?.center||'-9,0');
+    const orient=key=>{const [q,r]=parseCoord(key);return hq<0?[q,r]:hr<0?[r,q]:hq>0?[-q,-r]:[-r,-q];};
+    const [aq,ar]=orient(a),[bq,br]=orient(b);return aq-bq||ar-br;
+  }
+
+  function aiOrderCount(playerId, order) {
+    return aiCards(playerId).filter(c=>ALL_CARDS[c.key].order===order).length;
+  }
+
+  function aiRelicsRemain() {
+    return state.relicRow.length>0;
+  }
+
+  function aiReserves(playerId) {
+    const yards=controlledPlanets(playerId).some(([,p])=>p.upgrade==='starbase'&&p.occupiedBy===null);
+    if (!yards) return {matter:6,energy:2,biomass:1,data:1};
+    return {matter:2,energy:2,biomass:countPlacedShips(playerId,'settler')?2:1,data:aiRelicsRemain()?2:1};
+  }
+
+  function aiOverflowAmounts(resources, capacity, reserve) {
+    const copy={...resources},amounts=Object.fromEntries(RESOURCES.map(r=>[r,0]));
+    let excess=Math.max(0,RESOURCES.reduce((n,r)=>n+copy[r],0)-capacity);
+    for (const r of [...RESOURCES].sort((a,b)=>(copy[b]-(reserve[b]||0))-(copy[a]-(reserve[a]||0)))) {
+      const n=Math.min(excess,Math.max(0,copy[r]-(reserve[r]||0)));copy[r]-=n;amounts[r]+=n;excess-=n;
     }
-    const plan = bankPlanForCost(player,desiredCost);
-    if (plan) for (const trade of plan) bankTrade(player.id,trade.giveType,trade.getType);
+    for (const r of [...RESOURCES].sort((a,b)=>copy[b]-copy[a])) {
+      const n=Math.min(excess,copy[r]);copy[r]-=n;amounts[r]+=n;excess-=n;
+    }
+    return amounts;
+  }
+
+  function aiFundingPlan(player, exceptCardId, desiredCost) {
+    const funds={...player.resources},cards=[],available=player.hand.filter(c=>c.id!==exceptCardId);
+    for (;;) {
+      const bank=bankPlanForCost({resources:funds},desiredCost);
+      if (bank) return {cards,bank};
+      if (!available.length) return null;
+      const value=card=>{
+        const def=ALL_CARDS[card.key],gain=conversionGain(card);
+        let retention=0;
+        if (def.order==='move' && available.filter(c=>ALL_CARDS[c.key].order==='move').length===1 && Object.values(state.fleets).some(g=>fleetCount(g[player.id]))) retention=3;
+        if (def.order==='colonize' && findColonizeTarget(player.id)) retention=6;
+        if (def.order==='excavate' && Object.entries(state.fleets).some(([coord,g])=>g[player.id]?.explorer && state.planets[coord]?.special==='relic' && relicKnown(state.clusters[state.planets[coord].cluster],player.id))) retention=6;
+        return RESOURCES.reduce((n,r)=>n+Math.min(gain[r]||0,Math.max(0,(desiredCost[r]||0)-funds[r]))*4+(gain[r]||0)*.25,0)-retention;
+      };
+      available.sort((a,b)=>value(b)-value(a)||a.key.localeCompare(b.key)||String(a.id).localeCompare(String(b.id)));
+      const card=available.shift(),gain=conversionGain(card);cards.push(card.id);
+      RESOURCES.forEach(r=>funds[r]+=gain[r]||0);
+      const discard=aiOverflowAmounts(funds,playerCapacity(player.id),desiredCost);
+      RESOURCES.forEach(r=>funds[r]-=discard[r]);
+    }
+  }
+
+  function aiIncome(playerId) {
+    const income=Object.fromEntries(RESOURCES.map(r=>[r,0]));
+    for (const [coord,p] of Object.entries(state.planets)) if (RESOURCES.includes(p.type)) {
+      if (p.owner===playerId && p.occupiedBy===null) income[p.type]+=ownerProductionAmount(p);
+      if (fleetControllersAt(coord).includes(playerId)) income[p.type]++;
+    }
+    return income;
+  }
+
+  function aiCanFight(playerId, moving, target) {
+    const defender=findDefender(target,playerId);
+    if (defender===null) return true;
+    const other=state.fleets[target]?.[defender]||{},p=state.planets[target];
+    const yard=p?.owner===defender&&p.upgrade==='starbase';
+    const power=Object.keys(SHIP_STATS).reduce((n,k)=>n+(moving[k]||0)*SHIP_STATS[k].power,0);
+    const hull=Object.keys(SHIP_STATS).reduce((n,k)=>n+(moving[k]||0)*SHIP_STATS[k].hull,0);
+    const attack=Object.keys(SHIP_STATS).reduce((n,k)=>n+(other[k]||0)*SHIP_STATS[k].power,0)+(yard?3:0);
+    const defense=Object.keys(SHIP_STATS).reduce((n,k)=>n+(other[k]||0)*(SHIP_STATS[k].defendingHull||SHIP_STATS[k].hull),0)+(yard?3:0);
+    if (!defense) return true;
+    if (moving.settler) return attack<=1 && power-2>=defense;
+    return power*3-4>=defense && hull>attack*3+2;
+  }
+
+  function aiPath(source, goal, playerId, moving, cannotAttack) {
+    const queue=[source],came=new Map([[source,null]]);
+    for (let i=0;i<queue.length&&!came.has(goal);i++) for (const next of aiMovementNeighbors(queue[i],playerId)) {
+      if (came.has(next)) continue;
+      if (fleetCount(state.fleets[next]?.[playerId])+fleetCount(moving)>5) continue;
+      if (hostileAt(next,playerId) && (cannotAttack || !aiCanFight(playerId,moving,next))) continue;
+      came.set(next,queue[i]);queue.push(next);
+    }
+    if (!came.has(goal)) return null;
+    const path=[];for (let at=goal;at!==source;at=came.get(at)) path.unshift(at);
+    return path;
+  }
+
+  function aiStockpile(playerId) {
+    const p=state.players[playerId],reserve=aiReserves(playerId);
+    for (const card of [...p.hand]) {
+      const gain=conversionGain(card),def=ALL_CARDS[card.key];
+      if (def.reaction || def.buyEffect) continue;
+      if (!RESOURCES.some(r=>(gain[r]||0)>0&&p.resources[r]<reserve[r])) continue;
+      addResources(p,gain);removeHandCard(p,card.id);
+      logEvent(`${p.name} converted ${def.name} into resources.`);
+      if (overflowPlayer()===playerId) discardOverflow(playerId,aiOverflowAmounts(p.resources,playerCapacity(playerId),reserve));
+    }
+  }
+
+  function aiBuyValue(playerId, key) {
+    const p=state.players[playerId],cards=aiCards(playerId),def=ALL_CARDS[key],moves=aiOrderCount(playerId,'move'),constructs=aiOrderCount(playerId,'construct');
+    const active=Object.values(state.fleets).filter(g=>fleetCount(g[playerId])).length,targetMoves=Math.min(6,Math.max(3,active*2));
+    if (!controlledPlanets(playerId).some(([,p])=>p.upgrade==='starbase'&&p.occupiedBy===null)) return -1;
+    if (def.order==='move') {
+      if (moves<targetMoves) return 30+(key==='fleetOverdrive'?8:key==='pathfinderNetwork'?6:key==='surveyDrones'?4:0);
+      if (cards.length<16 && ['fleetOverdrive','pathfinderNetwork'].includes(key) && cards.filter(c=>c.key===key).length<2) return 15;
+      return -1;
+    }
+    if (key==='dropColonyModules' && countPlacedShips(playerId,'settler') && cards.filter(c=>c.key===key).length<2) return 40;
+    if (def.order==='construct') return constructs<2?25:constructs<3&&cards.length<13&&key!=='construct'?12:-1;
+    if (cards.length>=16) return -1;
+    if (['tacticalForesight','tradeConsortium'].includes(key)&&cards.filter(c=>c.key===key).length<2) return 16;
+    if (p.strategy==='military'&&def.reaction&&cards.filter(c=>ALL_CARDS[c.key].reaction).length<2) return 10;
+    if (p.strategy==='economy'&&key==='industrialSurge'&&cards.filter(c=>c.key===key).length<1) return 12;
+    return -1;
+  }
+
+  function aiUseResources(player, exceptCardId, desiredCost = {}) {
+    const plan=aiFundingPlan(player,exceptCardId,desiredCost);
+    if (!plan) return false;
+    for (const id of plan.cards) {
+      const card=player.hand.find(c=>c.id===id);
+      addResources(player,conversionGain(card));removeHandCard(player,id);
+      logEvent(`${player.name} converted ${ALL_CARDS[card.key].name} into resources.`);
+      if (overflowPlayer()===player.id) discardOverflow(player.id,aiOverflowAmounts(player.resources,playerCapacity(player.id),desiredCost));
+    }
+    for (const trade of plan.bank) if (!bankTrade(player.id,trade.giveType,trade.getType)) return false;
+    return canAfford(player,desiredCost);
   }
 
   function findColonizeTarget(playerId) {
@@ -2054,45 +2173,39 @@ function createGalacticReach(options = {}) {
   }
 
   function chooseAiBuild(playerId) {
-    const player = state.players[playerId];
-    const openPlanets = Object.entries(state.planets).filter(([coord]) => canBuildStructureAt(playerId,coord));
-    const starbases = controlledPlanets(playerId).filter(([,p]) => p.upgrade === 'starbase' && p.occupiedBy === null);
-    const options = [];
-    const expansionNeedsSettlers = countPlacedShips(playerId,'settler') < (player.strategy === 'expansion' ? 3 : 1);
-    const generalShipScores = player.strategy === 'expansion'
-      ? { settler: expansionNeedsSettlers ? 11 : 6, fleet: 5 }
-      : player.strategy === 'economy'
-        ? { settler: expansionNeedsSettlers ? 12 : 8, fleet: 5 }
-        : { settler: expansionNeedsSettlers ? 12 : 6, fleet: 7 };
-    if (player.strategy === 'military') {
-      for (const [coord] of starbases) {
-        for (const type of ['fleet','settler']) if (canPlaceShip(playerId,type) && fleetCount(getFleet(coord,playerId)) < 5) options.push({kind:type,coord,cost:SHIP_STATS[type].cost,score:type==='fleet'?8:5});
-      }
+    const p=state.players[playerId],military=p.strategy==='military',economy=p.strategy==='economy',expansion=p.strategy==='expansion';
+    const yards=controlledPlanets(playerId).filter(([,p])=>p.upgrade==='starbase'&&p.occupiedBy===null),income=aiIncome(playerId);
+    const targets={matter:2,energy:2,biomass:expansion?2:1,data:aiRelicsRemain()?2:1},options=[];
+    const settlers=countPlacedShips(playerId,'settler'),explorers=countPlacedShips(playerId,'explorer'),fleets=countPlacedShips(playerId,'fleet');
+    const colonyGoals=state.clusters.some(c=>c.kind==='world' && state.planets[c.center].owner!==playerId);
+    for (const [coord,planet] of Object.entries(state.planets)) if (canBuildStructureAt(playerId,coord)) {
+      const shortage=Math.max(0,targets[planet.type]-income[planet.type]);
+      options.push({kind:'harvester',coord,score:shortage?7+shortage*6+(economy?3:0):1});
+      const forward=yards.length<2 && colonyPlanets(playerId).some(([center])=>state.planets[center].cluster===planet.cluster) && yards.every(([y])=>hexDistance(y,coord)>6);
+      options.push({kind:'starbase',coord,score:!yards.length?50+(!p.initialShipyardCoord&&coord===aiInitialShipyard(playerId)? .1:0):forward?military?15:10:0});
     }
-    for (const [coord,planet] of openPlanets) {
-      options.push({kind:'harvester',coord,cost:STRUCTURES.harvester.cost,score:(planet.type==='data'?9:7)+(player.strategy==='economy'?3:0)});
-      options.push({kind:'starbase',coord,cost:STRUCTURES.starbase.cost,score:starbases.length===0?16+(!player.initialShipyardCoord&&coord===aiInitialShipyard(playerId)?0.1:0):5+(player.strategy==='military'?4:0)});
+    for (const [coord,planet] of controlledPlanets(playerId)) if (planet.upgrade==='harvester' && planet.occupiedBy===null && (planet.upgradeLevel||1)<2) {
+      const shortage=Math.max(0,targets[planet.type]-income[planet.type]);
+      if (shortage) options.push({kind:'harvester',coord,score:4+shortage*4+(economy?2:0)});
     }
-
-    controlledPlanets(playerId).filter(([,p])=>STRUCTURES[p.upgrade]?.upgradeCost&&(p.upgradeLevel||1)<2&&p.occupiedBy===null).forEach(([coord,planet])=>{
-      options.push({kind:planet.upgrade,coord,cost:STRUCTURES[planet.upgrade].upgradeCost,score:player.strategy==='economy'?9:6});
-    });
-    controlledPlanets(playerId).filter(([coord])=>canLaunchExplorer(playerId,coord)).forEach(([coord])=>{
-      if (canPlaceShip(playerId,'explorer') && fleetCount(getFleet(coord,playerId)) < 5) options.push({kind:'explorer',coord,cost:SHIP_STATS.explorer.cost,score:excavatedRelicCount(playerId)<3?11:3});
-    });
-    for (const [coord] of starbases) {
-      for (const type of ['settler','fleet']) if (canPlaceShip(playerId,type) && fleetCount(getFleet(coord,playerId)) < 5) options.push({kind:type,coord,cost:SHIP_STATS[type].cost,score:generalShipScores[type]});
+    for (const [coord] of yards) {
+      const group=state.fleets[coord]?.[playerId]||{};
+      if (fleetCount(group)>=5) continue;
+      if (canPlaceShip(playerId,'settler') && !group.settler && colonyGoals && settlers<(expansion?2:1)) options.push({kind:'settler',coord,score:settlers?22:32+(expansion?3:0)});
+      if (aiRelicsRemain() && canPlaceShip(playerId,'explorer') && !group.explorer && explorers<1) options.push({kind:'explorer',coord,score:28+(economy?2:0)});
+      const threat=Object.entries(state.fleets).reduce((n,[at,g])=>hexDistance(at,coord)<=4?Math.max(n,...Object.entries(g).filter(([id])=>+id!==playerId).map(([,f])=>f.fleet||0)):n,0);
+      const defense=Math.min(3,threat?threat+1:0);
+      const reinforce=threat&&(group.fleet||0)<defense;
+      if (canPlaceShip(playerId,'fleet') && !group.settler && (reinforce||military&&fleets<3)) options.push({kind:'fleet',coord,score:reinforce?44:military?(fleets<2?26:14):25});
     }
-    const ranked=options.sort((a,b)=>b.score-a.score);
-    if (starbases.length) {
-      const order=player.hand.find(card=>ALL_CARDS[card.key].order==='construct');
-      const affordable=ranked.filter(build=>{
-        const discount=order?.upgraded?[...RESOURCES].filter(r=>build.cost[r]>0).sort((a,b)=>((build.cost[b]||0)-player.resources[b])-((build.cost[a]||0)-player.resources[a]))[0]||null:null;
-        return canAfford(player,constructionCost(playerId,build.coord,build.kind,discount));
-      });
-      if (affordable.length) return affordable[0];
+    const card=p.hand.filter(c=>ALL_CARDS[c.key].order==='construct').sort((a,b)=>Number(b.upgraded)-Number(a.upgraded))[0];
+    for (const build of options) {
+      const cost=constructionCost(playerId,build.coord,build.kind);
+      build.cost=cost;build.discount=card?.upgraded?[...RESOURCES].filter(r=>cost[r]>0).sort((a,b)=>((cost[b]||0)-p.resources[b])-((cost[a]||0)-p.resources[a]))[0]||null:null;
+      build.funding=card?aiFundingPlan(p,card.id,constructionCost(playerId,build.coord,build.kind,build.discount)):null;
     }
-    return ranked[0] || null;
+    const ranked=options.filter(b=>b.score>2).sort((a,b)=>b.score-a.score||aiCompareCoords(a.coord,b.coord,playerId));
+    return (!yards.length?ranked[0]:ranked.find(b=>b.funding)||ranked[0])||null;
   }
 
   function nearestGoal(source, playerId, military) {
@@ -2125,52 +2238,56 @@ function createGalacticReach(options = {}) {
   }
 
   function chooseAiMove(playerId, card = {}) {
-    const military = state.players[playerId].strategy === 'military';
-    const fleets = Object.entries(state.fleets).filter(([,group]) => fleetCount(group[playerId]));
-    let best = null;
-    fleets.forEach(([source,group]) => {
-      const fleet = group[playerId];
-      if (fleet.explorer) {
-        const relicTargets = state.clusters.filter(cluster=>relicKnown(cluster,playerId)).map(relicCoordInCluster).filter(Boolean);
-        if (!relicTargets.length) relicTargets.push(...state.clusters.filter(cluster=>cluster.kind!=='moon'&&!clusterRevealed(cluster,playerId)).map(cluster=>cluster.center));
-        if (!relicTargets.length) {
+    const p=state.players[playerId],military=p.strategy==='military',expansion=p.strategy==='expansion',economy=p.strategy==='economy';
+    const groups=Object.entries(state.fleets).filter(([,g])=>fleetCount(g[playerId]));
+    const colonies=colonyPlanets(playerId).length,extraPoint=Math.floor(colonies/2)-Math.floor(Math.max(0,colonies-1)/2),targets=[];
+    const add=(source,moving,goal,value,moveGroup,cannotAttack)=>{
+      if (source===goal) return;
+      const path=aiPath(source,goal,playerId,moving,cannotAttack);
+      if (!path?.length) return;
+      const range=movementRange(moving,card),segment=path.slice(0,range),blocker=segment.find(at=>hostileAt(at,playerId)),destination=blocker||segment[segment.length-1];
+      targets.push({source,destination,moveGroup,score:value-2*Math.ceil(path.length/range)+(path.length<=range?4:0),goal});
+    };
+    for (const [source,g] of groups) {
+      const f=g[playerId],ships=fleetGroup(f,'ships'),explorers=fleetGroup(f,'explorer');
+      if (f.settler && !(isColonySite(source) && (state.planets[source].owner===null||state.planets[source].owner!==playerId&&state.planets[source].occupiedBy===playerId))) {
+        for (const c of state.clusters.filter(c=>c.kind==='world')) {
+          const planet=state.planets[c.center];
+          if (planet.owner===playerId || planet.owner===null&&hasBuilding(planet)) continue;
+          const capture=planet.owner!==null;
+          if (capture && !military && calculatePrestige(planet.owner)<8 && state.clusters.some(w=>w.kind==='world'&&state.planets[w.center].owner===null)) continue;
+          if (groups.some(([at,other])=>at!==source&&other[playerId].settler&&hexDistance(at,c.center)<hexDistance(source,c.center))) continue;
+          add(source,ships,c.center,36+extraPoint*8+(expansion?4:0)+(capture?military?8:2:0),'ships',(card.tag||ALL_CARDS[card.key]?.tag)==='pathfinder');
+        }
+      } else if (f.fleet && !f.settler) {
+        for (const [at,other] of Object.entries(state.fleets)) {
+          const enemy=Object.entries(other).find(([id,fleet])=>+id!==playerId&&fleetCount(fleet));if (!enemy) continue;
+          const [owner,fleet]=enemy,canEscape=fleet.explorer && state.players[owner].resources.energy>=fleet.explorer;
+          if (canEscape || !aiCanFight(playerId,ships,at)) continue;
+          add(source,ships,at,military?43:32,'ships',(card.tag||ALL_CARDS[card.key]?.tag)==='pathfinder');
+        }
+        if (countPlacedShips(playerId,'settler')) for (const c of state.clusters.filter(c=>c.kind==='world'&&state.planets[c.center].owner!==null&&state.planets[c.center].owner!==playerId&&state.planets[c.center].occupiedBy!==playerId)) {
+          add(source,ships,c.center,military?26:22,'ships',(card.tag||ALL_CARDS[card.key]?.tag)==='pathfinder');
+        }
+      }
+      if (f.explorer && aiRelicsRemain()) {
+        const here=state.planets[source];
+        if (here?.special==='relic' && relicKnown(state.clusters[here.cluster],playerId)) continue;
+        const known=state.clusters.filter(c=>relicKnown(c,playerId)).map(relicCoordInCluster).filter(Boolean);
+        const goals=known.length?known:state.clusters.filter(c=>c.kind==='world'&&!clusterRevealed(c,playerId)).map(c=>c.center);
+        for (const goal of goals) {
+          if (groups.some(([at,other])=>at!==source&&other[playerId].explorer&&hexDistance(at,goal)<hexDistance(source,goal))) continue;
+          add(source,explorers,goal,known.length?(economy?40:35):25,'explorer',true);
+        }
+        if (!goals.length) {
+          // Unlocated moons remain indistinguishable from ordinary space.
           const search=[];
-          for (let q=-BOARD_RADIUS;q<=BOARD_RADIUS;q++) for (let r=-BOARD_RADIUS;r<=BOARD_RADIUS;r++) {
-            const key=coordKey(q,r),planet=state.planets[key];
-            if (key!==source && boardHas(key) && (!planet || !clusterKnown(state.clusters[planet.cluster],playerId))) search.push(key);
-          }
-          // Unknown moons have exactly the same search weight as ordinary space.
-          relicTargets.push(...shuffled(search).slice(0,1));
-        }
-        const relicGoal = relicTargets.sort((a,b)=>hexDistance(source,a)-hexDistance(source,b))[0];
-        const path = relicGoal && pathToCoord(source,relicGoal,playerId);
-        if (path?.length) {
-          const explorers = fleetGroup(fleet,'explorer');
-          const reachable = new Set(reachableFrom(source,playerId,movementRange(explorers,card),true,explorers));
-          // Stop at blockers and use both movement points when the path is clear.
-          const destination = path.slice(0,movementRange(explorers,card)).filter(coord => reachable.has(coord)).pop();
-          const score = 20 - path.length * .1;
-          if (destination && (!best || score > best.score)) best = { source,destination,score,moveGroup:'explorer' };
+          for (let q=-BOARD_RADIUS;q<=BOARD_RADIUS;q++) for (let r=-BOARD_RADIUS;r<=BOARD_RADIUS;r++) {const k=coordKey(q,r),planet=state.planets[k];if (k!==source&&boardHas(k)&&(!planet||!clusterKnown(state.clusters[planet.cluster],playerId))) search.push(k);}
+          const goal=shuffled(search)[0];if (goal) add(source,explorers,goal,14,'explorer',true);
         }
       }
-      if (combatShipCount(fleet)) {
-        const path = nearestGoal(source,playerId,military);
-        if (!path?.length) return;
-        const ships = fleetGroup(fleet,'ships');
-        const range = movementRange(ships,card);
-        const reachable=new Set(reachableFrom(source,playerId,range,(card.tag||ALL_CARDS[card.key]?.tag)==='pathfinder',ships));
-        let destination = null;
-        for (let i=0;i<Math.min(range,path.length);i+=1) {
-          const candidate = path[i];
-          if (reachable.has(candidate)) destination = candidate;
-          if (hostileAt(candidate,playerId)) break;
-        }
-        if (!destination) return;
-        const score = (military ? fleetPower(ships) : ships.settler * 3) - path.length * .1;
-        if (!best || score > best.score) best = { source,destination,score,moveGroup:'ships' };
-      }
-    });
-    return best;
+    }
+    return targets.sort((a,b)=>b.score-a.score||aiCompareCoords(a.source,b.source,playerId)||aiCompareCoords(a.goal,b.goal,playerId))[0]||null;
   }
 
   function aiPlayCard(player, card) {
@@ -2179,66 +2296,43 @@ function createGalacticReach(options = {}) {
 
   function runAiOperation() {
     if (state.pendingCombat || state.phase !== 'operations' || state.activePlayer === 0 || state.winner !== null) return;
-    if (overflowPlayer() >= 0) return;
-    if (state.pendingConsortium) { runAiConsortium(); return; }
-    if (state.pendingColonyBuild) { aiColonyBuild(state.activePlayer); return; }
-    aiManageStorage(state.activePlayer);
-    aiRespondToTrades(state.activePlayer);
-    const id = state.activePlayer;
-    const player = state.players[id];
-    const colonizeCard = player.hand.find(card => ALL_CARDS[card.key].order === 'colonize');
-    const target = findColonizeTarget(id);
-    if (colonizeCard && target) {
-      const definition = ALL_CARDS[colonizeCard.key];
-      const planet = state.planets[target];
-      const capture = planet.owner !== null;
-      const cost = { biomass: definition.tag === 'alienGenesis' ? 0 : capture ? 1 : definition.tag === 'dropColony' ? 1 : 2 };
-      aiUseResources(player,colonizeCard.id,cost);
-      if (applyColonizeOrder(id,target,colonizeCard)) {
-        return;
-      }
+    if (overflowPlayer()>=0) return;
+    if (state.pendingConsortium) {runAiConsortium();return;}
+    if (state.pendingColonyBuild) {aiColonyBuild(state.activePlayer);return;}
+    const id=state.activePlayer,p=state.players[id];
+    const colonize=p.hand.filter(c=>ALL_CARDS[c.key].order==='colonize').sort((a,b)=>Number(ALL_CARDS[b.key].tag==='dropColony'||ALL_CARDS[b.key].tag==='alienGenesis')-Number(ALL_CARDS[a.key].tag==='dropColony'||ALL_CARDS[a.key].tag==='alienGenesis'))[0];
+    const target=findColonizeTarget(id);
+    if (colonize&&target) {
+      const tag=ALL_CARDS[colonize.key].tag,cost={biomass:tag==='alienGenesis'?0:state.planets[target].owner!==null||tag==='dropColony'?1:2};
+      if (aiUseResources(p,colonize.id,cost)&&applyColonizeOrder(id,target,colonize)) return;
     }
-    const constructCard = player.hand.find(card => ALL_CARDS[card.key].order === 'construct');
-    const build = chooseAiBuild(id);
-    if (constructCard && build) {
-      const discount=constructCard.upgraded?[...RESOURCES].filter(r=>build.cost[r]>0).sort((a,b)=>((build.cost[b]||0)-player.resources[b])-((build.cost[a]||0)-player.resources[a]))[0]||null:null;
-      aiUseResources(player,constructCard.id,constructionCost(id,build.coord,build.kind,discount));
-      const built=constructAt(id,build.coord,build.kind,discount);
-      if (built) {
-        aiPlayCard(player,constructCard);
-        completeAction(id,`${player.name} built ${STRUCTURES[build.kind]?.name || SHIP_STATS[build.kind].name} at ${nameForCoord(build.coord)}.`);
-        return;
-      }
-    }
-    const excavation = player.hand.find(card=>card.key==='excavate');
+    const excavation=p.hand.find(c=>c.key==='excavate');
     if (excavation) {
-      const coord=Object.keys(state.planets).find(key=>state.planets[key].special==='relic' && getFleet(key,id)?.explorer);
-      if (coord) {
-        aiUseResources(player,excavation.id,EXCAVATION_COST);
-        const relic=state.relicRow.find(card=>RELIC_CARDS[card.key].affinity===(player.strategy==='military'?'Military':player.strategy==='expansion'?'Exploration':'Settlement')) || state.relicRow[0];
-        if (relic && excavate(id,coord,excavation.id,relic.id)) return;
+      const site=Object.entries(state.planets).find(([coord,planet])=>planet.special==='relic'&&state.fleets[coord]?.[id]?.explorer&&relicKnown(state.clusters[planet.cluster],id));
+      if (site&&state.relicRow.length&&aiUseResources(p,excavation.id,EXCAVATION_COST)) {
+        const reward=state.relicRow.find(c=>RELIC_CARDS[c.key].affinity===(p.strategy==='military'?'Military':p.strategy==='expansion'?'Exploration':'Settlement'))||state.relicRow[0];
+        if (excavate(id,site[0],excavation.id,reward.id)) return;
       }
     }
-    const moveCard = player.hand.find(card => ALL_CARDS[card.key].order === 'move');
-    const move = chooseAiMove(id,moveCard);
-    if (moveCard && move && move.destination !== move.source) {
-      const definition = ALL_CARDS[moveCard.key];
-      if (performMoveOrder(id,move.source,move.destination,moveCard,{tag:definition.tag,moveGroup:move.moveGroup})) return;
+    aiRespondToTrades(id);
+    const moveCards=p.hand.filter(c=>ALL_CARDS[c.key].order==='move'),moves=moveCards.map(card=>({card,move:chooseAiMove(id,card)})).filter(x=>x.move).sort((a,b)=>b.move.score-a.move.score),best=moves[0];
+    const construct=p.hand.filter(c=>ALL_CARDS[c.key].order==='construct').sort((a,b)=>Number(b.upgraded)-Number(a.upgraded))[0],build=construct&&chooseAiBuild(id);
+    const moveNow=()=>best&&performMoveOrder(id,best.move.source,best.move.destination,best.card,{tag:ALL_CARDS[best.card.key].tag,moveGroup:best.move.moveGroup});
+    if (best&&(!build?.funding||best.move.score>=build.score)&&moveNow()) return;
+    if (build&&aiUseResources(p,construct.id,constructionCost(id,build.coord,build.kind,build.discount))&&constructAt(id,build.coord,build.kind,build.discount)) {
+      aiPlayCard(p,construct);completeAction(id,`${p.name} built ${STRUCTURES[build.kind]?.name||SHIP_STATS[build.kind].name} at ${nameForCoord(build.coord)}.`);return;
     }
-    const alien=player.hand.find(card=>RELIC_CARDS[card.key]?.order==='special');
-    if (alien) {resolveHumanSpecial(alien,ALL_CARDS[alien.key],id);return;}
-    const special = player.hand.find(card => ALL_CARDS[card.key].tag === 'surge');
+    if (best&&p.hand.some(c=>c.id===best.card.id)&&moveNow()) return;
+    const special=p.hand.find(c=>ALL_CARDS[c.key].order==='special' && (RELIC_CARDS[c.key]||['surge','bankTrade','foresight','uplink'].includes(ALL_CARDS[c.key].tag)));
     if (special) {
-      const worlds = controlledPlanets(id).filter(([,p])=>p.occupiedBy===null).slice(0,3).map(([,p])=>p);
-      const gain = {};
-      worlds.forEach(planet=>{ gain[planet.type]=(gain[planet.type]||0)+1; });
-      const result = addResources(player,gain);
-      aiPlayCard(player,special);
-      completeAction(id,`${player.name} triggered an Industrial Surge.${overflowNote(result)}`);
+      if (ALL_CARDS[special.key].tag==='surge') {
+        // Preserve the recorded AI-specific Surge effect while changing policy.
+        const gain={};controlledPlanets(id).filter(([,p])=>p.occupiedBy===null).slice(0,3).forEach(([,planet])=>{gain[planet.type]=(gain[planet.type]||0)+1;});
+        const result=addResources(p,gain);aiPlayCard(p,special);completeAction(id,`${p.name} triggered an Industrial Surge.${overflowNote(result)}`);
+      } else {resolveHumanSpecial(special,ALL_CARDS[special.key],id);if (state.pendingConsortium)runAiConsortium();}
       return;
     }
-    const consortium = player.hand.find(card=>card.key==='tradeConsortium');
-    if (consortium) { resolveHumanSpecial(consortium,ALL_CARDS[consortium.key],id); runAiConsortium(); return; }
+    aiStockpile(id);aiManageStorage(id);
     if (aiOfferTrade(id)) return;
     passOperations(id);
   }
@@ -2330,47 +2424,35 @@ function createGalacticReach(options = {}) {
   }
 
   function runAiBuy() {
-    const id = state.activePlayer;
-    aiManageStorage(id);
-    const player = state.players[id];
-    const upgradeCandidate = [...player.hand,...player.discard].find(card=>card.starter&&!card.upgraded);
-    const upgradeResource = [...RESOURCES].sort((a,b)=>player.resources[b]-player.resources[a]).find(resource=>player.resources[resource]>=2);
-    if (upgradeCandidate && upgradeResource) upgradeStarter(id,upgradeCandidate.id,upgradeResource);
-    const procurement = player.hand.find(card => ALL_CARDS[card.key].buyEffect === 'procurement');
-    if (procurement) {
-      player.buyLimit = 2;
-      removeHandCard(player,procurement.id);
-      logEvent(`${player.name} activated Procurement Network.`);
+    const id=state.activePlayer,p=state.players[id],reserve=aiReserves(id);
+    const procurement=p.hand.find(c=>ALL_CARDS[c.key].buyEffect==='procurement');
+    if (procurement) {p.buyLimit=2;removeHandCard(p,procurement.id);logEvent(`${p.name} activated Procurement Network.`);}
+    const manipulation=p.hand.find(c=>ALL_CARDS[c.key].buyEffect==='manipulation');
+    if (manipulation&&!p.marketManipulated) {
+      p.marketManipulated=true;p.buyDiscountData=1;state.marketDiscard.push(...state.market.splice(0,Math.min(2,state.market.length)));fillMarket();removeHandCard(p,manipulation.id);logEvent(`${p.name} manipulated the market.`);
     }
-    const manipulation = player.hand.find(card => ALL_CARDS[card.key].buyEffect === 'manipulation');
-    if (manipulation && !player.marketManipulated) {
-      player.marketManipulated = true;
-      player.buyDiscountData = 1;
-      state.marketDiscard.push(...state.market.splice(0,Math.min(2,state.market.length)));
-      fillMarket();
-      removeHandCard(player,manipulation.id);
-      logEvent(`${player.name} manipulated the market.`);
+    const surplus=()=>[...RESOURCES].sort((a,b)=>(p.resources[b]-reserve[b])-(p.resources[a]-reserve[a]));
+    const yard=controlledPlanets(id).some(([,p])=>p.upgrade==='starbase'&&p.occupiedBy===null);
+    const upgrade=[...p.hand,...p.discard].filter(c=>c.starter&&!c.upgraded).sort((a,b)=>Number(b.key==='move')-Number(a.key==='move'))[0];
+    const resource=surplus().find(r=>p.resources[r]>=reserve[r]+2);
+    if (yard&&upgrade&&resource) upgradeStarter(id,upgrade.id,resource);
+    while (p.bought<p.buyLimit) {
+      const choices=[...state.market.map((card,index)=>({source:'market',index,key:card.key})),...BASIC_MARKET.map(key=>({source:'basic',index:key,key}))].map(x=>({...x,score:aiBuyValue(id,x.key),bank:bankPlanForCost(p,discountedCost(ALL_CARDS[x.key].cost,p.buyDiscountData?'data':null))})).filter(x=>x.score>0&&x.bank!==null).sort((a,b)=>b.score-a.score||a.bank.length-b.bank.length);
+      const choice=choices[0];if (!choice) break;
+      const cost=discountedCost(ALL_CARDS[choice.key].cost,p.buyDiscountData?'data':null);
+      // Preserve the payment for the next scoring order when it is already held.
+      if (RESOURCES.some(r=>p.resources[r]-(cost[r]||0)<Math.min(reserve[r],p.resources[r]) && (r==='biomass'&&findColonizeTarget(id)||r==='data'&&Object.entries(state.fleets).some(([coord,g])=>g[id]?.explorer&&state.planets[coord]?.special==='relic'&&relicKnown(state.clusters[state.planets[coord].cluster],id))))) break;
+      if (!choice.bank.every(t=>bankTrade(id,t.giveType,t.getType))) break;
+      if (!buyCard(id,choice.source,choice.index)) break;
     }
-    const priorities = player.strategy === 'military' ? ['coordinatedAssault','targetingAlgorithms','ablativePlating','orbitalShipyards'] : player.strategy === 'economy' ? ['industrialSurge','modularConstruction','dataBrokerage'] : ['dropColonyModules','surveyDrones','pathfinderNetwork','procurementNetwork'];
-    while (player.bought < player.buyLimit) {
-      const choices = state.market.map((card,index)=>({card,index,score:priorities.includes(card.key)?10-priorities.indexOf(card.key):2})).filter(option=>canAfford(player,ALL_CARDS[option.card.key].cost,player.buyDiscountData)).sort((a,b)=>b.score-a.score);
-      if (choices[0]) buyCard(id,'market',choices[0].index);
-      else {
-        const basics = BASIC_MARKET.filter(key=>canAfford(player,BASIC_CARDS[key].cost,player.buyDiscountData));
-        if (basics.length) buyCard(id,'basic',basics[0]);
-        else {
-          const costs = [...state.market.map(card=>ALL_CARDS[card.key].cost),...BASIC_MARKET.map(key=>BASIC_CARDS[key].cost)];
-          const plans = costs.map(cost=>bankPlanForCost(player,discountedCost(cost,player.buyDiscountData>0?'data':null)))
-            .filter(plan=>plan?.length).sort((a,b)=>a.length-b.length);
-          if (!plans.length) break;
-          for (const trade of plans[0]) bankTrade(id,trade.giveType,trade.getType);
-        }
-      }
+    for (let n=0;n<2;n++) {
+      const cards=aiCards(id),moves=aiOrderCount(id,'move'),constructs=aiOrderCount(id,'construct'),colonize=aiOrderCount(id,'colonize'),excavateCount=aiOrderCount(id,'excavate');
+      const removable=p.discard.find(c=>p.buyStartDiscardIds.includes(c.id)&&BASIC_CARDS[c.key]&&!c.upgraded&&(c.key==='construct'?constructs>2:c.key==='move'?moves>6:c.key==='colonize'?colonize>Math.max(2,countPlacedShips(id,'settler')+1):c.key==='excavate'?!aiRelicsRemain()||excavateCount>Math.max(1,countPlacedShips(id,'explorer')+1):false));
+      const give=surplus().find(r=>p.resources[r]>=reserve[r]+3);
+      if (!removable||!give||cards.length<=8) break;
+      if (!decommission(id,removable.id,give)) break;
     }
-    const removable = player.discard.find(card=>BASIC_CARDS[card.key] && player.buyStartDiscardIds.includes(card.id));
-    const trashResource = RESOURCES.find(resource => player.resources[resource] >= 3);
-    if (removable && trashResource && player.deck.length + player.discard.length > 8) decommission(id,removable.id,trashResource);
-    nextBuyPlayer();
+    aiManageStorage(id);nextBuyPlayer();
   }
 
   function finishHumanBuy() {
@@ -2439,7 +2521,9 @@ function createGalacticReach(options = {}) {
   }
 
   function aiManageStorage(playerId) {
-    if (totalResources(state.players[playerId]) >= playerCapacity(playerId)-2 && canIncreaseStorage(playerId)) increaseStorage(playerId);
+    const player=state.players[playerId],reserve=aiReserves(playerId);
+    if (playerCapacity(playerId)<30 && totalResources(player)>=playerCapacity(playerId)-2 && canIncreaseStorage(playerId)
+      && RESOURCES.every(r=>player.resources[r]-(STORAGE_UPGRADE.cost[r]||0)>=Math.min(player.resources[r],reserve[r]))) increaseStorage(playerId);
   }
 
   function discardResources(playerId, resource, amount) {

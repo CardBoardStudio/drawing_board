@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060911">
-  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 10 Prestige. The canonical rules for the Open Worlds experiment 20.25.">
-  <meta name="rules-version" content="galactic-reach/20.25">
-  <title>Galactic Reach · Rulebook · 20.25</title>
+  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 10 Prestige. The canonical rules for the Scoring Bots experiment 21.26.">
+  <meta name="rules-version" content="galactic-reach/21.26">
+  <title>Galactic Reach · Rulebook · 21.26</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="rulebook.css">
 </head>
@@ -28,7 +28,7 @@
   <a class="skip-link" href="#start">Skip to rules</a>
   <header class="book-header">
     <a href="./" class="button button-ghost">← Galactic Reach</a>
-    <span class="eyebrow">CANONICAL RULES · OPEN WORLDS EXPERIMENT · 20.25</span>
+    <span class="eyebrow">CANONICAL RULES · SCORING BOTS EXPERIMENT · 21.26</span>
   </header>
   <div class="book-layout">
     <nav class="book-nav" aria-label="Rulebook sections">
@@ -47,7 +47,7 @@
       <a href="#victory">Prestige &amp; victory</a>
       <a href="#game-report">Game reports</a>
       <a href="#cards">Card reference</a>
-      <a href="#clarifications">20.25 clarifications</a>
+      <a href="#clarifications">21.26 clarifications</a>
     </nav>
     <main id="start" tabindex="-1">
       <div class="eyebrow">A GALAXY. FOUR FACTIONS. YOUR NEXT MOVE.</div>
@@ -63,7 +63,7 @@
         </ol>
         <p><strong>Try this:</strong> save a Construct card for its order; convert another card to help pay for a Settler. You cannot use the same card both ways.</p>
       </div>
-      <p class="book-note">This manual describes the <strong>20.25 Open Worlds experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
+      <p class="book-note">This manual describes the <strong>21.26 Scoring Bots experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
 
       <section id="setup">
         <h2>01 / Your starting faction</h2>
@@ -200,7 +200,7 @@
         </div>
         <p>Shipyards and card purchases award no Prestige. For example, one Colony, four Shipyards, and sixteen purchased cards still score just 1 Prestige before relics or combat. Occupation alone does not remove ownership-based Prestige.</p>
         <p>After everyone finishes Buy and the round is cleaned up, if anyone has at least <strong>10 Prestige</strong>, the highest Prestige wins. Break ties by most Colonies, then most stored resources. An exact tie selects the earliest seat in the browser; arena standings share that rank. Reaching 10 earlier does not lock in a win: finish the round before checking the standings. There is no round limit.</p>
-        <p>Victory stays at 10 Prestige. Relic and combat Prestige survive later losses and are saved with your faction’s score. This scoring change applies to new 20.25 games; older tables keep their pinned scoring rules.</p>
+        <p>Victory stays at 10 Prestige. Relic and combat Prestige survive later losses and are saved with your faction’s score. This scoring change applies to new 21.26 games; older tables keep their pinned scoring rules.</p>
         <p>AI arena games use this same victory check. Only completed games earn placement ratings. Simulations have time and decision limits. If any game cannot finish within those limits, the arena reports an incomplete series and none of its games change ratings. Retry with another series; an unfinished game is never counted as a victory.</p>
       </section>
 
@@ -249,7 +249,7 @@
         <details>
           <summary>Advanced and relic orders</summary>
           <div class="book-table" tabindex="0" role="region" aria-label="Advanced card effects">
-            <table><thead><tr><th>Card</th><th>Current 20.25 effect</th></tr></thead><tbody>
+            <table><thead><tr><th>Card</th><th>Current 21.26 effect</th></tr></thead><tbody>
               <tr><th>Survey Drones</th><td>Normal movement at the selected group’s speed. Survey Drones does not add range or filter cards.</td></tr>
               <tr><th>Pathfinder Network</th><td>Move with +1 range; cannot enter hostile hexes.</td></tr>
               <tr><th>Drop Colony Modules</th><td>Found or capture for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> without consuming the Settler.</td></tr>
@@ -293,7 +293,8 @@
       <section id="clarifications">
         <p id="development-reveal">For development playtests, open the game with <code>?dev=1</code> to show the <strong>Reveal entire map</strong> toggle. It displays terrain, resources, relics, buildings, and units. Switch it off to restore normal fog immediately. This viewing aid changes no discovery, turn, save, or opponent information. Units remain visible under normal fog.</p>
         <h2>13 / Current playtest clarifications</h2>
-        <p id="computer-rivals">Local computer rivals build their first Shipyard on their home world’s inward Energy hex. They break equal-distance path choices relative to their home’s orientation. Once they have a usable Shipyard, they prefer a build they can afford now. Explorers pursue located relics, then survey public worlds. If only unlocated moons remain, they search space without consulting hidden moon positions. These choices spend the same cards and resources as human actions. A blocked or illegal move never spends its Move card or prevents the rival from considering another action.</p>
+        <p id="computer-rivals">Computer rivals pursue Prestige with the same cards, costs, and legal actions as you. They take available Colony and excavation opportunities before adding infrastructure. Every profile sends Settlers toward neutral Colony sites. Fleets seek favorable fights or open enemy Colonies for capture. Explorers pursue located relics, then survey public worlds; they stop searching when the shared relic rewards are exhausted. Rivals see public terrain and units and their own private relic signals. They cannot consult hidden moon positions, unlocated relic sectors, enemy hands, or deck order.</p>
+        <p>Rivals keep useful Move, Construct, Colonize, and Excavate orders in circulation. They may skip a purchase, storage upgrade, or extra building to keep cards and resources for scoring. They reinforce against visible threats and keep seeking captures when no neutral worlds remain. Military, Economy, and Expansion profiles favor different routes, but all pursue points. Their first Shipyard still uses the inward Energy hex, and equal-distance paths use their home’s orientation. A blocked or illegal move costs no card. The rival may then choose another action or convert a card normally.</p>
         <p>These are recorded behaviors, not new rules introduced by this manual. Resolving them requires a separate rules change and playtest.</p>
         <details>
           <summary>Occupation, retreats, and civilian combat</summary>
@@ -306,7 +307,7 @@
           </ul>
         </details>
       </section>
-      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 20.25 · The game and this rulebook travel together in every deployment.</p></footer>
+      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 21.26 · The game and this rulebook travel together in every deployment.</p></footer>
     </main>
   </div>
 </body>

@@ -38,7 +38,7 @@ for(let id=0;id<4;id++){
  p.resources={matter:1,energy:1,biomass:0,data:0};assert.equal(e.chooseAiBuild(1).kind,'settler','Affordable Settler replaces unfundable Explorer');
  p.resources={matter:0,energy:1,biomass:0,data:0};p.hand[0].upgraded=true;const b=e.chooseAiBuild(1);assert.equal(b.kind,'settler','Fallback uses the same selected-resource discount as Construct II');
  assert(e.constructAt(1,b.coord,b.kind,'matter',true));
- p.hand[0].upgraded=false;p.resources={matter:0,energy:0,biomass:0,data:0};assert.equal(e.chooseAiBuild(1).kind,'explorer','If nothing is affordable retain highest-ranked funding plan');
+ p.hand[0].upgraded=false;p.resources={matter:0,energy:0,biomass:0,data:0};assert.equal(e.chooseAiBuild(1).kind,'settler','If nothing is affordable retain the scoring plan instead of discretionary infrastructure');
  s.planets[yardFor[1]].occupiedBy=2;p.resources={matter:1,energy:1,biomass:1,data:0};assert.equal(e.chooseAiBuild(1).kind,'starbase','Occupied yard does not activate fallback');
 }
 function target(s,coord){const i=s.clusters.length,[q,r]=coord.split(',').map(Number);s.clusters.push({id:i,center:coord,coords:[coord],kind:'world',revealedBy:[],scannedBy:[]});s.planets[coord]={q,r,cluster:i,type:'matter',owner:null,occupiedBy:null,hasColony:false,upgrade:null};}
@@ -53,11 +53,11 @@ function target(s,coord){const i=s.clusters.length,[q,r]=coord.split(',').map(Nu
 {
  const{e,s}=game(),p=s.players[1];p.strategy='military';p.hand=[{id:'pathfinder',key:'pathfinderNetwork'}];s.activePlayer=1;
  s.planets['1,0']={q:1,r:0,cluster:0,type:'matter',owner:0,occupiedBy:null,hasColony:true,upgrade:null};s.fleets={'0,0':{1:{settler:0,explorer:0,fleet:1}}};
- assert.equal(e.chooseAiMove(1,p.hand[0]),null,'Pathfinder cannot choose its forbidden attack');const before=JSON.stringify(s);e.runAiOperation();assert.notEqual(JSON.stringify(s),before);assert(p.hand.some(c=>c.id==='pathfinder'),'Rejected/unavailable move is not spent');
+ assert.equal(e.chooseAiMove(1,p.hand[0]),null,'Pathfinder cannot choose its forbidden attack');const before=JSON.stringify(s);e.runAiOperation();assert.notEqual(JSON.stringify(s),before);assert(p.discard.some(c=>c.id==='pathfinder'));assert.equal(p.resources.energy,1);assert.equal(p.resources.biomass,1,'An unavailable order may be converted normally instead; no illegal Move was spent');
 }
 for(const points of [9,10,11]){const{e,s}=game();s.players[0].relicsExcavated=points-1;assert.equal(e.calculatePrestige(0),points);e.finishRound();assert.equal(s.winner,points>=10?0:null);}
 {
- const{e,s}=game();assert.equal(e.VICTORY_TARGET,10);assert.equal(s.version,20);assert.equal(s.rulesRevision,25);assert.equal(e.SAVE_KEY,'galactic-reach-save-v20');assert.equal(e.TURN_HISTORY_KEY,'galactic-reach-turn-history-v20');
+ const{e,s}=game();assert.equal(e.VICTORY_TARGET,10);assert.equal(s.version,21);assert.equal(s.rulesRevision,26);assert.equal(e.SAVE_KEY,'galactic-reach-save-v21');assert.equal(e.TURN_HISTORY_KEY,'galactic-reach-turn-history-v21');
  assert.deepEqual(plain(e.STRUCTURES.starbase.cost),{matter:2,energy:1,biomass:1,data:1});assert.deepEqual(plain(e.EXCAVATION_COST),{matter:1,energy:1,data:2});
  assert.deepEqual(plain(e.SHIP_STATS.explorer.cost),{energy:1,data:2});assert.deepEqual(plain(e.SHIP_STATS.settler.cost),{matter:1,energy:1});assert.deepEqual(plain(e.SHIP_STATS.fleet.cost),{matter:2,energy:1,biomass:1});
 }

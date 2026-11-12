@@ -152,8 +152,8 @@ r.playOrder(order.id); assert.equal(r.state.actionMode,'move'); assert.equal(r.s
 r.playOrder(order.id); assert.equal(r.state.actionMode,null,'Clicking again cancels without spending the card');
 assert.equal(r.state.players[0].hand.length,1);
 const old='untouched-v4-save'; storage.set('galactic-reach-save-v4',old);
-assert.equal(r.SAVE_KEY,'galactic-reach-save-v20');
-assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v20');
+assert.equal(r.SAVE_KEY,'galactic-reach-save-v21');
+assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v21');
 const saved=JSON.stringify(fresh(123)); r.saveGame(); fresh(456);
 assert(r.loadGame()); assert.equal(JSON.stringify(r.state),saved,'Reload retains randomized placement');
 assert.equal(storage.get('galactic-reach-save-v4'),old);

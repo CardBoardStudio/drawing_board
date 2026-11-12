@@ -142,3 +142,11 @@ for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css 
 done
 cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/19.24/table.js
 cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/19.24/
+
+# Preserve Open Worlds browser engines and manuals for pinned tables/replays.
+mkdir -p dist/galactic-reach/rules/20.25
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v20-$asset" "dist/galactic-reach/rules/20.25/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/20.25/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/20.25/

@@ -1,6 +1,6 @@
 # Galactic Reach rules maintenance
 
-The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 20.25 / Open Worlds experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
+The [canonical rulebook](../../prototypes/galactic-reach/rulebook.html) is the player-facing specification for **Galactic Reach 21.26 / Scoring Bots experiment**. It is semantic HTML so the exact reviewed source can ship unchanged, without a Markdown renderer or a second generated copy. Edit that file directly. Voidwright is outside this rulebook's scope.
 
 ## Read, change, verify
 
@@ -71,3 +71,5 @@ The 20.25 Open Worlds experiment makes all thirteen worlds’ terrain/resources,
 Moon generation samples uniformly from 2,225 feasible placements for the approved radius-10 world geometry. Each layout has one moon per unique nearest-home region, nearest-home distances 4–7 with at most one step of spread, at least three center steps from every world and six steps between moons, nearest-moon-neighbor spread at most two, and a moon centroid within radius two of the center. Enumeration is bounded and cached; no randomized retry loop or fixed fallback is needed. World positions and twelve relic sites remain unchanged.
 
 Open Worlds uses fixture seed 8 with bot-identity seeds 0–3 for the full-match/API checks. A bounded fixture search completed its four rotations in 1,518, 2,089, 1,565 and 2,066 decisions. This is a reproducible protocol fixture, not a balance sample; production maps remain random.
+
+The 21.26 Scoring Bots experiment changes rival decisions while preserving all human mechanics and the exact 20.25 setup/RNG sequence. Rivals prioritize points, keep scoring units on their sites, route Settlers to neutral worlds and captures, select favorable public fights, reinforce against public threats, and avoid unnecessary deck/storage growth. Funding plans use ordinary conversions, banking and overflow discards, including wildcard conversion gains. The full 20.25 browser assets and native policy 16 remain immutable. See [the policy and evaluation design](scoring-bots.md).

@@ -6,9 +6,9 @@ for(const [name,expected] of Object.entries(hashes))assert.equal(hash(read('crat
 function load(prefix){const c=vm.createContext({});let e;vm.runInContext(read(prefix+'adapter.js')+read(prefix+'app.js'),c);const original=c.createGalacticAdapter;c.createGalacticAdapter=p=>{e=p;return original(p);};const a=c.createGalacticReach({headless:true,random:()=>0});return{a,e,s:e.state};}
 const old=load('crates/galactic-reach/rules/v17-'),current=load('prototypes/galactic-reach/');
 assert.equal(old.a.rulesVersion,'galactic-reach/17.22');assert.equal(old.s.version,17);assert.equal(old.s.clusters.length,16);assert(!('combatVictories' in old.s.players[0]));assert(old.e.STRUCTURES.starbase.upgradeCost);
-assert.equal(current.a.rulesVersion,'galactic-reach/20.25');assert.equal(current.s.version,20);assert.equal(current.s.rulesRevision,25);assert.equal(current.s.clusters.length,17);assert.equal(Object.keys(current.s.planets).length,95);assert.equal(current.s.players[0].combatVictories,0);assert(!current.e.STRUCTURES.starbase.upgradeCost);
+assert.equal(current.a.rulesVersion,'galactic-reach/21.26');assert.equal(current.s.version,21);assert.equal(current.s.rulesRevision,26);assert.equal(current.s.clusters.length,17);assert.equal(Object.keys(current.s.planets).length,95);assert.equal(current.s.players[0].combatVictories,0);assert(!current.e.STRUCTURES.starbase.upgradeCost);
 assert(read('prototypes/galactic-reach/table.js').includes("'galactic-reach/17.22':{format:17,path:'/galactic-reach/rules/17.22/'}"));assert(read('prototypes/lab/replay.js').includes("'galactic-reach/17.22':'/galactic-reach/rules/17.22/'"));assert(read('scripts/build-web.sh').includes('dist/galactic-reach/rules/17.22'));
 const policy=read('crates/galactic-reach/src/legacy_v13.rs').slice(read('crates/galactic-reach/src/legacy_v13.rs').indexOf('#[derive(Clone, Copy, Debug)]')).trim();
 assert.equal(hash(policy),'e2e737fbd376bd28e46b7cb26703dffe7f1d7b122dfbc7d179f6c1f6d451ccef');
 assert(policy.includes('gr-military/13'));assert(read('crates/galactic-reach/src/lib.rs').includes('gr-military/16'));
-console.log('Central Frontier:13-world map,95 terrain hexes,20.25/save20 isolation, archived17.22 browser/policy13 and pinned routes passed.');
+console.log('Central Frontier:13-world map,95 terrain hexes,21.26/save21 isolation, archived17.22 browser/policy13 and pinned routes passed.');

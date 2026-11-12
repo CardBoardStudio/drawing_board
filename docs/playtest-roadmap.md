@@ -1,5 +1,12 @@
 # Playtest roadmap
 
+## Implemented in the 21.26 Scoring Bots experiment
+
+- Improve rivals’ ability to earn Prestige through Colonies, relics and favorable combat; coordinate units and preserve useful orders/resources.
+- Rerun matched strategy and resource simulations against the exact 20.25 baseline, including head-to-head checks.
+
+Status: implementation and validation in progress. Existing20.25 games keep their archived rivals.
+
 ## Implemented in the 20.25 Open Worlds experiment
 
 - Keep all planets visible to all players at all times, with resources, ownership, and buildings public. Hide only undiscovered moons and unlocated relic sites on the map. Keep private relic signals distinct from public surveys.

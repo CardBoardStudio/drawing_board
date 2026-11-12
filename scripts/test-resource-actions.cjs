@@ -163,6 +163,8 @@ function card(key,upgraded=false){return {...r.makeCard(key,true),upgraded};}
   const s=fresh(),p=s.players[0];p.resources={matter:0,energy:5,biomass:0,data:0};
   assert.deepEqual(plain(r.bankPlanForCost(p,{energy:1,data:1})),[{giveType:'energy',getType:'data'}]);
   assert.equal(r.bankPlanForCost(p,{energy:2,data:1}),null,'Reserve resources needed for the purchase');
+  Object.assign(s.planets[s.clusters[0].coords[1]],{owner:0,occupiedBy:null,upgrade:'starbase'});
+  p.hand=[];p.deck=[];p.discard=[];
   s.phase='buy';p.passed=true;s.market=[];s.advancedDeck=[];s.marketDiscard=[];r.runAiBuy();
   assert.equal(p.bought,1);assert.equal(p.resources.data,0);assert.equal(p.resources.energy,0,'AI paid the same 4:1 exchange and card price');
 }

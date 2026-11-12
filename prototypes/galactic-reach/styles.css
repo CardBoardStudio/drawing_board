@@ -781,3 +781,11 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
 .deck-card-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .deck-card-count { color: var(--cyan); font-size: 15px; }
 .deck-card-group .game-card { flex: 1; }
+
+.combat-dialog { width: min(760px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow-y: auto; }
+.combat-forces { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+.combat-forces section { padding: 12px; border: 1px solid var(--line); border-radius: 10px; min-width: 0; }
+.combat-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.combat-options .button { white-space: normal; overflow-wrap: anywhere; text-align: left; }
+.combat-history { border-top: 1px solid var(--line); margin-top: 16px; font-size: .85rem; }
+@media(max-width: 520px) { .combat-forces { grid-template-columns: 1fr; gap: 8px; } }

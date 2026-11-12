@@ -29,7 +29,7 @@ vm.runInContext(source.slice(0,boot)+`
     get state(){ return state; }, set state(value){ state=value; },
     newState, generateGalaxy, boardHas, hexDistance, fleetMove, reachableFrom,
     prepareHumanMove, chooseAiMove, calculatePrestige, finishRound, saveGame, loadGame,
-    beginRound, passOperations, runAiOperation, runAiBuy, nextBuyPlayer, overflowPlayer, discardOverflow,
+    beginRound, passOperations, runAiOperation, combatActor, combatActions, applyCombatAction, runAiBuy, nextBuyPlayer, overflowPlayer, discardOverflow,
     SAVE_KEY, TURN_HISTORY_KEY, VICTORY_TARGET, BOARD_RADIUS,
     canOfferTrade, offerTrade, respondTrade, cancelTrade, tradeBlockReason, startBuyPhase,
     playOrder, cardMarkup, makeCard,
@@ -137,8 +137,8 @@ r.playOrder(order.id); assert.equal(r.state.actionMode,'move'); assert.equal(r.s
 r.playOrder(order.id); assert.equal(r.state.actionMode,null,'Clicking again cancels without spending the card');
 assert.equal(r.state.players[0].hand.length,1);
 const old='untouched-v4-save'; storage.set('galactic-reach-save-v4',old);
-assert.equal(r.SAVE_KEY,'galactic-reach-save-v14');
-assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v14');
+assert.equal(r.SAVE_KEY,'galactic-reach-save-v15');
+assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v15');
 const saved=JSON.stringify(fresh(123)); r.saveGame(); fresh(456);
 assert(r.loadGame()); assert.equal(JSON.stringify(r.state),saved,'Reload retains randomized placement');
 assert.equal(storage.get('galactic-reach-save-v4'),old);
@@ -154,6 +154,7 @@ if(process.env.LONG_REACH_SIMULATE) {
       const seat=r.overflowPlayer(),player=s.players[seat],resource=Object.keys(player.resources).find(key=>player.resources[key]>0);
       r.discardOverflow(seat,{[resource]:1});
     }
+    else if(s.pendingCombat) { const seat=r.combatActor(); r.applyCombatAction(seat,r.combatActions(seat)[0]); }
     else if(s.phase==='operations') s.activePlayer===0?r.passOperations(0):r.runAiOperation();
     else if(s.phase==='buy') s.activePlayer===0?r.nextBuyPlayer():r.runAiBuy();
     else throw Error(`Unexpected phase ${s.phase}`);

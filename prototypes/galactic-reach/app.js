@@ -15,8 +15,8 @@ function createGalacticReach(options = {}) {
   }
   const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
-  const SAVE_FORMAT_VERSION = 14;
-  const RULES_REVISION = 19;
+  const SAVE_FORMAT_VERSION = 15;
+  const RULES_REVISION = 20;
   const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
   const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${SAVE_FORMAT_VERSION}`;
   const RESOURCES = ['matter', 'energy', 'biomass', 'data'];
@@ -54,26 +54,15 @@ function createGalacticReach(options = {}) {
   const HOME_CLUSTER_OWNERS = HOME_STARTS.map(({ cluster, owner }) => [cluster, owner]);
   const RELIC_SECTORS = [[4,2],[5,5],[6,1],[7,4],[8,6],[9,3],[10,2],[11,5]];
   const SHIP_STATS = {
-    settler: { name: 'Settler', move: 1, power: 1, hull: 1, cost: { matter: 1, energy: 1 } },
-    explorer: { name: 'Explorer', move: 3, power: 0, hull: 1, civilian: true, cost: { energy: 1, data: 2 } },
-    fleet: { name: 'Fleet', move: 2, power: 2, hull: 2, cost: { matter: 2, energy: 1, biomass: 1 } },
+    settler: { name: 'Settler', move: 1, power: 1, hull: 2, defendingHull: 4, cost: { matter: 1, energy: 1 } },
+    explorer: { name: 'Explorer', move: 3, power: 1, hull: 1, civilian: true, cost: { energy: 1, data: 2 } },
+    fleet: { name: 'Fleet', move: 2, power: 3, hull: 7, cost: { matter: 2, energy: 1, biomass: 1 } },
   };
   const MILITARY_CARDS = {
     concentratedFire: { name: 'Concentrated Fire', attack: 1, shield: 0, text: '+1 hit.' },
     defensiveScreen: { name: 'Defensive Screen', attack: 0, shield: 2, text: 'Prevent 2 hits.' },
-    flankingRun: { name: 'Flanking Run', attack: 1, shield: 0, tag: 'light', text: '+2 hits with a surviving Settler or Fleet; otherwise +1.' },
-    heavyBarrage: { name: 'Heavy Barrage', attack: 1, shield: 0, tag: 'heavy', text: '+2 hits with a surviving Shipyard; otherwise +1.' },
-    electronicWarfare: { name: 'Electronic Warfare', attack: 1, shield: 1, pierce: 1, text: '+1 hit, prevent 1, and ignore 1 enemy shield.' },
-    tacticalWithdrawal: { name: 'Tactical Withdrawal', attack: 0, shield: 1, retreat: true, text: 'Prevent 1 hit, then retreat if any combat ships survive.' }
   };
-  const MILITARY_DECK_LIST = [
-    'concentratedFire','concentratedFire','concentratedFire',
-    'defensiveScreen','defensiveScreen',
-    'flankingRun','flankingRun',
-    'heavyBarrage','heavyBarrage',
-    'electronicWarfare',
-    'tacticalWithdrawal','tacticalWithdrawal'
-  ];
+  const MILITARY_DECK_LIST = ['concentratedFire','concentratedFire','defensiveScreen','defensiveScreen'];
   const STRUCTURES = {
     harvester: { name: 'Harvester', code: 'H', cost: { matter: 1, energy: 1, biomass: 1 }, upgradeCost: { matter: 2, energy: 1, biomass: 1 } },
     starbase: { name: 'Shipyard', code: 'S', cost: { matter: 2, energy: 1, biomass: 1, data: 1 }, upgradeCost: { matter: 2, energy: 2, data: 2 } },
@@ -81,9 +70,9 @@ function createGalacticReach(options = {}) {
   const STORAGE_UPGRADE = { cost: { matter: 2, energy: 1, data: 1 }, capacity: 5 };
   const EXCAVATION_COST = { matter: 1, energy: 1, data: 2 };
   const LEGEND_TOOLTIPS = {
-    settler: 'Colony ship. Base movement 1; Move II adds 1. It has 1 combat power, reveals worlds by entering them, and is required to colonize. Commission at a Shipyard to receive a Colonize card.',
-    explorer: 'Civilian explorer. Reveals worlds by entering them. Base movement 3; Move II adds 1. Commission at a Shipyard to receive Excavate in discard. Play it at a relic, pay 1 Matter, 1 Energy, and 2 Data, and choose a relic card. Consume one Explorer and trash Excavate.',
-    fleet: 'Reveals worlds by entering them. Base movement 2 (3 with Move II), with 2 combat power and 2 hull.',
+    settler: 'Colony ship. Base movement 1; Move II adds 1. It has 1 attack and 2 hull (4 while defending), reveals worlds by entering them, and is required to colonize. Commission at a Shipyard to receive a Colonize card.',
+    explorer: 'Explorer: 1 attack, 1 hull. Before the first volley, pay 1 Energy per Explorer to escape to one legal adjacent hex. Reveals worlds by entering them. Base movement 3; Move II adds 1. Commission at a Shipyard to receive Excavate in discard. Play it at a relic, pay 1 Matter, 1 Energy, and 2 Data, and choose a relic card. Consume one Explorer and trash Excavate.',
+    fleet: 'Reveals worlds by entering them. Base movement 2 (3 with Move II), with 3 attack and 7 hull.',
     colony: 'Claims a seven-hex world. Colonies must occupy the world’s center hex.',
     harvester: 'Adds 1 resource to this planet’s production.',
     starbase: 'Commissions ships and contributes 3–4 defensive combat power.',
@@ -121,7 +110,7 @@ function createGalacticReach(options = {}) {
     industrialSurge: { name: 'Industrial Surge', kind: 'Industry', accent: 'var(--matter)', resource: { matter: 1, energy: 1 }, order: 'special', tag: 'surge', text: 'Immediately produce from up to three owned hexes in one world, chosen automatically. Each gives 1 printed resource; Harvesters add nothing.', cost: { matter: 2, energy: 2, biomass: 1 } },
     orbitalShipyards: { name: 'Orbital Shipyards', kind: 'Industry', accent: 'var(--matter)', resource: { matter: 2 }, order: 'construct', tag: 'doubleShip', text: 'Commission up to two ships at one Shipyard; second costs 1 less Energy.', cost: { matter: 2, energy: 1, biomass: 1, data: 1 } },
     tradeConsortium: { name: 'Trade Consortium', kind: 'Commerce', accent: 'var(--gold)', resource: { data: 1 }, wildcard: 1, order: 'special', tag: 'bankTrade', text: 'Choose 1 resource to gain, or choose up to two bank exchanges at 2:1.', cost: { matter: 1, energy: 1, biomass: 1, data: 1 } },
-    fleetOverdrive: { name: 'Fleet Overdrive', kind: 'Military', accent: 'var(--energy)', resource: { energy: 2 }, order: 'move', tag: 'overdrive', text: 'Move a fleet with +2 range; an initiated battle cannot be retreated from early.', cost: { matter: 1, energy: 2 } },
+    fleetOverdrive: { name: 'Fleet Overdrive', kind: 'Military', accent: 'var(--energy)', resource: { energy: 2 }, order: 'move', tag: 'overdrive', text: 'Move a group with +2 range. Emergency Jump cannot interrupt this battle; paid Explorer escape before tactics and retreat after volley three still apply.', cost: { matter: 1, energy: 2 } },
     targetingAlgorithms: { name: 'Targeting Algorithms', kind: 'Reaction', accent: 'var(--data)', resource: { data: 2 }, reaction: 'targeting', text: 'Automatically add 1 hit to your next combat volley.', cost: { energy: 1, data: 2 } },
     ablativePlating: { name: 'Ablative Plating', kind: 'Reaction', accent: 'var(--matter)', resource: { matter: 2 }, reaction: 'prevent', text: 'Automatically prevent up to two hits in your next combat.', cost: { matter: 2, biomass: 1 } },
     emergencyJump: { name: 'Emergency Jump', kind: 'Reaction', accent: 'var(--energy)', resource: { energy: 1, data: 1 }, reaction: 'jump', text: 'Automatically retreat from a disastrous volley after suffering one hit.', cost: { energy: 2, data: 1 } },
@@ -257,7 +246,7 @@ function createGalacticReach(options = {}) {
             "matter": 2,
             "energy": 2
         },
-        "text": "Move one group with +2 range. A battle you initiate gains +2 hits in its first volley.",
+        "text": "Move one group with +2 range. A battle you initiate with a Fleet gains +2 hits in its first volley.",
         "lore": "Its shadow arrives before its light."
     },
     "aegisOfSilentArchitects": {
@@ -280,11 +269,12 @@ function createGalacticReach(options = {}) {
         "affinity": "Military",
         "reaction": "targeting",
         "strength": 3,
+        "requiresFleet": true,
         "resource": {
             "energy": 2,
             "data": 1
         },
-        "text": "Automatic reaction: add 3 hits to your next combat volley.",
+        "text": "Automatic reaction: with a surviving Fleet, add 3 hits to your next combat volley.",
         "lore": "The weapon is the song. Your fleet is its instrument."
     },
     "naniteOssuary": {
@@ -332,10 +322,6 @@ function createGalacticReach(options = {}) {
       [copy[i], copy[j]] = [copy[j], copy[i]];
     }
     return copy;
-  }
-
-  function createMilitaryDeck() {
-    return shuffled(MILITARY_DECK_LIST);
   }
 
   function balancedTerrainPositions(homeCenters) {
@@ -438,7 +424,6 @@ function createGalacticReach(options = {}) {
     return {
       id: index, name: PLAYER_NAMES[index], color: PLAYER_COLORS[index], strategy: PLAYER_STRATEGIES[index],
       resources: { matter: 0, energy: 0, biomass: 2, data: 0 }, deck: shuffled(deck), discard: [], hand: [],
-      militaryDeck: createMilitaryDeck(), militaryDiscard: [],
       storageUpgrades: 0, cardsPurchased: 0, relicsExcavated: 0, passed: false, tradeUsed: false, bought: 0, buyLimit: 1,
       buyDiscountData: 0, marketManipulated: false, buyStartDiscardIds: [], combatBonus: 0,
       tradesWith: [0,0,0,0]
@@ -458,7 +443,7 @@ function createGalacticReach(options = {}) {
       planets: galaxy.planets, clusters: galaxy.clusters, fleets, advancedDeck, market: [], marketDiscard: [],
       selected: null, actionMode: null, actionCardId: null, actionOptions: {}, moveSource: null, reachable: [],
       turnStage: 'waiting', log: [], winner: null,
-      lastCombat: null, relicDeck, relicRow,
+      lastCombat: null, pendingCombat: null, pendingMove: null, relicDeck, relicRow,
       tradeOffers: [], nextTradeOfferId: 1, pendingColonyBuild: null, pendingConsortium: null,
       visibilityRevision: 2, rulesRevision: RULES_REVISION
     };
@@ -509,7 +494,7 @@ function createGalacticReach(options = {}) {
   }
 
   function undoLastTurn() {
-    if (!turnHistory.undo) return;
+    if (!turnHistory.undo || state.pendingCombat || state.pendingMove || overflowPlayer()>=0) return;
     const snapshot = turnHistory.undo;
     clearTimeout(aiTimer);
     state = clone(snapshot.state);
@@ -571,7 +556,7 @@ function createGalacticReach(options = {}) {
   }
 
   function fleetPower(fleet) {
-    return fleet ? (fleet.settler || 0) + (fleet.fleet || 0) * 2 : 0;
+    return fleet ? (fleet.settler || 0) + (fleet.explorer || 0) + (fleet.fleet || 0) * 3 : 0;
   }
 
   function fleetMove(fleet) {
@@ -746,6 +731,7 @@ function createGalacticReach(options = {}) {
   }
 
   function constructAt(playerId, coord, kind, resource = null, dryRun = false, fullCost = false) {
+    if (state.pendingCombat) return false;
     if (resource!==null && !RESOURCES.includes(resource)) return false;
     if (STRUCTURES[kind]) return buildUpgrade(playerId,coord,kind,0,dryRun,resource,fullCost);
     if (SHIP_STATS[kind]) return buildShip(playerId,coord,kind,0,dryRun,resource);
@@ -1045,13 +1031,13 @@ function createGalacticReach(options = {}) {
   }
 
   function scheduleAiTurn(phase, action, delay) {
-    if (headless) return;
+    if (headless || state.pendingCombat) return;
     clearTimeout(aiTimer);
     if (overflowPlayer() >= 0) return;
     const expectedPlayer = state.activePlayer;
     aiTimer = setTimeout(() => {
       aiTimer = null;
-      if (overflowPlayer() >= 0 || options.paused?.() || state.phase !== phase || state.activePlayer !== expectedPlayer || state.winner !== null) return;
+      if (state.pendingCombat || overflowPlayer() >= 0 || options.paused?.() || state.phase !== phase || state.activePlayer !== expectedPlayer || state.winner !== null) return;
       try {
         action();
       } catch (error) {
@@ -1073,7 +1059,7 @@ function createGalacticReach(options = {}) {
   }
 
   function passOperations(playerId) {
-    if (state.phase !== 'operations' || state.activePlayer !== playerId || state.pendingColonyBuild || state.pendingConsortium) return false;
+    if (state.pendingCombat || state.phase !== 'operations' || state.activePlayer !== playerId || state.pendingColonyBuild || state.pendingConsortium) return false;
     const player = state.players[playerId];
     if (!player || player.passed) return false;
     if (playerId === 0) completeHumanTurn();
@@ -1095,6 +1081,7 @@ function createGalacticReach(options = {}) {
   }
 
   function completeAction(playerId, message) {
+    if (state.pendingCombat || state.pendingMove) return;
     state.pendingColonyBuild = null;
     if (playerId === 0) completeHumanTurn();
     if (message) logEvent(message);
@@ -1112,7 +1099,7 @@ function createGalacticReach(options = {}) {
   }
 
   function canConvertCards() {
-    return !replayMode && overflowPlayer() < 0 && state.phase === 'operations' && state.activePlayer === 0 && ['prep','action','bonus-build'].includes(state.turnStage);
+    return !state.pendingCombat && !replayMode && overflowPlayer() < 0 && state.phase === 'operations' && state.activePlayer === 0 && ['prep','action','bonus-build'].includes(state.turnStage);
   }
 
   function convertAllResources() {
@@ -1150,7 +1137,7 @@ function createGalacticReach(options = {}) {
 
   function playOrder(cardId) {
     const player = state.players[0];
-    if (state.phase !== 'operations' || state.activePlayer !== 0 || !['prep','action'].includes(state.turnStage)) return;
+    if (state.pendingCombat || state.phase !== 'operations' || state.activePlayer !== 0 || !['prep','action'].includes(state.turnStage)) return;
     const card = player.hand.find(item => item.id === cardId);
     if (!card) return;
     if (state.actionCardId === cardId && state.actionMode) {
@@ -1227,6 +1214,7 @@ function createGalacticReach(options = {}) {
   }
 
   function resolveHumanSpecial(card, definition, playerId = 0) {
+    if (state.pendingCombat) return false;
     const player = state.players[playerId];
     if (definition.kind === 'Alien Relic' && resolveAlienSpecial(playerId,card,definition)) return true;
     if (definition.tag === 'surge') {
@@ -1367,12 +1355,12 @@ function createGalacticReach(options = {}) {
       return;
     }
     if (!state.reachable.includes(key)) { toast('That destination is outside this fleet’s range.'); return; }
-    executeMove(0,state.moveSource,key,state.actionOptions);
-    discardActionCard(0);
-    completeAction(0, `You moved a fleet from ${nameForCoord(state.moveSource)} to ${nameForCoord(key)}.`);
+    const card=state.players[0].hand.find(c=>c.id===state.actionCardId);
+    performMoveOrder(0,state.moveSource,key,card,state.actionOptions);
   }
 
   function prepareHumanMove(key, group) {
+    if (state.pendingCombat) return;
     const moving = fleetGroup(getFleet(key,0),group);
     if (!fleetCount(moving)) return;
     state.moveChoiceSource = null;
@@ -1396,7 +1384,7 @@ function createGalacticReach(options = {}) {
   function executeMove(playerId, source, destination, options = {}) {
     const sourceFleet = getFleet(source,playerId);
     const sourceSnapshot = fleetGroup(sourceFleet,options.moveGroup || 'all');
-    if (!sourceFleet || !fleetCount(sourceSnapshot)) return false;
+    if (state.pendingCombat || !sourceFleet || !fleetCount(sourceSnapshot)) return false;
     Object.keys(SHIP_STATS).forEach(type => { sourceFleet[type] = Math.max(0,(sourceFleet[type] || 0) - (sourceSnapshot[type] || 0)); });
     if (!fleetCount(sourceFleet)) {
       delete state.fleets[source][playerId];
@@ -1409,11 +1397,11 @@ function createGalacticReach(options = {}) {
     return true;
   }
 
-  function combatPieces(playerId, coord, includeStarbase) {
+  function combatPieces(playerId, coord, includeStarbase, defending = false) {
     const pieces = [];
     const fleet = getFleet(coord,playerId);
     if (fleet) Object.keys(SHIP_STATS).forEach(type => {
-      for (let i=0;i<fleet[type];i+=1) pieces.push({ type, hull: SHIP_STATS[type].hull, power: SHIP_STATS[type].power, damage: 0 });
+      for (let i=0;i<fleet[type];i+=1) pieces.push({ type, hull: defending ? SHIP_STATS[type].defendingHull || SHIP_STATS[type].hull : SHIP_STATS[type].hull, power: SHIP_STATS[type].power, damage: 0 });
     });
     if (includeStarbase) {
       const level = state.planets[coord]?.upgradeLevel || 1;
@@ -1430,17 +1418,6 @@ function createGalacticReach(options = {}) {
     return planet && planet.owner !== null && planet.owner !== attacker ? planet.owner : null;
   }
 
-  function drawMilitaryCard(playerId) {
-    const player = state.players[playerId];
-    if (!player.militaryDeck?.length) {
-      player.militaryDeck = shuffled(player.militaryDiscard?.length ? player.militaryDiscard : MILITARY_DECK_LIST);
-      player.militaryDiscard = [];
-    }
-    const key = player.militaryDeck.pop();
-    player.militaryDiscard.push(key);
-    return { key, ...MILITARY_CARDS[key] };
-  }
-
   function aliveCombatPieces(pieces) {
     return pieces.filter(piece => piece.damage < piece.hull);
   }
@@ -1449,30 +1426,20 @@ function createGalacticReach(options = {}) {
     return aliveCombatPieces(pieces).reduce((sum,piece) => sum + (piece.power || 0),0);
   }
 
-  function tacticAttack(card, pieces) {
-    let attack = card.attack || 0;
-    const alive = aliveCombatPieces(pieces);
-    if (card.tag === 'light' && alive.some(piece => piece.type === 'settler' || piece.type === 'fleet')) attack += 1;
-    if (card.tag === 'heavy' && alive.some(piece => piece.type === 'starbase')) attack += 1;
-    return attack;
-  }
-
-  function baseCombatHits(pieces) {
-    const power = combatPower(pieces);
-    return power > 0 ? Math.max(1,Math.ceil(power / 4)) : 0;
-  }
-
-  function useReaction(playerId, reaction) {
+  function useReaction(playerId, reaction, pieces = null) {
     const player = state.players[playerId];
-    const index = player.hand.findIndex(card => ALL_CARDS[card.key].reaction === reaction);
+    const index = player.hand.findIndex(card => {
+      const definition = ALL_CARDS[card.key];
+      return definition.reaction === reaction && (!definition.requiresFleet || pieces?.some(p=>p.type==='fleet' && p.damage<p.hull));
+    });
     if (index < 0) return null;
     const [card] = player.hand.splice(index,1);
     player.discard.push(card);
     return ALL_CARDS[card.key];
   }
 
-  function reactionStrength(playerId, reaction, fallback) {
-    const definition=useReaction(playerId,reaction);
+  function reactionStrength(playerId, reaction, fallback, pieces) {
+    const definition=useReaction(playerId,reaction,pieces);
     return definition ? definition.strength || fallback : 0;
   }
 
@@ -1480,7 +1447,7 @@ function createGalacticReach(options = {}) {
     const order = { explorer:-1, settler:0, fleet:1, starbase:2 };
     const destroyed = [];
     for (let i=0;i<hits;i+=1) {
-      const alive = pieces.filter(piece => piece.damage < piece.hull).sort((a,b) => (a.hull-a.damage)-(b.hull-b.damage) || order[a.type]-order[b.type]);
+      const alive = aliveCombatPieces(pieces).sort((a,b) => (a.hull-a.damage)-(b.hull-b.damage) || order[a.type]-order[b.type]);
       if (!alive.length) break;
       alive[0].damage += 1;
       if (alive[0].damage >= alive[0].hull) destroyed.push(alive[0]);
@@ -1490,9 +1457,7 @@ function createGalacticReach(options = {}) {
 
   function syncCombatPieces(playerId, coord, pieces) {
     const fleet = ensureFleet(coord,playerId);
-    fleet.settler = pieces.filter(p => p.type === 'settler' && p.damage < p.hull).length;
-    fleet.explorer = pieces.filter(p => p.type === 'explorer' && p.damage < p.hull).length;
-    fleet.fleet = pieces.filter(p => p.type === 'fleet' && p.damage < p.hull).length;
+    for (const type of Object.keys(SHIP_STATS)) fleet[type] = pieces.filter(p=>p.type===type && p.damage<p.hull).length;
     if (!fleetCount(fleet)) {
       delete state.fleets[coord][playerId];
       if (!Object.keys(state.fleets[coord]).length) delete state.fleets[coord];
@@ -1502,91 +1467,225 @@ function createGalacticReach(options = {}) {
   }
 
   function findRetreat(coord, playerId, preferred = null) {
-    if (preferred && adjacentKeys(coord).includes(preferred) && !hostileAt(preferred,playerId)) return preferred;
-    return adjacentKeys(coord).find(key => !hostileAt(key,playerId)) || null;
+    const count=fleetCount(getFleet(coord,playerId));
+    const legal=key=>adjacentKeys(coord).includes(key) && !hostileAt(key,playerId) && fleetCount(getFleet(key,playerId))+count<=5;
+    if (preferred && legal(preferred)) return preferred;
+    return adjacentKeys(coord).find(legal) || null;
   }
 
   function retreatFleet(coord, destination, playerId) {
     const fleet = getFleet(coord,playerId);
-    if (!fleet || !destination) return false;
+    if (!fleet || !destination || !adjacentKeys(coord).includes(destination) || hostileAt(destination,playerId) || fleetCount(getFleet(destination,playerId))+fleetCount(fleet)>5) return false;
     const target = ensureFleet(destination,playerId);
-    if (fleetCount(target) + fleetCount(fleet) > 5) return false;
     Object.keys(SHIP_STATS).forEach(type => { target[type] += fleet[type]; });
     delete state.fleets[coord][playerId];
     if (!Object.keys(state.fleets[coord]).length) delete state.fleets[coord];
+    revealClusterAt(destination,playerId);
     return true;
+  }
+
+  function combatActor() {
+    const battle=state.pendingCombat;
+    if (!battle) return null;
+    for (const side of ['attacker','defender']) {
+      if (battle.stage==='escape' ? !battle.escapeDone[side] : battle.commitments[side]===null) return battle[`${side}Id`];
+    }
+    return null;
+  }
+
+  function combatSide(seat) {
+    const battle=state.pendingCombat;
+    return battle && (seat===battle.attackerId?'attacker':seat===battle.defenderId?'defender':null);
+  }
+
+  // The only combat information supplied to policies and live observations. In
+  // particular, a pending opponent commitment is never copied into this view.
+  function combatView(seat) {
+    const battle=state.pendingCombat;
+    if (!battle) return null;
+    const own=combatSide(seat);
+    return clone({coord:battle.coord,origin:battle.origin,stage:battle.stage,volley:battle.volley+1,actor:combatActor(),side:own,
+      attackerId:battle.attackerId,defenderId:battle.defenderId,tag:battle.options.tag || null,
+      sides:Object.fromEntries(['attacker','defender'].map(side=>[side,{
+        playerId:battle[`${side}Id`],pieces:battle[`${side}Pieces`],used:battle.used[side],
+        remaining:Object.values(battle.hands[side]).reduce((sum,n)=>sum+n,0),committed:battle.commitments[side]!==null,
+        escapeDone:battle.escapeDone[side],...(side===own?{hand:battle.hands[side],choice:battle.commitments[side]}:{})
+      }])),summary:battle.summary,volleys:battle.volleys});
+  }
+
+  function combatActions(seat) {
+    const battle=state.pendingCombat, side=combatSide(seat);
+    if (!battle || combatActor()!==seat || !side) return [];
+    if (battle.stage==='tactic') return Object.keys(MILITARY_CARDS).filter(key=>battle.hands[side][key]>0).map(tactic=>({type:'combat_tactic',tactic}));
+    const actions=[{type:'combat_stay'}];
+    const explorers=aliveCombatPieces(battle[`${side}Pieces`]).filter(p=>p.type==='explorer').length;
+    for (const destination of adjacentKeys(battle.coord)) {
+      if (hostileAt(destination,seat)) continue;
+      const max=Math.min(explorers,state.players[seat].resources.energy,5-fleetCount(getFleet(destination,seat)));
+      for (let amount=1;amount<=max;amount++) actions.push({type:'combat_escape',destination,amount});
+    }
+    return actions;
+  }
+
+  function finishMoveOrder() {
+    const pending=state.pendingMove;
+    if (!pending || state.pendingCombat) return;
+    state.pendingMove=null;
+    completeAction(pending.playerId,pending.message);
+  }
+
+  function finishCombat() {
+    const b=state.pendingCombat;
+    if (!b) return;
+    const {attackerId,defenderId,coord,origin}=b, planet=state.planets[coord];
+    syncCombatPieces(attackerId,coord,b.attackerPieces);
+    syncCombatPieces(defenderId,coord,b.defenderPieces);
+    let outcome;
+    const attackers=fleetCount(getFleet(coord,attackerId));
+    const defenders=aliveCombatPieces(b.defenderPieces).length;
+    if (!attackers) outcome=`${state.players[attackerId].name} has no attacking ships left on the hex.`;
+    else if (!defenders) {
+      outcome=`${state.players[attackerId].name} seized the hex.`;
+      if (planet && planet.owner!==null && planet.owner!==attackerId) planet.occupiedBy=attackerId;
+    } else {
+      const retreat=findRetreat(coord,attackerId,origin);
+      if (retreatFleet(coord,retreat,attackerId)) outcome=`${state.players[attackerId].name} retreated to ${nameForCoord(retreat)}.`;
+      else {
+        b.destroyedCount+=attackers;
+        b.attackerPieces.forEach(piece=>{piece.damage=piece.hull;});
+        syncCombatPieces(attackerId,coord,b.attackerPieces);
+        outcome=`${state.players[attackerId].name} could not retreat and its ${attackers} surviving ship${attackers===1?' was':'s were'} destroyed.`;
+      }
+    }
+    if (b.destroyedCount) for (const id of [attackerId,defenderId]) {
+      const salvage=useReaction(id,'salvage');
+      if (salvage) addResources(state.players[id],{matter:Math.min(salvage.salvageCap||3,b.destroyedCount),data:salvage.bonusData||0});
+    }
+    state.lastCombat={attackerId,defenderId,coord,summary:b.summary,volleys:b.volleys,outcome,system:'secret-fixed-hand'};
+    state.pendingCombat=null;
+    logEvent(`${state.players[attackerId].name} attacked ${state.players[defenderId].name} at ${nameForCoord(coord)}. ${outcome}`);
+    if (!headless && $('#combat-dialog').open) $('#combat-dialog').close();
+    finishMoveOrder();
+    render();saveGame();
+  }
+
+  function resolveCombatVolley() {
+    const b=state.pendingCombat, sides=['attacker','defender'];
+    const results={};
+    // Read all pre-volley survivors and reactions before applying either damage.
+    for (const side of sides) {
+      const pieces=b[`${side}Pieces`], id=b[`${side}Id`], key=b.commitments[side], tactic=MILITARY_CARDS[key];
+      b.hands[side][key]--;b.used[side].push(key);
+      const base=combatPower(pieces), reaction=reactionStrength(id,'targeting',1,pieces);
+      const order=side==='attacker' && b.volley===0 ? b.options.tag==='alienAssault' && aliveCombatPieces(pieces).some(p=>p.type==='fleet') ? 2 : b.options.tag==='assault'?1:0:0;
+      results[side]={tactic:key,base,bonus:tactic.attack+reaction+order,shields:tactic.shield+reactionStrength(id,'prevent',2,pieces)};
+    }
+    results.attacker.damage=Math.max(0,results.attacker.base+results.attacker.bonus-results.defender.shields);
+    results.defender.damage=Math.max(0,results.defender.base+results.defender.bonus-results.attacker.shields);
+    b.destroyedCount+=applyCombatHits(b.attackerPieces,results.defender.damage).length+applyCombatHits(b.defenderPieces,results.attacker.damage).length;
+    const number=b.volley+1;
+    b.volleys.push({number,...results});
+    b.summary.push(`Volley ${number}: ${sides.map(side=>{const r=results[side],enemy=results[side==='attacker'?'defender':'attacker'];return `${state.players[b[`${side}Id`]].name} revealed ${MILITARY_CARDS[r.tactic].name}: ${r.base} base + ${r.bonus} bonus − ${enemy.shields} shields = ${r.damage} damage`;}).join('; ')}.`);
+    b.volley++;
+    syncCombatPieces(b.attackerId,b.coord,b.attackerPieces);syncCombatPieces(b.defenderId,b.coord,b.defenderPieces);
+    if (!aliveCombatPieces(b.attackerPieces).length || !aliveCombatPieces(b.defenderPieces).length || b.volley>=3) {finishCombat();return;}
+    if (b.options.tag!=='overdrive' && combatPower(b.attackerPieces)<combatPower(b.defenderPieces)*.55 && useReaction(b.attackerId,'jump')) {
+      b.destroyedCount+=applyCombatHits(b.attackerPieces,1).length;
+      b.summary.push(`${state.players[b.attackerId].name} made an Emergency Jump and suffered one extra hit.`);
+      finishCombat();return;
+    }
+    b.commitments={attacker:null,defender:null};
+  }
+
+  function applyCombatAction(seat,action) {
+    const keys=Object.keys(action||{}).sort().join(',');
+    const match=combatActions(seat).find(legal=>Object.keys(legal).sort().join(',')===keys && Object.keys(legal).every(key=>legal[key]===action[key]));
+    if (!match) return false;
+    const b=state.pendingCombat, side=combatSide(seat);
+    if (action.type==='combat_tactic') {
+      b.commitments[side]=action.tactic;
+      if (b.commitments.attacker!==null && b.commitments.defender!==null) resolveCombatVolley();
+    } else {
+      if (action.type==='combat_escape') {
+        state.players[seat].resources.energy-=action.amount;
+        let count=action.amount;
+        b[`${side}Pieces`]=b[`${side}Pieces`].filter(piece=>!(piece.type==='explorer' && count-->0));
+        const destination=ensureFleet(action.destination,seat);destination.explorer+=action.amount;
+        syncCombatPieces(seat,b.coord,b[`${side}Pieces`]);revealClusterAt(action.destination,seat);
+        b.summary.push(`${state.players[seat].name} paid ${action.amount} Energy to escape with ${action.amount} Explorer${action.amount===1?'':'s'} to ${nameForCoord(action.destination)}.`);
+      }
+      b.escapeDone[side]=true;
+      if (!aliveCombatPieces(b.attackerPieces).length || !aliveCombatPieces(b.defenderPieces).length) finishCombat();
+      else if (b.escapeDone.attacker && b.escapeDone.defender) b.stage='tactic';
+    }
+    render();saveGame();scheduleCombatAi();
+    return true;
+  }
+
+  // This chooser accepts the same sanitized view as an external policy. It
+  // cannot consult a hidden opponent commitment, regular hand, or draw order.
+  function chooseCombatAction(view,actions) {
+    if (!view || !actions.length) return null;
+    const me=view.sides[view.side],enemy=view.sides[view.side==='attacker'?'defender':'attacker'];
+    const alive=side=>side.pieces.filter(p=>p.damage<p.hull), power=side=>alive(side).reduce((n,p)=>n+p.power,0), hull=side=>alive(side).reduce((n,p)=>n+p.hull-p.damage,0);
+    if (view.stage==='escape') {
+      const exits=actions.filter(a=>a.type==='combat_escape');
+      if (exits.length && (power(enemy)>=hull(me) || alive(me).every(p=>p.type==='explorer'))) return exits.sort((a,b)=>b.amount-a.amount)[0];
+      return actions.find(a=>a.type==='combat_stay');
+    }
+    const score=action=>{
+      const card=MILITARY_CARDS[action.tactic];
+      const enemyFire=2-enemy.used.filter(key=>key==='concentratedFire').length, enemyScreen=2-enemy.used.filter(key=>key==='defensiveScreen').length;
+      const probability=enemyFire/(enemyFire+enemyScreen), shield=(1-probability)*2;
+      const dealt=Math.max(0,power(me)+card.attack-shield), received=Math.max(0,power(enemy)+probability-card.shield);
+      return dealt-received*.75+(dealt>=hull(enemy)?8:0)-(received>=hull(me)?10:0)+(view.volley===3 && view.side==='defender'?card.shield:0);
+    };
+    return [...actions].sort((a,b)=>score(b)-score(a))[0];
+  }
+
+  function runAiCombat() {
+    const seat=combatActor();
+    if (seat===null || seat===0) return;
+    const action=chooseCombatAction(combatView(seat),combatActions(seat));
+    if (action) applyCombatAction(seat,action);
+  }
+
+  function scheduleCombatAi() {
+    if (headless || !state.pendingCombat) return;
+    clearTimeout(aiTimer);
+    const battle=state.pendingCombat,seat=combatActor(),stage=battle.stage,volley=battle.volley;
+    if (seat===0 || seat===null) return;
+    aiTimer=setTimeout(()=>{
+      aiTimer=null;
+      if (options.paused?.()) {scheduleCombatAi();return;}
+      if (state.pendingCombat!==battle || combatActor()!==seat || battle.stage!==stage || battle.volley!==volley) return;
+      runAiCombat();
+    },600);
   }
 
   function resolveCombat(attackerId, coord, origin, options = {}) {
     const defenderId = findDefender(coord,attackerId);
-    if (defenderId === null) return;
-    const planet = state.planets[coord];
-    let attackerPieces = combatPieces(attackerId,coord,false);
-    let defenderPieces = combatPieces(defenderId,coord,Boolean(planet && planet.owner === defenderId && planet.upgrade === 'starbase'));
-    let summary = [];
-    const forcedAttack = options.tag === 'overdrive';
-    let attackerWithdrawal = false;
-    let defenderWithdrawal = false;
-    let destroyedCount = 0;
-    let volley = 0;
-    for (; volley < 3 && aliveCombatPieces(attackerPieces).length && aliveCombatPieces(defenderPieces).length; volley += 1) {
-      const attackerTactic = drawMilitaryCard(attackerId);
-      const defenderTactic = drawMilitaryCard(defenderId);
-      const attackerTargeting = reactionStrength(attackerId,'targeting',1);
-      const defenderTargeting = reactionStrength(defenderId,'targeting',1);
-      const attackHits = baseCombatHits(attackerPieces) + tacticAttack(attackerTactic,attackerPieces) + attackerTargeting + (volley === 0 ? options.tag === 'alienAssault' ? 2 : options.tag === 'assault' ? 1 : 0 : 0);
-      const defendHits = baseCombatHits(defenderPieces) + tacticAttack(defenderTactic,defenderPieces) + defenderTargeting;
-      const attackPrevent = (attackerTactic.shield || 0) + (reactionStrength(attackerId,'prevent',2));
-      const defendPrevent = (defenderTactic.shield || 0) + (reactionStrength(defenderId,'prevent',2));
-      const hitsOnAttacker = Math.max(0,defendHits - Math.max(0,attackPrevent - (defenderTactic.pierce || 0)));
-      const hitsOnDefender = Math.max(0,attackHits - Math.max(0,defendPrevent - (attackerTactic.pierce || 0)));
-      const attackerDestroyed = applyCombatHits(attackerPieces,hitsOnAttacker);
-      const defenderDestroyed = applyCombatHits(defenderPieces,hitsOnDefender);
-      destroyedCount += attackerDestroyed.length + defenderDestroyed.length;
-      summary.push(`Volley ${volley+1}: ${state.players[attackerId].name} revealed ${attackerTactic.name} (${hitsOnDefender} hit${hitsOnDefender===1?'':'s'} through); ${state.players[defenderId].name} revealed ${defenderTactic.name} (${hitsOnAttacker} hit${hitsOnAttacker===1?'':'s'} through).`);
-      const aAlive = aliveCombatPieces(attackerPieces);
-      const dAlive = aliveCombatPieces(defenderPieces);
-      if (!aAlive.length || !dAlive.length) break;
-      if (attackerTactic.retreat && !forcedAttack && combatPower(attackerPieces) > 0) { attackerWithdrawal = true; summary.push(`${state.players[attackerId].name} ordered a Tactical Withdrawal.`); break; }
-      if (defenderTactic.retreat && combatPower(defenderPieces) > 0) { defenderWithdrawal = true; summary.push(`${state.players[defenderId].name} ordered a Tactical Withdrawal.`); break; }
-      const aPower = combatPower(attackerPieces);
-      const dPower = combatPower(defenderPieces);
-      const attackerJump = !forcedAttack && aPower < dPower * .55 && useReaction(attackerId,'jump');
-      if (attackerJump) { applyCombatHits(attackerPieces,1); attackerWithdrawal = true; summary.push(`${state.players[attackerId].name} made an Emergency Jump.`); break; }
-      const attackerRetreats = !forcedAttack && volley > 0 && aPower < dPower * .65;
-      if (attackerRetreats) { attackerWithdrawal = true; break; }
-    }
-    syncCombatPieces(attackerId,coord,attackerPieces);
-    syncCombatPieces(defenderId,coord,defenderPieces);
-    if (defenderWithdrawal) {
-      const defenderRetreat = findRetreat(coord,defenderId);
-      if (retreatFleet(coord,defenderRetreat,defenderId)) summary.push(`${state.players[defenderId].name} withdrew to ${nameForCoord(defenderRetreat)}.`);
-    }
-    const attackerFleet = getFleet(coord,attackerId);
-    const defenderFleet = getFleet(coord,defenderId);
-    const starbaseStill = planet && planet.owner === defenderId && planet.upgrade === 'starbase';
-    let outcome;
-    if (!fleetCount(attackerFleet)) {
-      outcome = attackerId === 0 ? 'Your fleet was destroyed.' : `${state.players[attackerId].name}'s fleet was destroyed.`;
-    } else if (!fleetCount(defenderFleet) && !starbaseStill) {
-      outcome = `${state.players[attackerId].name} seized the hex.`;
-      if (planet && planet.owner !== null && planet.owner !== attackerId) planet.occupiedBy = attackerId;
-    } else if (attackerWithdrawal || fleetCount(defenderFleet) || starbaseStill) {
-      const retreat = findRetreat(coord,attackerId,origin);
-      if (retreatFleet(coord,retreat,attackerId)) outcome = `${state.players[attackerId].name} retreated to ${nameForCoord(retreat)}.`;
-      else outcome = `${state.players[attackerId].name} could not retreat and was lost.`;
-    } else {
-      outcome = `${state.players[attackerId].name} seized the hex.`;
-    }
-    if (destroyedCount) {
-      for (const id of [attackerId,defenderId]) {
-        const salvage=useReaction(id,'salvage');
-        if (salvage) addResources(state.players[id],{matter:Math.min(salvage.salvageCap||3,destroyedCount),data:salvage.bonusData||0});
-      }
-    }
-    state.lastCombat = { attackerId, defenderId, coord, summary, outcome, system: 'military-deck' };
-    logEvent(`${state.players[attackerId].name} attacked ${state.players[defenderId].name} at ${nameForCoord(coord)}. ${outcome}`);
-    if (attackerId === 0 || defenderId === 0) showMessage('COMBAT REPORT', nameForCoord(coord), [...summary,outcome].join(' '));
+    if (defenderId === null || state.pendingCombat) return;
+    const planet=state.planets[coord];
+    state.pendingCombat={attackerId,defenderId,coord,origin,options:clone(options),
+      attackerPieces:combatPieces(attackerId,coord,false),
+      defenderPieces:combatPieces(defenderId,coord,Boolean(planet && planet.owner===defenderId && planet.upgrade==='starbase'),true),
+      hands:{attacker:{concentratedFire:2,defensiveScreen:2},defender:{concentratedFire:2,defensiveScreen:2}},
+      used:{attacker:[],defender:[]},commitments:{attacker:null,defender:null},escapeDone:{attacker:false,defender:false},
+      stage:'escape',volley:0,summary:[],volleys:[],destroyedCount:0};
+    if (!state.pendingCombat.attackerPieces.length || !state.pendingCombat.defenderPieces.length) finishCombat();
+    else {render();saveGame();scheduleCombatAi();}
+  }
+
+  function performMoveOrder(playerId,source,destination,card,options={}) {
+    if (state.pendingCombat || state.pendingMove || state.phase!=='operations' || state.activePlayer!==playerId || overflowPlayer()>=0 || !state.players[playerId].hand.some(c=>c.id===card?.id) || ALL_CARDS[card.key].order!=='move') return false;
+    const moving=fleetGroup(getFleet(source,playerId),options.moveGroup || 'all');
+    if (!reachableFrom(source,playerId,movementRange(moving,card),options.tag==='pathfinder',moving).includes(destination)) return false;
+    state.pendingMove={playerId,source,destination,cardId:card.id,message:`${state.players[playerId].name} moved a group from ${nameForCoord(source)} to ${nameForCoord(destination)}.`};
+    removeHandCard(state.players[playerId],card.id);
+    executeMove(playerId,source,destination,options);
+    finishMoveOrder();
+    return true;
   }
 
   function colonizePlanet(playerId, coord, options = {}, dryRun = false) {
@@ -1684,6 +1783,7 @@ function createGalacticReach(options = {}) {
   }
 
   function contextExcavate(coord, relicId) {
+    if (state.pendingCombat) return;
     if (state.actionMode!=='excavate') return;
     if (!excavate(0,coord,state.actionCardId,relicId)) toast('Excavation needs your Explorer, an available relic card, and 1 Matter, 1 Energy, 2 Data.');
   }
@@ -1704,6 +1804,7 @@ function createGalacticReach(options = {}) {
   }
 
   function contextBuild(kind, coord) {
+    if (state.pendingCombat) return;
     if (state.actionMode !== 'construct' || state.activePlayer !== 0) return;
     const discount=state.actionOptions.upgraded?state.actionOptions.discountResource:null;
     const success=constructAt(0,coord,kind,discount);
@@ -1714,6 +1815,7 @@ function createGalacticReach(options = {}) {
   }
 
   function contextColonize(coord) {
+    if (state.pendingCombat) return;
     if (state.actionMode !== 'colonize' || state.activePlayer !== 0) return;
     const card=state.players[0].hand.find(c=>c.id===state.actionCardId);
     if (!applyColonizeOrder(0,coord,card)) toast('You need an eligible Settler on the world’s center hex and the required resources.');
@@ -1863,7 +1965,7 @@ function createGalacticReach(options = {}) {
   }
 
   function runAiOperation() {
-    if (state.phase !== 'operations' || state.activePlayer === 0 || state.winner !== null) return;
+    if (state.pendingCombat || state.phase !== 'operations' || state.activePlayer === 0 || state.winner !== null) return;
     if (overflowPlayer() >= 0) return;
     if (state.pendingConsortium) { runAiConsortium(); return; }
     if (state.pendingColonyBuild) { aiColonyBuild(state.activePlayer); return; }
@@ -1908,9 +2010,7 @@ function createGalacticReach(options = {}) {
     const move = chooseAiMove(id,moveCard);
     if (moveCard && move && move.destination !== move.source) {
       const definition = ALL_CARDS[moveCard.key];
-      executeMove(id,move.source,move.destination,{tag:definition.tag,moveGroup:move.moveGroup});
-      aiPlayCard(player,moveCard);
-      completeAction(id,`${player.name} moved a fleet toward ${nameForCoord(move.destination)}.`);
+      performMoveOrder(id,move.source,move.destination,moveCard,{tag:definition.tag,moveGroup:move.moveGroup});
       return;
     }
     const alien=player.hand.find(card=>RELIC_CARDS[card.key]?.order==='special');
@@ -2081,6 +2181,7 @@ function createGalacticReach(options = {}) {
   // reloaded dialog reopens instead of leaving the game parked in that phase.
   function resumePendingChoice() {
     if (state.winner !== null) return;
+    renderCombat();scheduleCombatAi();
     renderOverflow();
     if (overflowPlayer() < 0 && state.pendingConsortium) renderConsortium();
   }
@@ -2103,7 +2204,7 @@ function createGalacticReach(options = {}) {
   }
 
   function canManageResources(playerId) {
-    if (replayMode || overflowPlayer() >= 0 || state.pendingConsortium || state.winner !== null || state.activePlayer !== playerId || !state.players[playerId]) return false;
+    if (state.pendingCombat || replayMode || overflowPlayer() >= 0 || state.pendingConsortium || state.winner !== null || state.activePlayer !== playerId || !state.players[playerId]) return false;
     if (state.phase === 'buy') return true;
     return state.phase === 'operations' && !state.players[playerId].passed
       && (headless || playerId !== 0 || ['prep','action','bonus-build'].includes(state.turnStage));
@@ -2155,7 +2256,7 @@ function createGalacticReach(options = {}) {
 
   function canOfferTrade(playerId, terms) {
     const p = state.players[playerId];
-    return !!p && state.winner === null && state.phase === 'operations' && state.activePlayer === playerId
+    return !state.pendingCombat && !!p && state.winner === null && state.phase === 'operations' && state.activePlayer === playerId
       && !p.passed && !p.tradeUsed && !state.pendingColonyBuild && !state.pendingConsortium && (headless || playerId !== 0 || ['prep','action'].includes(state.turnStage))
       && RESOURCES.includes(terms.giveType) && RESOURCES.includes(terms.getType) && terms.giveType !== terms.getType
       && [terms.giveAmount,terms.getAmount].every(n=>Number.isInteger(n) && n>=1 && n<=5)
@@ -2176,7 +2277,7 @@ function createGalacticReach(options = {}) {
   }
 
   function tradeResponseAllowed(playerId, offer) {
-    return !state.pendingConsortium && !!offer && state.winner === null && state.phase === 'operations' && state.activePlayer === playerId
+    return !state.pendingCombat && !state.pendingConsortium && !!offer && state.winner === null && state.phase === 'operations' && state.activePlayer === playerId
       && offer.status === 'open' && offer.round === state.round && offer.from !== playerId
       && offer.responses[playerId] === 'pending' && !state.players[playerId].passed;
   }
@@ -2213,6 +2314,7 @@ function createGalacticReach(options = {}) {
   }
 
   function cancelTrade(playerId, id) {
+    if (state.pendingCombat) return false;
     const offer=state.tradeOffers.find(o=>o.id===id);
     if (state.pendingConsortium || !offer || offer.from!==playerId || offer.status!=='open' || state.activePlayer!==playerId || state.phase!=='operations') return false;
     offer.status='withdrawn'; logEvent(`${state.players[playerId].name} withdrew an offer.`);
@@ -2428,7 +2530,7 @@ function createGalacticReach(options = {}) {
   }
 
   function availableContextOrders(coord) {
-    if (replayMode || state.winner !== null || state.phase !== 'operations' || state.activePlayer !== 0
+    if (state.pendingCombat || replayMode || state.winner !== null || state.phase !== 'operations' || state.activePlayer !== 0
       || !['prep','action'].includes(state.turnStage) || state.pendingColonyBuild) return [];
     const planet = state.planets[coord], fleet = getFleet(coord,0);
     const known = planet && clusterKnown(state.clusters[planet.cluster],0);
@@ -2537,7 +2639,7 @@ function createGalacticReach(options = {}) {
       }
       actions.appendChild(actionButton('Finish without building',()=>finishColonyBuild(0)));
     }
-    if (state.phase==='operations' && state.activePlayer===0 && state.turnStage==='action') {
+    if (!state.pendingCombat && state.phase==='operations' && state.activePlayer===0 && state.turnStage==='action') {
       if (state.actionMode==='move' && state.moveChoiceSource===key) {
         actions.appendChild(actionButton('Move Explorers',()=>prepareHumanMove(key,'explorer')));
         actions.appendChild(actionButton('Move Ships',()=>prepareHumanMove(key,'ships')));
@@ -2679,8 +2781,7 @@ function createGalacticReach(options = {}) {
       Object.values(state.fleets).forEach(group=>Object.keys(totals).forEach(type=>{totals[type]+=group[id]?.[type]||0;}));
       return `<div class="fleet-faction" style="--player:${player.color}"><strong>${esc(player.name)}</strong><span>${totals.settler} Settlers · ${totals.explorer} Explorers · ${totals.fleet} Fleets<br>${excavatedRelicCount(id)} excavated relics · ${strongestFleet(id)} strongest-fleet power</span></div>`;
     }).join('');
-    const player=state.players[0];
-    $('#military-deck-count').textContent=replayMode?'Every faction uses this deck':`${player.militaryDeck.length} ready · ${player.militaryDiscard.length} used`;
+    $('#military-deck-count').textContent='Fresh every battle · no draw pile';
     const counts=MILITARY_DECK_LIST.reduce((result,key)=>{result[key]=(result[key]||0)+1;return result;},{});
     $('#military-card-grid').innerHTML=Object.entries(counts).map(([key,count])=>{
       const card=MILITARY_CARDS[key];
@@ -2730,10 +2831,11 @@ function createGalacticReach(options = {}) {
     if(state.phase==='operations')instruction=humanTurn?(state.turnStage==='prep'?'Use an order on a card, convert resources, trade, or pass.':'Choose one order, Trade action, or pass.'):'Computer rival is evaluating the board…';
     else if(state.phase==='buy')instruction=humanTurn?'Buy now, upgrade or trash cards, then finish to let remaining factions continue.':'Computer rival is shopping the market…';
     else instruction='Resolving automatic bookkeeping…';
-    $('#turn-instruction').textContent=state.pendingConsortium?'Choose your Trade Consortium gain or exchanges.':state.pendingColonyBuild?.playerId===0?'Colonize II: choose an adjacent building at full cost, or finish without building.':instruction;
-    $('#pass-button').hidden=!(state.phase==='operations'&&humanTurn&&(state.turnStage==='prep'||state.turnStage==='action'));
+    $('#report-button').hidden=!state.lastCombat || !!state.pendingCombat;
+    $('#turn-instruction').textContent=state.pendingCombat?'Battle pending: finish escape and secret tactic choices.':state.pendingConsortium?'Choose your Trade Consortium gain or exchanges.':state.pendingColonyBuild?.playerId===0?'Colonize II: choose an adjacent building at full cost, or finish without building.':instruction;
+    $('#pass-button').hidden=!!state.pendingCombat || !(state.phase==='operations'&&humanTurn&&(state.turnStage==='prep'||state.turnStage==='action'));
     const undoButton=$('#undo-turn-button');
-    undoButton.disabled=!turnHistory.undo;
+    undoButton.disabled=!!state.pendingCombat || !turnHistory.undo;
     undoButton.title=turnHistory.undo?`Restore the start of your ${turnHistory.undo.label}`:'Available after you complete a turn';
   }
 
@@ -2748,6 +2850,9 @@ function createGalacticReach(options = {}) {
     const order = `Use order · ${cardName('Order')}`;
     const offer = before.tradeOffers?.find(o => o.id === action.offer);
     switch (action.type) {
+      case 'combat_tactic': return {text:`Commit ${MILITARY_CARDS[action.tactic].name}`,coords:[before.pendingCombat?.coord].filter(Boolean)};
+      case 'combat_stay': return {text:'Keep Explorers in battle'};
+      case 'combat_escape': return {text:`Pay ${action.amount} Energy: escape with ${action.amount} Explorers to ${place(action.destination)}`,coords:[action.destination]};
       case 'pass': return { text: 'Pass & buy' };
       case 'consortium_gain': return { text: `Trade Consortium · Gain ${amount(1,action.resource)}` };
       case 'consortium_exchange': return { text: `Trade Consortium · ${amount(2,action.giveType)} → ${amount(1,action.getType)}` };
@@ -2798,7 +2903,7 @@ function createGalacticReach(options = {}) {
       round: view.round, phase: view.phase, activePlayer: view.active ?? 0, winner: view.winner ?? null, firstPlayer: 0,
       players: view.players.map((p, id) => ({ ...p, id, name: extra.names[id], color: PLAYER_COLORS[id], cardsPurchased: extra.cardsPurchased[id], tradesWith: extra.tradesWith[id] })),
       planets: view.planets, clusters: view.clusters, fleets: view.fleets, relicRow: view.relicRow || [], relicDeck: [], relicDeckCount: view.relicDeckCount || 0, pendingConsortium: view.pendingConsortium || null,
-      log: view.log || [], lastCombat: view.lastCombat || null, tradeOffers: view.tradeOffers || [], market: [],
+      pendingCombat: view.pendingCombat || null, log: view.log || [], lastCombat: view.lastCombat || null, tradeOffers: view.tradeOffers || [], market: [],
       selected: extra.selected || null, actionMode: null, actionOptions: {}, turnStage: 'waiting', pendingColonyBuild: pending,
       moveSource: decision?.source || null, reachable: [], replayDecision: decision, replayElo: extra.elo || null
     };
@@ -2841,6 +2946,27 @@ function createGalacticReach(options = {}) {
     $('#overflow-confirm').disabled = chosen !== excess;
   }
 
+  function renderCombat() {
+    if (headless || replayMode) return;
+    const dialog=$('#combat-dialog'),b=state.pendingCombat;
+    if (!b || (b.attackerId!==0 && b.defenderId!==0)) {if(dialog.open)dialog.close();return;}
+    const view=combatView(0),actor=combatActor(),actions=combatActions(0),mine=view.sides[view.side],enemy=view.sides[view.side==='attacker'?'defender':'attacker'];
+    $('#combat-title').textContent=`Battle at ${nameForCoord(b.coord)}`;
+    $('#combat-status').textContent=view.stage==='escape' ? actor===0?'Before the first volley: escape with Explorers or stay.':'Waiting for the opponent’s escape decision.' : actor===0?`Volley ${view.volley}: secretly commit one available tactic.`:mine.committed?'Your tactic is committed. Waiting for the opponent; their choice stays hidden.':'Waiting for the opponent to commit. Their choice stays hidden.';
+    $('#combat-forces').innerHTML=['attacker','defender'].map(side=>{
+      const force=view.sides[side],units=aliveCombatPieces(force.pieces);
+      return `<section><h3>${esc(state.players[force.playerId].name)} · ${side}</h3><p>${units.map(p=>`${esc(SHIP_STATS[p.type]?.name || 'Shipyard')}: ${p.power} attack, ${p.hull-p.damage}/${p.hull} hull`).join('<br>') || 'No pieces remain'}</p><p>${force.remaining} tactics left · ${force.committed?'Committed':'Not committed'}</p><p>Used: ${force.used.map(key=>MILITARY_CARDS[key].name).join(', ') || 'None'}</p></section>`;
+    }).join('');
+    $('#combat-options').innerHTML=actions.map((action,index)=>{
+      const label=action.type==='combat_tactic'?`${MILITARY_CARDS[action.tactic].name} · ${mine.hand[action.tactic]} available · ${MILITARY_CARDS[action.tactic].text}`:action.type==='combat_stay'?'Stay and fight':`Escape ${action.amount} Explorer${action.amount===1?'':'s'} → ${nameForCoord(action.destination)} (${action.destination}) · pay ${action.amount} Energy`;
+      return `<button class="button ${action.type==='combat_stay'?'':'button-primary'}" type="button" data-combat-action="${index}">${esc(label)}</button>`;
+    }).join('');
+    $('#combat-help').textContent=view.stage==='tactic'?`Your base attack is ${combatPower(mine.pieces)}; the opponent’s is ${combatPower(enemy.pieces)}. Fire adds 1 hit. Screen prevents 2. Opponent bonuses and shields remain unknown until both commit. Damage is simultaneous.`:'Escape moves only the chosen Explorers. Other units stay. Destination capacity and Energy costs are included in these choices.';
+    $('#combat-history').innerHTML=view.summary.map(line=>`<p>${esc(line)}</p>`).join('');
+    $$('[data-combat-action]').forEach(button=>button.addEventListener('click',()=>applyCombatAction(0,actions[Number(button.dataset.combatAction)])));
+    if (!dialog.open) dialog.showModal();
+  }
+
   function renderOverflow() {
     if (headless || replayMode) return;
     const dialog = $('#overflow-dialog');
@@ -2875,7 +3001,7 @@ function createGalacticReach(options = {}) {
 
   function render() {
     if (headless) return;
-    renderHeader(); renderScoreboard(); renderBoard(); renderResources(); renderInspector(); positionSectorScan(); renderLog(); renderHand(); renderMarket(); renderFleetSummary(); renderTrade(); renderRelicRow(); renderOverflow();
+    renderHeader(); renderScoreboard(); renderBoard(); renderResources(); renderInspector(); positionSectorScan(); renderLog(); renderHand(); renderMarket(); renderFleetSummary(); renderTrade(); renderRelicRow(); renderOverflow(); renderCombat();
   }
 
   function switchTab(name) {
@@ -2970,6 +3096,9 @@ function createGalacticReach(options = {}) {
     $('#upgrade-storage-button').addEventListener('click',()=>increaseStorage(0));
     $('#convert-all-button').addEventListener('click',convertAllResources);
     $('#trade-form').addEventListener('submit',submitTrade);
+    const combatDialog=$('#combat-dialog');
+    combatDialog.addEventListener('cancel',event=>event.preventDefault());
+    combatDialog.addEventListener('close',renderCombat);
     const overflowDialog = $('#overflow-dialog');
     overflowDialog.addEventListener('cancel',event=>event.preventDefault());
     overflowDialog.addEventListener('close',renderOverflow);
@@ -3018,7 +3147,7 @@ function createGalacticReach(options = {}) {
       removeHandCard, passOperations, completeAction, nextBuyPlayer, buyCard, upgradeStarter,
       decommission, excavatedRelicCount, useBuyEffect, resolveHumanSpecial,
       colonizePlanet, buildUpgrade, excavate, buildShip, getFleet, fleetCount,
-      fleetGroup, fleetMove, fleetPower, reachableFrom, executeMove, nearestUnscannedRelicCluster,
+      fleetGroup, fleetMove, fleetPower, reachableFrom, executeMove, performMoveOrder, combatActor, combatView, combatActions, applyCombatAction, nearestUnscannedRelicCluster,
       clusterKnown, clusterScanned, relicCoordInCluster, calculatePrestige, colonyPlanets,
       totalResources, playerCapacity, overflowPlayer, discardOverflow,
       canConsortiumGain, canConsortiumExchange, consortiumGain, consortiumExchange, finishConsortium,
@@ -3056,6 +3185,7 @@ function createGalacticReach(options = {}) {
     render();
     resumePendingChoice();
     if (state.phase === 'buy' && state.activePlayer === 0) switchTab('market');
+    scheduleCombatAi();
     if (state.winner === null && state.activePlayer !== 0 && state.phase === 'operations') scheduleAiTurn('operations', runAiOperation, 650);
     if (state.winner === null && state.activePlayer !== 0 && state.phase === 'buy') scheduleAiTurn('buy', runAiBuy, 650);
   }

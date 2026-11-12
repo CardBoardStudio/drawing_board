@@ -94,3 +94,11 @@ for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css 
 done
 cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/13.18/table.js
 cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/13.18/
+
+# Preserve14.19 before the combat rules experiment; pinned games never upgrade.
+mkdir -p dist/galactic-reach/rules/14.19
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v14-$asset" "dist/galactic-reach/rules/14.19/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/14.19/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/14.19/

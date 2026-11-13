@@ -1,5 +1,12 @@
 # Playtest roadmap
 
+## Ship count readability and26.31 simulations
+
+- Keep each ship-type count visible within a hex, including mixed groups and buildings. Preserve zoom and Sector Scan; use a pannable map on narrow screens.
+- Rerun strategy and resource simulations on26.31 with single-use orders and the ten-Fleet cap, against matched archived25.30 controls.
+
+Status: implemented. Desktop, zoom and phone fixtures pass; 2,592 frozen26.31 trials completed with resource/score/combat audits. See analysis/galactic-reach-26.31/report.html. Publication verification is pending. No other pending changes were listed.
+
 ## Nearest Probe24.29 correction
 
 - Probe locates the nearest unlocated remaining relic from an Explorer anywhere, including empty space, home or Shipyard. Keep the Explorer, discard Probe and spend an Operations action.

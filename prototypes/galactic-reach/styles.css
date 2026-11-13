@@ -675,6 +675,7 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
 .resource-name { font-size: 14px; letter-spacing: .025em; }
 .resource-symbol-large { width: 38px; height: 38px; padding: 5px; }
 .resource-box .resource-amount { grid-column: 2; grid-row: 1; font-size: 18px; margin-top: 0; text-align: right; }
+.resource-box .resource-production { grid-column: 2; grid-row: 2; color: var(--resource); font-size: 12px; font-weight: 700; line-height: 1.2; text-align: right; }
 .resource-box p { min-height: 0; font-size: 14px; line-height: 1.5; margin-top: 10px; }
 .capacity { font-size: 14px; }
 .map-tools { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 10px; border: 1px solid var(--line); background: var(--surface); }
@@ -779,7 +780,7 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
 @media (max-width: 780px) { .relic-catalog-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 500px) { .relic-catalog-grid { grid-template-columns: 1fr; }.relic-catalog-dialog { padding: 14px; } }
 
-.resource-box .resource-name { grid-column: 1 / -1; grid-row: 2; font-size: 10px; line-height: 1.2; letter-spacing: .02em; text-align: center; }
+.resource-box .resource-name { grid-column: 1 / -1; grid-row: 3; font-size: 10px; line-height: 1.2; letter-spacing: .02em; text-align: center; }
 .overflow-options { display: grid; gap: 10px; }
 .overflow-option { display: grid; grid-template-columns: 20px 1fr 76px; align-items: center; gap: 10px; }
 .overflow-option small { display: block; color: var(--muted); }

@@ -514,22 +514,54 @@ test('Relics tab browses read-only and participates in keyboard tab navigation',
   fire(relics,'keydown',{key:'ArrowRight',cancelable:true});assertTab(game,'hand');fire(game.dom.element('hand-tab'),'keydown',{key:'End',cancelable:true});assertTab(game,'relics');fire(relics,'keydown',{key:'Home',cancelable:true});assertTab(game,'hand');
   game.dom.hex(game.saved().clusters[0].center).click();assertTab(game,'hand');assert.equal(game.saved().actionMode,null,'Ordinary map inspection does not start excavation');
 });
+function productionNumbers(game) {
+ const html=game.dom.element('resource-grid').innerHTML;
+ return Object.fromEntries(['matter','energy','biomass','data'].map(resource=>{
+  const article=html.match(new RegExp('<article class="resource-box '+resource+'"[\\s\\S]*?</article>'))?.[0];assert(article);
+  const amount=Number(article.match(/class="resource-production"[^>]*>\+(\d+)/)?.[1]);assert(Number.isInteger(amount));
+  assert(article.includes('+'+amount+' per round'),'Accessible name explains production');return [resource,amount];
+ }));
+}
+test('Resource counters show starting production separately from available stock',()=>{
+ const game=boot(createStorage());assert.deepEqual(productionNumbers(game),{matter:1,energy:0,biomass:0,data:0});
+});
+test('Production readout includes Harvesters and per-group collection and reacts to control changes',()=>{
+ const storage=createStorage(),state=boot(storage).saved();
+ for(const p of Object.values(state.planets))Object.assign(p,{owner:null,hasColony:false,upgrade:null,upgradeLevel:0,occupiedBy:null});
+ const coords=resource=>Object.entries(state.planets).filter(([,p])=>p.type===resource).map(([k])=>k);
+ const [matter,occupiedMatter]=coords('matter'),[energy]=coords('energy'),[biomass]=coords('biomass'),[data]=coords('data');
+ const moon=state.clusters.find(c=>c.kind==='moon').center;
+ Object.assign(state.planets[matter],{owner:0,upgrade:'harvester',upgradeLevel:2});
+ Object.assign(state.planets[occupiedMatter],{owner:0,occupiedBy:1});
+ Object.assign(state.planets[energy],{owner:0});Object.assign(state.planets[biomass],{owner:1});Object.assign(state.planets[data],{owner:0,occupiedBy:1});
+ state.fleets={[energy]:{0:{fleet:3}},[biomass]:{0:{settler:3}},[data]:{1:{fleet:1}},[occupiedMatter]:{1:{fleet:1}},[moon]:{0:{fleet:1}}};
+ // An Explorer on unclaimed Data earns no local collection.
+ const explorerData=coords('data').find(k=>k!==data);state.fleets[explorerData]={0:{explorer:1}};
+ state.players[0].resources={matter:10,energy:0,biomass:0,data:0};
+ writeSave(storage,state);const game=boot(storage);
+ assert.deepEqual(productionNumbers(game),{matter:3,energy:2,biomass:1,data:0});
+ assert.deepEqual(game.saved().players[0].resources,state.players[0].resources,'Forecast never collects resources or caps the gross gain');
+ const updated=game.saved();updated.planets[occupiedMatter].occupiedBy=null;delete updated.fleets[occupiedMatter];updated.planets[energy].owner=null;updated.fleets[biomass][0]={explorer:1};writeSave(storage,updated);
+ assert.deepEqual(productionNumbers(boot(storage)),{matter:4,energy:1,biomass:0,data:0});
+});
+
 test('Probe resolves from empty space without selecting or reaching a world',()=>{
  const storage=createStorage(),state=boot(storage).saved();
  state.phase='operations';state.activePlayer=0;state.turnStage='prep';state.selected=null;
  state.fleets={'2,2':{0:{explorer:1,settler:0,fleet:0}}};state.players[0].hand=[{id:'remote-probe',key:'probe'}];
  writeSave(storage,state);const game=boot(storage),before=game.saved(),calls=game.randomCalls();
  game.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='remote-probe').click();
- const after=game.saved();assert(after.players[0].discard.some(c=>c.id==='remote-probe'));assert.equal(after.activePlayer,1);
+ const after=game.saved();assert(![...after.players[0].hand,...after.players[0].deck,...after.players[0].discard].some(c=>c.id==='remote-probe'));assert.equal(after.activePlayer,1);
  assert.equal(after.fleets['2,2'][0].explorer,1);assert.deepEqual(after.players[0].resources,before.players[0].resources);assert.equal(game.randomCalls(),calls);
  assert.equal(after.clusters.filter(c=>c.scannedBy.includes(0)).length,before.clusters.filter(c=>c.scannedBy.includes(0)).length+1);
  assert.deepEqual(after.clusters.map(c=>c.revealedBy),before.clusters.map(c=>c.revealedBy));
+ game.click('export-game-report');const report=game.downloads.at(-1);assert(report.save.gameHistory.events.some(e=>e.text.includes('Probe was permanently trashed')));const p=report.save.state.players[0];assert(![...p.hand,...p.deck,...p.discard].some(c=>c.id==='remote-probe'));
 });
 test('Multiple Explorers let the player choose the Probe origin',()=>{
  const storage=createStorage(),state=boot(storage).saved();Object.assign(state,{phase:'operations',activePlayer:0,turnStage:'prep',selected:null});
  state.fleets={'2,2':{0:{explorer:1}},'-2,2':{0:{explorer:1}}};state.players[0].hand=[{id:'choose-probe',key:'probe'}];writeSave(storage,state);
  const game=boot(storage);game.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='choose-probe').click();assert.equal(game.saved().activePlayer,0);assert(game.saved().players[0].hand.some(c=>c.id==='choose-probe'));
- game.dom.hex('-2,2').click();assert(game.saved().players[0].discard.some(c=>c.id==='choose-probe'));assert.equal(game.saved().activePlayer,1);
+ game.dom.hex('-2,2').click();assert(![...game.saved().players[0].hand,...game.saved().players[0].deck,...game.saved().players[0].discard].some(c=>c.id==='choose-probe'));assert.equal(game.saved().activePlayer,1);
 });
 test('Probe UI locates a relic privately and unlocated excavation never redirects to rewards',()=>{
   const {storage,coord}=excavationStorage({affordable:true}),state=JSON.parse(storage.getItem(SAVE_KEY));
@@ -543,10 +575,10 @@ test('Probe UI locates a relic privately and unlocated excavation never redirect
   game.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='ui-probe').click();
   game.dom.hex(coord).click();game.settle();
   const after=game.saved();assert.deepEqual(after.clusters[cluster].scannedBy,[0]);
-  assert(after.players[0].discard.some(c=>c.id==='ui-probe'));assert(after.players[0].hand.some(c=>c.id==='tab-dig'));
+  assert(![...after.players[0].hand,...after.players[0].deck,...after.players[0].discard].some(c=>c.id==='ui-probe'));assert(after.players[0].hand.some(c=>c.id==='tab-dig'));
   assert.deepEqual(after.players[0].resources,before.players[0].resources);
   assert.equal(after.fleets[coord][0].explorer,1);assert(game.dom.hex(coord).getAttribute('aria-label').includes('relic site'));
-  const reload=boot(storage);assert(reload.dom.hex(coord).getAttribute('aria-label').includes('relic site'));
+  const reload=boot(storage);assert(reload.dom.hex(coord).getAttribute('aria-label').includes('relic site'));assert(![...reload.saved().players[0].hand,...reload.saved().players[0].deck,...reload.saved().players[0].discard].some(c=>c.id==='ui-probe'),'Trashed Probe stays removed across reload');
 });
 
 test('Hand Excavate opens Relics with disabled choices, permits conversions, and cancels without spending',()=>{

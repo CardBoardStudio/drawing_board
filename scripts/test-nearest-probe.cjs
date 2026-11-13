@@ -14,7 +14,7 @@ for(const source of ['2,2','-9,0','-8,0']){
  const target=expected(g,source),resources=plain(g.p.resources),calls=g.calls(),before=JSON.stringify(g.s),others=[1,2,3].map(id=>plain({planets:g.a.observe(id).planets,clusters:g.a.observe(id).clusters}));
  assert(g.e.probeRelic(0,source,'probe',true));assert.equal(JSON.stringify(g.s),before);assert.equal(g.calls(),calls);
  const action=g.a.legalActions(0).find(a=>a.type==='probe'&&a.card==='probe');assert(action);assert.equal(action.coord,source);assert.deepEqual(Object.keys(action).sort(),['card','coord','key','type']);
- g.a.applyAction(0,action);assert(g.s.clusters[target.cluster].scannedBy.includes(0));assert(g.p.discard.some(c=>c.id==='probe'));assert.equal(g.s.fleets[source][0].explorer,1);assert.equal(g.s.activePlayer,1);assert.deepEqual(plain(g.p.resources),resources);assert.equal(g.calls(),calls);
+ g.a.applyAction(0,action);assert(g.s.clusters[target.cluster].scannedBy.includes(0));assert(![...g.p.hand,...g.p.deck,...g.p.discard].some(c=>c.id==='probe'),'Used Probe is permanently trashed');assert.equal(g.s.fleets[source][0].explorer,1);assert.equal(g.s.activePlayer,1);assert.deepEqual(plain(g.p.resources),resources);assert.equal(g.calls(),calls);
  for(let i=0;i<3;i++)assert.deepEqual(plain({planets:g.a.observe(i+1).planets,clusters:g.a.observe(i+1).clusters}),others[i]);
  g.s.activePlayer=0;const next=expected(g,source);assert(next);assert(g.e.probeRelic(0,source,'probe2'));assert(g.s.clusters[next.cluster].scannedBy.includes(0),'Repeat from the same source finds another unlocated relic');
 }

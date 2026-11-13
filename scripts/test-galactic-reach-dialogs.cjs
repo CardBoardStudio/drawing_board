@@ -514,6 +514,23 @@ test('Relics tab browses read-only and participates in keyboard tab navigation',
   fire(relics,'keydown',{key:'ArrowRight',cancelable:true});assertTab(game,'hand');fire(game.dom.element('hand-tab'),'keydown',{key:'End',cancelable:true});assertTab(game,'relics');fire(relics,'keydown',{key:'Home',cancelable:true});assertTab(game,'hand');
   game.dom.hex(game.saved().clusters[0].center).click();assertTab(game,'hand');assert.equal(game.saved().actionMode,null,'Ordinary map inspection does not start excavation');
 });
+test('Probe resolves from empty space without selecting or reaching a world',()=>{
+ const storage=createStorage(),state=boot(storage).saved();
+ state.phase='operations';state.activePlayer=0;state.turnStage='prep';state.selected=null;
+ state.fleets={'2,2':{0:{explorer:1,settler:0,fleet:0}}};state.players[0].hand=[{id:'remote-probe',key:'probe'}];
+ writeSave(storage,state);const game=boot(storage),before=game.saved(),calls=game.randomCalls();
+ game.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='remote-probe').click();
+ const after=game.saved();assert(after.players[0].discard.some(c=>c.id==='remote-probe'));assert.equal(after.activePlayer,1);
+ assert.equal(after.fleets['2,2'][0].explorer,1);assert.deepEqual(after.players[0].resources,before.players[0].resources);assert.equal(game.randomCalls(),calls);
+ assert.equal(after.clusters.filter(c=>c.scannedBy.includes(0)).length,before.clusters.filter(c=>c.scannedBy.includes(0)).length+1);
+ assert.deepEqual(after.clusters.map(c=>c.revealedBy),before.clusters.map(c=>c.revealedBy));
+});
+test('Multiple Explorers let the player choose the Probe origin',()=>{
+ const storage=createStorage(),state=boot(storage).saved();Object.assign(state,{phase:'operations',activePlayer:0,turnStage:'prep',selected:null});
+ state.fleets={'2,2':{0:{explorer:1}},'-2,2':{0:{explorer:1}}};state.players[0].hand=[{id:'choose-probe',key:'probe'}];writeSave(storage,state);
+ const game=boot(storage);game.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='choose-probe').click();assert.equal(game.saved().activePlayer,0);assert(game.saved().players[0].hand.some(c=>c.id==='choose-probe'));
+ game.dom.hex('-2,2').click();assert(game.saved().players[0].discard.some(c=>c.id==='choose-probe'));assert.equal(game.saved().activePlayer,1);
+});
 test('Probe UI locates a relic privately and unlocated excavation never redirects to rewards',()=>{
   const {storage,coord}=excavationStorage({affordable:true}),state=JSON.parse(storage.getItem(SAVE_KEY));
   const cluster=state.planets[coord].cluster;state.clusters[cluster].scannedBy=[];

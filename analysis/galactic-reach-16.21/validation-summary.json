@@ -1,0 +1,97 @@
+{
+  "passed": true,
+  "games": 12,
+  "checks": [
+    {
+      "strategy": "military",
+      "field": "prestige",
+      "actual": 7.31,
+      "original": 7.31
+    },
+    {
+      "strategy": "military",
+      "field": "colonies",
+      "actual": 1,
+      "original": 1
+    },
+    {
+      "strategy": "military",
+      "field": "cardsPurchased",
+      "actual": 13.75,
+      "original": 13.75
+    },
+    {
+      "strategy": "military",
+      "field": "shipyards",
+      "actual": 4.5,
+      "original": 4.5
+    },
+    {
+      "strategy": "military",
+      "field": "relics",
+      "actual": 2.88,
+      "original": 2.88
+    },
+    {
+      "strategy": "economy",
+      "field": "prestige",
+      "actual": 6.81,
+      "original": 6.81
+    },
+    {
+      "strategy": "economy",
+      "field": "colonies",
+      "actual": 1.63,
+      "original": 1.63
+    },
+    {
+      "strategy": "economy",
+      "field": "cardsPurchased",
+      "actual": 18,
+      "original": 18
+    },
+    {
+      "strategy": "economy",
+      "field": "shipyards",
+      "actual": 0.94,
+      "original": 0.94
+    },
+    {
+      "strategy": "economy",
+      "field": "relics",
+      "actual": 3.25,
+      "original": 3.25
+    },
+    {
+      "strategy": "expansion",
+      "field": "prestige",
+      "actual": 6,
+      "original": 6
+    },
+    {
+      "strategy": "expansion",
+      "field": "colonies",
+      "actual": 2,
+      "original": 2
+    },
+    {
+      "strategy": "expansion",
+      "field": "cardsPurchased",
+      "actual": 16.94,
+      "original": 16.94
+    },
+    {
+      "strategy": "expansion",
+      "field": "shipyards",
+      "actual": 0.94,
+      "original": 0.94
+    },
+    {
+      "strategy": "expansion",
+      "field": "relics",
+      "actual": 2,
+      "original": 2
+    }
+  ],
+  "notes": "Native runner matches every reported score/colony/relic/shipyard/purchase average of the old VM runner on its exact12current-rule seeds. Four hidden no-progress stalls were identified rather than mislabeled as24-round finishes."
+}

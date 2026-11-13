@@ -20,7 +20,7 @@ impl GameKind {
     fn pool(self) -> &'static str {
         match self {
             Self::Voidwright => "voidwright/2:duel:20-rounds:policies-v1",
-            Self::GalacticReach => "galactic-reach/7.12:four-player:placement:policies-v3",
+            Self::GalacticReach => "galactic-reach/25.30:four-player:placement:policies-v21",
         }
     }
     fn seats(self) -> usize {
@@ -95,16 +95,16 @@ pub fn migrate(db: &Connection) -> rusqlite::Result<()> {
 }
 pub async fn catalog() -> Json<serde_json::Value> {
     Json(json!({"games":[
-        {"id":"galactic-reach","name":"Galactic Reach","href":"/galactic-reach/","rules_version":galactic_reach::RULES,"mode":"Browser playtest + AI arena","rated":true,"seats":4,"pool":GameKind::GalacticReach.pool(),"description":"Pass & Buy experiment: buy immediately when you pass, convert your hand, and trash starters. Play to 20 Prestige; start a new game."},
+        {"id":"galactic-reach","name":"Galactic Reach","href":"/galactic-reach/","rules_version":galactic_reach::RULES,"mode":"Browser playtest + AI arena","rated":true,"seats":4,"pool":GameKind::GalacticReach.pool(),"description":"Central Frontier: a symmetric galaxy, decisive-combat Prestige, and a race to 10. Start a new game."},
         {"id":"voidwright","name":"Voidwright","href":"/voidwright/","rules_version":RULES_VERSION,"mode":"Server tables + AI arena","rated":true,"seats":2,"pool":GameKind::Voidwright.pool(),"description":"Build a fleet of cards. Play with friends or compare AI players in the rated arena."}
     ],"policies":[
         {"game":"voidwright","id":"explorer","version":"explorer/1","name":"Explorer","description":"Experiments with random purchases and sometimes passes."},
         {"game":"voidwright","id":"merchant","version":"merchant/1","name":"Merchant","description":"Builds a resource economy, then buys scoring colonies."},
         {"game":"voidwright","id":"kepler","version":"kepler/1","name":"Kepler","description":"Balances resource growth with a small action engine."}
-        ,{"game":"galactic-reach","id":"gr-military","version":"gr-military/3","name":"Vanguard","description":"Builds warships and shipyards, then moves toward rival colonies."}
-        ,{"game":"galactic-reach","id":"gr-economy","version":"gr-economy/3","name":"Architect","description":"Prioritizes production, storage, and terraforming."}
-        ,{"game":"galactic-reach","id":"gr-expansion","version":"gr-expansion/3","name":"Pathfinder","description":"Builds Scouts and seeks new colony sites."}
-        ,{"game":"galactic-reach","id":"gr-wanderer","version":"gr-wanderer/3","name":"Wanderer","description":"Samples useful legal actions with seeded randomness."}
+        ,{"game":"galactic-reach","id":"gr-military","version":"gr-military/21","name":"Vanguard","description":"Builds warships and shipyards, then moves toward rival colonies."}
+        ,{"game":"galactic-reach","id":"gr-economy","version":"gr-economy/21","name":"Architect","description":"Prioritizes production, storage, and industry."}
+        ,{"game":"galactic-reach","id":"gr-expansion","version":"gr-expansion/21","name":"Pathfinder","description":"Builds Settlers and seeks new colony sites."}
+        ,{"game":"galactic-reach","id":"gr-wanderer","version":"gr-wanderer/21","name":"Wanderer","description":"Samples useful legal actions with seeded randomness."}
     ],"pool":GameKind::Voidwright.pool()}))
 }
 #[derive(Serialize)]
@@ -174,7 +174,7 @@ pub async fn create_bot(
         "{}/{}",
         input.strategy,
         if input.game == GameKind::GalacticReach {
-            3
+            21
         } else {
             1
         }
@@ -342,6 +342,15 @@ pub async fn run_series(
     Ok(Json(result))
 }
 
+fn simulation_error(error: String) -> ApiError {
+    if error == galactic_reach::SIMULATION_TIMEOUT || error == "Match exceeded its decision budget."
+    {
+        ApiError(StatusCode::UNPROCESSABLE_ENTITY,"This arena series did not finish within simulation limits. No ratings changed. Try another series.".into())
+    } else {
+        internal(error)
+    }
+}
+
 fn simulate_series(
     app: &App,
     owner: &str,
@@ -355,6 +364,11 @@ fn simulate_series(
     for cycle in 0..input.games as usize / count {
         let mut seed = [0u8; 32];
         rand::rngs::OsRng.fill_bytes(&mut seed);
+        #[cfg(test)]
+        if let Some(fixture) = app.arena_seed {
+            seed = fixture;
+            seed[31] ^= cycle as u8;
+        }
         for rotation in 0..count {
             let order: Vec<_> = (0..count).map(|seat| (seat + rotation) % count).collect();
             let seats = order.iter().map(|&i| input.bots[i].clone()).collect();
@@ -362,6 +376,10 @@ fn simulate_series(
             let agent_seeds: Vec<_> = order
                 .iter()
                 .map(|&i| {
+                    #[cfg(test)]
+                    if app.arena_seed.is_some() {
+                        return [i as u8; 32];
+                    }
                     let mut agent_seed = seed;
                     agent_seed[0] ^= i as u8 + 1;
                     agent_seed[1] ^= cycle as u8;
@@ -372,7 +390,10 @@ fn simulate_series(
             let (result, replay) = input
                 .game
                 .simulate(&id, seed, &ordered_policies, &agent_seeds)
-                .map_err(internal)?;
+                .map_err(|error| {
+                    tracing::warn!(seed=%hex::encode(seed),rotation,error=%error,"Arena simulation failed before rating commit");
+                    if input.game == GameKind::GalacticReach { simulation_error(error) } else { internal(error) }
+                })?;
             tracing::info!(
                 completed = matches.len() + 1,
                 total = input.games,
@@ -462,10 +483,10 @@ pub fn calibrate(
     }
     let game = GameKind::GalacticReach;
     let policies: Vec<String> = [
-        "gr-military/3",
-        "gr-economy/3",
-        "gr-expansion/3",
-        "gr-wanderer/3",
+        "gr-military/21",
+        "gr-economy/21",
+        "gr-expansion/21",
+        "gr-wanderer/21",
     ]
     .into_iter()
     .map(String::from)
@@ -543,8 +564,24 @@ pub fn calibrate(
 mod calibration_tests {
     use super::*;
     #[test]
+    fn incomplete_simulations_report_limits_instead_of_storage_failure() {
+        for reason in [
+            galactic_reach::SIMULATION_TIMEOUT,
+            "Match exceeded its decision budget.",
+        ] {
+            let error = simulation_error(reason.into());
+            assert_eq!(error.0, StatusCode::UNPROCESSABLE_ENTITY);
+            assert!(error.1.contains("No ratings changed"));
+        }
+        assert_eq!(
+            simulation_error("Unexpected engine failure".into()).0,
+            StatusCode::INTERNAL_SERVER_ERROR
+        );
+    }
+    #[test]
     fn calibration_rejects_unknown_owners_and_invalid_rotations() {
         let app = App {
+            arena_seed: None,
             store: Arc::new(Store::open(":memory:").unwrap()),
             dev_auth: false,
             preview_code_hash: None,

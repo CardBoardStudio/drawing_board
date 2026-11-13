@@ -8,9 +8,9 @@ for(const [prefix,expected] of [['prototypes/galactic-reach/',3],['crates/galact
  const {e,s}=load(prefix);s.players[0].cardsPurchased=16;
  s.clusters[0].coords.slice(1,5).forEach(coord=>Object.assign(s.planets[coord],{owner:0,upgrade:'starbase',upgradeLevel:1}));
  assert.equal(e.calculatePrestige(0),expected,'Shipyard/card Prestige changes only in the new rules');
- s.players[0].relicsExcavated=2;s.players[0].combatVictories=3;assert.equal(e.calculatePrestige(0),expected+(s.version===24?7:5),'Permanent relic/combat Prestige remains');
+ s.players[0].relicsExcavated=2;s.players[0].combatVictories=3;assert.equal(e.calculatePrestige(0),expected+(s.version>=23?7:5),'Permanent relic/combat Prestige remains');
  for(const cluster of s.clusters.slice(4,6))Object.assign(s.planets[cluster.center],{owner:0,hasColony:true});
- assert.equal(e.calculatePrestige(0),expected+(s.version===24?13:8),'Two additional colonies follow the pinned scoring rules');
+ assert.equal(e.calculatePrestige(0),expected+(s.version>=23?13:8),'Two additional colonies follow the pinned scoring rules');
 }
 assert(!/Every eight purchased cards grant|Colonies, Shipyards, excavated relics, purchased cards/.test(read('prototypes/galactic-reach/index.html')),'Quick help must follow the new scoring');
 const policy=read('crates/galactic-reach/src/legacy_v14.rs').slice(read('crates/galactic-reach/src/legacy_v14.rs').indexOf('#[derive(Clone, Copy, Debug)]')).trim();

@@ -150,3 +150,7 @@ Confirmed card treatment: remove Terraforming Protocols from the new market; Wor
 ## Implemented in the 16.21 Compact Frontier experiment
 
 - Shrink the board by one hex on every side: radius 11/397 cells → radius 10/331 cells. Keep twelve complete worlds, four moons, twelve relics and comparable access, with the same separation and fairness bounds. Preserve 15.20 games and policy 11; change no other mechanics.
+
+### Storage Planning25.30 — implementation and evaluation
+
+Separate experiment based on corrected24.29 Probe. Rivals reserve a feasible upgrade mix, protect scoring payments, forecast public production and avoid late unprofitable capacity. Human prices and scoring stay unchanged. New save25/rules30/native21; archive24.29/policy20. Compare both policies under corrected Probe using2592 predeclared trials; exclude interrupted old-Probe draft outcomes.

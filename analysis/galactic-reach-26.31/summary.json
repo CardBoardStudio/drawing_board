@@ -2669,10 +2669,10 @@
   },
   "notes": [
     "Seat rotations share one setup per seed; seed blocks change neutral identities, resources and moons. World geometry remains the approved fixed layout.",
-    "Current26.31 and archived25.30 play separate matched games. Results compare the combined single-use order and Fleet-cap changes, not an isolated cause or a policy head-to-head.",
+    "Current 26.31 and archived 25.30 play separate matched games. Results compare the combined single-use order and Fleet-cap changes, not an isolated cause or a policy head-to-head.",
     "No game-rule or bot-policy tuning was performed during this study. The UI correction changes CSS only; production engine hashes remain unchanged.",
     "Storage expenditure is separated from construction, scoring and deck spending. Flow rates include all mixed games, including cutoffs.",
-    "Strategy win shares and gift effects are conditional on completed games; cutoff outcomes receive no invented winner.192long-horizon checks use the first16mixed-game seed blocks.",
-    "Gift effects are policy-dependent, not intrinsic exchange values. Each of8contrasts has192paired games over16seed blocks and receives family-adjusted intervals. Late gifts in games already finished remain in the intention-to-treat comparison."
+    "Strategy win shares and gift effects are conditional on completed games; cutoff outcomes receive no invented winner. 192 long-horizon checks use the first 16 mixed-game seed blocks.",
+    "Gift effects are policy-dependent, not intrinsic exchange values. Each of 8 contrasts has 192 paired games over 16 seed blocks and receives family-adjusted intervals. Late gifts in games already finished remain in the intention-to-treat comparison."
   ]
 }

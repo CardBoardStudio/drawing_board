@@ -1,5 +1,12 @@
 # Playtest roadmap
 
+## Nearest Probe24.29 correction
+
+- Probe locates the nearest unlocated remaining relic from an Explorer anywhere, including empty space, home or Shipyard. Keep the Explorer, discard Probe and spend an Operations action.
+- Preserve private signals and hidden moon terrain; update rival planning and archive23.28.
+
+Status: implementation and release verification in progress. Storage-planning draft and its superseded-rule simulations remain separate; rerun against the corrected Probe after release.
+
 ## Twenty Point Strategy 23.28 experiment
 
 - Victory at 20 Prestige; each Colony 3 points, each excavated relic 2, qualifying decisive combat victory 1. No Colony pair bonus, shipyard points, or card points.

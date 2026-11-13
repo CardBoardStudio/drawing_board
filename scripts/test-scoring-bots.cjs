@@ -13,7 +13,7 @@ function funds(p){p.storageUpgrades=100;p.resources={matter:30,energy:30,biomass
 const record={fixtures:0,matchedSetups:0};
 for(let n=0;n<32;n++){
  const current=game(undefined,20261111+n*7919),old=game('crates/galactic-reach/rules/v20-',20261111+n*7919);
- assert.equal(current.a.rulesVersion,'galactic-reach/23.28');assert.equal(old.a.rulesVersion,'galactic-reach/20.25');
+ assert.equal(current.a.rulesVersion,'galactic-reach/24.29');assert.equal(old.a.rulesVersion,'galactic-reach/20.25');
  const normalize=g=>{const s=plain(g.s);s.players.forEach(p=>delete p.storagePurchases);return {...s,version:0,rulesRevision:0,visibilityRevision:0};};assert.deepEqual(normalize(current),normalize(old));assert.equal(current.calls(),old.calls());
  const observation=g=>{const v=plain(g.a.observe(0));v.clusters.forEach(c=>delete c.located);v.players.forEach(p=>{delete p.storagePurchases;delete p.storageUpgradeCost;p.prestige=0;});return v;};assert.deepEqual(observation(current),observation(old));assert.deepEqual(plain(current.a.legalActions(0)),plain(old.a.legalActions(0)));record.matchedSetups++;
 }

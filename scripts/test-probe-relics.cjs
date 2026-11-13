@@ -1,6 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),crypto=require('node:crypto');
 const root=path.join(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p),'utf8'),plain=x=>JSON.parse(JSON.stringify(x));
-function game(prefix='prototypes/galactic-reach/') {
+// Preserve the published23.28 local-search contract; current nearest behavior has its own suite.
+function game(prefix='crates/galactic-reach/rules/v23-') {
  const c=vm.createContext({});let e,seed=1729,calls=0;
  const source=read(prefix+'app.js').replace('      clone, deckContents,','      runAiOperation, chooseAiMove, clone, deckContents,');
  vm.runInContext(read(prefix+'adapter.js')+source,c);const factory=c.createGalacticAdapter;c.createGalacticAdapter=x=>{e=x;return factory(x);};

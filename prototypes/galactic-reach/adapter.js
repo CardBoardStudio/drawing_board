@@ -124,8 +124,8 @@ function createGalacticAdapter(e) {
             });
           }
         });
-        if (def.order === 'probe') state.clusters.forEach(cluster=>{
-          if(e.probeRelic(seat,cluster.center,card.id,true)) actions.push({type:'probe',...base,coord:cluster.center});
+        if (def.order === 'probe') Object.keys(state.fleets).forEach(coord=>{
+          if(e.probeRelic(seat,coord,card.id,true)) actions.push({type:'probe',...base,coord});
         });
         if (def.order === 'excavate') Object.keys(state.planets).forEach(coord=>{
           state.relicRow.forEach(relic=>{
@@ -203,6 +203,6 @@ function createGalacticAdapter(e) {
     const seat = activeSeat();
     return { active: seat, observation: seat === null ? null : observe(seat), legal: legalActions(seat), scores: scores() };
   }
-  return { rulesVersion: 'galactic-reach/23.28', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
+  return { rulesVersion: 'galactic-reach/24.29', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = createGalacticAdapter;

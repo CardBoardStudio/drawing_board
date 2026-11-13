@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070b13">
-  <title>Galactic Reach · 23.28 · Twenty Point Strategy experiment</title>
+  <title>Galactic Reach · 24.29 · Nearest Probe experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=twenty-point-strategy-23-28">
+  <link rel="stylesheet" href="styles.css?v=nearest-probe-24-29">
   <link rel="stylesheet" href="playtest-notes.css?v=1">
 </head>
 <body>
@@ -15,8 +15,8 @@
   <main class="app-shell">
     <header class="topbar">
       <div class="brand-block">
-        <div class="eyebrow">TWENTY POINT STRATEGY EXPERIMENT · 20 PRESTIGE</div>
-        <h1>Galactic Reach <small class="rules-badge">Rules 23.28 · experiment</small></h1>
+        <div class="eyebrow">NEAREST PROBE EXPERIMENT · 20 PRESTIGE</div>
+        <h1>Galactic Reach <small class="rules-badge">Rules 24.29 · experiment</small></h1>
       </div>
       <div class="round-block" aria-live="polite">
         <div><span class="label">Round</span><strong id="round-value">1</strong></div>
@@ -31,20 +31,15 @@
       </div>
     </header>
     <details class="playtest-changes" id="playtest-changes" open>
-      <summary><span class="new-feature">New in this playtest</span> 20-point game and stronger rivals</summary>
+      <summary><span class="new-feature">New in this playtest</span> Probe from anywhere</summary>
       <ul>
-        <li><strong>20 points to win:</strong> Colonies score 3 each, relics 2 each, decisive combat victories 1 each. No Colony pair bonus. <a href="rulebook.html#victory">Scoring</a>.</li>
-        <li><strong>Storage:</strong> add 5 capacity for 1 of each resource, then 2 each, 3 each, and so on. Free relic storage does not raise the price. <a href="rulebook.html#resources">Resources</a>.</li>
-        <li><strong>Stronger rivals:</strong> safer Settler movement, Fleet escorts and regrouping, earlier production and starter upgrades.</li>
-        <li><strong>Probe before excavating:</strong> arrival reveals terrain only. Each Explorer grants Probe and Excavate to discard. Use Probe with your Explorer on a world or moon to locate its relic privately. <a href="rulebook.html#movement">Discovery</a> · <a href="rulebook.html#excavation">Excavation</a>.</li>
-        <li><strong>Bank resource buttons:</strong> select a resource on each side, then Convert four for one. Also available in existing 21.26 games. <a href="rulebook.html#trade">Bank exchanges</a>.</li>
-        <li><strong>Points before infrastructure:</strong> rivals claim Colonies and excavate before discretionary construction. <a href="rulebook.html#computer-rivals">Computer rivals</a>.</li>
-        <li><strong>Purposeful movement:</strong> Settlers seek neutral worlds or captures, Explorers hold relic sites, and fleets favor useful fights. They reinforce against visible threats. <a href="rulebook.html#movement">Movement</a> · <a href="rulebook.html#combat">Combat</a>.</li>
-        <li><strong>Useful decks and spending:</strong> rivals preserve needed orders, buy selectively, and keep resources for scoring. They use the scoring and escalating storage costs shown above. <a href="rulebook.html#buy">Deck building</a> · <a href="rulebook.html#victory">Scoring</a>.</li>
-        <li>Public planets and randomized hidden moons remain. The Comms Feed stays below Victory points.</li>
+        <li><strong>Probe from anywhere:</strong> choose your Explorer’s current hex, including empty space, your home world or a Shipyard. Locate its nearest unlocated remaining relic privately. <a href="rulebook.html#orders">Probe</a>.</li>
+        <li><strong>One Explorer:</strong> Use order resolves Probe immediately. With multiple Explorers, select the one to use.</li>
+        <li><strong>Private signals:</strong> a hidden moon’s relic signal does not reveal its terrain. Arrival still does not locate relics. <a href="rulebook.html#movement">Discovery</a>.</li>
+        <li>Scoring and storage prices remain unchanged: 20 to win; Colonies 3, relics 2, decisive combat wins 1.</li>
       </ul>
       <button class="button button-ghost" id="open-relic-catalog" type="button">Preview all 12 alien relics</button>
-      <p>Rules 23.28 experiment · Start a new game. Earlier games keep their archived rules.</p>
+      <p>Rules 24.29 experiment · Start a new game. Earlier games keep their archived rules.</p>
     </details>
 
     <section class="score-ribbon" id="score-ribbon" aria-label="Player standings"></section>
@@ -193,7 +188,7 @@
 
   <dialog id="rules-dialog">
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
-    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 23.28 ↗</a></p>
+    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 24.29 ↗</a></p>
     <div class="rules-grid">
       <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Passing immediately starts your Buy turn. Finish Buy, then the remaining factions continue Operations.</p></section>
       <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → victory check → next round.</p></section>
@@ -289,9 +284,9 @@
     <div class="relic-catalog-grid" id="relic-catalog-grid"></div>
   </dialog>
 
-  <script src="table.js?v=twenty-point-strategy-23-28"></script>
-  <script src="replay.js?v=twenty-point-strategy-23-28"></script>
-  <script src="app.js?v=twenty-point-strategy-23-28"></script>
-  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="23.28"></script>
+  <script src="table.js?v=nearest-probe-24-29"></script>
+  <script src="replay.js?v=nearest-probe-24-29"></script>
+  <script src="app.js?v=nearest-probe-24-29"></script>
+  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="24.29"></script>
 </body>
 </html>

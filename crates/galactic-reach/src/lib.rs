@@ -8,7 +8,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/23.28";
+pub const RULES: &str = "galactic-reach/24.29";
 mod legacy_v1;
 mod legacy_v10;
 mod legacy_v11;
@@ -19,6 +19,7 @@ mod legacy_v15;
 mod legacy_v16;
 mod legacy_v17;
 mod legacy_v18;
+mod legacy_v19;
 mod legacy_v2;
 mod legacy_v3;
 mod legacy_v4;
@@ -83,6 +84,7 @@ impl GalacticReach {
             "galactic-reach/20.25" => "galactic-reach/20.25",
             "galactic-reach/21.26" => "galactic-reach/21.26",
             "galactic-reach/22.27" => "galactic-reach/22.27",
+            "galactic-reach/23.28" => "galactic-reach/23.28",
             _ => return Err("Unsupported rules version.".into()),
         };
         Self::initialize(seed, MATCH_TIMEOUT, rules)
@@ -110,6 +112,7 @@ impl GalacticReach {
                     "galactic-reach/20.25" => include_str!("../rules/v20-adapter.js"),
                     "galactic-reach/21.26" => include_str!("../rules/v21-adapter.js"),
                     "galactic-reach/22.27" => include_str!("../rules/v22-adapter.js"),
+                    "galactic-reach/23.28" => include_str!("../rules/v23-adapter.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-adapter.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-adapter.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-adapter.js"),
@@ -133,6 +136,7 @@ impl GalacticReach {
                     "galactic-reach/20.25" => include_str!("../rules/v20-app.js"),
                     "galactic-reach/21.26" => include_str!("../rules/v21-app.js"),
                     "galactic-reach/22.27" => include_str!("../rules/v22-app.js"),
+                    "galactic-reach/23.28" => include_str!("../rules/v23-app.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-app.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-app.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-app.js"),
@@ -260,18 +264,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/19",
-            Self::Economy => "gr-economy/19",
-            Self::Expansion => "gr-expansion/19",
-            Self::Wanderer => "gr-wanderer/19",
+            Self::Military => "gr-military/20",
+            Self::Economy => "gr-economy/20",
+            Self::Expansion => "gr-expansion/20",
+            Self::Wanderer => "gr-wanderer/20",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/19" => Some(Self::Military),
-            "gr-economy/19" => Some(Self::Economy),
-            "gr-expansion/19" => Some(Self::Expansion),
-            "gr-wanderer/19" => Some(Self::Wanderer),
+            "gr-military/20" => Some(Self::Military),
+            "gr-economy/20" => Some(Self::Economy),
+            "gr-expansion/20" => Some(Self::Expansion),
+            "gr-wanderer/20" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -686,15 +690,9 @@ impl BuiltinAgent {
                 let explorer = action["moveGroup"] == "explorer";
                 let settlers = number(&fleet["settler"]);
                 let here = &view["planets"][from];
-                let waiting_probe = here["cluster"].as_u64().is_some_and(|id| {
-                    let cluster = &view["clusters"][id as usize];
-                    (cluster["kind"] == "moon" || id >= 4 && cluster["center"] != "0,0")
-                        && cluster["located"] == false
-                });
                 if explorer
                     && (here["special"] == "relic"
                         || here["relicSignal"] == true
-                        || waiting_probe
                         || view["relicRow"].as_array().is_none_or(|r| r.is_empty()))
                 {
                     return -10.0;
@@ -718,11 +716,6 @@ impl BuiltinAgent {
                     let known_relic = p["special"] == "relic" || p["relicSignal"] == true;
                     let goal = if explorer {
                         known_relic
-                            || center
-                                && p["cluster"].as_u64().unwrap() >= 4
-                                && *coord != "0,0"
-                                && view["clusters"][p["cluster"].as_u64().unwrap() as usize]["located"]
-                                    == false
                     } else {
                         settlers > 0.0
                             && center
@@ -1007,12 +1000,27 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
     if let Some(strategy) = legacy_v18::Strategy::parse(version) {
         return Ok(Box::new(legacy_v18::BuiltinAgent::new(strategy, seed)));
     }
+    if let Some(strategy) = legacy_v19::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v19::BuiltinAgent::new(strategy, seed)));
+    }
     Err("Unsupported Galactic Reach policy version.".into())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn explorer_follows_private_signal_without_searching_its_current_world() {
+        let agent = BuiltinAgent::new(Strategy::Economy, [17; 32]);
+        let view = json!({"seat":0,"players":[{"resources":{},"hand":[]}],"fleets":{"5,0":{"0":{"explorer":1}}},"planets":{"5,0":{"cluster":4,"type":"data","owner":null,"special":null},"8,0":{"cluster":5,"unknown":true,"relicSignal":true}},"clusters":[{},{},{},{},{"kind":"world","center":"5,0","located":false},{"kind":"unknown","center":null,"located":true}],"relicRow":[{"key":"voidglassAstrolabe"}]});
+        let moving =
+            json!({"type":"move","source":"5,0","destination":"7,0","moveGroup":"explorer"});
+        assert!(agent.score(&view, &moving) > 0.0);
+        assert!(
+            agent.score(&view, &json!({"type":"probe","coord":"5,0"}))
+                > agent.score(&view, &moving)
+        );
+    }
     use game_core::run_match;
     #[test]
     fn scoring_policy_prefers_points_and_settler_colony_goals() {
@@ -1128,6 +1136,7 @@ mod tests {
             "galactic-reach/20.25",
             "galactic-reach/21.26",
             "galactic-reach/22.27",
+            "galactic-reach/23.28",
         ] {
             let game = GalacticReach::with_rules([19; 32], rules).unwrap();
             assert_eq!(game.rules_version(), rules);
@@ -1154,6 +1163,7 @@ mod tests {
                             | "galactic-reach/20.25"
                             | "galactic-reach/21.26"
                             | "galactic-reach/22.27"
+                            | "galactic-reach/23.28"
                     ) {
                         0
                     } else {
@@ -1183,6 +1193,7 @@ mod tests {
             "gr-military/17",
             "gr-military/18",
             "gr-military/19",
+            "gr-military/20",
         ] {
             assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
         }

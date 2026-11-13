@@ -15,8 +15,8 @@ function createGalacticReach(options = {}) {
   }
   const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
-  const SAVE_FORMAT_VERSION = 23;
-  const RULES_REVISION = 28;
+  const SAVE_FORMAT_VERSION = 24;
+  const RULES_REVISION = 29;
   const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
   const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${SAVE_FORMAT_VERSION}`;
   const HISTORY_KEY = `galactic-reach-history-v${SAVE_FORMAT_VERSION}`;
@@ -81,7 +81,7 @@ function createGalacticReach(options = {}) {
     colonize: 'Use a Settler on the center hex of an eligible world to found or capture its Colony.',
     construct: 'Build one structure on any empty planet hex adjacent to your Colony, upgrade a Harvester, or commission one ship at a Shipyard.',
     move: 'Move ships or Explorers up to the selected group’s speed.',
-    probe: 'Use an Operations action with your Explorer on a world or moon to privately locate its relic. Keep the Explorer and discard Probe.',
+    probe: 'Use an Operations action from your Explorer anywhere on the map to privately locate the nearest unlocated remaining relic. Keep the Explorer and discard Probe.',
     excavate: 'With an Explorer at a located relic, pay 1 Matter, 1 Energy, and 2 Data. Choose a relic card into discard, gain 2 Prestige, remove the relic, and trash Excavate. Consume one Explorer.'
   };
   const BOARD_ICONS = {
@@ -98,7 +98,7 @@ function createGalacticReach(options = {}) {
     colonize: { name: 'Colonize', kind: 'Basic', accent: 'var(--biomass)', resource: { biomass: 1 }, order: 'colonize', text: 'Establish a Colony with a Settler on a world’s center hex.' },
     construct: { name: 'Construct', kind: 'Basic', accent: 'var(--matter)', resource: { matter: 1 }, order: 'construct', text: 'Build on any empty planet hex adjacent to your Colony, upgrade a Harvester, or commission one ship.', cost: { matter: 1, data: 1 } },
     move: { name: 'Move', kind: 'Basic', accent: 'var(--energy)', resource: { energy: 1 }, order: 'move', text: 'Move one ship group or Explorer team at its own speed.', cost: { energy: 1, data: 1 } },
-    probe: { name: 'Probe', kind: 'Basic', accent: 'var(--data)', resource: { data: 1 }, order: 'probe', text: 'With your Explorer on a world or moon, privately locate its remaining relic. Keep the Explorer and discard Probe.' },
+    probe: { name: 'Probe', kind: 'Basic', accent: 'var(--data)', resource: { data: 1 }, order: 'probe', text: 'From your Explorer anywhere on the map, privately locate its nearest unlocated remaining relic. Keep the Explorer and discard Probe.' },
     excavate: { name: 'Excavate', kind: 'Basic', accent: 'var(--data)', resource: { data: 1 }, order: 'excavate', text: 'At your Explorer’s located relic, pay 1 Matter, 1 Energy, and 2 Data. Choose a relic card into discard and gain 2 Prestige. Remove the relic and trash this card; consume one Explorer.' }
   };
 
@@ -1297,8 +1297,16 @@ function createGalacticReach(options = {}) {
     state.actionOptions = { tag: definition.tag || null, cardName: definition.name, upgraded: !!card.upgraded, discountResource: card.upgraded && definition.order==='construct'?'matter':null };
     state.moveSource = null;
     state.reachable = [];
+    if (definition.order==='probe') {
+      const origins=Object.keys(state.fleets).filter(coord=>getFleet(coord,0)?.explorer);
+      const origin=origins.includes(state.selected)?state.selected:origins.length===1?origins[0]:null;
+      if (origin) {
+        if (!probeRelic(0,origin,cardId)) {clearAction();toast('No unlocated relic remains. Probe and your action are kept.');render();}
+        return;
+      }
+    }
     if (definition.order==='excavate') openExcavationRewards();
-    toast(definition.order === 'move' ? 'Select one of your fleets or Explorer teams.' : definition.order === 'construct' ? 'Select an empty planet hex adjacent to your Colony, an existing structure, or a Shipyard.' : definition.order === 'probe' ? 'Select a world or moon containing your Explorer to locate its relic privately.' : definition.order === 'excavate' ? 'Select your Explorer’s located relic site, then choose a reward in the Relics tab.' : 'Select an eligible planet containing your Settler.');
+    toast(definition.order === 'move' ? 'Select one of your fleets or Explorer teams.' : definition.order === 'construct' ? 'Select an empty planet hex adjacent to your Colony, an existing structure, or a Shipyard.' : definition.order === 'probe' ? 'Select one of your Explorers anywhere on the map to locate its nearest unlocated relic.' : definition.order === 'excavate' ? 'Select your Explorer’s located relic site, then choose a reward in the Relics tab.' : 'Select an eligible planet containing your Settler.');
     render();
     if (definition.order==='excavate') saveGame();
   }
@@ -1487,7 +1495,7 @@ function createGalacticReach(options = {}) {
     state.selected = key;
     if (state.phase === 'operations' && state.activePlayer === 0 && state.turnStage === 'action' && state.actionMode) {
       if (state.actionMode === 'move') handleHumanMoveSelection(key);
-      else if (state.actionMode === 'probe' && !probeRelic(0,key,state.actionCardId)) toast('Probe needs your Explorer on this world or moon and a relic you have not located.');
+      else if (state.actionMode === 'probe' && !probeRelic(0,key,state.actionCardId)) toast('Select your Explorer’s hex. Probe can locate a relic from empty space, a home world or a Shipyard.');
     }
     const opened=openExcavationRewards();
     render();
@@ -1928,16 +1936,24 @@ function createGalacticReach(options = {}) {
     return true;
   }
 
+  function nearestProbeRelic(playerId, source) {
+    return state.clusters.map(cluster=>({cluster,coord:relicCoordInCluster(cluster)}))
+      .filter(site=>site.coord&&!state.planets[site.coord].relicClaimed&&!relicKnown(site.cluster,playerId))
+      .sort((a,b)=>hexDistance(source,a.coord)-hexDistance(source,b.coord)||a.cluster.id-b.cluster.id)[0]||null;
+  }
+
   function probeRelic(playerId, coord, cardId, dryRun = false) {
-    const player=state.players[playerId],cluster=clusterForCoord(coord);
-    if (!player?.hand.some(c=>c.id===cardId&&c.key==='probe') || !cluster || !clusterKnown(cluster,playerId)
-      || state.phase!=='operations' || state.activePlayer!==playerId || state.winner!==null || state.pendingCombat
-      || state.pendingColonyBuild || state.pendingConsortium || overflowPlayer()>=0 || relicKnown(cluster,playerId)
-      || (cluster.kind==='world'&&(cluster.id<4||cluster.center==='0,0')) || !cluster.coords.some(at=>getFleet(at,playerId)?.explorer)) return false;
+    const player=state.players[playerId];
+    if (!player?.hand.some(c=>c.id===cardId&&c.key==='probe') || !boardHas(coord) || !getFleet(coord,playerId)?.explorer
+      || player.passed || state.phase!=='operations' || state.activePlayer!==playerId || state.winner!==null || state.pendingCombat
+      || state.pendingColonyBuild || state.pendingConsortium || overflowPlayer()>=0) return false;
+    const site=nearestProbeRelic(playerId,coord);
+    if (!site) return false;
     if (dryRun) return true;
-    cluster.scannedBy.push(playerId);
+    site.cluster.scannedBy.push(playerId);
     removeHandCard(player,cardId);
-    completeAction(playerId,`${player.name} used Probe to privately search ${cluster.name} for a relic.`);
+    completeAction(playerId,`${player.name} used Probe from an Explorer to privately locate the nearest unlocated relic.`);
+    if (!headless&&playerId===0) toast(`Relic signal located at ${site.coord}.`);
     return true;
   }
 
@@ -2073,7 +2089,7 @@ function createGalacticReach(options = {}) {
         if (def.order==='move' && available.filter(c=>ALL_CARDS[c.key].order==='move').length===1 && Object.values(state.fleets).some(g=>fleetCount(g[player.id]))) retention=3;
         if (def.order==='colonize' && findColonizeTarget(player.id)) retention=6;
         if (def.order==='excavate' && Object.entries(state.fleets).some(([coord,g])=>g[player.id]?.explorer && state.planets[coord]?.special==='relic' && relicKnown(state.clusters[state.planets[coord].cluster],player.id))) retention=6;
-        if (def.order==='probe' && state.clusters.some(c=>probeRelic(player.id,c.center,card.id,true))) retention=6;
+        if (def.order==='probe' && Object.keys(state.fleets).some(coord=>probeRelic(player.id,coord,card.id,true))) retention=6;
         return RESOURCES.reduce((n,r)=>n+Math.min(gain[r]||0,Math.max(0,(desiredCost[r]||0)-funds[r]))*4+(gain[r]||0)*.25,0)-retention;
       };
       available.sort((a,b)=>value(b)-value(a)||a.key.localeCompare(b.key)||String(a.id).localeCompare(String(b.id)));
@@ -2346,20 +2362,14 @@ function createGalacticReach(options = {}) {
       }
       if (f.explorer && aiRelicsRemain()) {
         const here=state.planets[source];
-        if (here && !relicKnown(state.clusters[here.cluster],playerId) && (state.clusters[here.cluster].kind==='moon'||here.cluster>=4&&state.clusters[here.cluster].center!=='0,0') && !state.clusters[here.cluster].coords.some(at=>state.planets[at].relicClaimed)) continue;
         if (here?.special==='relic' && relicKnown(state.clusters[here.cluster],playerId)) continue;
         const known=state.clusters.filter(c=>relicKnown(c,playerId)).map(relicCoordInCluster).filter(Boolean);
-        const goals=known.length?known:state.clusters.filter(c=>c.kind==='world'&&c.id>=4&&c.center!=='0,0'&&!relicKnown(c,playerId)&&!c.coords.some(at=>state.planets[at].relicClaimed)).map(c=>c.center);
+        const goals=known;
         for (const goal of goals) {
           if (groups.some(([at,other])=>at!==source&&other[playerId].explorer&&hexDistance(at,goal)<hexDistance(source,goal))) continue;
           add(source,explorers,goal,known.length?(economy?44:39):29,'explorer',true);
         }
-        if (!goals.length) {
-          // Unlocated moons remain indistinguishable from ordinary space.
-          const search=[];
-          for (let q=-BOARD_RADIUS;q<=BOARD_RADIUS;q++) for (let r=-BOARD_RADIUS;r<=BOARD_RADIUS;r++) {const k=coordKey(q,r),planet=state.planets[k];if (k!==source&&boardHas(k)&&(!planet||!clusterKnown(state.clusters[planet.cluster],playerId))) search.push(k);}
-          const goal=shuffled(search)[0];if (goal) add(source,explorers,goal,14,'explorer',true);
-        }
+
       }
     }
     return targets.filter(t=>t.score>0).sort((a,b)=>b.score-a.score||aiCompareCoords(a.source,b.source,playerId)||aiCompareCoords(a.goal,b.goal,playerId))[0]||null;
@@ -2391,8 +2401,8 @@ function createGalacticReach(options = {}) {
     }
     const probe=p.hand.find(c=>c.key==='probe');
     if (probe) {
-      const world=state.clusters.find(c=>probeRelic(id,c.center,probe.id,true)&&!c.coords.some(at=>state.planets[at].relicClaimed));
-      if (world && probeRelic(id,world.center,probe.id)) return;
+      const origin=Object.keys(state.fleets).sort((a,b)=>aiCompareCoords(a,b,id)).find(coord=>probeRelic(id,coord,probe.id,true));
+      if (origin && probeRelic(id,origin,probe.id)) return;
     }
     aiRespondToTrades(id);
     const moveCards=p.hand.filter(c=>ALL_CARDS[c.key].order==='move'),moves=moveCards.map(card=>({card,move:chooseAiMove(id,card)})).filter(x=>x.move).sort((a,b)=>b.move.score-a.move.score),best=moves[0];
@@ -2964,7 +2974,7 @@ function createGalacticReach(options = {}) {
         || canLaunchExplorer(0,coord) || planet.owner === 0 && planet.upgrade === 'starbase');
       if (def.order === 'construct' && canBuildHere) add('construct','Build / upgrade');
       if (def.order === 'excavate' && canRecoverHere) add('excavate','Excavate relic');
-      if (def.order === 'probe' && probeRelic(0,coord,card.id,true)) add('probe','Probe for relic');
+      if (def.order === 'probe' && probeRelic(0,coord,card.id,true)) add('probe','Probe nearest relic');
       if (known && def.order === 'colonize' && isColonySite(coord) && fleet?.settler > 0
         && (planet.owner === null && !hasBuilding(planet) || planet.owner !== null && planet.owner !== 0 && planet.occupiedBy === 0))
         add('colonize',planet.owner === null ? 'Found Colony' : 'Capture Colony');
@@ -3582,7 +3592,7 @@ function createGalacticReach(options = {}) {
     beginRound();
     return createGalacticAdapter({
       get state() { return state; },
-      clone, deckContents, ALL_CARDS, BASIC_CARDS, BASIC_MARKET, RELIC_CARDS, STRUCTURES, SHIP_STATS, RESOURCES, STORAGE_UPGRADE, storageUpgradeCost, EXCAVATION_COST,
+      clone, deckContents, ALL_CARDS, BASIC_CARDS, BASIC_MARKET, RELIC_CARDS, STRUCTURES, SHIP_STATS, RESOURCES, STORAGE_UPGRADE, storageUpgradeCost, EXCAVATION_COST, nearestProbeRelic,
       canAfford, cardResources, resourceGainTotal, remainingResourceCapacity, addResources,
       removeHandCard, passOperations, completeAction, nextBuyPlayer, buyCard, upgradeStarter,
       decommission, excavatedRelicCount, useBuyEffect, resolveHumanSpecial,

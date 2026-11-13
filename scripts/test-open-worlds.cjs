@@ -4,7 +4,7 @@ const root=path.join(__dirname,'..'),read=p=>fs.readFileSync(path.join(root,p),'
 function game(prefix='prototypes/galactic-reach/',seed=17){const c=vm.createContext({});vm.runInContext(read(prefix+'adapter.js')+read(prefix+'app.js').replace('      clone, deckContents,','      chooseAiMove, moonLayoutCount:()=>moonLayoutChoices.length, clone, deckContents,'),c);let e;const factory=c.createGalacticAdapter;c.createGalacticAdapter=p=>{e=p;return factory(p);};const a=c.createGalacticReach({headless:true,random:()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32)});return{a,e,s:e.state,adapter:()=>factory(e)};}
 function terrain(a,seat){const view=a.observe(seat);return plain({planets:view.planets,clusters:view.clusters});}
 {
- const g=game();assert.equal(g.a.rulesVersion,'galactic-reach/23.28');assert.equal(g.s.version,23);assert.equal(g.s.rulesRevision,28);
+ const g=game();assert.equal(g.a.rulesVersion,'galactic-reach/24.29');assert.equal(g.s.version,24);assert.equal(g.s.rulesRevision,29);
  assert.equal(g.s.visibilityRevision,4);assert.equal(g.e.moonLayoutCount(),2225);assert.equal(g.s.clusters.length,17);
  for(let seat=0;seat<4;seat++){
   const view=g.a.observe(seat);assert.equal(Object.keys(view.planets).length,91);
@@ -39,8 +39,9 @@ for(const kind of ['settler','explorer','fleet'])for(const terrainKind of ['worl
 }
 {
  const g=game(),id=1,source=g.s.clusters[id].center;g.s.fleets={[source]:{[id]:{settler:0,fleet:0,explorer:1}}};
+ g.s.clusters[4].scannedBy=[id];
  const card={key:'move',id:'ai-survey'},before=plain(g.e.chooseAiMove(id,card)),survey=g.e.nearestUnscannedRelicCluster(id,true).id;assert(before);
- for(const world of g.s.clusters.filter(c=>c.kind==='world'&&c.id>=4)){
+ for(const world of g.s.clusters.filter(c=>c.kind==='world'&&c.id>=4&&!c.scannedBy.includes(id))){
   const site=g.e.relicCoordInCluster(world);if(!site)continue;const next=world.coords.find(c=>c!==site);g.s.planets[site].special=null;g.s.planets[next].special='relic';
  }
  assert.deepEqual(plain(g.e.chooseAiMove(id,card)),before,'A browser rival cannot aim at an unlocated relic sector');

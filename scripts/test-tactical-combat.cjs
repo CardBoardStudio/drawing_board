@@ -18,7 +18,7 @@ function finish(g){let n=0;while(g.s.pendingCombat){assert(n++<20);choose(g,g.e.
 // No tactic randomness, fresh hand each battle, rejected commands and inspection pure.
 for(const attacker of [0,1]){
   const g=fixture({attacker,card:true});const rng=g.calls();g.start();const a=g.adapter();
-  assert.equal(g.s.activePlayer,attacker);assert.equal(g.s.players[attacker].discard.filter(c=>c.id==='battle-move').length,1);
+  assert.equal(g.s.activePlayer,attacker);assert.equal(g.s.players[attacker].inPlay.filter(c=>c.id==='battle-move').length,1);
   assert(g.s.pendingMove);stays(g);
   for(const seat of [attacker,g.defender]){
     const before=JSON.stringify(g.s);a.observe(seat);g.e.combatView(seat);g.e.combatActions(seat);a.legalActions(a.activeSeat());assert.equal(JSON.stringify(g.s),before);
@@ -35,7 +35,7 @@ for(const attacker of [0,1]){
   assert.deepEqual(plain(g.s.pendingCombat.volleys[0].attacker),{tactic:'concentratedFire',base:3,bonus:1,shields:0,damage:2});
   assert.equal(g.s.pendingCombat.attackerPieces[0].damage,3);assert.equal(g.s.pendingCombat.defenderPieces[0].damage,2);
   assert.equal(g.calls(),rng,'Combat, inspection and rejection draw no random numbers');
-  finish(g);assert.equal(g.s.activePlayer,(attacker+1)%4);assert(!g.s.pendingMove);assert.equal(g.s.players[attacker].discard.filter(c=>c.id==='battle-move').length,1);
+  finish(g);assert.equal(g.s.activePlayer,(attacker+1)%4);assert(!g.s.pendingMove);assert.equal(g.s.players[attacker].inPlay.filter(c=>c.id==='battle-move').length,1);
   const after=JSON.stringify(g.s);assert(!g.e.applyCombatAction(g.defender,{type:'combat_tactic',tactic:'concentratedFire'}));assert.equal(JSON.stringify(g.s),after);
 }
 // Exhaustion and simultaneous damage from pre-volley survivors.
@@ -85,7 +85,7 @@ for(const attacker of [0,1]){
 // Relic/regular reactions and Fleet-only offensive bonuses are consumed at reveal.
 for(const [key,bonus,shield] of [['targetingAlgorithms',2,0],['warSongOfHollowStars',4,0],['aegisOfSilentArchitects',1,4],['ablativePlating',1,2]]){
  const g=fixture();g.s.players[0].hand=[{key,id:'reaction'}];g.start();stays(g);choose(g,{type:'combat_tactic',tactic:'concentratedFire'});assert(g.s.players[0].hand.length);choose(g,{type:'combat_tactic',tactic:'concentratedFire'});
- assert.equal(g.s.pendingCombat?.volleys[0].attacker.bonus ?? g.s.lastCombat.volleys[0].attacker.bonus,bonus);assert.equal((g.s.pendingCombat||g.s.lastCombat).volleys[0].attacker.shields,shield);assert(g.s.players[0].discard.some(c=>c.id==='reaction'));
+ assert.equal(g.s.pendingCombat?.volleys[0].attacker.bonus ?? g.s.lastCombat.volleys[0].attacker.bonus,bonus);assert.equal((g.s.pendingCombat||g.s.lastCombat).volleys[0].attacker.shields,shield);assert(g.s.players[0].inPlay.some(c=>c.id==='reaction'));
 }
 for(const [units,bonus] of [[{settler:1},1],[{fleet:1},3]]){
  const g=fixture({a:units,tag:'alienAssault'});g.s.players[0].hand=[{key:'warSongOfHollowStars',id:'song'}];g.start();stays(g);volley(g);const battle=g.s.pendingCombat||g.s.lastCombat;
@@ -94,12 +94,12 @@ for(const [units,bonus] of [[{settler:1},1],[{fleet:1},3]]){
 // Salvage overflow resumes after one move completion, never consumes a second card.
 {
  const g=fixture({card:true});for(const seat of [0,1]){g.s.players[seat].hand.push({key:'salvageCrews',id:`salvage${seat}`});g.s.players[seat].resources.data=10;}g.start();stays(g);volley(g);volley(g);
- assert.equal(g.s.activePlayer,1);assert(!g.s.pendingMove);const a=g.adapter();assert.equal(a.activeSeat(),0);assert.equal(g.s.players[0].resources.matter,2);a.applyAction(0,{type:'discard_overflow',resource:'data',amount:2});assert.equal(a.activeSeat(),1);a.applyAction(1,{type:'discard_overflow',resource:'data',amount:2});assert.equal(g.s.players[0].discard.filter(c=>c.id==='battle-move').length,1);
+ assert.equal(g.s.activePlayer,1);assert(!g.s.pendingMove);const a=g.adapter();assert.equal(a.activeSeat(),0);assert.equal(g.s.players[0].resources.matter,2);a.applyAction(0,{type:'discard_overflow',resource:'data',amount:2});assert.equal(a.activeSeat(),1);a.applyAction(1,{type:'discard_overflow',resource:'data',amount:2});assert.equal(g.s.players[0].inPlay.filter(c=>c.id==='battle-move').length,1);
 }
 // A JSON roundtrip resumes escape, a hidden commitment, and later damaged volleys.
 for(const stage of ['escape','committed','later']){
  const g=fixture({card:true});g.start();if(stage!=='escape'){stays(g);choose(g,{type:'combat_tactic',tactic:'defensiveScreen'});}if(stage==='later'){choose(g,{type:'combat_tactic',tactic:'defensiveScreen'});volley(g,'concentratedFire','defensiveScreen');}
- const saved=JSON.stringify(g.s),resumed=fixture();Object.assign(resumed.s,JSON.parse(saved));const a=resumed.adapter();assert.equal(a.activeSeat(),g.e.combatActor());assert.deepEqual(plain(a.observe(a.activeSeat())),plain(g.adapter().observe(g.e.combatActor())));finish(resumed);assert.equal(resumed.s.activePlayer,1);assert.equal(resumed.s.players[0].discard.filter(c=>c.id==='battle-move').length,1);
+ const saved=JSON.stringify(g.s),resumed=fixture();Object.assign(resumed.s,JSON.parse(saved));const a=resumed.adapter();assert.equal(a.activeSeat(),g.e.combatActor());assert.deepEqual(plain(a.observe(a.activeSeat())),plain(g.adapter().observe(g.e.combatActor())));finish(resumed);assert.equal(resumed.s.activePlayer,1);assert.equal(resumed.s.players[0].inPlay.filter(c=>c.id==='battle-move').length,1);
 }
 // Enumerate all36 three-tactic sequence pairs: both choices have strategic use,
 // and most Fleet mirrors preserve a third decision instead of wiping in volley1.
@@ -116,7 +116,7 @@ for(const stage of ['escape','committed','later']){
 // but the compulsory third-volley retreat still applies.
 for(const tag of [null,'overdrive']){
  const g=fixture({d:{fleet:2},tag});g.s.players[0].hand=[{key:'emergencyJump',id:'jump'}];g.start();stays(g);volley(g,'defensiveScreen','defensiveScreen');
- if(tag===null){assert(!g.s.pendingCombat);assert.match(g.s.lastCombat.summary.join(' '),/Emergency Jump/);assert(g.s.players[0].discard.some(c=>c.id==='jump'));}
+ if(tag===null){assert(!g.s.pendingCombat);assert.match(g.s.lastCombat.summary.join(' '),/Emergency Jump/);assert(g.s.players[0].inPlay.some(c=>c.id==='jump'));}
  else{assert(g.s.pendingCombat);assert(g.s.players[0].hand.some(c=>c.id==='jump'));}
 }
 // A defending structure remains after all Explorers escape, so battle continues.

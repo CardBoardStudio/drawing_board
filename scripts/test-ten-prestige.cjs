@@ -53,11 +53,11 @@ function target(s,coord){const i=s.clusters.length,[q,r]=coord.split(',').map(Nu
 {
  const{e,s}=game(),p=s.players[1];p.strategy='military';p.hand=[{id:'pathfinder',key:'pathfinderNetwork'}];s.activePlayer=1;
  s.planets['1,0']={q:1,r:0,cluster:0,type:'matter',owner:0,occupiedBy:null,hasColony:true,upgrade:null};s.fleets={'0,0':{1:{settler:0,explorer:0,fleet:1}}};
- assert.equal(e.chooseAiMove(1,p.hand[0]),null,'Pathfinder cannot choose its forbidden attack');const before=JSON.stringify(s);e.runAiOperation();assert.notEqual(JSON.stringify(s),before);assert(p.discard.some(c=>c.id==='pathfinder'));assert.equal(p.resources.energy,1);assert.equal(p.resources.biomass,1,'An unavailable order may be converted normally instead; no illegal Move was spent');
+ assert.equal(e.chooseAiMove(1,p.hand[0]),null,'Pathfinder cannot choose its forbidden attack');const before=JSON.stringify(s);e.runAiOperation();assert.notEqual(JSON.stringify(s),before);assert(p.inPlay.some(c=>c.id==='pathfinder'));assert.equal(p.resources.energy,1);assert.equal(p.resources.biomass,1,'An unavailable order may be converted normally instead; no illegal Move was spent');
 }
 for(const points of [19,20,21]){const{e,s}=game();s.players[0].combatVictories=points-3;assert.equal(e.calculatePrestige(0),points);e.finishRound();assert.equal(s.winner,points>=20?0:null);}
 {
- const{e,s}=game();assert.equal(e.VICTORY_TARGET,20);assert.equal(s.version,26);assert.equal(s.rulesRevision,31);assert.equal(e.SAVE_KEY,'galactic-reach-save-v26');assert.equal(e.TURN_HISTORY_KEY,'galactic-reach-turn-history-v26');
+ const{e,s}=game();assert.equal(e.VICTORY_TARGET,20);assert.equal(s.version,27);assert.equal(s.rulesRevision,32);assert.equal(e.SAVE_KEY,'galactic-reach-save-v27');assert.equal(e.TURN_HISTORY_KEY,'galactic-reach-turn-history-v27');
  assert.deepEqual(plain(e.STRUCTURES.starbase.cost),{matter:2,energy:1,biomass:1,data:1});assert.deepEqual(plain(e.EXCAVATION_COST),{matter:1,energy:1,data:2});
  assert.deepEqual(plain(e.SHIP_STATS.explorer.cost),{energy:1,data:2});assert.deepEqual(plain(e.SHIP_STATS.settler.cost),{matter:1,energy:1});assert.deepEqual(plain(e.SHIP_STATS.fleet.cost),{matter:2,energy:1,biomass:1});
 }

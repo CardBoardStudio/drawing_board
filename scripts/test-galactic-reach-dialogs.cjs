@@ -257,7 +257,7 @@ for(const attacker of [0,1]) for(const stage of ['escape','tactic','committed','
   let choices=0;
   while(reload.saved().pendingCombat){assert(choices++<8);const buttons=reload.dom.lastQuery('[data-combat-action]');assert(buttons.length,'Must offer the human a legal continuation');buttons[0].click();reload.settle();}
   assert(!reload.dialog('combat').open);assert(!reload.saved().pendingMove);
-  assert.equal(reload.saved().players[attacker].discard.filter(c=>c.id==='dialog-combat-move').length,1);
+  assert.equal(reload.saved().players[attacker].inPlay.filter(c=>c.id==='dialog-combat-move').length,1);
   assert.equal(reload.saved().log.filter(line=>line.includes('moved a group from')).length,1,'Movement completes once despite reload and repeated close');
   assert(reload.saved().lastCombat.volleys.length>0);
   assert(reload.dialog('message').open,'Final report opens automatically');
@@ -289,7 +289,7 @@ test('pass opens Buy before any rival acts, and a Buy reload can finish', () => 
   const game = boot(storage);
   game.click('convert-all-button');
   const converted = game.saved();
-  assert(converted.players[0].discard.length > 0);
+  assert(converted.players[0].inPlay.length > 0);
   assert.equal(converted.activePlayer, 0);
   game.click('pass-button');
   const state = game.saved();
@@ -433,7 +433,7 @@ test('Trade Consortium waits, preserves an exchange across reload, and finishes 
   assert.equal(reloaded.saved().pendingConsortium.trades,1);assert.equal(reloaded.saved().players[0].resources.matter,4);
   assert(reloaded.dom.element('consortium-cancel').hidden);
   reloaded.click('consortium-finish');assert(!reloaded.dialog('consortium').open);
-  assert.equal(reloaded.saved().players[0].discard.filter(c=>c.id==='choice-card').length,1);
+  assert.equal(reloaded.saved().players[0].inPlay.filter(c=>c.id==='choice-card').length,1);
 });
 test('Trade Consortium gain and cancellation buttons resolve explicitly',()=>{
   const storage=consortiumSave(),game=boot(storage);game.click('consortium-cancel');
@@ -867,6 +867,18 @@ test('legacy browser history markers load without loss and array order remains s
  reload.click('pass-button');assert.equal(JSON.parse(storage.getItem(HISTORY_KEY)).signatureVersion,2,'Next save upgrades the marker');
  const state=reload.saved();state.players[0].hand.reverse();writeSave(storage,state);
  const changed=boot(storage);changed.click('export-game-report');assert(!changed.downloads.at(-1).coverage.complete,'Canonicalization never hides changes to ordered arrays');
+});
+
+test('In play is inspectable, survives reload, and is included in game reports',()=>{
+ const storage=createStorage(),game=boot(storage);game.click('convert-all-button');const state=game.saved();assert.equal(state.players[0].inPlay.length,5);assert.equal(state.players[0].discard.length,0);
+ const before=storage.snapshot(),rng=game.randomCalls();game.click('in-play-button');assert(game.dialog('in-play').open);assert.equal(Number(game.dom.element('in-play-dialog-count').textContent),5);assert(game.dom.element('in-play-row').innerHTML.includes('game-card'));assert(!game.dom.element('in-play-row').innerHTML.includes('data-order-card'));game.click('close-in-play');assert.deepEqual(storage.snapshot(),before);assert.equal(game.randomCalls(),rng);
+ const reload=boot(storage);assert.deepEqual(reload.saved(),state);reload.click('export-game-report');const report=reload.downloads[0];assert.equal(report.factions[0].cards.inPlay,5);assert.deepEqual(report.save.state.players[0].inPlay,state.players[0].inPlay);assert(report.save.gameHistory.events.some(e=>e.changes.some(c=>c.path.join('.')==='players.0.inPlay')));
+});
+test('Undo returns newly played cards to hand without leaving a second copy in play',()=>{
+ const storage=createStorage(),game=boot(storage),initial=game.saved();game.click('convert-all-button');game.click('pass-button');assert.equal(game.saved().players[0].inPlay.length,5);game.click('undo-turn-button');assert.deepEqual(game.saved().players[0].hand,initial.players[0].hand);assert.equal(game.saved().players[0].inPlay.length,0);
+});
+test('Trade Consortium commits into play on its first exchange across reload',()=>{
+ const storage=consortiumSave(),game=boot(storage);game.dom.element('consortium-give').value='matter';game.dom.element('consortium-get').value='energy';fire(game.dom.element('consortium-form'),'submit');game.settle();assert.equal(game.saved().players[0].hand.length,0);assert.equal(game.saved().players[0].inPlay.filter(c=>c.id==='choice-card').length,1);const reload=boot(storage);assert(reload.dialog('consortium').open);reload.click('consortium-finish');assert.equal(reload.saved().players[0].inPlay.filter(c=>c.id==='choice-card').length,1);
 });
 
 let failed = 0;

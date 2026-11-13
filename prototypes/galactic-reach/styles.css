@@ -863,3 +863,5 @@ button.score-value:focus-visible { outline: 2px solid var(--player); outline-off
 .prestige-breakdown dd { margin: 0; font-weight: 800; }
 .log-panel .panel-heading { flex-wrap: wrap; gap: 10px; }
 #history-status { font-size: .75rem; margin: 0 0 10px; }
+
+.pile-stats { flex-wrap: wrap; }

@@ -186,3 +186,11 @@ for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css 
 done
 cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/25.30/table.js
 cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/25.30/
+
+# Keep26.31 tables and replays on their original immediate-discard rules.
+mkdir -p dist/galactic-reach/rules/26.31
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v26-$asset" "dist/galactic-reach/rules/26.31/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/26.31/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/26.31/

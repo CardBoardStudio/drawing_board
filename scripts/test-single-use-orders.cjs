@@ -19,7 +19,7 @@ function game(prefix = 'prototypes/galactic-reach/', seat = 0) {
   player.deck = []; player.discard = []; player.hand = [];
   return {engine, adapter, state, player, seat, fresh:()=>factory(engine)};
 }
-const cards = p => [...p.hand, ...p.deck, ...p.discard];
+const cards = p => [...p.hand, ...p.deck, ...p.discard, ...(p.inPlay || [])];
 for (const seat of [0, 1]) {
   const g = game(undefined, seat), id = 'used-probe';
   g.state.fleets = {'2,2':{[seat]:{explorer:1}}};
@@ -57,7 +57,7 @@ for (const key of ['probe','colonize']) {
   const g = game();g.player.hand = [{id:'convert',key}];
   const action = g.adapter.legalActions(0).find(a=>a.type==='resource'&&a.card==='convert');assert(action);
   const before = plain(g.player.resources);g.adapter.applyAction(0,action);
-  assert(g.player.discard.some(c=>c.id==='convert'),'Resource conversion still discards');
+  assert(g.player.inPlay.some(c=>c.id==='convert'),'Resource conversion stays in play');
   assert.equal(g.player.resources[key==='probe'?'data':'biomass'],before[key==='probe'?'data':'biomass']+1);
   assert.equal(g.state.activePlayer,0,'Conversion is free');
 }
@@ -76,7 +76,7 @@ for (const key of ['dropColonyModules','genesisSeedVault']) {
   g.player.hand = [{id:'advanced',key}];g.player.resources = {matter:0,energy:0,biomass:1,data:0};
   g.state.fleets = {[world.center]:{0:{settler:1}}};
   assert(g.engine.applyColonizeOrder(0,world.center,g.player.hand[0]));
-  assert(g.player.discard.some(c=>c.id==='advanced'),'Advanced colony cards retain their printed discard behavior');
+  assert(g.player.inPlay.some(c=>c.id==='advanced'),'Advanced colony cards stay in play until cleanup');
   assert.equal(g.state.fleets[world.center][0].settler,1);
 }
 for (const key of ['probe','colonize']) {

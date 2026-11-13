@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#070b13">
-  <title>Galactic Reach · 26.31 · Single-use Orders experiment</title>
+  <title>Galactic Reach · 27.32 · Cards in Play experiment</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=single-use-orders-26-31">
+  <link rel="stylesheet" href="styles.css?v=cards-in-play-27-32">
   <link rel="stylesheet" href="playtest-notes.css?v=1">
 </head>
 <body>
@@ -15,8 +15,8 @@
   <main class="app-shell">
     <header class="topbar">
       <div class="brand-block">
-        <div class="eyebrow">SINGLE-USE ORDERS EXPERIMENT · 20 PRESTIGE</div>
-        <h1>Galactic Reach <small class="rules-badge">Rules 26.31 · experiment</small></h1>
+        <div class="eyebrow">CARDS IN PLAY EXPERIMENT · 20 PRESTIGE</div>
+        <h1>Galactic Reach <small class="rules-badge">Rules 27.32 · experiment</small></h1>
       </div>
       <div class="round-block" aria-live="polite">
         <div><span class="label">Round</span><strong id="round-value">1</strong></div>
@@ -31,18 +31,14 @@
       </div>
     </header>
     <details class="playtest-changes" id="playtest-changes" open>
-      <summary><span class="new-feature">New in this playtest</span> Single-use orders and production</summary>
+      <summary><span class="new-feature">New in this playtest</span> Cards stay in play</summary>
       <ul>
-        <li><strong>Readable ship counts:</strong> mixed groups keep each count below its ship icon, inside the hex. On phones, pan the map to see more sectors.</li>
-          <li><strong>Fleet limit:</strong> up to 10 Fleet units per faction. Settlers remain 8, Explorers 5, and the five-unit hex limit remains. <a href="rulebook.html#building">Ship limits</a>.</li>
-        <li><strong>Probe is single-use:</strong> successfully locating a relic permanently trashes the used Probe card. Keep your Explorer. <a href="rulebook.html#orders">Probe rules</a>.</li>
-        <li><strong>Colonize is single-use:</strong> founding or capturing a Colony permanently trashes the used Colonize card. <a href="rulebook.html#orders">Colonize rules</a>.</li>
-        <li><strong>Production at a glance:</strong> +X under each resource amount shows your current per-round production before storage discards. <a href="rulebook.html#resources">Resources</a>.</li>
-        <li>Converting Probe for Data or Colonize for Biomass still discards it. Failed or canceled orders keep the card.</li>
-        <li>Retained from 25.30: Probe from anywhere, storage-planning rivals, and 20 points to win. Colonies score 3, relics 2, decisive combat wins 1.</li>
+        <li><strong>Used cards stay in play:</strong> orders, conversions, Buy cards and reactions wait for the shared round cleanup. Browse them with <strong>In play</strong>. <a href="rulebook.html#round">Card timing</a>.</li>
+        <li><strong>Draws cannot recycle used cards:</strong> only the discard pile reshuffles. Explicit discards, newly gained cards and single-use trash effects keep their stated destinations. <a href="rulebook.html#cards">Card reference</a>.</li>
+        <li>Retained: 20 points to win; Colonies 3, relics 2, combat wins 1. Successful Colonize, Probe and Excavate are still trashed. Fleet cap 10; ship counts remain readable.</li>
       </ul>
       <button class="button button-ghost" id="open-relic-catalog" type="button">Preview all 12 alien relics</button>
-      <p>Rules 26.31 experiment · Start a new game. Earlier games keep their archived rules.</p>
+      <p>Rules 27.32 experiment · Start a new game. Earlier games keep their archived rules.</p>
     </details>
 
     <section class="score-ribbon" id="score-ribbon" aria-label="Player standings"></section>
@@ -138,6 +134,7 @@
               <div class="pile-stats" aria-label="Your card piles">
                 <button id="deck-button" type="button" title="Inspect remaining cards without revealing draw order">Deck <strong id="deck-count">0</strong></button>
                 <span>Hand <strong id="hand-pile-count">0</strong></span>
+                <button id="in-play-button" type="button" title="Inspect used cards held outside discard until shared cleanup">In play <strong id="in-play-count">0</strong></button>
                 <button id="discard-button" type="button" title="Browse your discard pile">Discard <strong id="discard-count">0</strong></button>
               </div>
             </div>
@@ -191,11 +188,11 @@
 
   <dialog id="rules-dialog">
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
-    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 26.31 ↗</a></p>
+    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 27.32 ↗</a></p>
     <div class="rules-grid">
       <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Passing immediately starts your Buy turn. Finish Buy, then the remaining factions continue Operations.</p></section>
       <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → victory check → next round.</p></section>
-      <section><h3>Your deck</h3><p>Normally buy one card. Upgrade original starters for two of one chosen resource type each. Trash eligible discarded cards, including starters, for three of one chosen resource type each. There is no one-card trash limit. Gained and converted cards go to discard. Successful Colonize, Probe, and Excavate orders are permanently trashed. Stored resources carry forward.</p></section>
+      <section><h3>Your deck</h3><p>Normally buy one card. Upgrade original starters for two of one chosen resource type each. Trash eligible discarded cards, including starters, for three of one chosen resource type each. There is no one-card trash limit. Gained cards go to discard. Played and converted cards stay in play until shared cleanup. Successful Colonize, Probe, and Excavate orders are permanently trashed. Stored resources carry forward.</p></section>
       <section><h3>Your goal</h3><p>Reach 20 Prestige at the end of a round. Colonies, excavated relics, and decisive combat victories contribute. Click a point total to see its breakdown. The rulebook includes costs, scoring, and current card clarifications.</p></section>
     </div>
   </dialog>
@@ -252,6 +249,11 @@
     <div class="discard-scroll"><div class="card-row discard-row" id="deck-row"></div></div>
   </dialog>
 
+  <dialog id="in-play-dialog" class="pile-dialog" aria-labelledby="in-play-title">
+    <div class="panel-heading"><div><div class="eyebrow">USED THIS ROUND</div><h2 id="in-play-title">In play <span id="in-play-dialog-count">0</span></h2><p>These cards cannot be drawn or recovered from discard. They enter discard at the shared round cleanup.</p></div><button class="button button-ghost" id="close-in-play" type="button">Close</button></div>
+    <div id="in-play-row" class="card-row"></div>
+  </dialog>
+
   <dialog id="discard-dialog" class="pile-dialog">
     <div class="dialog-heading">
       <div><div class="eyebrow">YOUR CARDS</div><h2>Discard pile <span id="discard-dialog-count">0</span></h2><p>Most recently discarded cards appear first.</p></div>
@@ -287,9 +289,9 @@
     <div class="relic-catalog-grid" id="relic-catalog-grid"></div>
   </dialog>
 
-  <script src="table.js?v=single-use-orders-26-31"></script>
-  <script src="replay.js?v=single-use-orders-26-31"></script>
-  <script src="app.js?v=single-use-orders-26-31"></script>
-  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="26.31"></script>
+  <script src="table.js?v=cards-in-play-27-32"></script>
+  <script src="replay.js?v=cards-in-play-27-32"></script>
+  <script src="app.js?v=cards-in-play-27-32"></script>
+  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="27.32"></script>
 </body>
 </html>

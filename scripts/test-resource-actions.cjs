@@ -78,11 +78,11 @@ function consortiumGame(resources={matter:4,energy:0,biomass:0,data:0}) {
   assert(!g.port.consortiumExchange(0,'matter','matter'));assert(!g.port.consortiumExchange(1,'matter','data'));
   assert(!g.port.consortiumGain(0,'bad'));assert(!g.port.finishConsortium(0));assert.equal(JSON.stringify(s),unchanged);
   act(g,'consortium_exchange',a=>a.giveType==='matter'&&a.getType==='energy');
-  assert.deepEqual(plain(p.resources),{matter:2,energy:1,biomass:0,data:0});assert.equal(p.hand.length,1);
+  assert.deepEqual(plain(p.resources),{matter:2,energy:1,biomass:0,data:0});assert.equal(p.hand.length,0);assert.equal(p.inPlay.length,1);
   assert(!g.port.finishConsortium(0,true));assert(!g.port.consortiumGain(0,'data'));
   act(g,'consortium_exchange',a=>a.giveType==='matter'&&a.getType==='biomass');
   assert.deepEqual(plain(p.resources),{matter:0,energy:1,biomass:1,data:0});
-  assert.equal(p.hand.length,0);assert.equal(p.discard.filter(c=>c.id==='consortium').length,1);assert.equal(s.activePlayer,1);
+  assert.equal(p.hand.length,0);assert.equal(p.inPlay.filter(c=>c.id==='consortium').length,1);assert.equal(s.activePlayer,1);
   assert.equal(s.pendingConsortium,null);assert.equal(JSON.stringify(p.tracks),tracks);assert(!p.tradeUsed);
   assert(!g.port.consortiumExchange(0,'energy','data'));
 }

@@ -1,5 +1,12 @@
 # Playtest roadmap
 
+## Cards in Play 27.32
+
+- Keep played, converted, Buy and reaction cards outside discard until shared round cleanup; draws cannot recycle them. Preserve explicit discard/trash/return effects and gained-card discard.
+- Add a saved, inspectable In play pile; preserve26.31 pinned games and replays.
+
+Status: implemented; 28 JavaScript suites, 52 dialog checks and 1,800 replay decisions pass. Publication/native verification tracked in the PR.
+
 ## Ship count readability and26.31 simulations
 
 - Keep each ship-type count visible within a hex, including mixed groups and buildings. Preserve zoom and Sector Scan; use a pannable map on narrow screens.

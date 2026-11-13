@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060911">
-  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for the Single-use Orders experiment 26.31.">
-  <meta name="rules-version" content="galactic-reach/26.31">
-  <title>Galactic Reach · Rulebook · 26.31</title>
+  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for the Cards in Play experiment 27.32.">
+  <meta name="rules-version" content="galactic-reach/27.32">
+  <title>Galactic Reach · Rulebook · 27.32</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="rulebook.css">
 </head>
@@ -28,7 +28,7 @@
   <a class="skip-link" href="#start">Skip to rules</a>
   <header class="book-header">
     <a href="./" class="button button-ghost">← Galactic Reach</a>
-    <span class="eyebrow">CANONICAL RULES · SINGLE-USE ORDERS EXPERIMENT · 26.31</span>
+    <span class="eyebrow">CANONICAL RULES · CARDS IN PLAY EXPERIMENT · 27.32</span>
   </header>
   <div class="book-layout">
     <nav class="book-nav" aria-label="Rulebook sections">
@@ -47,7 +47,7 @@
       <a href="#victory">Prestige &amp; victory</a>
       <a href="#game-report">Game reports</a>
       <a href="#cards">Card reference</a>
-      <a href="#clarifications">26.31 clarifications</a>
+      <a href="#clarifications">27.32 clarifications</a>
     </nav>
     <main id="start" tabindex="-1">
       <div class="eyebrow">A GALAXY. FOUR FACTIONS. YOUR NEXT MOVE.</div>
@@ -63,7 +63,7 @@
         </ol>
         <p><strong>Try this:</strong> save a Construct card for its order; convert another card to help pay for a Settler. You cannot use the same card both ways.</p>
       </div>
-      <p class="book-note">This manual describes the <strong>26.31 Single-use Orders experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
+      <p class="book-note">This manual describes the <strong>27.32 Cards in Play experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
 
       <section id="setup">
         <h2>01 / Your starting faction</h2>
@@ -79,11 +79,11 @@
           <li><strong>Produce, then draw five.</strong> Collect resources, then draw cards. Whenever your deck runs out, shuffle your discard pile to keep drawing.</li>
           <li><strong>Operations.</strong> Starting with the first player, alternate one action: use an order, publish a trade, or pass. Converting cards and answering trades are free on your own Operations turn. Passing ends your Operations for this round and immediately starts your Buy turn.</li>
           <li><strong>Buy.</strong> When you pass, take your own Buy turn before play moves on. Normally buy up to one card; you may also upgrade starters, decommission cards. Finish Buy to resume Operations with the next faction that has not passed.</li>
-          <li><strong>Clean up.</strong> After the last faction finishes Buy, discard everyone’s remaining hand.</li>
+          <li><strong>Clean up.</strong> After the last faction finishes Buy, move everyone’s remaining hand and cards in play to discard.</li>
           <li><strong>Check victory.</strong> If nobody wins, rotate the first-player marker and start the next round.</li>
         </ol>
         <p id="gaining-cards"><strong>Newly gained cards always enter your discard pile.</strong> This includes purchased cards, unit-bundled Colonize, Probe, and Excavate cards, and alien relic rewards. Draw them through normal deck circulation before using them. Drawing cards you already own and returning an existing card to hand follow their printed effects.</p>
-        <p>Played and converted cards go straight to discard, except successfully used Colonize, Probe, and Excavate cards are permanently trashed. Resources carry between turns and rounds; keep unused cards until the shared cleanup, so automatic reactions can still protect you after your Buy turn.</p>
+        <p><strong>Keep used cards in play until the shared round cleanup.</strong> This includes cards used for an order, converted for resources, used during Buy, or triggered as reactions. They are outside your hand, deck, and discard, so later draws and discard-recovery effects cannot pick them up again this round. For example, converting Move and then playing a draw-three card cannot draw that Move, even if your deck empties. Only the discard pile reshuffles. At cleanup, discard your cards in play together with your remaining hand. An effect that explicitly discards, trashes, or returns a card is an exception: successful Colonize, Probe, and Excavate orders are still permanently trashed. Newly gained cards still enter discard. Keep unused reactions in hand until they trigger or cleanup occurs. Resources carry between rounds.</p>
       </section>
 
       <section id="resources">
@@ -105,8 +105,8 @@
           <table><thead><tr><th>Card</th><th>Convert</th><th>Use its order</th><th>Level II adds</th></tr></thead><tbody>
             <tr><th>Move</th><td><span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span></td><td>Move one group of ships or Explorers.</td><td>+1 movement.</td></tr>
             <tr><th>Construct</th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span></td><td>Build one ship or structure, or upgrade one Harvester.</td><td>Reduce one chosen resource in that cost by 1.</td></tr>
-            <tr><th>Colonize</th><td><span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span></td><td>At a world’s center, spend <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>2 Biomass</span> and consume a Settler to found a Colony. Capture an occupied enemy center for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> and a Settler. Permanently trash the used Colonize card after success. Failed or canceled attempts keep it; converting it for 1 Biomass still puts it in discard.</td><td>Unit-bundled card; no starter upgrade.</td></tr>
-            <tr><th>Probe</th><td>1 Data</td><td>Choose one of your Explorers anywhere on the map, including empty space, your home world or a Shipyard. Privately locate the nearest remaining relic you have not already located, measuring hex distance from that Explorer to the relic itself. Probe picks one if several sites tie. Spend your Operations action and permanently trash that Probe card: it leaves your deck and cannot be drawn again. Keep the Explorer; pay no resources. Failed or canceled attempts keep the card and action. If no unlocated relic remains, keep the card and action. Converting Probe for 1 Data still puts it in discard.</td><td>Unit-bundled card; no starter upgrade.</td></tr>
+            <tr><th>Colonize</th><td><span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span></td><td>At a world’s center, spend <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>2 Biomass</span> and consume a Settler to found a Colony. Capture an occupied enemy center for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> and a Settler. Permanently trash the used Colonize card after success. Failed or canceled attempts keep it; converting it for 1 Biomass instead keeps it in play until cleanup.</td><td>Unit-bundled card; no starter upgrade.</td></tr>
+            <tr><th>Probe</th><td>1 Data</td><td>Choose one of your Explorers anywhere on the map, including empty space, your home world or a Shipyard. Privately locate the nearest remaining relic you have not already located, measuring hex distance from that Explorer to the relic itself. Probe picks one if several sites tie. Spend your Operations action and permanently trash that Probe card: it leaves your deck and cannot be drawn again. Keep the Explorer; pay no resources. Failed or canceled attempts keep the card and action. If no unlocated relic remains, keep the card and action. Converting Probe for 1 Data instead keeps it in play until cleanup.</td><td>Unit-bundled card; no starter upgrade.</td></tr>
             <tr><th>Excavate</th><td><span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span></td><td>With an Explorer at a relic, pay 1 Matter, 1 Energy, and 2 Data. Choose one face-up relic card for your discard pile, remove the relic from the map, gain 2 Prestige, and trash Excavate. Consume one Explorer at the site.</td><td>Unit-bundled card; no starter upgrade.</td></tr>
           </tbody></table>
         </div>
@@ -181,15 +181,15 @@
         <p>As soon as you pass, buy up to one Move or Construct card, or one of the five face-up advanced cards. Colonize, Probe, and Excavate are bundled only with unit commissions. You cannot return to Operations this round. Purchases go to discard and refill the market. Basic supply is unlimited; the advanced deck has two copies of each card and recycles the market discard when needed.</p>
         <p>During the same Buy turn you may also:</p>
         <ul>
-          <li><strong>Upgrade starters:</strong> spend <strong>two of one chosen resource type</strong> per original starter in your hand or discard to make it level II. Purchased basic cards cannot upgrade.</li>
-          <li><strong>Decommission cards:</strong> spend <strong>three of one chosen resource type</strong> per card to permanently trash as many cards as you can afford from your discard when your Buy turn began, including an original or upgraded starter. Cards still in hand, newly purchased cards, and Buy cards discarded during this turn are ineligible.</li>
+          <li><strong>Upgrade starters:</strong> spend <strong>two of one chosen resource type</strong> per original starter in your hand or discard to make it level II. Purchased basic cards and cards currently in play cannot upgrade.</li>
+          <li><strong>Decommission cards:</strong> spend <strong>three of one chosen resource type</strong> per card to permanently trash as many cards as you can afford from your discard when your Buy turn began, including an original or upgraded starter. Cards still in hand or in play, newly purchased cards, and cards explicitly discarded during this turn are ineligible.</li>
           <li><strong>Use Buy cards.</strong> These do not consume the normal purchase. Hold Buy cards in hand until this phase; conversions are only available in Operations.</li>
         </ul>
       </section>
 
       <section id="politics">
         <h2>10 / End of the round</h2>
-        <p>When everyone has finished Buy, discard the remaining hands and check victory. Then rotate the first-player marker and begin the next round with Production and Draw. The council directive and its resource bonuses are removed.</p>
+        <p>When everyone has finished Buy, move all remaining hands and cards in play to discard, then check victory. Then rotate the first-player marker and begin the next round with Production and Draw. The council directive and its resource bonuses are removed.</p>
       </section>
 
       <section id="victory">
@@ -204,7 +204,7 @@
         </div>
         <p>Shipyards and card purchases award no Prestige. For example, one Colony, four Shipyards, and sixteen purchased cards still score just 3 Prestige before relics or combat. Occupation alone does not remove ownership-based Prestige.</p>
         <p>After everyone finishes Buy and the round is cleaned up, if anyone has at least <strong>20 Prestige</strong>, the highest Prestige wins. Break ties by most Colonies, then most stored resources. An exact tie selects the earliest seat in the browser; arena standings share that rank. Reaching 20 earlier does not lock in a win: finish the round before checking the standings. There is no round limit.</p>
-        <p>The goal is 20 Prestige. Your starting Colony is worth 3 points. Six Colonies and one relic score 20; five Colonies, two relics, and one decisive combat victory also score 20. Relic and combat Prestige survive later losses and are saved with your faction’s score. These scoring rules are retained from 23.28. New 26.31 games permanently trash successfully used Colonize and Probe cards and retain the storage-planning rivals; older tables keep their pinned behavior.</p>
+        <p>The goal is 20 Prestige. Your starting Colony is worth 3 points. Six Colonies and one relic score 20; five Colonies, two relics, and one decisive combat victory also score 20. Relic and combat Prestige survive later losses and are saved with your faction’s score. These scoring rules are retained from 23.28. New 27.32 games permanently trash successfully used Colonize and Probe cards and retain the storage-planning rivals; older tables keep their pinned behavior.</p>
         <p>Computer rivals follow the same costs, card limits, scoring, and victory check. They use public ships and structures to avoid exposed Settler moves, gather Fleets, and respond to nearby threats. They can use their own cards and private Probe results, but cannot inspect another faction’s hand or unlocated relics. Their strategy profile changes their priorities, not their legal actions.</p>
         <p>AI arena games use this same victory check. Only completed games earn placement ratings. Simulations have time and decision limits. If any game cannot finish within those limits, the arena reports an incomplete series and none of its games change ratings. Retry with another series; an unfinished game is never counted as a victory.</p>
       </section>
@@ -254,17 +254,17 @@
         <details>
           <summary>Advanced and relic orders</summary>
           <div class="book-table" tabindex="0" role="region" aria-label="Advanced card effects">
-            <table><thead><tr><th>Card</th><th>Current 26.31 effect</th></tr></thead><tbody>
+            <table><thead><tr><th>Card</th><th>Current 27.32 effect</th></tr></thead><tbody>
               <tr><th>Survey Drones</th><td>Normal movement at the selected group’s speed. Survey Drones does not add range or filter cards.</td></tr>
               <tr><th>Pathfinder Network</th><td>Move with +1 range; cannot enter hostile hexes.</td></tr>
               <tr><th>Drop Colony Modules</th><td>Found or capture for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> without consuming the Settler.</td></tr>
               <tr><th>Modular Construction / Orbital Shipyards / Precursor Forge</th><td>One normal Construct order. Their advertised extra builds or discounts are not implemented.</td></tr>
               <tr><th>Industrial Surge</th><td>Immediately collect 1 resource from each of up to three unoccupied owned planet hexes in the world with the most such hexes. Add no Harvester bonus. For example, a Matter hex and an Energy hex give 1 Matter and 1 Energy. This does not replace normal round production. Local computer rivals instead use their first three eligible hexes across worlds.</td></tr>
 
-              <tr><th>Trade Consortium</th><td>Choose: gain 1 resource of any type, or make up to two bank exchanges at 2:1. For each exchange, choose two of one resource to give and one different resource to receive. You may stop after one exchange. Cancel before gaining or exchanging to keep the card; otherwise, discard it and end your Operations action when finished. Finish this choice before doing anything else. A gain that exceeds storage pauses play for your discard choice; exchanging frees one storage. The player-trade allowance is not used. Converting this card instead gives 2 Data.</td></tr>
+              <tr><th>Trade Consortium</th><td>Choose: gain 1 resource of any type, or make up to two bank exchanges at 2:1. For each exchange, choose two of one resource to give and one different resource to receive. You may stop after one exchange. Cancel before gaining or exchanging to keep the card; otherwise, your first successful choice puts it in play. End your Operations action when finished. Finish this choice before doing anything else. A gain that exceeds storage pauses play for your discard choice; exchanging frees one storage. The player-trade allowance is not used. Converting this card instead gives 2 Data.</td></tr>
               <tr><th>Fleet Overdrive</th><td>Move with +2 range; Emergency Jump cannot interrupt the battle. Explorer escape before tactics and compulsory retreat after volley three still apply.</td></tr>
               <tr><th>Coordinated Assault</th><td>Move normally; add 1 hit in the first volley if you attack.</td></tr>
-              <tr><th>Tactical Foresight</th><td>Draw three, then automatically discard the first card in your hand. There is no selection prompt.</td></tr>
+              <tr><th>Tactical Foresight</th><td>Put Tactical Foresight in play first. Draw three, then automatically discard the first remaining card in your hand. The played Foresight cannot discard itself or be redrawn. There is no selection prompt. The explicitly discarded card enters discard and can be reshuffled by a later draw.</td></tr>
               <tr><th>Data Brokerage</th><td>Trash the first basic card in discard, including an original or upgraded starter, if any, then draw two. It does not scrap a card from hand.</td></tr>
               <tr><th>Command Uplink</th><td>Return the first basic card in discard to hand. Your action ends; play it on a later turn.</td></tr>
               <tr><th>Procurement Network</th><td>In Buy, set your purchase limit to two. No second-purchase discount.</td></tr>
@@ -312,7 +312,7 @@
           </ul>
         </details>
       </section>
-      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 26.31 · The game and this rulebook travel together in every deployment.</p></footer>
+      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 27.32 · The game and this rulebook travel together in every deployment.</p></footer>
     </main>
   </div>
 </body>

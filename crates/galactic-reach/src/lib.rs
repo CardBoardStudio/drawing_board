@@ -8,7 +8,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/26.31";
+pub const RULES: &str = "galactic-reach/27.32";
 mod legacy_v1;
 mod legacy_v10;
 mod legacy_v11;
@@ -23,6 +23,7 @@ mod legacy_v19;
 mod legacy_v2;
 mod legacy_v20;
 mod legacy_v21;
+mod legacy_v22;
 mod legacy_v3;
 mod legacy_v4;
 mod legacy_v5;
@@ -89,6 +90,7 @@ impl GalacticReach {
             "galactic-reach/23.28" => "galactic-reach/23.28",
             "galactic-reach/24.29" => "galactic-reach/24.29",
             "galactic-reach/25.30" => "galactic-reach/25.30",
+            "galactic-reach/26.31" => "galactic-reach/26.31",
             _ => return Err("Unsupported rules version.".into()),
         };
         Self::initialize(seed, MATCH_TIMEOUT, rules)
@@ -119,6 +121,7 @@ impl GalacticReach {
                     "galactic-reach/23.28" => include_str!("../rules/v23-adapter.js"),
                     "galactic-reach/24.29" => include_str!("../rules/v24-adapter.js"),
                     "galactic-reach/25.30" => include_str!("../rules/v25-adapter.js"),
+                    "galactic-reach/26.31" => include_str!("../rules/v26-adapter.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-adapter.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-adapter.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-adapter.js"),
@@ -145,6 +148,7 @@ impl GalacticReach {
                     "galactic-reach/23.28" => include_str!("../rules/v23-app.js"),
                     "galactic-reach/24.29" => include_str!("../rules/v24-app.js"),
                     "galactic-reach/25.30" => include_str!("../rules/v25-app.js"),
+                    "galactic-reach/26.31" => include_str!("../rules/v26-app.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-app.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-app.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-app.js"),
@@ -272,18 +276,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/22",
-            Self::Economy => "gr-economy/22",
-            Self::Expansion => "gr-expansion/22",
-            Self::Wanderer => "gr-wanderer/22",
+            Self::Military => "gr-military/23",
+            Self::Economy => "gr-economy/23",
+            Self::Expansion => "gr-expansion/23",
+            Self::Wanderer => "gr-wanderer/23",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/22" => Some(Self::Military),
-            "gr-economy/22" => Some(Self::Economy),
-            "gr-expansion/22" => Some(Self::Expansion),
-            "gr-wanderer/22" => Some(Self::Wanderer),
+            "gr-military/23" => Some(Self::Military),
+            "gr-economy/23" => Some(Self::Economy),
+            "gr-expansion/23" => Some(Self::Expansion),
+            "gr-wanderer/23" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -329,7 +333,7 @@ fn bot_order(key: &str) -> &str {
     }
 }
 fn bot_cards(me: &Value, order: &str) -> f64 {
-    ["hand", "discard", "deckContents"]
+    ["hand", "discard", "deckContents", "inPlay"]
         .iter()
         .flat_map(|k| me[k].as_array().into_iter().flatten())
         .filter(|c| bot_order(c["key"].as_str().unwrap_or("")) == order)
@@ -896,7 +900,8 @@ impl BuiltinAgent {
                 let order = bot_order(key);
                 let size = number(&me["handCount"])
                     + number(&me["deckCount"])
-                    + me["discard"].as_array().map_or(0, Vec::len) as f64;
+                    + me["discard"].as_array().map_or(0, Vec::len) as f64
+                    + me["inPlay"].as_array().map_or(0, Vec::len) as f64;
                 if bot_yards(view, seat) == 0 {
                     -10.0
                 } else if order == "move" && bot_cards(me, "move") < 5.0 {
@@ -1081,12 +1086,21 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
     if let Some(strategy) = legacy_v21::Strategy::parse(version) {
         return Ok(Box::new(legacy_v21::BuiltinAgent::new(strategy, seed)));
     }
+    if let Some(strategy) = legacy_v22::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v22::BuiltinAgent::new(strategy, seed)));
+    }
     Err("Unsupported Galactic Reach policy version.".into())
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn in_play_cards_still_count_in_owned_deck_planning() {
+        let me = json!({"hand":[],"discard":[],"deckContents":[{"key":"move","count":1}],"inPlay":[{"key":"move"},{"key":"construct"}]});
+        assert_eq!(bot_cards(&me, "move"), 2.0);
+        assert_eq!(bot_cards(&me, "construct"), 1.0);
+    }
     #[test]
     fn explorer_follows_private_signal_without_searching_its_current_world() {
         let agent = BuiltinAgent::new(Strategy::Economy, [17; 32]);
@@ -1236,6 +1250,7 @@ mod tests {
             "galactic-reach/23.28",
             "galactic-reach/24.29",
             "galactic-reach/25.30",
+            "galactic-reach/26.31",
         ] {
             let game = GalacticReach::with_rules([19; 32], rules).unwrap();
             assert_eq!(game.rules_version(), rules);
@@ -1265,6 +1280,7 @@ mod tests {
                             | "galactic-reach/23.28"
                             | "galactic-reach/24.29"
                             | "galactic-reach/25.30"
+                            | "galactic-reach/26.31"
                     ) {
                         0
                     } else {
@@ -1297,6 +1313,7 @@ mod tests {
             "gr-military/20",
             "gr-military/21",
             "gr-military/22",
+            "gr-military/23",
         ] {
             assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
         }

@@ -1,0 +1,21 @@
+{
+  "engine": "/private/tmp/drawing-board-compact-frontier",
+  "mode": "browser",
+  "seeds": 16,
+  "rounds": 24,
+  "workers": 4,
+  "games": 1,
+  "createdAt": "2026-11-12T02:18:04.264Z",
+  "engineSha256": "c36b02100e148189bc5c8f542b1c29814e873f5b781ecb1071e7a51950f60ae2",
+  "node": "v24.22.3",
+  "notes": [
+    "No game rules changed. Browser seat0 guard removed to allow four bots.",
+    "Instrumented closure-local observers consume no random numbers.",
+    "Stall means three identical state transitions with no RNG consumption.",
+    "Guarded mode checks move destinations and continues after failed movement; only policy decisions differ.",
+    "Mixed lineups use common seed blocks, every rotation and each duplicated strategy.",
+    "Round/step limits are censored, never counted as victories."
+  ],
+  "sourceCommit": "30ac7a94133b8d493c4856f95999eda255405dc8",
+  "adapterSha256": "6b986e56978ce183b6386cbd5992b499575c4b2e26ce1f4dc1425f656ee759c4"
+}

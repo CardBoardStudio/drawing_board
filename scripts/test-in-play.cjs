@@ -52,5 +52,8 @@ function action(g,type,id,extra=()=>true){const a=g.adapter();const x=a.legalAct
 {
  const g=game('crates/galactic-reach/rules/v26-');g.p.hand=[card('move','old-convert')];action(g,'resource','old-convert');assert(g.p.discard.some(c=>c.id==='old-convert'));assert(!('inPlay' in g.p),'26.31 keeps its original zones');
 }
+const replayRoutes=vm.runInNewContext('('+read('prototypes/lab/replay.js').match(/const REPLAY_PATHS=(.*);/)[1]+')');
+assert.equal(replayRoutes['galactic-reach/26.31'],'/galactic-reach/rules/26.31/','Pinned replay opens its archived browser');
+assert.equal(replayRoutes['galactic-reach/27.32'],'/galactic-reach/','Current replay opens the In play browser');
 for(const [file,hash] of Object.entries(JSON.parse(read('scripts/in-play-archive-hashes.json'))))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),hash,file);
 console.log('Cards in play: conversions/orders, pre-effect draw commitment, explicit discards, recovery/trashing isolation, public/private observations, reactions, Buy timing, shared cleanup, rival conversions and frozen26.31/policy22 passed.');

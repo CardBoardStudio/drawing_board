@@ -174,7 +174,7 @@ pub async fn create_bot(
         "{}/{}",
         input.strategy,
         if input.game == GameKind::GalacticReach {
-            22
+            23
         } else {
             1
         }

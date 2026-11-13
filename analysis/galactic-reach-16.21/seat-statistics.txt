@@ -1,0 +1,81 @@
+SCREEN
+baseline 48 [45.8, 14.6, 12.5, 27.1]
+owner-rotation:2 48 [35.4, 25.0, 22.9, 16.7]
+owner-rotation:3 48 [35.4, 25.0, 8.3, 31.2]
+owner-rotation:1 48 [29.2, 31.2, 10.4, 29.2]
+deck-rotation:1 48 [43.8, 6.2, 16.7, 33.3]
+deck-rotation:2 48 [29.2, 31.2, 14.6, 25.0]
+deck-rotation:3 48 [37.5, 20.8, 6.2, 35.4]
+equal-starters 48 [29.2, 31.2, 12.5, 27.1]
+equal-home-resources 48 [31.2, 16.7, 20.8, 31.2]
+yard-direction:1 48 [43.8, 10.4, 16.7, 29.2]
+yard-direction:3 48 [29.2, 16.7, 31.2, 22.9]
+inward-yard 48 [31.2, 16.7, 22.9, 29.2]
+yard-direction:2 48 [25.0, 14.6, 25.0, 35.4]
+yard-direction:4 48 [29.2, 20.8, 16.7, 33.3]
+yard-direction:5 48 [27.1, 22.9, 22.9, 27.1]
+relative-paths 48 [35.4, 20.8, 20.8, 22.9]
+inward-relative-paths 48 [20.8, 16.7, 33.3, 29.2]
+affordable-build 48 [52.1, 16.7, 18.8, 12.5]
+inward-affordable 48 [33.3, 25.0, 25.0, 16.7]
+all-policy 48 [25.0, 22.9, 31.2, 20.8]
+CONFIRMATION
+affordable-build 96 [56.2, 17.7, 9.4, 16.7]
+baseline 96 [39.6, 29.2, 7.3, 24.0]
+relative-paths 96 [31.2, 21.9, 10.4, 36.5]
+inward-yard 96 [22.9, 31.2, 21.9, 24.0]
+inward-affordable 96 [37.5, 21.9, 15.6, 25.0]
+relative-affordable 96 [45.8, 21.9, 14.6, 17.7]
+inward-relative-paths 96 [19.8, 34.4, 26.0, 19.8]
+all-policy 96 [26.0, 22.9, 22.9, 28.1]
+PAIRED {
+  "affordable-build": {
+    "weakHomeWinShareChangePP": 2.083333333333333,
+    "CI95": [
+      -5.208333333333333,
+      9.375
+    ]
+  },
+  "relative-paths": {
+    "weakHomeWinShareChangePP": 3.125,
+    "CI95": [
+      -4.166666666666666,
+      10.416666666666666
+    ]
+  },
+  "inward-yard": {
+    "weakHomeWinShareChangePP": 14.583333333333332,
+    "CI95": [
+      4.166666666666666,
+      23.958333333333332
+    ]
+  },
+  "inward-affordable": {
+    "weakHomeWinShareChangePP": 8.333333333333332,
+    "CI95": [
+      1.0416666666666665,
+      15.625
+    ]
+  },
+  "relative-affordable": {
+    "weakHomeWinShareChangePP": 7.291666666666666,
+    "CI95": [
+      -1.0416666666666665,
+      15.625
+    ]
+  },
+  "inward-relative-paths": {
+    "weakHomeWinShareChangePP": 18.75,
+    "CI95": [
+      8.333333333333332,
+      29.192708333333425
+    ]
+  },
+  "all-policy": {
+    "weakHomeWinShareChangePP": 15.625,
+    "CI95": [
+      6.25,
+      25.0
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "rules": "galactic-reach/23.28",
+  "engineSha256": "41d217bc97b4977e072abecb7c815c2070b189c02c70589d8bc1b8ff73bcfd0d",
+  "sha256": {
+    "prototypes/galactic-reach/app.js": "41d217bc97b4977e072abecb7c815c2070b189c02c70589d8bc1b8ff73bcfd0d",
+    "prototypes/galactic-reach/adapter.js": "3dd6fdf904688d456682d95444d429151e2baa970d43ee4a3d044e15d48d5396",
+    "crates/galactic-reach/src/lib.rs": "d2b4eb66cc61850bec9038ee8c62b0915ac906022e11b5489c9c07d609ef47d6",
+    "analysis/galactic-reach-23.28/engine.cjs": "74f8974ab13f5b4fafbd3e6cd8ce3c86defd625841c778ad9c94221772660799",
+    "analysis/galactic-reach-23.28/run.cjs": "0e37594aebd4b0b922ed5b288c745ff5a9912481b958e88e2ac99e4be323bc28"
+  },
+  "developmentSeeds": "1000,1100,1101; post-freeze plain-engine parity1102",
+  "evaluationSeeds": "2000\u20132063"
+}

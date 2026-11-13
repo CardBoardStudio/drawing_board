@@ -1,5 +1,54 @@
 # Playtest roadmap
 
+## Nearest Probe24.29 correction
+
+- Probe locates the nearest unlocated remaining relic from an Explorer anywhere, including empty space, home or Shipyard. Keep the Explorer, discard Probe and spend an Operations action.
+- Preserve private signals and hidden moon terrain; update rival planning and archive23.28.
+
+Status: implementation and release verification in progress. Storage-planning draft and its superseded-rule simulations remain separate; rerun against the corrected Probe after release.
+
+## Twenty Point Strategy 23.28 experiment
+
+- Victory at 20 Prestige; each Colony 3 points, each excavated relic 2, qualifying decisive combat victory 1. No Colony pair bonus, shipyard points, or card points.
+- Paid storage upgrades: +5 capacity for 1 of each resource, then 2 each, 3 each, etc. Count paid purchases per faction; free relic storage does not advance the price.
+- Improve rival threat awareness, Settler safety and escorts, Fleet coordination, early production and starter upgrades using the supplied human report; rerun matched strategy and resource studies.
+
+Status: implemented in PR #32. See that PR for deployment verification and balance-study results. Start a new game on its successful preview; older versions remain pinned.
+
+## Probe Relics22.27 experiment
+
+- Bank exchange uses Give4/Receive1 resource buttons and Convert (also published for21.26).
+- Require Probe to privately locate a relic with an Explorer on that world or moon; movement reveals only terrain. Explorer commissions grant Probe and Excavate to discard. Preserve discovery relic cards.
+
+Status: implemented; local mechanics, dialogs, replay, native, archive and build checks passed. Published and verified on PR #31. Existing21.26 games keep their discovery rules.
+
+## Implemented in the 21.26 Scoring Bots experiment
+
+- Improve rivals’ ability to earn Prestige through Colonies, relics and favorable combat; coordinate units and preserve useful orders/resources.
+- Rerun matched strategy and resource simulations against the exact 20.25 baseline, including head-to-head checks.
+
+Status: implementation and validation in progress. Existing20.25 games keep their archived rivals.
+
+## Implemented in the 20.25 Open Worlds experiment
+
+- Keep all planets visible to all players at all times, with resources, ownership, and buildings public. Hide only undiscovered moons and unlocated relic sites on the map. Keep private relic signals distinct from public surveys.
+- Randomize the four moons while keeping them widely spaced, fairly distributed across the map, and at comparable travel distances from each home. Preserve the approved thirteen-world layout.
+
+Status: implemented; new-game experiment preserves 19.24 tables and reports.
+
+## Implemented in the 19.24 Game Reports experiment
+
+- **Export game report:** add a visible button to download a JSON report containing the current saved position, rules version, round/phase, factions and bot profiles, scores and scoring breakdowns, resources, and the available game log. Include readable log text so a completed human-versus-bot game can be reviewed alongside its final position.
+- **Full game logging:** retain the complete history from setup through victory for new games, covering every faction's turns, actions and outcomes. Identify the round, phase and acting faction; include resource changes, conversions, construction, movement, colonization, excavation, trades, purchases, combat outcomes and Prestige awards. Preserve the history across reloads and record undo boundaries. The visible Comms Feed can remain compact while the exported history stays complete.
+- **History completeness:** existing saves export their retained events and clearly mark earlier history as incomplete. Full recording begins with new games; starting another game starts a separate history.
+- **Clickable point totals:** click a faction's point total to see its Prestige breakdown by scoring source.
+- **Remove Shipyard points:** Shipyards no longer grant Prestige, including the current point per pair.
+- **Remove card points:** purchased cards no longer grant Prestige, including the current point per eight lifetime purchases.
+
+Status: implemented in 19.24. Start a new game for the revised scoring and complete history. Earlier tables keep their archived rules.
+
+## Historical planning
+
 Historical planning snapshot: PR #5 was adopted and Long Reach 6.11 reached `main` in PR #16. Use the [current workflow](playtest-workflow.md) for new branches and the [canonical rules maintenance guide](rules/README.md) for rules changes. The statuses and numbered follow-ups below describe the earlier planning stage.
 
 This repository has three related pull requests with deliberately different jobs:
@@ -47,3 +96,65 @@ Make the local/Tailscale test service repeatable: documented port selection, iso
 - The existing stable and 5.10 local services remain playable throughout the experiment.
 
 The companion tracking issue records the remaining decisions and links the next implementation work: [Playtest roadmap after PR #5](https://github.com/CardBoardStudio/drawing_board/issues/6).
+
+## Streamlined Reach 12.17 requested modifications
+
+- Remove public awards and their Prestige.
+- Compact the Your Command resource totals and remove their descriptions.
+- Remove the council directive and its resource bonuses.
+- Trash each eligible discarded card for three of one chosen resource type.
+- Collect full gains and let the player choose excess-resource discards.
+- Let Settlers, Fleets, and Explorers discover worlds.
+
+## Implemented in the 13.18 excavation experiment
+
+These requests follow the six-change 12.17 playtest and are implemented together in the 13.18 experiment.
+
+- Remove Research Stations.
+- Purchasing an Explorer adds an Excavate card directly to that player's hand.
+- Excavate collects a relic, removes it from the board, and grants a relic-deck card into the player's hand. Trash the Excavate card immediately after use.
+- Replace the random relic draw with a visible row of three relic cards. The excavating player chooses one.
+- Increase the map to eight inner worlds and four home worlds, for twelve worlds total.
+- Add single gray Moons that produce no resources. Relics may appear on planet hexes and moons.
+- Keep at least one empty space tile between separate worlds and moons, and between moons. Larger gaps are allowed.
+- Add a development-only Reveal entire map toggle for worlds, moons, relics, resources, buildings, and units. Switching it off restores normal fog of war.
+- Keep every player's units visible to every other player, including in unexplored regions and empty space, independently of the development toggle. Map icons and Sector Scan must agree.
+
+Confirmed defaults: excavation costs 1 Matter, 1 Energy, and 2 Data; keep the Explorer; gain 1 permanent Prestige; four moons and twelve relics total; refill the chosen row slot immediately. Trash the used Excavate card.
+
+## Implemented in the 14.19 Fair Frontier experiment
+
+- Make the player's **Deck** count clickable to inspect the cards currently in that deck. Show card identities and quantities grouped or sorted, without revealing their draw order.
+- Keep world and moon positions randomized, but distribute each fairly evenly across the map. Give every starting faction comparable access and travel distances to nearby worlds and moons; avoid excessive clustering or large underserved regions while preserving the minimum empty-space gaps.
+- Remove the Rich planet mechanic, its ★ markers, and its extra production bonus. Keep those planet hexes as ordinary resource planets, and update affected card effects and rules consistently.
+- Reduce the map by one hex on every side: board radius 12 → 11. Fit the home worlds, randomized inner worlds, and moons inside the smaller board while preserving fair access and minimum empty-space gaps.
+- Change each starter upgrade from 1 Data to two of one chosen resource type, as confirmed by the user.
+- On successful excavation, consume one Explorer at the relic site as well as permanently trashing the used Excavate card. This supersedes the 13.18 rule that keeps the Explorer; unsuccessful or canceled choices consume neither.
+
+Confirmed card treatment: remove Terraforming Protocols from the new market; Worldweaver Spore keeps its immediate gain from up to two unoccupied owned planet hexes, without a permanent production effect.
+
+- All newly gained cards enter discard by default: unit-bundled orders (including Excavate), relic rewards, and purchases. Drawing/shuffling owned cards and returning an existing card to hand keep their printed behavior. No gain-to-hand exceptions are introduced.
+
+## Implemented in the 15.20 Tactical Combat experiment
+
+- Replace the shuffled military deck with two Concentrated Fire and two Defensive Screen per side per battle. Secret commitments reveal together, consume cards, and offer no replacement draws. Maximum three volleys.
+- Try Fleet attack 3/hull 7, Explorer 1/1, Settler 1/2 (4 defending), Fire +1 and Screen 2. Damage is the direct surviving attack sum, simultaneous, and persists between volleys.
+- Before tactics, allow paid adjacent Explorer escape at 1 Energy per Explorer, respecting safety and unit capacity. Remaining mixed-group ships fight.
+- Require a Fleet for War-Song and Obelisk’s largest offensive bonuses; keep normal reactions automatic.
+- After three volleys defenders hold. Attackers retreat to a safe adjacent hex with room or are destroyed. Remove power-ratio automatic retreats; preserve Emergency Jump’s printed condition.
+- Pause human or AI Operations for a serializable battle continuation, including human defense during an AI turn. Keep commitments private and complete the original Move exactly once.
+- Show available tactics, public used cards and unit damage, plus base/bonus/shield breakdowns. Preserve 14.19 tables/replays and policy 10.
+
+- Put the shared relic row in a dedicated Relics console tab. Browse anytime; starting or targeting a valid excavation site opens it automatically. Keep payment help, disabled unaffordable choices, resource conversions through Hand, and cancellation together without changing excavation mechanics.
+
+## Implemented in the 16.21 Compact Frontier experiment
+
+- Shrink the board by one hex on every side: radius 11/397 cells → radius 10/331 cells. Keep twelve complete worlds, four moons, twelve relics and comparable access, with the same separation and fairness bounds. Preserve 15.20 games and policy 11; change no other mechanics.
+
+### Storage Planning25.30 — implementation and evaluation
+
+Separate experiment based on corrected24.29 Probe. Rivals reserve a feasible upgrade mix, protect scoring payments, forecast public production and avoid late unprofitable capacity. Human prices and scoring stay unchanged. New save25/rules30/native21; archive24.29/policy20. Compare both policies under corrected Probe using2592 predeclared trials; exclude interrupted old-Probe draft outcomes.
+
+### Single-use Orders26.31
+
+Permanently trash Probe after a successful nearest-relic search and Colonize after successful founding or capture. Keep the Explorer for Probe. Conversions still discard; invalid/canceled attempts keep the card/action. Show +X current per-round production below every resource amount. Raise the Fleet cap6→10; other type and hex caps remain. Save26/rules31/native22 preserve25.30/native21. Existing25.30 balance results predate this change.

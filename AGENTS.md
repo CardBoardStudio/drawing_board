@@ -1,11 +1,9 @@
 # Project instructions
 
-## GitHub identity
+## GitHub workflow
 
-- Every GitHub write, including commits, pushes, PRs, comments, labels, and merges, must use `bitswell`. Never use `willemneal` or its credentials, even if the local defaults point there. Do not add co-author trailers for that account or an AI agent.
-- Run every GitHub CLI/API call through `~/.config/bitswell/gh-bitswell gh <args>`. The wrapper injects the token from 1Password only for that command. Never print, persist, export, or paste the token; do not read, list, or explore other 1Password items.
-- Set this repository's commit identity to `bitswell` / `96487943+bitswell@users.noreply.github.com`. Use HTTPS remotes, never SSH. Reset this repo's GitHub credential helper with `git config credential.https://github.com.helper ''`, then add `~/.config/bitswell/git-credential-bitswell` with `git config --add credential.https://github.com.helper ~/.config/bitswell/git-credential-bitswell`.
-- Before the first write, verify that `~/.config/bitswell/gh-bitswell gh api user --jq .login` reports `bitswell`, `git config user.email` reports its noreply address, and `git remote -v` contains HTTPS URLs. If any check fails, or 1Password reports an authentication or network error, stop and report it. Never fall back to another account.
+- Use HTTPS remotes, never SSH.
+- Do not add co-author trailers for an AI agent.
 - Do not merge without explicit user authorization. Do not write to upstream or third-party repositories unless the user names them.
 
 ## Ground every PR in the rules

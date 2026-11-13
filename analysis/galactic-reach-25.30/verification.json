@@ -1,0 +1,9 @@
+{
+  "rules": "galactic-reach/25.30",
+  "matchedInitialStates": 32,
+  "observerPairs": 3,
+  "plainPairs": 3,
+  "hybridPairs": 3,
+  "oldBridgePairs": 3,
+  "storedControlPairs": 0
+}

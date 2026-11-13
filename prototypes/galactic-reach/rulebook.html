@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060911">
-  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for the Nearest Probe experiment 24.29.">
-  <meta name="rules-version" content="galactic-reach/24.29">
-  <title>Galactic Reach · Rulebook · 24.29</title>
+  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for the Storage Planning experiment 25.30.">
+  <meta name="rules-version" content="galactic-reach/25.30">
+  <title>Galactic Reach · Rulebook · 25.30</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="rulebook.css">
 </head>
@@ -28,7 +28,7 @@
   <a class="skip-link" href="#start">Skip to rules</a>
   <header class="book-header">
     <a href="./" class="button button-ghost">← Galactic Reach</a>
-    <span class="eyebrow">CANONICAL RULES · NEAREST PROBE EXPERIMENT · 24.29</span>
+    <span class="eyebrow">CANONICAL RULES · STORAGE PLANNING EXPERIMENT · 25.30</span>
   </header>
   <div class="book-layout">
     <nav class="book-nav" aria-label="Rulebook sections">
@@ -47,7 +47,7 @@
       <a href="#victory">Prestige &amp; victory</a>
       <a href="#game-report">Game reports</a>
       <a href="#cards">Card reference</a>
-      <a href="#clarifications">24.29 clarifications</a>
+      <a href="#clarifications">25.30 clarifications</a>
     </nav>
     <main id="start" tabindex="-1">
       <div class="eyebrow">A GALAXY. FOUR FACTIONS. YOUR NEXT MOVE.</div>
@@ -63,7 +63,7 @@
         </ol>
         <p><strong>Try this:</strong> save a Construct card for its order; convert another card to help pay for a Settler. You cannot use the same card both ways.</p>
       </div>
-      <p class="book-note">This manual describes the <strong>24.29 Nearest Probe experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
+      <p class="book-note">This manual describes the <strong>25.30 Storage Planning experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
 
       <section id="setup">
         <h2>01 / Your starting faction</h2>
@@ -202,7 +202,7 @@
         </div>
         <p>Shipyards and card purchases award no Prestige. For example, one Colony, four Shipyards, and sixteen purchased cards still score just 3 Prestige before relics or combat. Occupation alone does not remove ownership-based Prestige.</p>
         <p>After everyone finishes Buy and the round is cleaned up, if anyone has at least <strong>20 Prestige</strong>, the highest Prestige wins. Break ties by most Colonies, then most stored resources. An exact tie selects the earliest seat in the browser; arena standings share that rank. Reaching 20 earlier does not lock in a win: finish the round before checking the standings. There is no round limit.</p>
-        <p>The goal is 20 Prestige. Your starting Colony is worth 3 points. Six Colonies and one relic score 20; five Colonies, two relics, and one decisive combat victory also score 20. Relic and combat Prestige survive later losses and are saved with your faction’s score. These scoring rules are retained from 23.28. New 24.29 games use nearest-relic Probe; older tables keep their pinned Probe behavior.</p>
+        <p>The goal is 20 Prestige. Your starting Colony is worth 3 points. Six Colonies and one relic score 20; five Colonies, two relics, and one decisive combat victory also score 20. Relic and combat Prestige survive later losses and are saved with your faction’s score. These scoring rules are retained from 23.28. New 25.30 games use storage-planning rivals and retain nearest-relic Probe; older tables keep their pinned behavior.</p>
         <p>Computer rivals follow the same costs, card limits, scoring, and victory check. They use public ships and structures to avoid exposed Settler moves, gather Fleets, and respond to nearby threats. They can use their own cards and private Probe results, but cannot inspect another faction’s hand or unlocated relics. Their strategy profile changes their priorities, not their legal actions.</p>
         <p>AI arena games use this same victory check. Only completed games earn placement ratings. Simulations have time and decision limits. If any game cannot finish within those limits, the arena reports an incomplete series and none of its games change ratings. Retry with another series; an unfinished game is never counted as a victory.</p>
       </section>
@@ -252,7 +252,7 @@
         <details>
           <summary>Advanced and relic orders</summary>
           <div class="book-table" tabindex="0" role="region" aria-label="Advanced card effects">
-            <table><thead><tr><th>Card</th><th>Current 24.29 effect</th></tr></thead><tbody>
+            <table><thead><tr><th>Card</th><th>Current 25.30 effect</th></tr></thead><tbody>
               <tr><th>Survey Drones</th><td>Normal movement at the selected group’s speed. Survey Drones does not add range or filter cards.</td></tr>
               <tr><th>Pathfinder Network</th><td>Move with +1 range; cannot enter hostile hexes.</td></tr>
               <tr><th>Drop Colony Modules</th><td>Found or capture for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> without consuming the Settler.</td></tr>
@@ -297,7 +297,7 @@
         <p id="development-reveal">For development playtests, open the game with <code>?dev=1</code> to show the <strong>Reveal entire map</strong> toggle. It displays terrain, resources, relics, buildings, and units. Switch it off to restore normal fog immediately. This viewing aid changes no discovery, turn, save, or opponent information. Units remain visible under normal fog.</p>
         <h2>13 / Current playtest clarifications</h2>
         <p id="computer-rivals">Computer rivals pursue Prestige with the same cards, costs, and legal actions as you. They take available Colony and excavation opportunities before adding infrastructure. Every profile sends Settlers toward neutral Colony sites. Explorers use Probe from their current hex, then travel to the privately located relic. They do not wait on a world or moon to search it. Fleets seek favorable fights or open enemy Colonies for capture. Explorers pursue located relics and wait for Probe if no signal is known; they stop when the shared relic rewards are exhausted. Rivals see public terrain and units and their own private relic signals. They cannot consult hidden moon positions, unlocated relic sectors, enemy hands, or deck order.</p>
-        <p>Rivals keep useful Move, Construct, Colonize, Probe, and Excavate orders in circulation. They may skip a purchase, storage upgrade, or extra building to keep cards and resources for scoring. They avoid destinations exposed to nearby stronger Fleets, gather Fleets, escort threatened Settlers, and move toward safer hexes when outmatched. They upgrade Construct starters early and invest in missing Data production. They reinforce against visible threats and keep seeking captures when no neutral worlds remain. Military, Economy, and Expansion profiles favor different routes, but all pursue points. Their first Shipyard still uses the inward Energy hex, and equal-distance paths use their home’s orientation. A blocked or illegal move costs no card. The rival may then choose another action or convert a card normally.</p>
+        <p>Rivals keep useful Move, Construct, Colonize, Probe, and Excavate orders in circulation. They may skip a purchase, storage upgrade, or extra building to keep cards and resources for scoring.</p><p>Rivals plan storage using their current resources and the production their public ships and structures would earn. They keep payment for their next Colony and excavation, and for a first Shipyard when needed. They save a feasible mix for a worthwhile storage purchase and can buy capacity during Operations or before other Buy spending. They may buy before converting a card that would overflow. They shorten their planning horizon as a faction approaches victory and skip expensive upgrades unlikely to repay their cost. Forecasts use no hidden cards or future enemy decisions. Rivals pay the same escalating prices and cannot upgrade during an overflow choice. When converting cards to fund an order, they retain its payment during any overflow choice.</p><p> They avoid destinations exposed to nearby stronger Fleets, gather Fleets, escort threatened Settlers, and move toward safer hexes when outmatched. They upgrade Construct starters early and invest in missing Data production. They reinforce against visible threats and keep seeking captures when no neutral worlds remain. Military, Economy, and Expansion profiles favor different routes, but all pursue points. Their first Shipyard still uses the inward Energy hex, and equal-distance paths use their home’s orientation. A blocked or illegal move costs no card. The rival may then choose another action or convert a card normally.</p>
         <p>These are recorded behaviors, not new rules introduced by this manual. Resolving them requires a separate rules change and playtest.</p>
         <details>
           <summary>Occupation, retreats, and civilian combat</summary>
@@ -310,7 +310,7 @@
           </ul>
         </details>
       </section>
-      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 24.29 · The game and this rulebook travel together in every deployment.</p></footer>
+      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 25.30 · The game and this rulebook travel together in every deployment.</p></footer>
     </main>
   </div>
 </body>

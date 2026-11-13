@@ -1,0 +1,18 @@
+{
+  "engine": "/private/tmp/drawing-board-ten-prestige",
+  "target": 20,
+  "suite": "main",
+  "seeds": 32,
+  "offset": 2000,
+  "games": 432,
+  "engineSha256": "556237ff7a64ea8af22172a14e8283085d171cd80235d4d392c29404be80268c",
+  "harnessSha256": "f914a8eeaa74ce93f55f4c35c8e47038daf72a3289620724ab1ef8a6effdf10a",
+  "notes": [
+    "The actual17.22 local game supplies all bot corrections; only the20-point control overrides its target.",
+    "Resource property observers account for every positive/negative write and assert the ledger closes exactly.",
+    "Gifts are counterfactual+2units at start of round1 or10, after production overflow is resolved and before any ordinary action.",
+    "Focal strategy is duplicated in its four-player lineup and rotated through every home.",
+    "No live deployment, prices or other game rules were changed for the study."
+  ],
+  "implementationCommit": "be527a90200ee474d96bc951235088152f65f24b"
+}

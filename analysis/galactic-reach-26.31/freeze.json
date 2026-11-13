@@ -1,0 +1,31 @@
+{
+  "rules": "galactic-reach/26.31",
+  "engineSha256": "72f1bfe3e234c197a9c7761b95e51981a043742e4c23218455326e4437a8eab5",
+  "adapterSha256": "ad5797b6c7e964f3ff645a0037811146f3e62e0b8eb8dd422a68900fec2f9ca6",
+  "controlRules": "galactic-reach/25.30",
+  "controlEngineSha256": "65c8adbe756f57144d75d6052dadeab13def8890f106c193c0487202987115ba",
+  "controlAdapterSha256": "48acb1835147c247ddce1e14a468df6655f9506e33952c27cac34e57437ee6ac",
+  "blocks": [
+    5500,
+    5531
+  ],
+  "seedFormula": "20261111 + block * 7919",
+  "main": 432,
+  "baseline": 432,
+  "gifts": 1536,
+  "long": 192,
+  "total": 2592,
+  "roundLimit": 100,
+  "longRoundLimit": 300,
+  "stepLimit": 50000,
+  "bootstrapReplicates": 10000,
+  "unitOfResampling": "whole seed block",
+  "notes": [
+    "No policy or game-rule tuning during this study.",
+    "Three duplicated strategy lineups, four seat rotations each; 48 same-profile mirror games per condition.",
+    "Gift: +2 of each resource separately at rounds1/10, first16blocks; duplicate-profile focal seat.",
+    "Long: first16blocks mixed games only.",
+    "Controls run exact archived25.30 rules in separate matched games.",
+    "Styling changes cannot alter headless engine hashes."
+  ]
+}

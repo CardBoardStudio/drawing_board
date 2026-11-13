@@ -1,0 +1,3408 @@
+{
+  "notes": [
+    "All36 legal three-tactic sequence pairings per matchup; early battle endings truncate sequences.",
+    "Pairings are enumerated cases, not probabilities of human decisions.",
+    "No regular-deck reactions, shipyards or paid escape; retreat space is available."
+  ],
+  "results": [
+    {
+      "name": "1 Fleet vs 1 Fleet",
+      "attacker": {
+        "fleet": 1
+      },
+      "defender": {
+        "fleet": 1
+      },
+      "outcomes": {
+        "mutual_destruction": 19,
+        "defender_survives": 4,
+        "attacker_seizes": 4,
+        "defender_holds_attacker_retreats": 9
+      },
+      "meanVolleys": 2.75,
+      "trials": [
+        {
+          "attack": "FFD",
+          "defend": "FFD",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDD",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFD",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDD",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFD",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FFD",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        }
+      ]
+    },
+    {
+      "name": "2 Fleets vs 2 Fleets",
+      "attacker": {
+        "fleet": 2
+      },
+      "defender": {
+        "fleet": 2
+      },
+      "outcomes": {
+        "defender_holds_attacker_retreats": 17,
+        "mutual_destruction": 5,
+        "defender_survives": 7,
+        "attacker_seizes": 7
+      },
+      "meanVolleys": 3,
+      "trials": [
+        {
+          "attack": "FFD",
+          "defend": "FFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FFD",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        }
+      ]
+    },
+    {
+      "name": "2 Fleets vs 1 Fleet",
+      "attacker": {
+        "fleet": 2
+      },
+      "defender": {
+        "fleet": 1
+      },
+      "outcomes": {
+        "attacker_seizes": 36
+      },
+      "meanVolleys": 1.75,
+      "trials": [
+        {
+          "attack": "FFD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 2,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        }
+      ]
+    },
+    {
+      "name": "1 Fleet vs 2 Fleets",
+      "attacker": {
+        "fleet": 1
+      },
+      "defender": {
+        "fleet": 2
+      },
+      "outcomes": {
+        "defender_survives": 36
+      },
+      "meanVolleys": 1.75,
+      "trials": [
+        {
+          "attack": "FFD",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 2,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        }
+      ]
+    },
+    {
+      "name": "1 Fleet vs defending Settler",
+      "attacker": {
+        "fleet": 1
+      },
+      "defender": {
+        "settler": 1
+      },
+      "outcomes": {
+        "attacker_seizes": 36
+      },
+      "meanVolleys": 1.8888888888888888,
+      "trials": [
+        {
+          "attack": "FFD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        }
+      ]
+    },
+    {
+      "name": "attacking Settler vs 1 Fleet",
+      "attacker": {
+        "settler": 1
+      },
+      "defender": {
+        "fleet": 1
+      },
+      "outcomes": {
+        "defender_survives": 36
+      },
+      "meanVolleys": 1.25,
+      "trials": [
+        {
+          "attack": "FFD",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        }
+      ]
+    },
+    {
+      "name": "1 Fleet vs 2 defending Settlers",
+      "attacker": {
+        "fleet": 1
+      },
+      "defender": {
+        "settler": 2
+      },
+      "outcomes": {
+        "attacker_seizes": 18,
+        "defender_holds_attacker_retreats": 18
+      },
+      "meanVolleys": 2.9722222222222223,
+      "trials": [
+        {
+          "attack": "FFD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFD",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DDF",
+          "outcome": "defender_holds_attacker_retreats",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You retreated to empty space."
+        }
+      ]
+    },
+    {
+      "name": "1 Explorer vs defending Settler",
+      "attacker": {
+        "explorer": 1
+      },
+      "defender": {
+        "settler": 1
+      },
+      "outcomes": {
+        "defender_survives": 36
+      },
+      "meanVolleys": 1.6666666666666667,
+      "trials": [
+        {
+          "attack": "FFD",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 1,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFD",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DDF",
+          "outcome": "defender_survives",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 1,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        }
+      ]
+    },
+    {
+      "name": "1 Fleet vs 1 Explorer (no escape)",
+      "attacker": {
+        "fleet": 1
+      },
+      "defender": {
+        "explorer": 1
+      },
+      "outcomes": {
+        "attacker_seizes": 36
+      },
+      "meanVolleys": 1,
+      "trials": [
+        {
+          "attack": "FFD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 1,
+          "report": "You seized the hex."
+        }
+      ]
+    },
+    {
+      "name": "1 Fleet + Explorer vs 1 Fleet",
+      "attacker": {
+        "fleet": 1,
+        "explorer": 1
+      },
+      "defender": {
+        "fleet": 1
+      },
+      "outcomes": {
+        "mutual_destruction": 12,
+        "attacker_seizes": 24
+      },
+      "meanVolleys": 2.7222222222222223,
+      "trials": [
+        {
+          "attack": "FFD",
+          "defend": "FFD",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FFD",
+          "defend": "DDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "FDD",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DFD",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDF",
+          "defend": "DDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "FDD",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "FDD",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DFD",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFF",
+          "defend": "DDF",
+          "outcome": "mutual_destruction",
+          "attackerSurvivors": 0,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You have no attacking ships left on the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DFD",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 2,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "FDD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DFD",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        },
+        {
+          "attack": "DDF",
+          "defend": "DDF",
+          "outcome": "attacker_seizes",
+          "attackerSurvivors": 1,
+          "defenderSurvivors": 0,
+          "volleys": 3,
+          "report": "You seized the hex."
+        }
+      ]
+    }
+  ]
+}

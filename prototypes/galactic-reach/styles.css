@@ -153,14 +153,14 @@ p { line-height: 1.55; }
   position: relative;
   min-height: 790px;
   display: grid;
-  place-items: center;
-  overflow: hidden;
+  place-items: safe center;
+  overflow: auto;
   border-inline: 1px solid var(--line);
   background:
     radial-gradient(circle at center, rgba(31, 66, 100, .18), transparent 60%),
     rgba(3, 7, 14, .75);
 }
-.galaxy-board { width: min(99%, 1220px); padding: 20px 0; }
+.galaxy-board { width: min(99%, 1220px); min-width: 840px; padding: 20px 0; }
 .map-row { display: flex; justify-content: flex-start; }
 .map-row + .map-row { margin-top: var(--row-overlap, -.8660254%); }
 .hex {
@@ -215,6 +215,36 @@ p { line-height: 1.55; }
 .board-icon { position: relative; width: clamp(13px,1.45vw,18px); height: clamp(13px,1.45vw,18px); display: inline-grid; place-items: center; filter: drop-shadow(0 1px 1px rgba(0,0,0,.75)); }
 .board-glyph { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2.15; stroke-linecap: round; stroke-linejoin: round; }
 .board-icon-count { position: absolute; top: -5px; right: -5px; min-width: 11px; height: 11px; padding: 0 2px; display: grid; place-items: center; border-radius: 6px; background: #f7fbff; color: #07101a; font-size: 7px; font-weight: 750; line-height: 1; }
+/* Each ship type gets an in-bounds icon and count; negative badge offsets clip mixed fleets. */
+.hex-fleets { top: 18%; width: 84%; flex-direction: column; gap: 1px; }
+.hex-fleet-group { width: 100%; gap: 1px; }
+.hex-fleets .board-icon {
+  flex: 0 1 16px;
+  min-width: 0;
+  width: 16px;
+  height: 21px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.hex-fleets .board-glyph { height: 11px; flex: 0 0 11px; }
+.hex-fleets .board-icon-count {
+  position: static;
+  min-width: 9px;
+  height: 9px;
+  padding: 0 1px;
+  font-size: 8px;
+  line-height: 9px;
+}
+.hex-buildings { bottom: 8%; }
+.hex-buildings .board-icon { width: 12px; height: 12px; }
+.hex:has(.hex-fleet-group + .hex-fleet-group) .hex-fleets { top: 6%; width: 72%; }
+.hex:has(.hex-fleet-group + .hex-fleet-group) .hex-buildings .board-icon { width: 10px; height: 10px; }
+.hex.space:has(.hex-fleet-group + .hex-fleet-group) .hex-fleets { top: 50%; }
+.hex:has(.hex-fleet-group + .hex-fleet-group) .board-icon { height: 14px; }
+.hex:has(.hex-fleet-group + .hex-fleet-group) .board-glyph { height: 6px; flex-basis: 6px; }
+.hex:has(.hex-fleet-group + .hex-fleet-group) .board-icon-count { height: 8px; font-size: 7px; line-height: 8px; }
+
 .hex .special { position: absolute; top: 18%; right: 18%; color: var(--gold); font-size: 10px; line-height: 1; }
 @keyframes target-pulse { 50% { filter: brightness(1.45); } }
 
@@ -611,6 +641,12 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
   .vote-power span { grid-column: 1 / -1; }
 }
 
+/* Preserve readable unit counts on phones; pan the board instead of shrinking its text. */
+@media (max-width: 780px) {
+  .board-stage { display: block; place-items: start; overflow: auto; min-height: 0; max-height: 75vh; }
+  .galaxy-board { width: 840px; min-width: 840px; transform: none; }
+}
+
 .table-save-bar { position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:12px; padding:16px 24px; border-bottom:1px solid #27445c; background:#101b2b; color:#dbeaf8; }
 .table-save-bar strong { overflow-wrap:anywhere; }
 .table-save-bar #table-sync { flex:1; min-width:160px; font-size:13px; }
@@ -680,7 +716,7 @@ button.choice-card, label.choice-card { position: relative; display: flex; min-h
 .capacity { font-size: 14px; }
 .map-tools { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 10px; border: 1px solid var(--line); background: var(--surface); }
 .map-tools .button { min-height: 44px; font-size: 14px; }
-.board-stage.map-zoomed { display: block; overflow: auto; overscroll-behavior: contain; height: 600px; max-height: 75vh; }
+.board-stage.map-zoomed { display: block; place-items: start; overflow: auto; overscroll-behavior: contain; height: 600px; max-height: 75vh; }
 .map-zoomed .galaxy-board { width: 1500px; max-width: none; transform: none; padding: 20px 0; }
 .map-key-dialog { width: min(1000px,calc(100vw - 24px)); }
 .map-key-dialog .dialog-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 20px; }

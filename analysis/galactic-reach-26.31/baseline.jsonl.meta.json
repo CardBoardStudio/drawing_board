@@ -1,0 +1,32 @@
+{
+  "rules": "galactic-reach/25.30",
+  "commit": "528ec550a9aa973b716361885024e57489d6a3b9",
+  "suite": "baseline",
+  "seeds": 32,
+  "offset": 5500,
+  "workers": 6,
+  "games": 432,
+  "roundLimit": 100,
+  "stepLimit": 50000,
+  "createdAt": "2026-11-13T21:55:58.462Z",
+  "node": "v24.22.3",
+  "engineSha256": "65c8adbe756f57144d75d6052dadeab13def8890f106c193c0487202987115ba",
+  "adapterSha256": "48acb1835147c247ddce1e14a468df6655f9506e33952c27cac34e57437ee6ac",
+  "harnessSha256": "7fdd9e20a5451ebbf41c758f08b3c41047cda885e33d80606b99a06b1377ea7b",
+  "executionHarnessSha256": "7fdd9e20a5451ebbf41c758f08b3c41047cda885e33d80606b99a06b1377ea7b",
+  "executionHarnessFile": "execution-run.cjs",
+  "legacyDescriptionAtExecution": [
+    "Frozen26.31 rules compared with archived25.30; separate matched games, no cross-rules policy bridge.",
+    "Frozen storage decisions compared under corrected nearest-Probe rules; old controls rerun from24.29.",
+    "Resource observers consume no RNG and every ledger closes exactly.",
+    "All seats rotated per duplicated strategy and map seed.",
+    "Only real completed games have winners; cutoffs are reported separately.",
+    "Gift controls reuse matching main games; no head-to-head rule mixing."
+  ],
+  "notes": [
+    "Current26.31 and exact archived25.30 controls play separate matched games.",
+    "No game rules or policy weights changed for this study.",
+    "Resource observers consume no RNG; ledgers reconcile.",
+    "The copied old metadata sentence referring to24.29/storage-only comparisons was erroneous; rules fields and engine/control hashes identify the actual programs."
+  ]
+}

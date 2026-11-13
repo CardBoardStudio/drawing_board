@@ -1,0 +1,24 @@
+{
+  "baseEngine": "galactic-reach/17.22",
+  "engineCommit": "be527a90200ee474d96bc951235088152f65f24b",
+  "engineSha256": "556237ff7a64ea8af22172a14e8283085d171cd80235d4d392c29404be80268c",
+  "published": false,
+  "browserSourceChanged": false,
+  "sha256": {
+    "layout.cjs": "56d825f5966133780dba8787ad99c88b306b965d41532cb989a5d1a88e854904",
+    "run.cjs": "c5f5616e4276ad226504d385b83fd50248cae7a2e5e1cbb92c23fa0e6f299f37",
+    "summary.json": "e2ff16d65a4785239c77e700578f555db3af7791f426c60da1cf7d78dfc777da",
+    "plot.py": "5aeea56e3be4d926540674d51c37cc3f78b1adaa4ef0e00f5751b51fad90cb69",
+    "STUDY.md": "0065e8cd61b3da9bb6f8b3c7709170ab8f40d5f78d94bb17a8597ef1de11bfe9",
+    "verify.cjs": "9330bf4e87077f45978476edc1c2847cb4b6394bd457ebd6d4fc78b28f909672",
+    "resources.csv": "12300cf8fabaf15df094d717641b7582244d8d557208c7ea129988cb6ef307aa",
+    "gifts.jsonl.meta.json": "39fbd0bbb0eb7ec6bdaeadc2a0b73cbe42d2d998ebffb069bdc5bf36abe7a82a",
+    "gifts.jsonl": "85eea482d4fae02c6a255ec6dcc6cb601f754aa08b070a7e51e2f6593ac0b077",
+    "verification.json": "79a0dcdd5a0c60db1ee6a9c99b54a422076b0f3cb610790af3f732e628af9fd6",
+    "report.html": "cc5cdc4cc611bdb2c2f6ab195bd9c8b090c0b0e89443b6854df07f3e03e6bede",
+    "main.jsonl": "276b3c432e2a2f624c44c501b196f63df331089296c788ef668e851020fbd865",
+    "strategies.png": "0fa755884dc2064df95d435b81f901d725a974eb74e11f0a9b61ff4061f1ae2d",
+    "main.jsonl.meta.json": "a61c15daf289d5e774606263e1f44181063370f9eb545081495d9d4358c0fa4f",
+    "analyze.py": "d384b3a3ce1292d8950e7dcc2280c83f053d75b59a473c9843dfe2ad9fa7c238"
+  }
+}

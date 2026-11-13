@@ -1,0 +1,63 @@
+{
+  "capacity": {
+    "chosenMove": {
+      "source": "0,0",
+      "destination": "1,0",
+      "score": 2.8,
+      "moveGroup": "ships"
+    },
+    "chosenDestinationLegal": false,
+    "unchangedAfter3Steps": true,
+    "rngUnchanged": true,
+    "round": 1,
+    "activePlayer": 1,
+    "hand": [
+      {
+        "id": "move-probe",
+        "key": "move"
+      }
+    ]
+  },
+  "pathfinder": {
+    "chosenMove": {
+      "source": "0,0",
+      "destination": "1,0",
+      "score": 2.9,
+      "moveGroup": "ships"
+    },
+    "chosenDestinationLegal": false,
+    "unchangedAfter3Steps": true,
+    "rngUnchanged": true,
+    "round": 1,
+    "activePlayer": 1,
+    "hand": [
+      {
+        "id": "move-probe",
+        "key": "pathfinderNetwork"
+      }
+    ]
+  },
+  "unaffordableBuild": {
+    "chosen": {
+      "kind": "starbase",
+      "coord": "1,-9",
+      "cost": {
+        "matter": 2,
+        "energy": 1,
+        "biomass": 1,
+        "data": 1
+      },
+      "score": 16
+    },
+    "affordableHarvester": "1,-9",
+    "passed": true,
+    "remainingConstruct": true
+  },
+  "wildcardConversion": {
+    "printedDefault": {
+      "data": 2
+    },
+    "browserAiReceived": 1,
+    "discard": true
+  }
+}

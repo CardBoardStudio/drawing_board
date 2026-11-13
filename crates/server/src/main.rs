@@ -31,6 +31,8 @@ use tower_http::services::{ServeDir, ServeFile};
 
 #[derive(Clone)]
 struct App {
+    #[cfg(test)]
+    arena_seed: Option<[u8; 32]>,
     store: Arc<Store>,
     dev_auth: bool,
     preview_code_hash: Option<[u8; 32]>,
@@ -84,7 +86,7 @@ struct User {
     development: bool,
 }
 fn user(app: &App, headers: &HeaderMap) -> ApiResult<User> {
-    let token = cookie(headers, "drawing_board_pass_buy_v7_session").ok_or(ApiError(
+    let token = cookie(headers, "drawing_board_alien_v11_session").ok_or(ApiError(
         StatusCode::UNAUTHORIZED,
         "Sign in to join the table.".into(),
     ))?;
@@ -240,7 +242,7 @@ fn create_test_session(
     let tx = db.transaction().map_err(internal)?;
     tx.execute("DELETE FROM sessions WHERE expires<=?", [now()])
         .map_err(internal)?;
-    if let Some(old) = cookie(headers, "drawing_board_pass_buy_v7_session") {
+    if let Some(old) = cookie(headers, "drawing_board_alien_v11_session") {
         tx.execute("DELETE FROM sessions WHERE token_hash=?", [digest(&old)])
             .map_err(internal)?;
     }
@@ -261,10 +263,10 @@ fn create_test_session(
     } else {
         ""
     };
-    Ok(([(header::SET_COOKIE,format!("drawing_board_pass_buy_v7_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400{secure}"))],Json(json!({"ok":true}))).into_response())
+    Ok(([(header::SET_COOKIE,format!("drawing_board_alien_v11_session={token}; HttpOnly; SameSite=Lax; Path=/; Max-Age=86400{secure}"))],Json(json!({"ok":true}))).into_response())
 }
 async fn logout(State(app): State<App>, headers: HeaderMap) -> ApiResult<Response> {
-    if let Some(token) = cookie(&headers, "drawing_board_pass_buy_v7_session") {
+    if let Some(token) = cookie(&headers, "drawing_board_alien_v11_session") {
         app.store
             .0
             .lock()
@@ -275,7 +277,7 @@ async fn logout(State(app): State<App>, headers: HeaderMap) -> ApiResult<Respons
     Ok((
         [(
             header::SET_COOKIE,
-            "drawing_board_pass_buy_v7_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
+            "drawing_board_alien_v11_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0",
         )],
         Json(json!({"ok":true})),
     )
@@ -498,7 +500,7 @@ fn router(app: App) -> Router {
         .route("/api/tables/{id}", get(tables::get))
         .route(
             "/api/tables/{id}/save",
-            post(tables::save).layer(axum::extract::DefaultBodyLimit::max(1024 * 1024 + 16384)),
+            post(tables::save).layer(axum::extract::DefaultBodyLimit::max(8 * 1024 * 1024 + 16384)),
         )
         .route("/api/catalog", get(arena::catalog))
         .route("/api/arena", get(arena::overview))
@@ -528,6 +530,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
     let config = config::Config::from_env(|key| std::env::var(key).ok())?;
     let app = App {
+        #[cfg(test)]
+        arena_seed: None,
         store: Arc::new(Store::open(
             &std::env::var("DATABASE_PATH").unwrap_or("drawing-board.sqlite".into()),
         )?),
@@ -603,6 +607,7 @@ mod tests {
     use tower::ServiceExt;
     pub(super) fn app(dev: bool) -> App {
         App {
+            arena_seed: None,
             store: Arc::new(Store::open(":memory:").unwrap()),
             dev_auth: dev,
             preview_code_hash: None,

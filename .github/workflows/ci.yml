@@ -63,6 +63,7 @@ jobs:
       - run: node scripts/test-open-worlds.cjs
       - run: node scripts/test-probe-relics.cjs
       - run: node scripts/test-nearest-probe.cjs
+      - run: node scripts/test-storage-planning.cjs
       - run: node scripts/test-twenty-point-strategy.cjs
       - run: node scripts/test-scoring-bots.cjs
       - run: node scripts/test-no-shipyard-upgrades.cjs

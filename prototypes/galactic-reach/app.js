@@ -15,8 +15,8 @@ function createGalacticReach(options = {}) {
   }
   const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
-  const SAVE_FORMAT_VERSION = 24;
-  const RULES_REVISION = 29;
+  const SAVE_FORMAT_VERSION = 25;
+  const RULES_REVISION = 30;
   const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
   const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${SAVE_FORMAT_VERSION}`;
   const HISTORY_KEY = `galactic-reach-history-v${SAVE_FORMAT_VERSION}`;
@@ -777,7 +777,7 @@ function createGalacticReach(options = {}) {
     });
   }
 
-  function addResources(player, gain) {
+  function addResources(player, gain, aiReserve = null) {
     const result = { added: {}, lost: {}, totalAdded: 0, totalLost: 0 };
     RESOURCES.forEach(resource => {
       const amount = Math.max(0, Number(gain?.[resource]) || 0);
@@ -787,7 +787,7 @@ function createGalacticReach(options = {}) {
         result.totalAdded += amount;
       }
     });
-    if (!headless && player.id > 0) trimResourcesToCapacity(player.id);
+    if (aiReserve || !headless && player.id > 0) trimResourcesToCapacity(player.id,aiReserve);
     return result;
   }
 
@@ -824,9 +824,9 @@ function createGalacticReach(options = {}) {
     return Math.max(0,playerCapacity(playerId) - totalResources(state.players[playerId]));
   }
 
-  function trimResourcesToCapacity(playerId) {
+  function trimResourcesToCapacity(playerId, reserve = null) {
     const player = state.players[playerId];
-    const amounts=aiOverflowAmounts(player.resources,playerCapacity(playerId),aiReserves(playerId));
+    const amounts=aiOverflowAmounts(player.resources,playerCapacity(playerId),reserve || aiReserves(playerId));
     const removed=RESOURCES.reduce((n,r)=>n+amounts[r],0);
     RESOURCES.forEach(r=>player.resources[r]-=amounts[r]);
     return removed;
@@ -2059,10 +2059,35 @@ function createGalacticReach(options = {}) {
     return state.relicRow.length>0;
   }
 
+  function aiStorageProtection(playerId) {
+    if (!controlledPlanets(playerId).some(([,p])=>p.upgrade==='starbase'&&p.occupiedBy===null)) return {matter:2,energy:1,biomass:1,data:1};
+    const settlers=countPlacedShips(playerId,'settler'),explorers=countPlacedShips(playerId,'explorer');
+    if (!settlers&&!explorers) return {matter:1,energy:1}; // The next scoring unit.
+    return {matter:explorers?1:0,energy:explorers?1:0,biomass:settlers?2:0,data:explorers?2:0};
+  }
+
+  function aiStorageBudget(playerId, extraGain = {}) {
+    const leader=Math.max(...state.players.map((_,id)=>calculatePrestige(id)));
+    if (leader>=VICTORY_TARGET) return null;
+    const cost=storageUpgradeCost(playerId),income=aiIncome(playerId),capacity=playerCapacity(playerId);
+    const production=RESOURCES.reduce((n,r)=>n+income[r],0);
+    const pressure=Math.max(0,totalResources(state.players[playerId])+production+resourceGainTotal(extraGain)-capacity);
+    const horizon=Math.min(4,Math.max(1,Math.ceil((VICTORY_TARGET-leader)/4)));
+    const value=Math.min(STORAGE_UPGRADE.capacity,pressure)*horizon;
+    if (value<=RESOURCES.reduce((n,r)=>n+cost[r],0)) return null;
+    return {cost,protection:aiStorageProtection(playerId),production,pressure,horizon,value};
+  }
+
   function aiReserves(playerId) {
     const yards=controlledPlanets(playerId).some(([,p])=>p.upgrade==='starbase'&&p.occupiedBy===null);
-    if (!yards) return {matter:6,energy:2,biomass:1,data:1};
-    return {matter:2,energy:2,biomass:countPlacedShips(playerId,'settler')?2:1,data:aiRelicsRemain()?2:1};
+    const base=yards?{matter:2,energy:2,biomass:countPlacedShips(playerId,'settler')?2:1,data:aiRelicsRemain()?2:1}:{matter:6,energy:2,biomass:1,data:1};
+    const plan=aiStorageBudget(playerId);
+    if (!plan) return base;
+    const desired=Object.fromEntries(RESOURCES.map(r=>[r,plan.cost[r]+(plan.protection[r]||0)]));
+    const reserve=Object.fromEntries(RESOURCES.map(r=>[r,Math.max(base[r],desired[r])]));
+    // Preserve an affordable purchase and its scoring payment inside the real cap.
+    if (RESOURCES.reduce((n,r)=>n+reserve[r],0)<=playerCapacity(playerId)) return reserve;
+    return RESOURCES.reduce((n,r)=>n+desired[r],0)<=playerCapacity(playerId)?desired:base;
   }
 
   function aiOverflowAmounts(resources, capacity, reserve) {
@@ -2172,12 +2197,14 @@ function createGalacticReach(options = {}) {
   }
 
   function aiStockpile(playerId) {
-    const p=state.players[playerId],reserve=aiReserves(playerId);
+    const p=state.players[playerId];
     for (const card of [...p.hand]) {
+      let reserve=aiReserves(playerId);
       const gain=conversionGain(card),def=ALL_CARDS[card.key];
       if (def.reaction || def.buyEffect) continue;
       if (!RESOURCES.some(r=>(gain[r]||0)>0&&p.resources[r]<reserve[r])) continue;
-      addResources(p,gain);removeHandCard(p,card.id);
+      aiManageStorage(playerId,gain);reserve=aiReserves(playerId);
+      addResources(p,gain,reserve);removeHandCard(p,card.id);
       logEvent(`${p.name} converted ${def.name} into resources.`);
       if (overflowPlayer()===playerId) discardOverflow(playerId,aiOverflowAmounts(p.resources,playerCapacity(playerId),reserve));
     }
@@ -2206,7 +2233,7 @@ function createGalacticReach(options = {}) {
     if (!plan) return false;
     for (const id of plan.cards) {
       const card=player.hand.find(c=>c.id===id);
-      addResources(player,conversionGain(card));removeHandCard(player,id);
+      addResources(player,conversionGain(card),desiredCost);removeHandCard(player,id);
       logEvent(`${player.name} converted ${ALL_CARDS[card.key].name} into resources.`);
       if (overflowPlayer()===player.id) discardOverflow(player.id,aiOverflowAmounts(player.resources,playerCapacity(player.id),desiredCost));
     }
@@ -2385,6 +2412,7 @@ function createGalacticReach(options = {}) {
     if (state.pendingConsortium) {runAiConsortium();return;}
     if (state.pendingColonyBuild) {aiColonyBuild(state.activePlayer);return;}
     const id=state.activePlayer,p=state.players[id];
+    aiManageStorage(id);
     const colonize=p.hand.filter(c=>ALL_CARDS[c.key].order==='colonize').sort((a,b)=>Number(ALL_CARDS[b.key].tag==='dropColony'||ALL_CARDS[b.key].tag==='alienGenesis')-Number(ALL_CARDS[a.key].tag==='dropColony'||ALL_CARDS[a.key].tag==='alienGenesis'))[0];
     const target=findColonizeTarget(id);
     if (colonize&&target) {
@@ -2514,7 +2542,9 @@ function createGalacticReach(options = {}) {
   }
 
   function runAiBuy() {
-    const id=state.activePlayer,p=state.players[id],reserve=aiReserves(id);
+    const id=state.activePlayer,p=state.players[id];
+    aiManageStorage(id);
+    const reserve=aiReserves(id);
     const procurement=p.hand.find(c=>ALL_CARDS[c.key].buyEffect==='procurement');
     if (procurement) {p.buyLimit=2;removeHandCard(p,procurement.id);logEvent(`${p.name} activated Procurement Network.`);}
     const manipulation=p.hand.find(c=>ALL_CARDS[c.key].buyEffect==='manipulation');
@@ -2617,10 +2647,16 @@ function createGalacticReach(options = {}) {
     return true;
   }
 
-  function aiManageStorage(playerId) {
-    const player=state.players[playerId],reserve=aiReserves(playerId);
-    if (playerCapacity(playerId)<30 && totalResources(player)>=playerCapacity(playerId)-2 && canIncreaseStorage(playerId)
-      && RESOURCES.every(r=>player.resources[r]-(storageUpgradeCost(playerId)[r]||0)>=Math.min(player.resources[r],reserve[r]))) increaseStorage(playerId);
+  function aiManageStorage(playerId, extraGain = {}) {
+    if (!canManageResources(playerId)) return false;
+    let bought=false;
+    for (let n=0;n<5;n++) {
+      const plan=aiStorageBudget(playerId,extraGain),player=state.players[playerId];
+      if (!plan || !canIncreaseStorage(playerId) || !RESOURCES.every(r=>player.resources[r]-plan.cost[r]>=Math.min(player.resources[r],plan.protection[r]||0))) break;
+      if (!increaseStorage(playerId)) break;
+      bought=true;
+    }
+    return bought;
   }
 
   function discardResources(playerId, resource, amount) {

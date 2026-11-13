@@ -14,7 +14,7 @@ function engine() {
   return {port,adapter};
 }
 const {port,adapter}=engine();
-assert.equal(adapter.rulesVersion,'galactic-reach/7.12');
+assert.equal(adapter.rulesVersion,'galactic-reach/23.28');
 const before=JSON.stringify(port.state);
 adapter.legalActions(0);adapter.observe(0);
 assert.equal(JSON.stringify(port.state),before,'Observation and legality must not mutate state');
@@ -24,15 +24,16 @@ assert.throws(()=>adapter.applyAction(0,{...action,gain:{data:100}}),/Illegal ac
 assert.equal(JSON.stringify(port.state),before);
 // Retain direct coverage of construction, upgrades, colonization, and purchases.
 const e=engine().port, home=e.state.clusters[0], p=e.state.players[0];
-p.resources={matter:20,energy:20,biomass:20,data:20};
-assert(e.buildShip(0,home.coords[1],'frigate'));
-assert(e.buildShip(0,home.center,'researcher'));
-assert(e.buildUpgrade(0,home.coords[2],'warehouse'));
-assert(e.buildUpgrade(0,home.coords[2],'warehouse'));
+p.storageUpgrades=20;p.resources={matter:20,energy:20,biomass:20,data:20};
+assert(e.buildUpgrade(0,home.coords[1],'starbase'));
+assert(e.buildShip(0,home.coords[1],'fleet'));
+assert(!e.buildShip(0,home.center,'explorer'));assert(e.buildShip(0,home.coords[1],'explorer'));
+assert(e.increaseStorage(0));
+assert(e.increaseStorage(0));
 const center=e.state.clusters[4].center;
-e.state.fleets[center]={0:{scout:1,researcher:0,frigate:0,dreadnought:0}};
+e.state.fleets[center]={0:{settler:1,explorer:0,fleet:0}};
 assert(e.colonizePlanet(0,center));assert(!e.colonizePlanet(0,center));
-e.state.phase='buy';assert(e.buyCard(0,'market',0));assert(e.upgradeStarter(0,p.hand.find(c=>c.starter).id));
+e.state.phase='buy';assert(e.buyCard(0,'market',0));assert(e.upgradeStarter(0,p.hand.find(c=>c.starter).id,'energy'));
 // Open offers and free responses use exactly the same rule functions in the arena.
 const t=engine();
 for (const player of t.port.state.players) player.resources={matter:3,energy:3,biomass:0,data:0};
@@ -53,19 +54,13 @@ function orderFixture(key,upgraded=true) {
   const f=engine();f.port.state.phase='operations';f.port.state.activePlayer=0;
   f.port.state.players[0].hand=[{id:'test-order',key,starter:true,upgraded}];return f;
 }
-for(const [kind,base] of [['scout',2],['researcher',1],['frigate',1],['dreadnought',1]]){
+for(const [kind,base] of [['settler',1],['explorer',3],['fleet',2]]){
   for(const upgraded of [false,true]){
     const f=orderFixture('move',upgraded);f.port.state.planets={};f.port.state.fleets={'0,0':{0:{[kind]:1}}};
     const legal=f.adapter.legalActions(0).filter(a=>a.type==='move');
     assert(legal.some(a=>a.destination===`${base+(upgraded?1:0)},0`));
     assert(!legal.some(a=>a.destination===`${base+(upgraded?2:1)},0`));
   }
-}
-for(const upgraded of [false,true]){
-  const f=orderFixture('probe',upgraded), target=f.port.nearestUnscannedRelicCluster(0,upgraded);
-  f.adapter.applyAction(0,f.adapter.legalActions(0).find(a=>a.type==='probe'));
-  assert(target.scannedBy.includes(0));assert.equal(target.revealedBy.includes(0),upgraded);
-  if(upgraded)assert(target.coords.every(key=>!f.adapter.observe(0).planets[key].unknown));
 }
 for(const upgraded of [false,true]){
   const f=orderFixture('construct',upgraded),s=f.port.state,p=s.players[0],coord=s.clusters[0].coords[2];
@@ -77,7 +72,7 @@ for(const upgraded of [false,true]){
 }
 for(const finish of ['build','skip']){
   const f=orderFixture('colonize'),s=f.port.state,p=s.players[0],world=s.clusters[4];
-  world.revealedBy=[0,1,2,3];s.fleets[world.center]={0:{scout:1}};p.resources={matter:1,energy:1,biomass:3,data:0};s.activePolicy={id:'frontier_grants'};
+  world.revealedBy=[0,1,2,3];s.fleets[world.center]={0:{settler:1}};p.resources={matter:1,energy:1,biomass:3,data:0};
   const order=f.adapter.legalActions(0).find(a=>a.type==='colonize'&&a.coord===world.center);assert(order);f.adapter.applyAction(0,order);
   assert.equal(s.activePlayer,0);assert.equal(s.pendingColonyBuild.colony,world.center);assert.equal(p.hand.length,0);assert.equal(p.resources.biomass,1);
   const options=f.adapter.legalActions(0);assert(!options.some(a=>['pass','trade_offer','build'].includes(a.type)));
@@ -85,10 +80,10 @@ for(const finish of ['build','skip']){
   assert.throws(()=>f.adapter.applyAction(0,{...bonus,coord:s.clusters[0].coords[2]}),/Illegal action/);
   f.adapter.applyAction(0,finish==='build'?bonus:options.find(a=>a.type==='finish_colony_build'));
   assert.equal(s.pendingColonyBuild,null);assert.equal(s.activePlayer,1);
-  if(finish==='build'){assert.equal(p.resources.matter,0,'Bonus building pays full cost even with Frontier Grants');assert.equal(p.resources.energy,0);assert.equal(p.resources.biomass,0);}
+  if(finish==='build'){assert.equal(p.resources.matter,0,'Bonus building pays full cost');assert.equal(p.resources.energy,0);assert.equal(p.resources.biomass,0);}
   else assert.equal(p.resources.matter,1);
 }
 const ranked=engine();ranked.port.state.winner=0;
-ranked.port.state.players.forEach((p,i)=>{p.relics=i===0?20:10;p.resources={matter:i===3?0:1,energy:0,biomass:0,data:0};});
+ranked.port.state.players.forEach((p,i)=>{p.relicsExcavated=i===0?20:10;p.resources={matter:i===3?0:1,energy:0,biomass:0,data:0};});
 assert.equal(JSON.stringify(ranked.adapter.scores()),JSON.stringify([3,2,2,0]),'Prestige ranks, resource tiebreaks, and exact ties are reflected in terminal scores');
-console.log('Upgraded orders: unit minimums, +1 range, full-world Probe, chosen construction discounts, optional paid colony building, and tied placements passed.');
+console.log('Upgraded orders: unit minimums, +1 range, chosen construction discounts, optional paid colony building, and tied placements passed.');

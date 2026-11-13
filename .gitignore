@@ -24,7 +24,7 @@ rustc-ice-*.txt
 #.idea/
 
 # Local runtime and build output
-.tools/
+.tools
 dist/
 .env
 *.sqlite*

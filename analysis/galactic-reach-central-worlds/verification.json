@@ -1,0 +1,312 @@
+{
+  "engine": "galactic-reach/17.22",
+  "mapSeeds": 1000,
+  "controlReproductions": 12,
+  "pairedInitialStates": 12,
+  "instrumentationParity": 24,
+  "homeDistanceProfiles": {
+    "worlds": [
+      6,
+      6,
+      9,
+      9,
+      12,
+      12,
+      15,
+      15,
+      18
+    ],
+    "moons": [
+      6,
+      9,
+      12,
+      12
+    ]
+  },
+  "uniqueWorldAssignments": 918,
+  "uniqueCenterResourceLayouts": 480,
+  "controlInitialBySeed": {
+    "36099111": {
+      "ordinary": "b222190f3431c10e54235c9d54e1b8e5293e750ff9dc5d309d2c4dc21d1f2161",
+      "gameRngCalls": 251
+    },
+    "36107030": {
+      "ordinary": "9ae48e42887494e7ec7b68785e8a9adc73ab0c14fcbad6d66c29f64529945d5c",
+      "gameRngCalls": 358
+    },
+    "36114949": {
+      "ordinary": "2d0ea3a61d39f55e25e882ffc9844ce8b54dda30933f62b6d2eb0f8b9fd7affb",
+      "gameRngCalls": 250
+    },
+    "36122868": {
+      "ordinary": "b24784a186ec5e4f0fbc4416cf0d4d2fa1da0e2f607cfe07a3b1bf160a7f477d",
+      "gameRngCalls": 365
+    },
+    "36130787": {
+      "ordinary": "b1b8a7f62304c9f1c1c8e89f819c84e638315147a21d2118809b502c76de2f31",
+      "gameRngCalls": 247
+    },
+    "36138706": {
+      "ordinary": "09f5c33d0a2c6d265ead32b7100c8f76f0352be9fea4242450696bf6606e8681",
+      "gameRngCalls": 253
+    },
+    "36146625": {
+      "ordinary": "4133642aa0a8396bf72a37e0cf69e8956151088a820375656198b8295069c947",
+      "gameRngCalls": 252
+    },
+    "36154544": {
+      "ordinary": "426eff131789598a755855977ae5b6c6286704f6f9d3086da99b1e51a8d59011",
+      "gameRngCalls": 359
+    },
+    "36162463": {
+      "ordinary": "4e0850cba0e9a0299fb31f434ded75ef9da5dfc780047854bf66252ac04b1bd8",
+      "gameRngCalls": 258
+    },
+    "36170382": {
+      "ordinary": "bc01a13f1df136e590f5a1f1f5ec54e56d653e8ba441b52baca217728fb8fcda",
+      "gameRngCalls": 248
+    },
+    "36178301": {
+      "ordinary": "f1ed6548e26a9176bf260358861931ac4af99e470700711d6b0fb636a04165f6",
+      "gameRngCalls": 254
+    },
+    "36186220": {
+      "ordinary": "57a9101b0f1214555be5dc64aa52548880af0911e2b7b6e21bb2e911fe454c8f",
+      "gameRngCalls": 351
+    },
+    "36194139": {
+      "ordinary": "3f1c60fb43eaefe4153aed80c470f16237a576a24175a68a3aad216b7efdd524",
+      "gameRngCalls": 342
+    },
+    "36202058": {
+      "ordinary": "84bcaaca680f82b0402d5390a3608e29ade6f6a69796fd50c16a293b5bd15cde",
+      "gameRngCalls": 255
+    },
+    "36209977": {
+      "ordinary": "88c7d526e846e6a0acff7e7c7902612d3ebb5d2a3a9de7a6404e66b9644a3093",
+      "gameRngCalls": 360
+    },
+    "36217896": {
+      "ordinary": "ca4821933acb88cfb9f5a50ecdc3bdc9ed661af293f2fbdd5e7603fde947bf33",
+      "gameRngCalls": 339
+    },
+    "36225815": {
+      "ordinary": "6948de781d65244ec0288b4d29daae606ba392e2a92110afbe3036c04e7f8244",
+      "gameRngCalls": 254
+    },
+    "36233734": {
+      "ordinary": "621fca93a41e6ac9dca11c278615e9264f1cb4cfbe9b3a4013a7d19e015987ef",
+      "gameRngCalls": 413
+    },
+    "36241653": {
+      "ordinary": "fe881aa15dc0bbfd1947f73f15e66d50c7dbe16734e6d9b46f602979e7bcdbef",
+      "gameRngCalls": 253
+    },
+    "36249572": {
+      "ordinary": "934ddbc0ab6abe660dda81ea01fd55a467bd223c7a182d914e6504b8b8bf77f8",
+      "gameRngCalls": 348
+    },
+    "36257491": {
+      "ordinary": "d2962df3b61cacbf7a8c86909530a87591e2f6b010230e7995cad6c9ece0bbb0",
+      "gameRngCalls": 369
+    },
+    "36265410": {
+      "ordinary": "44efd381b0fa6b4a44f8f619a954e5ad4daf11800552789d10e467474352fe20",
+      "gameRngCalls": 251
+    },
+    "36273329": {
+      "ordinary": "1531890d1f25205e03258ebcc11ace2919a2f3a7ba3ef173651821c85300228a",
+      "gameRngCalls": 252
+    },
+    "36281248": {
+      "ordinary": "80aa3d966c0265049e5c92f31961a9c328b8faecef93695ec638514fa8699d73",
+      "gameRngCalls": 254
+    },
+    "36289167": {
+      "ordinary": "8a9a801c78c8a111fbcaaea392be98902f15380dcb41d94b2dc8fce32e8daedf",
+      "gameRngCalls": 254
+    },
+    "36297086": {
+      "ordinary": "38618249706330f378707bff213c46ee52b59004897fed5fe0e7274bcc7d53fe",
+      "gameRngCalls": 247
+    },
+    "36305005": {
+      "ordinary": "31641ba3aed3f514ef89712b6f402a9e965708b7f3c5c111b7dca017574ad38f",
+      "gameRngCalls": 248
+    },
+    "36312924": {
+      "ordinary": "ea94f808bcb14238c90122f3ee49dafe8b50b5c847b012057c409d0d2e32f417",
+      "gameRngCalls": 252
+    },
+    "36320843": {
+      "ordinary": "7232a648faa19714c52ba1d83b876649332eb54582596d0fb0f5b19a7b7d5efd",
+      "gameRngCalls": 603
+    },
+    "36328762": {
+      "ordinary": "6e958574aabb2aa0164d70cf22788da06b48919462d3f26b4e3da4d21abab91f",
+      "gameRngCalls": 254
+    },
+    "36336681": {
+      "ordinary": "7ba0a35776c76093777ba63c6030b406f3e6cb89187020892774b50c3ae1663f",
+      "gameRngCalls": 472
+    },
+    "36344600": {
+      "ordinary": "214288ba99c92612b95b00033a800c149ef05285e60b08789175989b676de0fb",
+      "gameRngCalls": 257
+    },
+    "36352519": {
+      "ordinary": "7a08cd9370a3792ac5f0d799b6a0d9cc337ff5ba83f3de9bc6e7298968e5bada",
+      "gameRngCalls": 251
+    },
+    "36360438": {
+      "ordinary": "977ff27690b1550cf59a4331ccb254c3dd65a675244f3aacf7eb96116671c33e",
+      "gameRngCalls": 256
+    },
+    "36368357": {
+      "ordinary": "4b501810ce5b0a556a4b24bd324e6914fc9b51c721a04fd9e0ed033d12b9b4e4",
+      "gameRngCalls": 252
+    },
+    "36376276": {
+      "ordinary": "1c220d0cdbc476cbc24368659b1996ab612def77b7822071d6ab080a4f260371",
+      "gameRngCalls": 429
+    },
+    "36384195": {
+      "ordinary": "da81d0f28c89c2746d940c0a981006098f63de5a13a7bce7fb8c5503c6e19522",
+      "gameRngCalls": 249
+    },
+    "36392114": {
+      "ordinary": "d0d92b81c5fedb980c30d73109f7d7cc823a2176f313803513ff810b87415d85",
+      "gameRngCalls": 261
+    },
+    "36400033": {
+      "ordinary": "ccfe8c3c321c369a0ffc31d729358e36855fac4e3bc450197f09410ac407d5db",
+      "gameRngCalls": 246
+    },
+    "36407952": {
+      "ordinary": "6481124ad581a992a66e25bc783476b8050306b8e47b7bfc23e5b8c5c4196b94",
+      "gameRngCalls": 253
+    },
+    "36415871": {
+      "ordinary": "e7094d806231ae379e20bbcff9eb42cfd98ca0bc811a29e353470ab06865c420",
+      "gameRngCalls": 258
+    },
+    "36423790": {
+      "ordinary": "2c4a57bf0dcb09d4ceb500f672d19d71a47ee9f26b877644d43b51e9cc409e79",
+      "gameRngCalls": 250
+    },
+    "36431709": {
+      "ordinary": "4ab3ed72e173fa3a49c2fddf7c67d0176350b300650ca94302fa67cda6b71b41",
+      "gameRngCalls": 250
+    },
+    "36439628": {
+      "ordinary": "1cf59edf00d014fa7492b6a3dc68c02b1d5c04a2c101bb29b0d2916e8346d990",
+      "gameRngCalls": 257
+    },
+    "36447547": {
+      "ordinary": "cc4f1c883010520936365d7b7019726d101c4d476a2104348dc800b6219b94da",
+      "gameRngCalls": 254
+    },
+    "36455466": {
+      "ordinary": "85472777da5ee896ccb17fb5cb4f4deeb19828446ef2c81dd00086063422b4d0",
+      "gameRngCalls": 260
+    },
+    "36463385": {
+      "ordinary": "b2e72a8cd949cb0d77d435d22c56953cd95c51b2d2a312db0a75ca74767ae633",
+      "gameRngCalls": 251
+    },
+    "36471304": {
+      "ordinary": "f73639f847fa71118442aecef1c62dcc2506c8faf0fef74201ee7600fbfe60b7",
+      "gameRngCalls": 336
+    },
+    "36479223": {
+      "ordinary": "6cf8ddcee4a0c64c31347b594b46354e5fce82bc5c2f2ff32827ee653256652b",
+      "gameRngCalls": 363
+    },
+    "36487142": {
+      "ordinary": "5fa0f8d37591fcf373bcf6ccecb1db60ceab8aeb17cd0e914c063a42a29e0a5a",
+      "gameRngCalls": 250
+    },
+    "36495061": {
+      "ordinary": "15a48dd560272ba120a39c07c5c8cc29a0a4d7d6bc9547be1a46a9c8a642dda4",
+      "gameRngCalls": 254
+    },
+    "36502980": {
+      "ordinary": "dd2bbb0de7f8a7fe7c8ce34034aa764347fb2c5ece27e8250756f0d742a4ed7b",
+      "gameRngCalls": 256
+    },
+    "36510899": {
+      "ordinary": "89c272930e8cd6d1a12bccfa07e0cf8cb1ff5dd79d530dcde911565b369c5afd",
+      "gameRngCalls": 353
+    },
+    "36518818": {
+      "ordinary": "11779643b7f29cf084c24eacc479419fc88ee219d4d62362ede4aa0e9539624e",
+      "gameRngCalls": 252
+    },
+    "36526737": {
+      "ordinary": "ae02795020b6f9bbe4e9659ef734b013681afc8946ffbe321d539f33f029f5f8",
+      "gameRngCalls": 249
+    },
+    "36534656": {
+      "ordinary": "742d0e8d4f0dc058874339504dcafe7ad3c3264b081deff0289abae197c9dfdf",
+      "gameRngCalls": 256
+    },
+    "36542575": {
+      "ordinary": "b8b80e69e2ff6294d4ded9e2b28f585be7fa191875a22b7294ee32aadfa77ef7",
+      "gameRngCalls": 255
+    },
+    "36550494": {
+      "ordinary": "4836fc7b409c4f18a9edbc2d78dd47e4282b3a301bf3c0fa6e1e592b52797655",
+      "gameRngCalls": 248
+    },
+    "36558413": {
+      "ordinary": "ed144c05950f789dc23a080d441a194f637436f652266669e27e301fe635d3c1",
+      "gameRngCalls": 258
+    },
+    "36566332": {
+      "ordinary": "5e5cb15c14bed21a9db9840d28b931f967ee348a5c9ef26a5ce3f7b8a799c85e",
+      "gameRngCalls": 353
+    },
+    "36574251": {
+      "ordinary": "cb931172aed02753dc5a27ea5b354d0b65894e99a6f580477275f8896beb715e",
+      "gameRngCalls": 252
+    },
+    "36582170": {
+      "ordinary": "9b79ff40c937c928cbb211852a5297cff27137780d6110a7c9883dca81f3cb96",
+      "gameRngCalls": 249
+    },
+    "36590089": {
+      "ordinary": "3948b5cf743a7affcaa96d581689a3ae36d66c503f29e6f66e5a75651871ad73",
+      "gameRngCalls": 258
+    },
+    "36598008": {
+      "ordinary": "47fbc5975eb4b949683a26cb7ca05ce6b83ec6c15e0eab5ab3163a45a24585a7",
+      "gameRngCalls": 252
+    }
+  },
+  "nearestNeutralWorldDistances": {
+    "control": [
+      {
+        "mean": 5.3359375,
+        "min": 5,
+        "max": 6
+      },
+      {
+        "mean": 7.17578125,
+        "min": 6,
+        "max": 8
+      }
+    ],
+    "central": [
+      {
+        "mean": 6,
+        "min": 6,
+        "max": 6
+      },
+      {
+        "mean": 6,
+        "min": 6,
+        "max": 6
+      }
+    ]
+  }
+}

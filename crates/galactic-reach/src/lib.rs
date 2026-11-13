@@ -8,7 +8,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/25.30";
+pub const RULES: &str = "galactic-reach/26.31";
 mod legacy_v1;
 mod legacy_v10;
 mod legacy_v11;
@@ -22,6 +22,7 @@ mod legacy_v18;
 mod legacy_v19;
 mod legacy_v2;
 mod legacy_v20;
+mod legacy_v21;
 mod legacy_v3;
 mod legacy_v4;
 mod legacy_v5;
@@ -87,6 +88,7 @@ impl GalacticReach {
             "galactic-reach/22.27" => "galactic-reach/22.27",
             "galactic-reach/23.28" => "galactic-reach/23.28",
             "galactic-reach/24.29" => "galactic-reach/24.29",
+            "galactic-reach/25.30" => "galactic-reach/25.30",
             _ => return Err("Unsupported rules version.".into()),
         };
         Self::initialize(seed, MATCH_TIMEOUT, rules)
@@ -116,6 +118,7 @@ impl GalacticReach {
                     "galactic-reach/22.27" => include_str!("../rules/v22-adapter.js"),
                     "galactic-reach/23.28" => include_str!("../rules/v23-adapter.js"),
                     "galactic-reach/24.29" => include_str!("../rules/v24-adapter.js"),
+                    "galactic-reach/25.30" => include_str!("../rules/v25-adapter.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-adapter.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-adapter.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-adapter.js"),
@@ -141,6 +144,7 @@ impl GalacticReach {
                     "galactic-reach/22.27" => include_str!("../rules/v22-app.js"),
                     "galactic-reach/23.28" => include_str!("../rules/v23-app.js"),
                     "galactic-reach/24.29" => include_str!("../rules/v24-app.js"),
+                    "galactic-reach/25.30" => include_str!("../rules/v25-app.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-app.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-app.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-app.js"),
@@ -268,18 +272,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/21",
-            Self::Economy => "gr-economy/21",
-            Self::Expansion => "gr-expansion/21",
-            Self::Wanderer => "gr-wanderer/21",
+            Self::Military => "gr-military/22",
+            Self::Economy => "gr-economy/22",
+            Self::Expansion => "gr-expansion/22",
+            Self::Wanderer => "gr-wanderer/22",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/21" => Some(Self::Military),
-            "gr-economy/21" => Some(Self::Economy),
-            "gr-expansion/21" => Some(Self::Expansion),
-            "gr-wanderer/21" => Some(Self::Wanderer),
+            "gr-military/22" => Some(Self::Military),
+            "gr-economy/22" => Some(Self::Economy),
+            "gr-expansion/22" => Some(Self::Expansion),
+            "gr-wanderer/22" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -1074,6 +1078,9 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
     if let Some(strategy) = legacy_v20::Strategy::parse(version) {
         return Ok(Box::new(legacy_v20::BuiltinAgent::new(strategy, seed)));
     }
+    if let Some(strategy) = legacy_v21::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v21::BuiltinAgent::new(strategy, seed)));
+    }
     Err("Unsupported Galactic Reach policy version.".into())
 }
 
@@ -1228,6 +1235,7 @@ mod tests {
             "galactic-reach/22.27",
             "galactic-reach/23.28",
             "galactic-reach/24.29",
+            "galactic-reach/25.30",
         ] {
             let game = GalacticReach::with_rules([19; 32], rules).unwrap();
             assert_eq!(game.rules_version(), rules);
@@ -1256,6 +1264,7 @@ mod tests {
                             | "galactic-reach/22.27"
                             | "galactic-reach/23.28"
                             | "galactic-reach/24.29"
+                            | "galactic-reach/25.30"
                     ) {
                         0
                     } else {
@@ -1287,6 +1296,7 @@ mod tests {
             "gr-military/19",
             "gr-military/20",
             "gr-military/21",
+            "gr-military/22",
         ] {
             assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
         }

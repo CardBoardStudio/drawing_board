@@ -57,7 +57,7 @@ function target(s,coord){const i=s.clusters.length,[q,r]=coord.split(',').map(Nu
 }
 for(const points of [19,20,21]){const{e,s}=game();s.players[0].combatVictories=points-3;assert.equal(e.calculatePrestige(0),points);e.finishRound();assert.equal(s.winner,points>=20?0:null);}
 {
- const{e,s}=game();assert.equal(e.VICTORY_TARGET,20);assert.equal(s.version,25);assert.equal(s.rulesRevision,30);assert.equal(e.SAVE_KEY,'galactic-reach-save-v25');assert.equal(e.TURN_HISTORY_KEY,'galactic-reach-turn-history-v25');
+ const{e,s}=game();assert.equal(e.VICTORY_TARGET,20);assert.equal(s.version,26);assert.equal(s.rulesRevision,31);assert.equal(e.SAVE_KEY,'galactic-reach-save-v26');assert.equal(e.TURN_HISTORY_KEY,'galactic-reach-turn-history-v26');
  assert.deepEqual(plain(e.STRUCTURES.starbase.cost),{matter:2,energy:1,biomass:1,data:1});assert.deepEqual(plain(e.EXCAVATION_COST),{matter:1,energy:1,data:2});
  assert.deepEqual(plain(e.SHIP_STATS.explorer.cost),{energy:1,data:2});assert.deepEqual(plain(e.SHIP_STATS.settler.cost),{matter:1,energy:1});assert.deepEqual(plain(e.SHIP_STATS.fleet.cost),{matter:2,energy:1,biomass:1});
 }

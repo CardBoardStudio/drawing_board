@@ -8,7 +8,7 @@ use serde::Deserialize;
 use serde_json::{Value, json};
 use std::time::{Duration, Instant};
 
-pub const RULES: &str = "galactic-reach/24.29";
+pub const RULES: &str = "galactic-reach/25.30";
 mod legacy_v1;
 mod legacy_v10;
 mod legacy_v11;
@@ -21,6 +21,7 @@ mod legacy_v17;
 mod legacy_v18;
 mod legacy_v19;
 mod legacy_v2;
+mod legacy_v20;
 mod legacy_v3;
 mod legacy_v4;
 mod legacy_v5;
@@ -85,6 +86,7 @@ impl GalacticReach {
             "galactic-reach/21.26" => "galactic-reach/21.26",
             "galactic-reach/22.27" => "galactic-reach/22.27",
             "galactic-reach/23.28" => "galactic-reach/23.28",
+            "galactic-reach/24.29" => "galactic-reach/24.29",
             _ => return Err("Unsupported rules version.".into()),
         };
         Self::initialize(seed, MATCH_TIMEOUT, rules)
@@ -113,6 +115,7 @@ impl GalacticReach {
                     "galactic-reach/21.26" => include_str!("../rules/v21-adapter.js"),
                     "galactic-reach/22.27" => include_str!("../rules/v22-adapter.js"),
                     "galactic-reach/23.28" => include_str!("../rules/v23-adapter.js"),
+                    "galactic-reach/24.29" => include_str!("../rules/v24-adapter.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-adapter.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-adapter.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-adapter.js"),
@@ -137,6 +140,7 @@ impl GalacticReach {
                     "galactic-reach/21.26" => include_str!("../rules/v21-app.js"),
                     "galactic-reach/22.27" => include_str!("../rules/v22-app.js"),
                     "galactic-reach/23.28" => include_str!("../rules/v23-app.js"),
+                    "galactic-reach/24.29" => include_str!("../rules/v24-app.js"),
                     "galactic-reach/16.21" => include_str!("../rules/v16-app.js"),
                     "galactic-reach/15.20" => include_str!("../rules/v15-app.js"),
                     "galactic-reach/14.19" => include_str!("../rules/v14-app.js"),
@@ -264,18 +268,18 @@ pub enum Strategy {
 impl Strategy {
     pub fn version(self) -> &'static str {
         match self {
-            Self::Military => "gr-military/20",
-            Self::Economy => "gr-economy/20",
-            Self::Expansion => "gr-expansion/20",
-            Self::Wanderer => "gr-wanderer/20",
+            Self::Military => "gr-military/21",
+            Self::Economy => "gr-economy/21",
+            Self::Expansion => "gr-expansion/21",
+            Self::Wanderer => "gr-wanderer/21",
         }
     }
     pub fn parse(version: &str) -> Option<Self> {
         match version {
-            "gr-military/20" => Some(Self::Military),
-            "gr-economy/20" => Some(Self::Economy),
-            "gr-expansion/20" => Some(Self::Expansion),
-            "gr-wanderer/20" => Some(Self::Wanderer),
+            "gr-military/21" => Some(Self::Military),
+            "gr-economy/21" => Some(Self::Economy),
+            "gr-expansion/21" => Some(Self::Expansion),
+            "gr-wanderer/21" => Some(Self::Wanderer),
             _ => None,
         }
     }
@@ -401,6 +405,80 @@ fn bot_safe_fight(view: &Value, seat: usize, moving: &Value, target: &str) -> bo
     }
     attack * 3.0 - 4.0 >= enemy_hull && hull > enemy_attack * 3.0 + 2.0
 }
+fn bot_storage_budget(view: &Value, seat: usize) -> Option<(Value, Value)> {
+    let me = &view["players"][seat];
+    let leader = view["players"]
+        .as_array()?
+        .iter()
+        .map(|p| number(&p["prestige"]))
+        .fold(0.0_f64, f64::max);
+    if leader >= 20.0 {
+        return None;
+    }
+    let cost = me["storageUpgradeCost"].as_object()?;
+    let resources = ["matter", "energy", "biomass", "data"];
+    if resources.iter().any(|r| number(&cost[*r]) <= 0.0) {
+        return None;
+    }
+    let mut production = 0.0;
+    for (coord, p) in view["planets"].as_object().into_iter().flatten() {
+        if !resources.contains(&p["type"].as_str().unwrap_or("")) {
+            continue;
+        }
+        if p["owner"] == json!(seat) && p["occupiedBy"].is_null() {
+            production += 1.0
+                + if p["upgrade"] == "harvester" {
+                    number(&p["upgradeLevel"]).max(1.0)
+                } else {
+                    0.0
+                };
+        }
+        let fleet = &view["fleets"][coord][seat.to_string()];
+        if number(&fleet["settler"]) + number(&fleet["fleet"]) > 0.0 {
+            production += 1.0;
+        }
+    }
+    let used: f64 = resources.iter().map(|r| number(&me["resources"][*r])).sum();
+    let pressure = (used + production - number(&me["capacity"])).max(0.0);
+    let horizon = ((20.0 - leader) / 4.0).ceil().clamp(1.0, 4.0);
+    if pressure.min(5.0) * horizon <= cost.values().map(number).sum::<f64>() {
+        return None;
+    }
+    let settlers = bot_units(view, seat, "settler") > 0.0;
+    let explorers = bot_units(view, seat, "explorer") > 0.0;
+    let protection = if bot_yards(view, seat) == 0 {
+        json!({"matter":2,"energy":1,"biomass":1,"data":1})
+    } else if !settlers && !explorers {
+        json!({"matter":1,"energy":1})
+    } else {
+        json!({"matter":if explorers{1}else{0},"energy":if explorers{1}else{0},"biomass":if settlers{2}else{0},"data":if explorers{2}else{0}})
+    };
+    Some((Value::Object(cost.clone()), protection))
+}
+
+fn bot_storage_reserve(view: &Value, seat: usize) -> Value {
+    let base = bot_cost(view, seat);
+    let Some((cost, protection)) = bot_storage_budget(view, seat) else {
+        return base;
+    };
+    let mut desired = json!({});
+    let mut reserve = json!({});
+    for r in ["matter", "energy", "biomass", "data"] {
+        let n = number(&cost[r]) + number(&protection[r]);
+        desired[r] = json!(n);
+        reserve[r] = json!(n.max(number(&base[r])));
+    }
+    let sum = |v: &Value| v.as_object().unwrap().values().map(number).sum::<f64>();
+    let capacity = number(&view["players"][seat]["capacity"]);
+    if sum(&reserve) <= capacity {
+        reserve
+    } else if sum(&desired) <= capacity {
+        desired
+    } else {
+        base
+    }
+}
+
 // Public one-Move threat envelope. Never inspect another faction's hand.
 fn bot_threat(view: &Value, seat: usize, moving: &Value, destination: &str, source: &str) -> f64 {
     let standing = &view["fleets"][destination][seat.to_string()];
@@ -645,7 +723,7 @@ impl BuiltinAgent {
                 }
             },
             "resource" => {
-                let cost = bot_cost(view, seat);
+                let cost = bot_storage_reserve(view, seat);
                 let gain = action["gain"].as_object().unwrap();
                 let need: f64 = gain
                     .iter()
@@ -833,24 +911,14 @@ impl BuiltinAgent {
                 }
             }
             "increase_storage" => {
-                let used: f64 = me["resources"]
-                    .as_object()
-                    .unwrap()
-                    .values()
-                    .map(number)
-                    .sum();
-                let reserve = bot_cost(view, seat);
-                if number(&me["capacity"]) < 30.0
-                    && number(&me["capacity"]) - used <= 2.0
-                    && ["matter", "energy", "biomass", "data"].iter().all(|r| {
-                        number(&me["resources"][r])
-                            >= number(&reserve[r]) + number(&me["storageUpgradeCost"][r])
-                    })
-                {
-                    55.0
-                } else {
-                    -20.0
-                }
+                let worthwhile =
+                    bot_storage_budget(view, seat).is_some_and(|(cost, protection)| {
+                        ["matter", "energy", "biomass", "data"].iter().all(|r| {
+                            let held = number(&me["resources"][*r]);
+                            held - number(&cost[*r]) >= held.min(number(&protection[*r]))
+                        })
+                    });
+                if worthwhile { 125.0 } else { -20.0 }
             }
             "bank_trade" => {
                 let give = action["giveType"].as_str().unwrap();
@@ -881,7 +949,7 @@ impl BuiltinAgent {
             "cancel_consortium" | "discard_resources" => -50.0,
             "discard_overflow" => {
                 let resource = action["resource"].as_str().unwrap();
-                let reserve = bot_cost(view, seat);
+                let reserve = bot_storage_reserve(view, seat);
                 number(&me["resources"][resource]) - number(&reserve[resource])
                     + number(&action["amount"]) * 0.01
             }
@@ -1003,6 +1071,9 @@ pub fn agent(version: &str, seed: [u8; 32]) -> Result<Box<dyn PlayerAgent<Galact
     if let Some(strategy) = legacy_v19::Strategy::parse(version) {
         return Ok(Box::new(legacy_v19::BuiltinAgent::new(strategy, seed)));
     }
+    if let Some(strategy) = legacy_v20::Strategy::parse(version) {
+        return Ok(Box::new(legacy_v20::BuiltinAgent::new(strategy, seed)));
+    }
     Err("Unsupported Galactic Reach policy version.".into())
 }
 
@@ -1020,6 +1091,25 @@ mod tests {
             agent.score(&view, &json!({"type":"probe","coord":"5,0"}))
                 > agent.score(&view, &moving)
         );
+    }
+    #[test]
+    fn storage_forecast_buys_inside_ten_capacity_and_protects_scoring() {
+        let agent = BuiltinAgent::new(Strategy::Military, [3; 32]);
+        let mut view = json!({"seat":0,"players":[{"resources":{"matter":3,"energy":3,"biomass":2,"data":2},"prestige":3,"capacity":10,"storageUpgradeCost":{"matter":1,"energy":1,"biomass":1,"data":1}},{"prestige":3},{"prestige":3},{"prestige":3}],"fleets":{},"planets":{"0,0":{"owner":0,"occupiedBy":null,"type":"matter","upgrade":"starbase"},"1,0":{"owner":0,"occupiedBy":null,"type":"data","upgrade":"harvester","upgradeLevel":2}}});
+        assert!(agent.score(&view, &json!({"type":"increase_storage"})) > 100.0);
+        view["fleets"] = json!({"1,0":{"0":{"settler":1,"explorer":1}}});
+        assert!(agent.score(&view, &json!({"type":"increase_storage"})) < 0.0);
+        assert_eq!(
+            bot_storage_reserve(&view, 0),
+            json!({"matter":2.0,"energy":2.0,"biomass":3.0,"data":3.0})
+        );
+        view["players"][0]["resources"] = json!({"matter":2,"energy":2,"biomass":3,"data":3});
+        assert!(agent.score(&view, &json!({"type":"increase_storage"})) > 100.0);
+        let before = bot_storage_budget(&view, 0);
+        view["players"][1]["hand"] = json!([{"key":"omniscientChorus"}]);
+        assert_eq!(bot_storage_budget(&view, 0), before);
+        view["players"][1]["prestige"] = json!(20);
+        assert!(bot_storage_budget(&view, 0).is_none());
     }
     use game_core::run_match;
     #[test]
@@ -1137,6 +1227,7 @@ mod tests {
             "galactic-reach/21.26",
             "galactic-reach/22.27",
             "galactic-reach/23.28",
+            "galactic-reach/24.29",
         ] {
             let game = GalacticReach::with_rules([19; 32], rules).unwrap();
             assert_eq!(game.rules_version(), rules);
@@ -1164,6 +1255,7 @@ mod tests {
                             | "galactic-reach/21.26"
                             | "galactic-reach/22.27"
                             | "galactic-reach/23.28"
+                            | "galactic-reach/24.29"
                     ) {
                         0
                     } else {
@@ -1194,6 +1286,7 @@ mod tests {
             "gr-military/18",
             "gr-military/19",
             "gr-military/20",
+            "gr-military/21",
         ] {
             assert_eq!(agent(policy, [23; 32]).unwrap().policy_version(), policy);
         }

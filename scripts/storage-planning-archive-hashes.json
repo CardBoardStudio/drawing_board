@@ -1,0 +1,10 @@
+{
+  "crates/galactic-reach/rules/v24-app.js": "b7de0f3503558be99eb88d75b819988ae26a4420edc73a20a5b596093a4d5f76",
+  "crates/galactic-reach/rules/v24-adapter.js": "7290ade4bfa96da23adec3aa82e4cbd70885776a795342450ba4adfbcfdc1740",
+  "crates/galactic-reach/rules/v24-index.html": "a4c3fe61e430069303fce128ec7a06f6ec602ca0fb705929bb52ea1d6fd2111b",
+  "crates/galactic-reach/rules/v24-styles.css": "84e190a8957f4ea0f68a6433653b54d6e088ecad57f0c575724bec3a46ff684f",
+  "crates/galactic-reach/rules/v24-rulebook.html": "d7c7fbde305ce6af3827f0c01392d6c5d23871c897cca76e402ce5f27bc53632",
+  "crates/galactic-reach/rules/v24-rulebook.css": "c89d7ff15fc902e2dda07d2ef54213e9ec09796a736c596dbc411c12fa5c1e5b",
+  "crates/galactic-reach/rules/v24-replay.js": "922e51a9282d36edf0befcf757846825d1a53e0a5c610bca94d142b29f165685",
+  "crates/galactic-reach/src/legacy_v20.rs": "e2421fb2dfdfa31892719779c2fea512ebf3b0684e8b03d916b9657e12cf31d1"
+}

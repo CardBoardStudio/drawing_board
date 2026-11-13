@@ -1,0 +1,12 @@
+{
+  "assets": {
+    "app.js": "ae664893f0803fbadc76de981ea344d971574f8872268d19c7059a29a49f1044",
+    "adapter.js": "4a4aa40be5f65dfff3505a6378d9c0baf43fc9458bd10616eed8b6504bcb8f01",
+    "index.html": "a1e2687c1f924c68a14ee3f3b4ea027fb9221d80e49e2e2d234f6dbf4a09d2dc",
+    "styles.css": "4be5f4ebfbcd805dd40587a8c724c97846e07560b904825495a057b0707e80bb",
+    "rulebook.html": "a91b0447d87e2c1cc3a856d0befd6907821453b11f8cf98815ee4d3044aee792",
+    "rulebook.css": "c89d7ff15fc902e2dda07d2ef54213e9ec09796a736c596dbc411c12fa5c1e5b",
+    "replay.js": "ce75b08256c879e8d1fcec280f6b865fe38cabaaedc301c3b996687675da0a7f"
+  },
+  "policy": "f50e80b46a60ed07244ea57727d225c289fda5ef884413b6922e1bb45f1c17e0"
+}

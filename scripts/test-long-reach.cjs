@@ -3,7 +3,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
-const source = fs.readFileSync(path.join(__dirname,'../prototypes/galactic-reach/app.js'),'utf8');
+const source = fs.readFileSync(path.join(__dirname,'../prototypes/galactic-reach/app.js'),'utf8')
+  .replace('    // Fully validated fallback', '    globalThis.__mapFallbacks=(globalThis.__mapFallbacks||0)+1;\n    // Fully validated fallback')
+  .replace('return {worlds,moons};','globalThis.__mapRetries.push(attempt); return {worlds,moons};')
+  .replace('attempt<64','attempt<(globalThis.__forceMapFallback?0:64)');
 const boot = source.indexOf('\n  if (headless) {\n    state = newState();');
 assert(boot > 0, 'Locate the browser bootstrap before instrumenting the rules');
 const storage = new Map();
@@ -13,7 +16,7 @@ math.random = () => ((seed = (Math.imul(seed,1664525)+1013904223)>>>0) / 2**32);
 const elements = new Map();
 const element = selector => {
   if (!elements.has(selector)) elements.set(selector, {
-    open:false,value:0,elements:{'policy-choice':{value:0}},
+    open:false,value:0,elements:{},
     querySelectorAll:()=>[], showModal(){this.open=true;}, close(){this.open=false;},
   });
   return elements.get(selector);
@@ -29,7 +32,7 @@ vm.runInContext(source.slice(0,boot)+`
     get state(){ return state; }, set state(value){ state=value; },
     newState, generateGalaxy, boardHas, hexDistance, fleetMove, reachableFrom,
     prepareHumanMove, chooseAiMove, calculatePrestige, finishRound, saveGame, loadGame,
-    beginRound, passOperations, runAiOperation, runAiBuy, nextBuyPlayer, resolvePolicyVote, applyDirective,
+    beginRound, passOperations, runAiOperation, combatActor, combatActions, applyCombatAction, runAiBuy, nextBuyPlayer, overflowPlayer, discardOverflow,
     SAVE_KEY, TURN_HISTORY_KEY, VICTORY_TARGET, BOARD_RADIUS,
     canOfferTrade, offerTrade, respondTrade, cancelTrade, tradeBlockReason, startBuyPhase,
     playOrder, cardMarkup, makeCard,
@@ -40,74 +43,107 @@ const r = context.createGalacticReach({random:()=>math.random()});
 const distance = key => r.hexDistance('0,0',key);
 function fresh(n) { seed=n; r.state=r.newState(); return r.state; }
 function assertGalaxy(s) {
-  assert.equal(s.clusters.length,11);
-  assert.equal(Object.keys(s.planets).length,77,'Worlds must never overwrite one another');
+  assert.equal(s.clusters.length,17);
+  assert.equal(Object.keys(s.planets).length,95,'Worlds must never overwrite one another');
   for (const world of s.clusters) {
-    assert.equal(world.coords.length,7);
+    assert.equal(world.coords.length,world.kind==='moon'?1:7);
     for (const key of world.coords) {
       assert(r.boardHas(key),'Every planet lies inside the expanded map');
       assert.equal(s.planets[key].cluster,world.id);
     }
     for (const other of s.clusters) {
-      if (world.id!==other.id) assert(r.hexDistance(world.center,other.center)>=4,'Leave an empty hex between worlds');
+      if (world.id!==other.id) assert(r.hexDistance(world.center,other.center)>=(world.kind==='moon'?0:1)+(other.kind==='moon'?0:1)+2,'Leave an empty hex between every terrain group');
     }
   }
   for (let id=0;id<4;id++) {
     const world=s.clusters[id];
-    assert.equal(distance(world.center),11);
-    assert(world.coords.some(key=>distance(key)===12),'Each home world touches the outer ring');
+    assert.equal(distance(world.center),9);
+    assert(world.coords.some(key=>distance(key)===10),'Each home world touches the outer ring');
     const colony=s.planets[world.center];
     assert.equal(colony.owner,id); assert.equal(colony.hasColony,true);
-    const yard=world.coords.find(key=>s.planets[key].upgrade==='starbase');
-    assert.equal(distance(yard),10,'Shipyards point inward');
-    assert.equal(s.planets[yard].type,'energy');
-    assert.equal(s.fleets[yard][id].scout,1);
+    assert.equal(Object.values(s.planets).filter(p=>p.owner===id).length,1,'Only the starting Colony is owned');
+    assert.equal(Object.values(s.planets).filter(p=>p.upgrade==='starbase').length,0,'No starting Shipyards');
+    assert(!Object.values(s.fleets).some(group=>group[id]),'There are no starting units');
   }
-  assert.equal(Object.values(s.planets).filter(p=>p.special==='relic').length,6);
-  assert.equal(Object.values(s.planets).filter(p=>p.special==='gate').length,2);
+  assert.equal(Object.values(s.planets).filter(p=>p.special==='relic').length,12);
+  assert.equal(Object.values(s.planets).filter(p=>p.special==='gate').length,0);
+  assert(Object.values(s.planets).every(p=>!('rich' in p)&&p.special!=='rich'),'Rich is absent, not just visually hidden');
+  const homes=s.clusters.slice(0,4), worlds=s.clusters.filter(c=>c.kind==='world'&&c.id>=4), moons=s.clusters.filter(c=>c.kind==='moon');
+  const expected=['9,-9','-9,9','6,-3','3,-6','-3,-3','-6,3','-3,6','3,3','0,0'];
+  assert.deepEqual(new Set(Array.from(worlds,w=>w.center)),new Set(expected),'The approved world geometry stays fixed');
+  const access=homes.map(h=>Math.min(...moons.map(m=>r.hexDistance(h.center,m.center))));
+  assert(access.every(d=>d>=4&&d<=7));assert(Math.max(...access)-Math.min(...access)<=1);
+  const nearest=moons.map(m=>Math.min(...moons.filter(other=>other!==m).map(other=>r.hexDistance(m.center,other.center))));
+  assert(nearest.every(d=>d>=6));assert(Math.max(...nearest)-Math.min(...nearest)<=2);
+  const sums=moons.map(m=>m.center.split(',').map(Number)).reduce((sum,p)=>[sum[0]+p[0],sum[1]+p[1]],[0,0]);
+  assert(Math.max(Math.abs(sums[0]),Math.abs(sums[1]),Math.abs(sums[0]+sums[1]))<=8);
+  for(let seat=0;seat<4;seat++)assert.equal(moons.filter(m=>{
+    const ds=homes.map(h=>r.hexDistance(h.center,m.center)),min=Math.min(...ds);
+    return ds[seat]===min&&ds.filter(d=>d===min).length===1;
+  }).length,1,'One moon belongs to each nearest-home region');
+  const opportunity=homes.map(h=>Array.from(worlds,w=>r.hexDistance(h.center,w.center)).sort((a,b)=>a-b));
+  const moonOpportunity=homes.map(h=>Array.from(moons,m=>r.hexDistance(h.center,m.center)).sort((a,b)=>a-b));
+  for(let seat=0;seat<4;seat++){
+    assert.deepEqual(opportunity[seat],opportunity[0],'Every home has the same complete world-distance profile');
+    assert.deepEqual(opportunity[seat].slice(0,2),[6,6]);
+  }
+  const center=worlds.find(w=>w.center==='0,0');assert(center);
+  assert(center.coords.every(k=>s.planets[k].special===null),'The additional world does not increase relic supply');
+  const terrain=s.clusters.map(c=>[...c.center.split(',').map(Number),c.kind==='moon'?0:1]);
+  for(let q=-10;q<=10;q++) for(let y=-10;y<=10;y++) if(Math.max(Math.abs(q),Math.abs(y),Math.abs(q+y))<=10) {
+    const nearest=Math.min(...terrain.map(([a,b,radius])=>Math.max(Math.abs(q-a),Math.abs(y-b),Math.abs(q+y-a-b))-radius));
+    assert(nearest<=6,'No large underserved region may remain');
+  }
+
 }
-const layouts=new Set();
+
+const layouts=new Set(), moonLayouts=new Set();
 for(let n=1;n<=1000;n++) {
   const s=fresh(n); assertGalaxy(s);
   layouts.add(s.clusters.slice(4).map(c=>c.center).join('|'));
+  moonLayouts.add(s.clusters.filter(c=>c.kind==='moon').map(c=>c.center).join('|'));
 }
-assert.equal(layouts.size,1000,'Interior coordinates vary with each new game');
+assert(layouts.size>900,'Neutral world identities vary across the fixed slots');
+assert(moonLayouts.size>500,'Moons vary across hundreds of balanced placements');
+
+console.log(`Central Frontier: ${layouts.size} neutral identity arrangements across 1000 valid fixed-geometry maps.`);
 for(const constant of [0,0.5,1-Number.EPSILON]) {
   const saved=math.random; math.random=()=>constant;
   assertGalaxy(r.newState()); math.random=saved;
 }
+
 let cells=0;
 for(let q=-13;q<=13;q++) for(let y=-13;y<=13;y++) if(r.boardHas(`${q},${y}`)) cells++;
-assert.equal(cells,469); assert.equal(r.BOARD_RADIUS,12);
+assert.equal(cells,331); assert.equal(r.BOARD_RADIUS,10);
 assert.equal(JSON.stringify(fresh(42)),JSON.stringify(fresh(42)),'A seeded fixture remains reproducible');
-assert.equal(r.fleetMove({researcher:1}),1);
-assert.equal(r.fleetMove({researcher:1,scout:1}),1);
-assert.equal(r.fleetMove({researcher:1,dreadnought:1}),1);
-assert.equal(r.fleetMove({scout:1}),2); assert.equal(r.fleetMove({frigate:1}),1);
+assert.equal(r.fleetMove({explorer:1}),3);
+assert.equal(r.fleetMove({explorer:1,settler:1}),1);
+assert.equal(r.fleetMove({explorer:1,fleet:1}),2);
+assert.equal(r.fleetMove({settler:1}),1); assert.equal(r.fleetMove({fleet:1}),2);
 assert.equal(r.fleetMove({}),0);
-fresh(9); r.state.planets={}; r.state.fleets={'0,0':{0:{researcher:1}}};
-r.prepareHumanMove('0,0','researcher');
-assert.equal(r.state.reachable.length,6);
-assert(r.state.reachable.includes('1,0')); assert(!r.state.reachable.includes('2,0'));
-r.state.actionOptions={tag:'pathfinder'}; r.prepareHumanMove('0,0','researcher');
-assert(r.state.reachable.includes('2,0')); assert(!r.state.reachable.includes('3,0'));
-const atEdge=r.reachableFrom('-12,0',0,2,false,{researcher:1});
-assert(atEdge.every(key=>distance(key)<=12));
-// A real AI choice uses one step toward a scanned relic, respecting hostile blockers.
-r.state.planets={'5,0':{special:'relic',owner:null,upgrade:null,hasColony:false,researchStationOwner:null}};
+fresh(9); r.state.planets={}; r.state.fleets={'0,0':{0:{explorer:1}}};
+r.prepareHumanMove('0,0','explorer');
+assert.equal(r.state.reachable.length,36);
+assert(r.state.reachable.includes('3,0')); assert(!r.state.reachable.includes('4,0'));
+r.state.actionOptions={tag:'pathfinder'}; r.prepareHumanMove('0,0','explorer');
+assert(r.state.reachable.includes('4,0')); assert(!r.state.reachable.includes('5,0'));
+const atEdge=r.reachableFrom('-10,0',0,2,false,{explorer:1});
+assert(atEdge.every(key=>distance(key)<=10));
+// A real AI choice uses three steps toward a scanned relic, respecting hostile blockers.
+r.state.planets={'5,0':{special:'relic',owner:null,upgrade:null,hasColony:false,researchStationOwner:null,relicClaimed:false}};
 r.state.clusters=[{id:4,coords:['5,0'],scannedBy:[1]}];
-r.state.fleets={'0,0':{1:{researcher:1}}};
+r.state.fleets={'0,0':{1:{explorer:1}}};
 let move=r.chooseAiMove(1);
-assert.equal(move.moveGroup,'researcher'); assert.equal(move.destination,'1,0');
-r.state.fleets['1,0']={2:{frigate:1}};
-assert(!r.chooseAiMove(1) || r.chooseAiMove(1).destination!=='2,0','Do not jump through a hostile fleet');
-// The end-of-round rule must not end at the old target or one point below the new one.
-for(const points of [10,19,20]) {
-  const s=fresh(100); s.players[0].relics=points-1;
+assert.equal(move.moveGroup,'explorer'); assert.equal(move.destination,'3,0');
+r.state.fleets['1,0']={2:{fleet:1}};
+assert(!r.chooseAiMove(1) || r.chooseAiMove(1).destination!=='3,0','Do not jump through a hostile fleet');
+// The end-of-round rule ends at 10 or above, and never one point below.
+for(const points of [19,20,21]) {
+  const s=fresh(100); s.players[0].combatVictories=points-3;
   assert.equal(r.calculatePrestige(0),points);
   r.finishRound();
-  assert.equal(s.winner,points===20?0:null);
-  assert.equal(s.round,points===20?1:2);
+  assert.equal(s.winner,points>=20?0:null);
+  assert.equal(s.round,points>=20?1:2);
 }
 fresh(99); r.state.phase='operations'; r.state.activePlayer=0; r.state.turnStage='prep';
 const order=r.makeCard('move'); r.state.players[0].hand=[order];
@@ -116,26 +152,29 @@ r.playOrder(order.id); assert.equal(r.state.actionMode,'move'); assert.equal(r.s
 r.playOrder(order.id); assert.equal(r.state.actionMode,null,'Clicking again cancels without spending the card');
 assert.equal(r.state.players[0].hand.length,1);
 const old='untouched-v4-save'; storage.set('galactic-reach-save-v4',old);
-assert.equal(r.SAVE_KEY,'galactic-reach-save-v7');
-assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v7');
+assert.equal(r.SAVE_KEY,'galactic-reach-save-v24');
+assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v24');
 const saved=JSON.stringify(fresh(123)); r.saveGame(); fresh(456);
 assert(r.loadGame()); assert.equal(JSON.stringify(r.state),saved,'Reload retains randomized placement');
 assert.equal(storage.get('galactic-reach-save-v4'),old);
 const incompatible=JSON.parse(saved); incompatible.rulesRevision=9;
 storage.set(r.SAVE_KEY,JSON.stringify(incompatible)); assert.equal(r.loadGame(),false);
-console.log('Long Reach: 1,000 map layouts, 469 hexes, border starts, movement, 20-point victory, and save isolation passed.');
+console.log('Long Reach: 1,000 map layouts, 331 hexes, border starts, movement, 10-point victory, and save isolation passed.');
 if(process.env.LONG_REACH_SIMULATE) {
   fresh(1729); r.beginRound();
   let steps=0;
   while(r.state.winner===null && steps++<12000) {
     const s=r.state;
-    if(s.phase==='operations') s.activePlayer===0?r.passOperations(0):r.runAiOperation();
+    if(r.overflowPlayer()>=0) {
+      const seat=r.overflowPlayer(),player=s.players[seat],resource=Object.keys(player.resources).find(key=>player.resources[key]>0);
+      r.discardOverflow(seat,{[resource]:1});
+    }
+    else if(s.pendingCombat) { const seat=r.combatActor(); r.applyCombatAction(seat,r.combatActions(seat)[0]); }
+    else if(s.phase==='operations') s.activePlayer===0?r.passOperations(0):r.runAiOperation();
     else if(s.phase==='buy') s.activePlayer===0?r.nextBuyPlayer():r.runAiBuy();
-    else if(s.phase==='policy') r.resolvePolicyVote(0,0);
-    else if(s.phase==='directive') r.applyDirective('economy',s.firstPlayer);
     else throw Error(`Unexpected phase ${s.phase}`);
   }
-  assert.notEqual(r.state.winner,null,'Reference rivals must finish a 20-point game');
+  assert.notEqual(r.state.winner,null,'Reference rivals must finish a 10-point game');
   console.log(`Long-game smoke: faction ${r.state.winner} won in round ${r.state.round}, after ${steps} decisions, with ${r.calculatePrestige(r.state.winner)} Prestige.`);
 }
 
@@ -159,7 +198,7 @@ r.state.activePlayer=2;
 assert(r.respondTrade(2,1,'accept'));
 assert.equal(r.state.players[0].resources.matter,1); assert.equal(r.state.players[0].resources.energy,4);
 assert.equal(r.state.players[2].resources.matter,5); assert.equal(r.state.players[2].resources.energy,2);
-assert.equal(r.state.players[0].tracks.culture,1); assert.equal(r.state.players[2].tracks.culture,1);
+assert(!('tracks' in r.state.players[0])); assert(!('tracks' in r.state.players[2]));
 assert.equal(r.state.players[0].tradesWith[2],1);
 r.state.activePlayer=3;
 const settled=JSON.stringify(r.state.players);

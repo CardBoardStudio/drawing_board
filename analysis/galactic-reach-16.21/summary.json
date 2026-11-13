@@ -1,0 +1,1735 @@
+{
+  "rules": "galactic-reach/16.21",
+  "sourceCommit": "30ac7a94133b8d493c4856f95999eda255405dc8",
+  "notes": [
+    "All game rules are unchanged; guarded runs change only the browser bot movement chooser.",
+    "Each mixed batch has 64 common-map seed blocks \u00d7 3 duplicated profiles \u00d7 4 seat rotations = 768 games.",
+    "Each mirror batch has 32 seeds \u00d7 3 homogeneous four-bot lineups = 96 games.",
+    "Win-share neutrality is 33.33% per profile in mixed games; per-player neutrality is 25%.",
+    "95% intervals use 2,000 bootstrap resamples of whole seed blocks, not independent player rows.",
+    "Unfinished and stalled games are censored and excluded from win-rate denominators; baseline finished-only rates are selection-biased.",
+    "Snapshots are end-of-round before next production. Later snapshots exclude games that already ended.",
+    "Initial-order controls vary only the starting first-player marker in identical-bot games; these are setup counterfactuals, separate from current-rule results."
+  ],
+  "browser": {
+    "mixed": {
+      "games": 768,
+      "status": {
+        "stalled": 533,
+        "finished": 235
+      },
+      "finishRoundMean": 72.481,
+      "finishRoundMedian": 75,
+      "finishRoundP10": 50.0,
+      "finishRoundP90": 91.0,
+      "combatsMean": 7.443,
+      "zeroCombatGames": 0,
+      "tiesForFirst": 0,
+      "byStrategy": {
+        "military": {
+          "appearances": 301,
+          "wins": 15,
+          "shareOfWins": 6.382978723404255,
+          "winRatePerAppearance": 4.983388704318937,
+          "prestige": 13.771,
+          "colonies": 1.189,
+          "relics": 2.86,
+          "shipyards": 4.924,
+          "cardsPurchased": 63.073,
+          "controlled": 7.963,
+          "income": 13.096,
+          "capacity": 193.239,
+          "frontierPrestige": 0.027,
+          "deckPrestige": 7.482,
+          "shipyardPrestige": 2.213,
+          "settlers": 5.475,
+          "explorers": 4.262,
+          "fleets": 5.545,
+          "winShareCI95": [
+            3.603199612168222,
+            9.482843805370042
+          ]
+        },
+        "economy": {
+          "appearances": 314,
+          "wins": 55,
+          "shareOfWins": 23.404255319148938,
+          "winRatePerAppearance": 17.515923566878982,
+          "prestige": 15.408,
+          "colonies": 3.061,
+          "relics": 2.885,
+          "shipyards": 0.936,
+          "cardsPurchased": 72.099,
+          "controlled": 19.153,
+          "income": 39.643,
+          "capacity": 332.803,
+          "frontierPrestige": 0.818,
+          "deckPrestige": 8.643,
+          "shipyardPrestige": 0,
+          "settlers": 3.385,
+          "explorers": 3.758,
+          "fleets": 0.366,
+          "winShareCI95": [
+            18.490013598504166,
+            28.515490533562815
+          ]
+        },
+        "expansion": {
+          "appearances": 325,
+          "wins": 165,
+          "shareOfWins": 70.2127659574468,
+          "winRatePerAppearance": 50.76923076923077,
+          "prestige": 17.926,
+          "colonies": 4.6,
+          "relics": 2.938,
+          "shipyards": 0.985,
+          "cardsPurchased": 72.382,
+          "controlled": 19.154,
+          "income": 36.049,
+          "capacity": 295.415,
+          "frontierPrestige": 1.597,
+          "deckPrestige": 8.791,
+          "shipyardPrestige": 0,
+          "settlers": 2.729,
+          "explorers": 3.634,
+          "fleets": 0.108,
+          "winShareCI95": [
+            65.48592115848753,
+            74.79347241819526
+          ]
+        }
+      },
+      "bySeat": {
+        "0": {
+          "wins": 85,
+          "winShare": 36.170212765957444,
+          "winShareCI95": [
+            29.255367540029113,
+            43.334070796460175
+          ]
+        },
+        "1": {
+          "wins": 45,
+          "winShare": 19.148936170212767,
+          "winShareCI95": [
+            14.412905728695202,
+            24.137931034482758
+          ]
+        },
+        "2": {
+          "wins": 35,
+          "winShare": 14.893617021276595,
+          "winShareCI95": [
+            9.8419924071991,
+            19.90950226244344
+          ]
+        },
+        "3": {
+          "wins": 70,
+          "winShare": 29.78723404255319,
+          "winShareCI95": [
+            23.930678466076696,
+            36.15384615384615
+          ]
+        }
+      },
+      "winnerScoreComponents": {
+        "prestige": 20.013,
+        "colonies": 5.153,
+        "frontierPrestige": 1.855,
+        "shipyardPrestige": 0.289,
+        "relics": 3.796,
+        "deckPrestige": 8.919,
+        "cardsPurchased": 71.494
+      },
+      "stalls": {
+        "count": 533,
+        "medianRound": 24,
+        "actors": {
+          "expansion": 140,
+          "economy": 130,
+          "military": 263
+        }
+      },
+      "roundSnapshots": {
+        "10": {
+          "gamesReachingRound": 765,
+          "byStrategy": {
+            "military": {
+              "prestige": 2.264,
+              "colonies": 1,
+              "relics": 0.357,
+              "cardsPurchased": 2.896,
+              "deckPrestige": 0.001,
+              "shipyards": 2.28
+            },
+            "economy": {
+              "prestige": 2.066,
+              "colonies": 1.05,
+              "relics": 1.005,
+              "cardsPurchased": 4.365,
+              "deckPrestige": 0.011,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 1.496,
+              "colonies": 1.003,
+              "relics": 0.493,
+              "cardsPurchased": 2.816,
+              "deckPrestige": 0,
+              "shipyards": 1
+            }
+          }
+        },
+        "20": {
+          "gamesReachingRound": 694,
+          "byStrategy": {
+            "military": {
+              "prestige": 6.496,
+              "colonies": 1.003,
+              "relics": 2.52,
+              "cardsPurchased": 11.171,
+              "deckPrestige": 0.996,
+              "shipyards": 4.459
+            },
+            "economy": {
+              "prestige": 5.384,
+              "colonies": 1.284,
+              "relics": 2.775,
+              "cardsPurchased": 14.617,
+              "deckPrestige": 1.293,
+              "shipyards": 0.988
+            },
+            "expansion": {
+              "prestige": 4.915,
+              "colonies": 1.324,
+              "relics": 2.49,
+              "cardsPurchased": 12.183,
+              "deckPrestige": 1.04,
+              "shipyards": 0.995
+            }
+          }
+        },
+        "24": {
+          "gamesReachingRound": 484,
+          "byStrategy": {
+            "military": {
+              "prestige": 7.213,
+              "colonies": 1.026,
+              "relics": 2.812,
+              "cardsPurchased": 15.228,
+              "deckPrestige": 1.427,
+              "shipyards": 4.376
+            },
+            "economy": {
+              "prestige": 6.744,
+              "colonies": 1.668,
+              "relics": 2.908,
+              "cardsPurchased": 18.987,
+              "deckPrestige": 1.99,
+              "shipyards": 0.938
+            },
+            "expansion": {
+              "prestige": 6.867,
+              "colonies": 2.087,
+              "relics": 2.709,
+              "cardsPurchased": 16.843,
+              "deckPrestige": 1.71,
+              "shipyards": 0.973
+            }
+          }
+        },
+        "40": {
+          "gamesReachingRound": 239,
+          "byStrategy": {
+            "military": {
+              "prestige": 9.642,
+              "colonies": 1.175,
+              "relics": 2.861,
+              "cardsPurchased": 32.033,
+              "deckPrestige": 3.497,
+              "shipyards": 4.672
+            },
+            "economy": {
+              "prestige": 11.016,
+              "colonies": 3.075,
+              "relics": 2.934,
+              "cardsPurchased": 36.367,
+              "deckPrestige": 4.185,
+              "shipyards": 0.931
+            },
+            "expansion": {
+              "prestige": 12.758,
+              "colonies": 4.442,
+              "relics": 2.89,
+              "cardsPurchased": 35.173,
+              "deckPrestige": 3.916,
+              "shipyards": 0.982
+            }
+          }
+        },
+        "60": {
+          "gamesReachingRound": 189,
+          "byStrategy": {
+            "military": {
+              "prestige": 12.509,
+              "colonies": 1.186,
+              "relics": 2.925,
+              "cardsPurchased": 52.527,
+              "deckPrestige": 6.186,
+              "shipyards": 4.858
+            },
+            "economy": {
+              "prestige": 13.751,
+              "colonies": 3.245,
+              "relics": 2.969,
+              "cardsPurchased": 57.817,
+              "deckPrestige": 6.634,
+              "shipyards": 0.953
+            },
+            "expansion": {
+              "prestige": 15.172,
+              "colonies": 4.256,
+              "relics": 2.773,
+              "cardsPurchased": 57.447,
+              "deckPrestige": 6.722,
+              "shipyards": 0.982
+            }
+          }
+        },
+        "80": {
+          "gamesReachingRound": 85,
+          "byStrategy": {
+            "military": {
+              "prestige": 15.537,
+              "colonies": 1.189,
+              "relics": 3.242,
+              "cardsPurchased": 74.042,
+              "deckPrestige": 8.811,
+              "shipyards": 4.989
+            },
+            "economy": {
+              "prestige": 16.798,
+              "colonies": 3.315,
+              "relics": 3.145,
+              "cardsPurchased": 78.742,
+              "deckPrestige": 9.427,
+              "shipyards": 0.984
+            },
+            "expansion": {
+              "prestige": 17.074,
+              "colonies": 4.091,
+              "relics": 2.215,
+              "cardsPurchased": 78.851,
+              "deckPrestige": 9.463,
+              "shipyards": 0.992
+            }
+          }
+        },
+        "100": {
+          "gamesReachingRound": 1,
+          "byStrategy": {
+            "military": {
+              "prestige": 15,
+              "colonies": 1,
+              "relics": 1,
+              "cardsPurchased": 90,
+              "deckPrestige": 11,
+              "shipyards": 5
+            },
+            "economy": {
+              "prestige": 19,
+              "colonies": 4,
+              "relics": 3,
+              "cardsPurchased": 92,
+              "deckPrestige": 11,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 18.5,
+              "colonies": 3.5,
+              "relics": 1,
+              "cardsPurchased": 106,
+              "deckPrestige": 13,
+              "shipyards": 1
+            }
+          }
+        }
+      }
+    },
+    "mirror": {
+      "games": 96,
+      "status": {
+        "stalled": 67,
+        "finished": 29
+      },
+      "finishRoundMean": 82.931,
+      "finishRoundMedian": 85,
+      "finishRoundP10": 69.0,
+      "finishRoundP90": 95.2,
+      "combatsMean": 3.862,
+      "zeroCombatGames": 1,
+      "tiesForFirst": 0,
+      "byStrategy": {
+        "military": {
+          "appearances": 0,
+          "wins": 0,
+          "shareOfWins": 0.0,
+          "winRatePerAppearance": null,
+          "prestige": null,
+          "colonies": null,
+          "relics": null,
+          "shipyards": null,
+          "cardsPurchased": null,
+          "controlled": null,
+          "income": null,
+          "capacity": null,
+          "frontierPrestige": null,
+          "deckPrestige": null,
+          "shipyardPrestige": null,
+          "settlers": null,
+          "explorers": null,
+          "fleets": null,
+          "winShareCI95": [
+            0.0,
+            0.0
+          ]
+        },
+        "economy": {
+          "appearances": 72,
+          "wins": 18,
+          "shareOfWins": 62.06896551724138,
+          "winRatePerAppearance": 25.0,
+          "prestige": 16.653,
+          "colonies": 3,
+          "relics": 2.972,
+          "shipyards": 1,
+          "cardsPurchased": 82.611,
+          "controlled": 17.556,
+          "income": 40.375,
+          "capacity": 376.806,
+          "frontierPrestige": 0.736,
+          "deckPrestige": 9.944,
+          "shipyardPrestige": 0,
+          "settlers": 2.958,
+          "explorers": 3.764,
+          "fleets": 0.181,
+          "winShareCI95": [
+            47.60504201680673,
+            77.77777777777777
+          ]
+        },
+        "expansion": {
+          "appearances": 44,
+          "wins": 11,
+          "shareOfWins": 37.93103448275862,
+          "winRatePerAppearance": 25.0,
+          "prestige": 16.432,
+          "colonies": 3,
+          "relics": 2.909,
+          "shipyards": 1,
+          "cardsPurchased": 79.955,
+          "controlled": 17.636,
+          "income": 40.591,
+          "capacity": 353.864,
+          "frontierPrestige": 0.818,
+          "deckPrestige": 9.705,
+          "shipyardPrestige": 0,
+          "settlers": 4.386,
+          "explorers": 3.5,
+          "fleets": 0.295,
+          "winShareCI95": [
+            22.22222222222222,
+            52.3949579831932
+          ]
+        }
+      },
+      "bySeat": {
+        "0": {
+          "wins": 16,
+          "winShare": 55.172413793103445,
+          "winShareCI95": [
+            36.666666666666664,
+            75.0
+          ]
+        },
+        "1": {
+          "wins": 2,
+          "winShare": 6.896551724137931,
+          "winShareCI95": [
+            0.0,
+            15.625
+          ]
+        },
+        "2": {
+          "wins": 4,
+          "winShare": 13.793103448275861,
+          "winShareCI95": [
+            3.225806451612903,
+            27.272727272727273
+          ]
+        },
+        "3": {
+          "wins": 7,
+          "winShare": 24.137931034482758,
+          "winShareCI95": [
+            10.336206896551724,
+            39.13431677018632
+          ]
+        }
+      },
+      "winnerScoreComponents": {
+        "prestige": 20,
+        "colonies": 3.862,
+        "frontierPrestige": 1.241,
+        "shipyardPrestige": 0,
+        "relics": 4.552,
+        "deckPrestige": 10.345,
+        "cardsPurchased": 82.931
+      },
+      "stalls": {
+        "count": 67,
+        "medianRound": 25,
+        "actors": {
+          "economy": 14,
+          "expansion": 21,
+          "military": 32
+        }
+      },
+      "roundSnapshots": {
+        "10": {
+          "gamesReachingRound": 96,
+          "byStrategy": {
+            "military": {
+              "prestige": 2.195,
+              "colonies": 1,
+              "relics": 0.367,
+              "cardsPurchased": 2.898,
+              "deckPrestige": 0,
+              "shipyards": 2.141
+            },
+            "economy": {
+              "prestige": 2.047,
+              "colonies": 1.047,
+              "relics": 0.977,
+              "cardsPurchased": 4.648,
+              "deckPrestige": 0.023,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 1.516,
+              "colonies": 1,
+              "relics": 0.516,
+              "cardsPurchased": 3.148,
+              "deckPrestige": 0,
+              "shipyards": 1
+            }
+          }
+        },
+        "20": {
+          "gamesReachingRound": 90,
+          "byStrategy": {
+            "military": {
+              "prestige": 6.4,
+              "colonies": 1,
+              "relics": 2.433,
+              "cardsPurchased": 11.192,
+              "deckPrestige": 1,
+              "shipyards": 4.442
+            },
+            "economy": {
+              "prestige": 5.509,
+              "colonies": 1.353,
+              "relics": 2.75,
+              "cardsPurchased": 15.034,
+              "deckPrestige": 1.379,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 4.677,
+              "colonies": 1.177,
+              "relics": 2.444,
+              "cardsPurchased": 12.016,
+              "deckPrestige": 1.032,
+              "shipyards": 1
+            }
+          }
+        },
+        "24": {
+          "gamesReachingRound": 66,
+          "byStrategy": {
+            "military": {
+              "prestige": 7.059,
+              "colonies": 1,
+              "relics": 2.779,
+              "cardsPurchased": 15.632,
+              "deckPrestige": 1.485,
+              "shipyards": 4.176
+            },
+            "economy": {
+              "prestige": 7.385,
+              "colonies": 2.083,
+              "relics": 2.917,
+              "cardsPurchased": 19.458,
+              "deckPrestige": 2.021,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 6.21,
+              "colonies": 1.65,
+              "relics": 2.74,
+              "cardsPurchased": 16.29,
+              "deckPrestige": 1.65,
+              "shipyards": 1
+            }
+          }
+        },
+        "40": {
+          "gamesReachingRound": 30,
+          "byStrategy": {
+            "military": {
+              "prestige": 8.5,
+              "colonies": 1,
+              "relics": 3,
+              "cardsPurchased": 33,
+              "deckPrestige": 3.5,
+              "shipyards": 3
+            },
+            "economy": {
+              "prestige": 10.958,
+              "colonies": 3,
+              "relics": 2.972,
+              "cardsPurchased": 37.056,
+              "deckPrestige": 4.25,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 10.523,
+              "colonies": 3,
+              "relics": 2.909,
+              "cardsPurchased": 33.636,
+              "deckPrestige": 3.795,
+              "shipyards": 1
+            }
+          }
+        },
+        "60": {
+          "gamesReachingRound": 28,
+          "byStrategy": {
+            "military": {
+              "prestige": null,
+              "colonies": null,
+              "relics": null,
+              "cardsPurchased": null,
+              "deckPrestige": null,
+              "shipyards": null
+            },
+            "economy": {
+              "prestige": 13.444,
+              "colonies": 3,
+              "relics": 2.972,
+              "cardsPurchased": 58.583,
+              "deckPrestige": 6.736,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 13.3,
+              "colonies": 3,
+              "relics": 3,
+              "cardsPurchased": 55.075,
+              "deckPrestige": 6.475,
+              "shipyards": 1
+            }
+          }
+        },
+        "80": {
+          "gamesReachingRound": 19,
+          "byStrategy": {
+            "military": {
+              "prestige": null,
+              "colonies": null,
+              "relics": null,
+              "cardsPurchased": null,
+              "deckPrestige": null,
+              "shipyards": null
+            },
+            "economy": {
+              "prestige": 16.295,
+              "colonies": 3,
+              "relics": 3,
+              "cardsPurchased": 79.773,
+              "deckPrestige": 9.523,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 16,
+              "colonies": 3,
+              "relics": 3,
+              "cardsPurchased": 76.219,
+              "deckPrestige": 9.156,
+              "shipyards": 1
+            }
+          }
+        },
+        "100": {
+          "gamesReachingRound": 0,
+          "byStrategy": {
+            "military": {
+              "prestige": null,
+              "colonies": null,
+              "relics": null,
+              "cardsPurchased": null,
+              "deckPrestige": null,
+              "shipyards": null
+            },
+            "economy": {
+              "prestige": null,
+              "colonies": null,
+              "relics": null,
+              "cardsPurchased": null,
+              "deckPrestige": null,
+              "shipyards": null
+            },
+            "expansion": {
+              "prestige": null,
+              "colonies": null,
+              "relics": null,
+              "cardsPurchased": null,
+              "deckPrestige": null,
+              "shipyards": null
+            }
+          }
+        }
+      }
+    }
+  },
+  "guarded": {
+    "mixed": {
+      "games": 768,
+      "status": {
+        "finished": 768
+      },
+      "finishRoundMean": 71.798,
+      "finishRoundMedian": 73.0,
+      "finishRoundP10": 51.0,
+      "finishRoundP90": 88.0,
+      "combatsMean": 9.267,
+      "zeroCombatGames": 0,
+      "tiesForFirst": 0,
+      "byStrategy": {
+        "military": {
+          "appearances": 1024,
+          "wins": 71,
+          "shareOfWins": 9.244791666666666,
+          "winRatePerAppearance": 6.93359375,
+          "prestige": 13.975,
+          "colonies": 1.284,
+          "relics": 2.848,
+          "shipyards": 5.097,
+          "cardsPurchased": 63.198,
+          "controlled": 8.463,
+          "income": 13.281,
+          "capacity": 186.406,
+          "frontierPrestige": 0.056,
+          "deckPrestige": 7.486,
+          "shipyardPrestige": 2.301,
+          "settlers": 5.43,
+          "explorers": 4.227,
+          "fleets": 5.675,
+          "winShareCI95": [
+            7.161458333333333,
+            11.328125
+          ]
+        },
+        "economy": {
+          "appearances": 1024,
+          "wins": 217,
+          "shareOfWins": 28.255208333333332,
+          "winRatePerAppearance": 21.19140625,
+          "prestige": 15.495,
+          "colonies": 3.175,
+          "relics": 2.967,
+          "shipyards": 0.94,
+          "cardsPurchased": 70.759,
+          "controlled": 19.751,
+          "income": 40.146,
+          "capacity": 327.651,
+          "frontierPrestige": 0.858,
+          "deckPrestige": 8.495,
+          "shipyardPrestige": 0,
+          "settlers": 3.358,
+          "explorers": 3.67,
+          "fleets": 0.445,
+          "winShareCI95": [
+            25.0,
+            31.901041666666668
+          ]
+        },
+        "expansion": {
+          "appearances": 1024,
+          "wins": 480,
+          "shareOfWins": 62.5,
+          "winRatePerAppearance": 46.875,
+          "prestige": 17.564,
+          "colonies": 4.507,
+          "relics": 2.837,
+          "shipyards": 0.984,
+          "cardsPurchased": 71.576,
+          "controlled": 18.673,
+          "income": 35.062,
+          "capacity": 288.931,
+          "frontierPrestige": 1.524,
+          "deckPrestige": 8.696,
+          "shipyardPrestige": 0,
+          "settlers": 2.777,
+          "explorers": 3.666,
+          "fleets": 0.187,
+          "winShareCI95": [
+            58.854166666666664,
+            66.015625
+          ]
+        }
+      },
+      "bySeat": {
+        "0": {
+          "wins": 235,
+          "winShare": 30.598958333333332,
+          "winShareCI95": [
+            27.34375,
+            33.987630208333314
+          ]
+        },
+        "1": {
+          "wins": 167,
+          "winShare": 21.744791666666668,
+          "winShareCI95": [
+            18.489583333333332,
+            24.873046874999982
+          ]
+        },
+        "2": {
+          "wins": 149,
+          "winShare": 19.401041666666668,
+          "winShareCI95": [
+            16.796875,
+            21.875
+          ]
+        },
+        "3": {
+          "wins": 217,
+          "winShare": 28.255208333333332,
+          "winShareCI95": [
+            25.130208333333332,
+            31.510416666666668
+          ]
+        }
+      },
+      "winnerScoreComponents": {
+        "prestige": 20.01,
+        "colonies": 5.086,
+        "frontierPrestige": 1.828,
+        "shipyardPrestige": 0.434,
+        "relics": 3.866,
+        "deckPrestige": 8.797,
+        "cardsPurchased": 70.594
+      },
+      "stalls": {
+        "count": 0,
+        "medianRound": null,
+        "actors": {}
+      },
+      "roundSnapshots": {
+        "10": {
+          "gamesReachingRound": 768,
+          "byStrategy": {
+            "military": {
+              "prestige": 2.266,
+              "colonies": 1,
+              "relics": 0.356,
+              "cardsPurchased": 2.896,
+              "deckPrestige": 0.001,
+              "shipyards": 2.284
+            },
+            "economy": {
+              "prestige": 2.057,
+              "colonies": 1.05,
+              "relics": 0.996,
+              "cardsPurchased": 4.368,
+              "deckPrestige": 0.011,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 1.494,
+              "colonies": 1.003,
+              "relics": 0.491,
+              "cardsPurchased": 2.822,
+              "deckPrestige": 0,
+              "shipyards": 1
+            }
+          }
+        },
+        "20": {
+          "gamesReachingRound": 768,
+          "byStrategy": {
+            "military": {
+              "prestige": 6.487,
+              "colonies": 1.003,
+              "relics": 2.512,
+              "cardsPurchased": 11.165,
+              "deckPrestige": 0.997,
+              "shipyards": 4.458
+            },
+            "economy": {
+              "prestige": 5.4,
+              "colonies": 1.292,
+              "relics": 2.786,
+              "cardsPurchased": 14.605,
+              "deckPrestige": 1.29,
+              "shipyards": 0.985
+            },
+            "expansion": {
+              "prestige": 4.922,
+              "colonies": 1.339,
+              "relics": 2.481,
+              "cardsPurchased": 12.189,
+              "deckPrestige": 1.041,
+              "shipyards": 0.992
+            }
+          }
+        },
+        "24": {
+          "gamesReachingRound": 768,
+          "byStrategy": {
+            "military": {
+              "prestige": 7.127,
+              "colonies": 1.022,
+              "relics": 2.765,
+              "cardsPurchased": 15.256,
+              "deckPrestige": 1.432,
+              "shipyards": 4.308
+            },
+            "economy": {
+              "prestige": 6.772,
+              "colonies": 1.682,
+              "relics": 2.93,
+              "cardsPurchased": 18.966,
+              "deckPrestige": 1.993,
+              "shipyards": 0.93
+            },
+            "expansion": {
+              "prestige": 6.995,
+              "colonies": 2.14,
+              "relics": 2.766,
+              "cardsPurchased": 16.876,
+              "deckPrestige": 1.72,
+              "shipyards": 0.97
+            }
+          }
+        },
+        "40": {
+          "gamesReachingRound": 750,
+          "byStrategy": {
+            "military": {
+              "prestige": 9.624,
+              "colonies": 1.205,
+              "relics": 2.863,
+              "cardsPurchased": 31.931,
+              "deckPrestige": 3.49,
+              "shipyards": 4.567
+            },
+            "economy": {
+              "prestige": 11.144,
+              "colonies": 3.136,
+              "relics": 2.984,
+              "cardsPurchased": 36.272,
+              "deckPrestige": 4.192,
+              "shipyards": 0.936
+            },
+            "expansion": {
+              "prestige": 12.635,
+              "colonies": 4.422,
+              "relics": 2.787,
+              "cardsPurchased": 35.343,
+              "deckPrestige": 3.951,
+              "shipyards": 0.984
+            }
+          }
+        },
+        "60": {
+          "gamesReachingRound": 621,
+          "byStrategy": {
+            "military": {
+              "prestige": 12.723,
+              "colonies": 1.286,
+              "relics": 2.904,
+              "cardsPurchased": 52.646,
+              "deckPrestige": 6.205,
+              "shipyards": 5.06
+            },
+            "economy": {
+              "prestige": 13.874,
+              "colonies": 3.294,
+              "relics": 3.055,
+              "cardsPurchased": 57.588,
+              "deckPrestige": 6.612,
+              "shipyards": 0.954
+            },
+            "expansion": {
+              "prestige": 15.118,
+              "colonies": 4.279,
+              "relics": 2.667,
+              "cardsPurchased": 57.705,
+              "deckPrestige": 6.771,
+              "shipyards": 0.983
+            }
+          }
+        },
+        "80": {
+          "gamesReachingRound": 255,
+          "byStrategy": {
+            "military": {
+              "prestige": 15.689,
+              "colonies": 1.298,
+              "relics": 3.228,
+              "cardsPurchased": 73.503,
+              "deckPrestige": 8.715,
+              "shipyards": 5.285
+            },
+            "economy": {
+              "prestige": 16.758,
+              "colonies": 3.344,
+              "relics": 3.129,
+              "cardsPurchased": 78.096,
+              "deckPrestige": 9.369,
+              "shipyards": 0.964
+            },
+            "expansion": {
+              "prestige": 17.141,
+              "colonies": 4.051,
+              "relics": 2.293,
+              "cardsPurchased": 79.408,
+              "deckPrestige": 9.53,
+              "shipyards": 0.983
+            }
+          }
+        },
+        "100": {
+          "gamesReachingRound": 2,
+          "byStrategy": {
+            "military": {
+              "prestige": 16.667,
+              "colonies": 1,
+              "relics": 3,
+              "cardsPurchased": 88.333,
+              "deckPrestige": 10.667,
+              "shipyards": 4.667
+            },
+            "economy": {
+              "prestige": 16.5,
+              "colonies": 2.5,
+              "relics": 2.5,
+              "cardsPurchased": 92,
+              "deckPrestige": 11,
+              "shipyards": 0.5
+            },
+            "expansion": {
+              "prestige": 17.333,
+              "colonies": 2.667,
+              "relics": 0.667,
+              "cardsPurchased": 108.667,
+              "deckPrestige": 13.333,
+              "shipyards": 0.667
+            }
+          }
+        }
+      }
+    },
+    "mirror": {
+      "games": 96,
+      "status": {
+        "finished": 96
+      },
+      "finishRoundMean": 90.708,
+      "finishRoundMedian": 89.0,
+      "finishRoundP10": 72.5,
+      "finishRoundP90": 111.0,
+      "combatsMean": 9.146,
+      "zeroCombatGames": 2,
+      "tiesForFirst": 0,
+      "byStrategy": {
+        "military": {
+          "appearances": 128,
+          "wins": 32,
+          "shareOfWins": 33.333333333333336,
+          "winRatePerAppearance": 25.0,
+          "prestige": 17.656,
+          "colonies": 1,
+          "relics": 2.93,
+          "shipyards": 2.594,
+          "cardsPurchased": 104.398,
+          "controlled": 7,
+          "income": 7.852,
+          "capacity": 173.203,
+          "frontierPrestige": 0,
+          "deckPrestige": 12.711,
+          "shipyardPrestige": 1.016,
+          "settlers": 6.367,
+          "explorers": 4.453,
+          "fleets": 5.328,
+          "winShareCI95": [
+            33.333333333333336,
+            33.333333333333336
+          ]
+        },
+        "economy": {
+          "appearances": 128,
+          "wins": 32,
+          "shareOfWins": 33.333333333333336,
+          "winRatePerAppearance": 25.0,
+          "prestige": 16.625,
+          "colonies": 2.992,
+          "relics": 2.914,
+          "shipyards": 1,
+          "cardsPurchased": 82.859,
+          "controlled": 17.492,
+          "income": 40.148,
+          "capacity": 376.875,
+          "frontierPrestige": 0.734,
+          "deckPrestige": 9.984,
+          "shipyardPrestige": 0,
+          "settlers": 3.141,
+          "explorers": 3.812,
+          "fleets": 0.43,
+          "winShareCI95": [
+            33.333333333333336,
+            33.333333333333336
+          ]
+        },
+        "expansion": {
+          "appearances": 128,
+          "wins": 32,
+          "shareOfWins": 33.333333333333336,
+          "winRatePerAppearance": 25.0,
+          "prestige": 16.086,
+          "colonies": 3,
+          "relics": 2.836,
+          "shipyards": 1,
+          "cardsPurchased": 78.195,
+          "controlled": 17.516,
+          "income": 40.211,
+          "capacity": 345.234,
+          "frontierPrestige": 0.773,
+          "deckPrestige": 9.477,
+          "shipyardPrestige": 0,
+          "settlers": 4.43,
+          "explorers": 3.625,
+          "fleets": 0.547,
+          "winShareCI95": [
+            33.333333333333336,
+            33.333333333333336
+          ]
+        }
+      },
+      "bySeat": {
+        "0": {
+          "wins": 41,
+          "winShare": 42.708333333333336,
+          "winShareCI95": [
+            32.291666666666664,
+            53.125
+          ]
+        },
+        "1": {
+          "wins": 15,
+          "winShare": 15.625,
+          "winShareCI95": [
+            9.375,
+            21.875
+          ]
+        },
+        "2": {
+          "wins": 10,
+          "winShare": 10.416666666666666,
+          "winShareCI95": [
+            5.208333333333333,
+            15.625
+          ]
+        },
+        "3": {
+          "wins": 30,
+          "winShare": 31.25,
+          "winShareCI95": [
+            20.833333333333332,
+            42.708333333333336
+          ]
+        }
+      },
+      "winnerScoreComponents": {
+        "prestige": 20.01,
+        "colonies": 3.104,
+        "frontierPrestige": 0.875,
+        "shipyardPrestige": 0.365,
+        "relics": 4.417,
+        "deckPrestige": 11.25,
+        "cardsPurchased": 90.094
+      },
+      "stalls": {
+        "count": 0,
+        "medianRound": null,
+        "actors": {}
+      },
+      "roundSnapshots": {
+        "10": {
+          "gamesReachingRound": 96,
+          "byStrategy": {
+            "military": {
+              "prestige": 2.195,
+              "colonies": 1,
+              "relics": 0.367,
+              "cardsPurchased": 2.898,
+              "deckPrestige": 0,
+              "shipyards": 2.141
+            },
+            "economy": {
+              "prestige": 2.047,
+              "colonies": 1.047,
+              "relics": 0.977,
+              "cardsPurchased": 4.648,
+              "deckPrestige": 0.023,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 1.516,
+              "colonies": 1,
+              "relics": 0.516,
+              "cardsPurchased": 3.148,
+              "deckPrestige": 0,
+              "shipyards": 1
+            }
+          }
+        },
+        "20": {
+          "gamesReachingRound": 96,
+          "byStrategy": {
+            "military": {
+              "prestige": 6.336,
+              "colonies": 1,
+              "relics": 2.383,
+              "cardsPurchased": 11.203,
+              "deckPrestige": 0.992,
+              "shipyards": 4.43
+            },
+            "economy": {
+              "prestige": 5.492,
+              "colonies": 1.352,
+              "relics": 2.758,
+              "cardsPurchased": 14.953,
+              "deckPrestige": 1.359,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 4.648,
+              "colonies": 1.18,
+              "relics": 2.414,
+              "cardsPurchased": 12.055,
+              "deckPrestige": 1.031,
+              "shipyards": 1
+            }
+          }
+        },
+        "24": {
+          "gamesReachingRound": 96,
+          "byStrategy": {
+            "military": {
+              "prestige": 7.031,
+              "colonies": 1,
+              "relics": 2.781,
+              "cardsPurchased": 15.477,
+              "deckPrestige": 1.5,
+              "shipyards": 4.07
+            },
+            "economy": {
+              "prestige": 7.312,
+              "colonies": 2.109,
+              "relics": 2.852,
+              "cardsPurchased": 19.43,
+              "deckPrestige": 2.008,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 6.188,
+              "colonies": 1.641,
+              "relics": 2.695,
+              "cardsPurchased": 16.469,
+              "deckPrestige": 1.68,
+              "shipyards": 1
+            }
+          }
+        },
+        "40": {
+          "gamesReachingRound": 96,
+          "byStrategy": {
+            "military": {
+              "prestige": 8.602,
+              "colonies": 1,
+              "relics": 2.891,
+              "cardsPurchased": 32.773,
+              "deckPrestige": 3.633,
+              "shipyards": 2.727
+            },
+            "economy": {
+              "prestige": 10.852,
+              "colonies": 2.992,
+              "relics": 2.898,
+              "cardsPurchased": 36.938,
+              "deckPrestige": 4.227,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 10.438,
+              "colonies": 3,
+              "relics": 2.836,
+              "cardsPurchased": 34.07,
+              "deckPrestige": 3.828,
+              "shipyards": 1
+            }
+          }
+        },
+        "60": {
+          "gamesReachingRound": 93,
+          "byStrategy": {
+            "military": {
+              "prestige": 11.336,
+              "colonies": 1,
+              "relics": 2.898,
+              "cardsPurchased": 54.164,
+              "deckPrestige": 6.414,
+              "shipyards": 2.633
+            },
+            "economy": {
+              "prestige": 13.383,
+              "colonies": 2.992,
+              "relics": 2.914,
+              "cardsPurchased": 58.461,
+              "deckPrestige": 6.742,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 13.129,
+              "colonies": 3,
+              "relics": 2.853,
+              "cardsPurchased": 55.491,
+              "deckPrestige": 6.491,
+              "shipyards": 1
+            }
+          }
+        },
+        "80": {
+          "gamesReachingRound": 76,
+          "byStrategy": {
+            "military": {
+              "prestige": 13.867,
+              "colonies": 1,
+              "relics": 2.906,
+              "cardsPurchased": 75.227,
+              "deckPrestige": 8.945,
+              "shipyards": 2.594
+            },
+            "economy": {
+              "prestige": 16.17,
+              "colonies": 3,
+              "relics": 2.898,
+              "cardsPurchased": 79.739,
+              "deckPrestige": 9.523,
+              "shipyards": 1
+            },
+            "expansion": {
+              "prestige": 15.92,
+              "colonies": 3,
+              "relics": 2.909,
+              "cardsPurchased": 76.636,
+              "deckPrestige": 9.216,
+              "shipyards": 1
+            }
+          }
+        },
+        "100": {
+          "gamesReachingRound": 29,
+          "byStrategy": {
+            "military": {
+              "prestige": 16.509,
+              "colonies": 1,
+              "relics": 2.911,
+              "cardsPurchased": 96.152,
+              "deckPrestige": 11.589,
+              "shipyards": 2.58
+            },
+            "economy": {
+              "prestige": null,
+              "colonies": null,
+              "relics": null,
+              "cardsPurchased": null,
+              "deckPrestige": null,
+              "shipyards": null
+            },
+            "expansion": {
+              "prestige": 18.5,
+              "colonies": 3,
+              "relics": 3,
+              "cardsPurchased": 97.75,
+              "deckPrestige": 11.75,
+              "shipyards": 1
+            }
+          }
+        }
+      }
+    }
+  },
+  "orderControl": {
+    "games": 384,
+    "status": {
+      "finished": 384
+    },
+    "finishRoundMean": 90.497,
+    "finishRoundMedian": 90.0,
+    "finishRoundP10": 70.0,
+    "finishRoundP90": 112.0,
+    "combatsMean": 9.107,
+    "zeroCombatGames": 13,
+    "tiesForFirst": 0,
+    "byStrategy": {
+      "military": {
+        "appearances": 512,
+        "wins": 128,
+        "shareOfWins": 33.333333333333336,
+        "winRatePerAppearance": 25.0,
+        "prestige": 17.508,
+        "colonies": 1,
+        "relics": 2.922,
+        "shipyards": 2.604,
+        "cardsPurchased": 103.145,
+        "controlled": 6.998,
+        "income": 7.832,
+        "capacity": 170.791,
+        "frontierPrestige": 0,
+        "deckPrestige": 12.562,
+        "shipyardPrestige": 1.023,
+        "settlers": 6.299,
+        "explorers": 4.477,
+        "fleets": 5.279,
+        "winShareCI95": [
+          33.333333333333336,
+          33.333333333333336
+        ]
+      },
+      "economy": {
+        "appearances": 512,
+        "wins": 128,
+        "shareOfWins": 33.333333333333336,
+        "winRatePerAppearance": 25.0,
+        "prestige": 16.576,
+        "colonies": 2.998,
+        "relics": 2.859,
+        "shipyards": 1,
+        "cardsPurchased": 82.662,
+        "controlled": 17.957,
+        "income": 41.275,
+        "capacity": 377.207,
+        "frontierPrestige": 0.732,
+        "deckPrestige": 9.986,
+        "shipyardPrestige": 0,
+        "settlers": 3.131,
+        "explorers": 3.783,
+        "fleets": 0.426,
+        "winShareCI95": [
+          33.333333333333336,
+          33.333333333333336
+        ]
+      },
+      "expansion": {
+        "appearances": 512,
+        "wins": 128,
+        "shareOfWins": 33.333333333333336,
+        "winRatePerAppearance": 25.0,
+        "prestige": 15.953,
+        "colonies": 3,
+        "relics": 2.832,
+        "shipyards": 1,
+        "cardsPurchased": 77.473,
+        "controlled": 17.439,
+        "income": 39.713,
+        "capacity": 341.826,
+        "frontierPrestige": 0.75,
+        "deckPrestige": 9.371,
+        "shipyardPrestige": 0,
+        "settlers": 4.336,
+        "explorers": 3.693,
+        "fleets": 0.508,
+        "winShareCI95": [
+          33.333333333333336,
+          33.333333333333336
+        ]
+      }
+    },
+    "bySeat": {
+      "0": {
+        "wins": 139,
+        "winShare": 36.197916666666664,
+        "winShareCI95": [
+          30.201822916666664,
+          42.1875
+        ]
+      },
+      "1": {
+        "wins": 100,
+        "winShare": 26.041666666666668,
+        "winShareCI95": [
+          21.09375,
+          31.25
+        ]
+      },
+      "2": {
+        "wins": 36,
+        "winShare": 9.375,
+        "winShareCI95": [
+          6.770833333333333,
+          12.239583333333334
+        ]
+      },
+      "3": {
+        "wins": 109,
+        "winShare": 28.385416666666668,
+        "winShareCI95": [
+          22.65625,
+          34.635416666666664
+        ]
+      }
+    },
+    "winnerScoreComponents": {
+      "prestige": 20.003,
+      "colonies": 3.096,
+      "frontierPrestige": 0.87,
+      "shipyardPrestige": 0.352,
+      "relics": 4.464,
+      "deckPrestige": 11.221,
+      "cardsPurchased": 89.839
+    },
+    "stalls": {
+      "count": 0,
+      "medianRound": null,
+      "actors": {}
+    },
+    "roundSnapshots": {
+      "10": {
+        "gamesReachingRound": 384,
+        "byStrategy": {
+          "military": {
+            "prestige": 2.121,
+            "colonies": 1,
+            "relics": 0.359,
+            "cardsPurchased": 2.852,
+            "deckPrestige": 0,
+            "shipyards": 2.102
+          },
+          "economy": {
+            "prestige": 2.021,
+            "colonies": 1.059,
+            "relics": 0.941,
+            "cardsPurchased": 4.588,
+            "deckPrestige": 0.021,
+            "shipyards": 1
+          },
+          "expansion": {
+            "prestige": 1.525,
+            "colonies": 1,
+            "relics": 0.523,
+            "cardsPurchased": 3.053,
+            "deckPrestige": 0.002,
+            "shipyards": 1
+          }
+        }
+      },
+      "20": {
+        "gamesReachingRound": 384,
+        "byStrategy": {
+          "military": {
+            "prestige": 6.303,
+            "colonies": 1,
+            "relics": 2.381,
+            "cardsPurchased": 10.939,
+            "deckPrestige": 0.98,
+            "shipyards": 4.389
+          },
+          "economy": {
+            "prestige": 5.529,
+            "colonies": 1.4,
+            "relics": 2.717,
+            "cardsPurchased": 14.895,
+            "deckPrestige": 1.352,
+            "shipyards": 1
+          },
+          "expansion": {
+            "prestige": 4.688,
+            "colonies": 1.188,
+            "relics": 2.455,
+            "cardsPurchased": 11.959,
+            "deckPrestige": 1.016,
+            "shipyards": 1
+          }
+        }
+      },
+      "24": {
+        "gamesReachingRound": 384,
+        "byStrategy": {
+          "military": {
+            "prestige": 6.875,
+            "colonies": 1,
+            "relics": 2.754,
+            "cardsPurchased": 15.115,
+            "deckPrestige": 1.406,
+            "shipyards": 3.971
+          },
+          "economy": {
+            "prestige": 7.156,
+            "colonies": 2.027,
+            "relics": 2.826,
+            "cardsPurchased": 19.324,
+            "deckPrestige": 2.004,
+            "shipyards": 1
+          },
+          "expansion": {
+            "prestige": 6.242,
+            "colonies": 1.676,
+            "relics": 2.744,
+            "cardsPurchased": 16.357,
+            "deckPrestige": 1.646,
+            "shipyards": 1
+          }
+        }
+      },
+      "40": {
+        "gamesReachingRound": 382,
+        "byStrategy": {
+          "military": {
+            "prestige": 8.488,
+            "colonies": 1,
+            "relics": 2.879,
+            "cardsPurchased": 32.26,
+            "deckPrestige": 3.537,
+            "shipyards": 2.707
+          },
+          "economy": {
+            "prestige": 10.815,
+            "colonies": 2.998,
+            "relics": 2.854,
+            "cardsPurchased": 36.787,
+            "deckPrestige": 4.23,
+            "shipyards": 1
+          },
+          "expansion": {
+            "prestige": 10.35,
+            "colonies": 2.996,
+            "relics": 2.835,
+            "cardsPurchased": 33.884,
+            "deckPrestige": 3.77,
+            "shipyards": 1
+          }
+        }
+      },
+      "60": {
+        "gamesReachingRound": 373,
+        "byStrategy": {
+          "military": {
+            "prestige": 11.24,
+            "colonies": 1,
+            "relics": 2.891,
+            "cardsPurchased": 53.428,
+            "deckPrestige": 6.314,
+            "shipyards": 2.631
+          },
+          "economy": {
+            "prestige": 13.342,
+            "colonies": 2.998,
+            "relics": 2.87,
+            "cardsPurchased": 58.31,
+            "deckPrestige": 6.742,
+            "shipyards": 1
+          },
+          "expansion": {
+            "prestige": 13.071,
+            "colonies": 3,
+            "relics": 2.837,
+            "cardsPurchased": 55.342,
+            "deckPrestige": 6.479,
+            "shipyards": 1
+          }
+        }
+      },
+      "80": {
+        "gamesReachingRound": 289,
+        "byStrategy": {
+          "military": {
+            "prestige": 13.74,
+            "colonies": 1,
+            "relics": 2.906,
+            "cardsPurchased": 74.35,
+            "deckPrestige": 8.807,
+            "shipyards": 2.609
+          },
+          "economy": {
+            "prestige": 16.092,
+            "colonies": 3,
+            "relics": 2.851,
+            "cardsPurchased": 79.598,
+            "deckPrestige": 9.506,
+            "shipyards": 1
+          },
+          "expansion": {
+            "prestige": 15.75,
+            "colonies": 3,
+            "relics": 2.828,
+            "cardsPurchased": 76.591,
+            "deckPrestige": 9.182,
+            "shipyards": 1
+          }
+        }
+      },
+      "100": {
+        "gamesReachingRound": 114,
+        "byStrategy": {
+          "military": {
+            "prestige": 16.414,
+            "colonies": 1,
+            "relics": 2.912,
+            "cardsPurchased": 95.16,
+            "deckPrestige": 11.488,
+            "shipyards": 2.586
+          },
+          "economy": {
+            "prestige": 18.438,
+            "colonies": 3,
+            "relics": 2.625,
+            "cardsPurchased": 100.938,
+            "deckPrestige": 12.125,
+            "shipyards": 1
+          },
+          "expansion": {
+            "prestige": 18.5,
+            "colonies": 3,
+            "relics": 3,
+            "cardsPurchased": 97.375,
+            "deckPrestige": 11.75,
+            "shipyards": 1
+          }
+        }
+      }
+    },
+    "relativeToInitialFirstPlayer": {
+      "0": 100,
+      "1": 88,
+      "2": 93,
+      "3": 103
+    },
+    "matchedDefaultSetupChecks": 96
+  }
+}

@@ -26,7 +26,7 @@ function fixture() {
 }
 {
   const {e,a,s}=game();
-  assert.equal(a.rulesVersion,'galactic-reach/25.30');
+  assert.equal(a.rulesVersion,'galactic-reach/26.31');
   assert.equal(s.clusters.filter(c=>c.kind==='world').length,13);
   assert.equal(s.clusters.filter(c=>c.kind==='moon').length,4);
   assert.equal(Object.values(s.planets).filter(p=>p.special==='relic').length,12);

@@ -15,8 +15,8 @@ function createGalacticReach(options = {}) {
   }
   const clearTimeout = headless ? () => {} : globalThis.clearTimeout.bind(globalThis);
 
-  const SAVE_FORMAT_VERSION = 25;
-  const RULES_REVISION = 30;
+  const SAVE_FORMAT_VERSION = 26;
+  const RULES_REVISION = 31;
   const SAVE_KEY = `galactic-reach-save-v${SAVE_FORMAT_VERSION}`;
   const TURN_HISTORY_KEY = `galactic-reach-turn-history-v${SAVE_FORMAT_VERSION}`;
   const HISTORY_KEY = `galactic-reach-history-v${SAVE_FORMAT_VERSION}`;
@@ -72,16 +72,16 @@ function createGalacticReach(options = {}) {
   const LEGEND_TOOLTIPS = {
     settler: 'Colony ship. Base movement 1; Move II adds 1. It has 1 attack and 2 hull (4 while defending), reveals worlds by entering them, and is required to colonize. Commission at a Shipyard to receive a Colonize card.',
     explorer: 'Explorer: 1 attack, 1 hull. Before the first volley, pay 1 Energy per Explorer to escape to one legal adjacent hex. Reveals terrain by entering it; use Probe to locate relics. Base movement 3; Move II adds 1. Commission at a Shipyard to receive Probe and Excavate in discard. Play it at a relic, pay 1 Matter, 1 Energy, and 2 Data, and choose a relic card. Consume one Explorer and trash Excavate.',
-    fleet: 'Reveals terrain by entering it; use Probe to locate relics. Base movement 2 (3 with Move II), with 3 attack and 7 hull.',
+    fleet: 'Reveals terrain by entering it; use Probe to locate relics. Base movement 2 (3 with Move II), with 3 attack and 7 hull. You may have up to 10 Fleets on the map.',
     colony: 'Claims a seven-hex world. Colonies must occupy the world’s center hex.',
     harvester: 'Adds 1 resource to this planet’s production.',
     starbase: 'Commissions ships and defends its hex with 3 attack and 3 hull. Cannot be upgraded.',
   };
   const BASIC_TOOLTIPS = {
-    colonize: 'Use a Settler on the center hex of an eligible world to found or capture its Colony.',
+    colonize: 'Use a Settler on the center hex of an eligible world to found or capture its Colony, then permanently trash Colonize.',
     construct: 'Build one structure on any empty planet hex adjacent to your Colony, upgrade a Harvester, or commission one ship at a Shipyard.',
     move: 'Move ships or Explorers up to the selected group’s speed.',
-    probe: 'Use an Operations action from your Explorer anywhere on the map to privately locate the nearest unlocated remaining relic. Keep the Explorer and discard Probe.',
+    probe: 'Use an Operations action from your Explorer anywhere on the map to privately locate the nearest unlocated remaining relic. Keep the Explorer and permanently trash Probe.',
     excavate: 'With an Explorer at a located relic, pay 1 Matter, 1 Energy, and 2 Data. Choose a relic card into discard, gain 2 Prestige, remove the relic, and trash Excavate. Consume one Explorer.'
   };
   const BOARD_ICONS = {
@@ -95,10 +95,10 @@ function createGalacticReach(options = {}) {
   const DIRECTIONS = [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
 
   const BASIC_CARDS = {
-    colonize: { name: 'Colonize', kind: 'Basic', accent: 'var(--biomass)', resource: { biomass: 1 }, order: 'colonize', text: 'Establish a Colony with a Settler on a world’s center hex.' },
+    colonize: { name: 'Colonize', kind: 'Basic', accent: 'var(--biomass)', resource: { biomass: 1 }, order: 'colonize', text: 'Establish a Colony with a Settler on a world’s center hex, then permanently trash Colonize.' },
     construct: { name: 'Construct', kind: 'Basic', accent: 'var(--matter)', resource: { matter: 1 }, order: 'construct', text: 'Build on any empty planet hex adjacent to your Colony, upgrade a Harvester, or commission one ship.', cost: { matter: 1, data: 1 } },
     move: { name: 'Move', kind: 'Basic', accent: 'var(--energy)', resource: { energy: 1 }, order: 'move', text: 'Move one ship group or Explorer team at its own speed.', cost: { energy: 1, data: 1 } },
-    probe: { name: 'Probe', kind: 'Basic', accent: 'var(--data)', resource: { data: 1 }, order: 'probe', text: 'From your Explorer anywhere on the map, privately locate its nearest unlocated remaining relic. Keep the Explorer and discard Probe.' },
+    probe: { name: 'Probe', kind: 'Basic', accent: 'var(--data)', resource: { data: 1 }, order: 'probe', text: 'From your Explorer anywhere on the map, privately locate its nearest unlocated remaining relic. Keep the Explorer and permanently trash Probe.' },
     excavate: { name: 'Excavate', kind: 'Basic', accent: 'var(--data)', resource: { data: 1 }, order: 'excavate', text: 'At your Explorer’s located relic, pay 1 Matter, 1 Energy, and 2 Data. Choose a relic card into discard and gain 2 Prestige. Remove the relic and trash this card; consume one Explorer.' }
   };
 
@@ -899,7 +899,8 @@ function createGalacticReach(options = {}) {
   function applyColonizeOrder(playerId, coord, card) {
     if (!card || !state.players[playerId].hand.some(c=>c.id===card.id)) return false;
     if (!colonizePlanet(playerId,coord,{tag:ALL_CARDS[card.key].tag})) return false;
-    removeHandCard(state.players[playerId],card.id);
+    removeHandCard(state.players[playerId],card.id,card.key==='colonize'?'trash':'discard');
+    if (card.key==='colonize') logEvent(`${state.players[playerId].name} permanently trashed the used Colonize card.`);
     if (!card.upgraded) { completeAction(playerId,`${state.players[playerId].name} completed a colonization operation.`); return true; }
     clearAction();
     state.pendingColonyBuild={playerId,colony:coord};
@@ -1909,7 +1910,7 @@ function createGalacticReach(options = {}) {
   }
 
   function canPlaceShip(playerId,type) {
-    const limits = { settler:8, explorer:5, fleet:6 };
+    const limits = { settler:8, explorer:5, fleet:10 };
     return countPlacedShips(playerId,type) < limits[type];
   }
 
@@ -1951,8 +1952,8 @@ function createGalacticReach(options = {}) {
     if (!site) return false;
     if (dryRun) return true;
     site.cluster.scannedBy.push(playerId);
-    removeHandCard(player,cardId);
-    completeAction(playerId,`${player.name} used Probe from an Explorer to privately locate the nearest unlocated relic.`);
+    removeHandCard(player,cardId,'trash');
+    completeAction(playerId,`${player.name} used Probe from an Explorer to privately locate the nearest unlocated relic. Probe was permanently trashed.`);
     if (!headless&&playerId===0) toast(`Relic signal located at ${site.coord}.`);
     return true;
   }
@@ -2962,6 +2963,7 @@ function createGalacticReach(options = {}) {
 
   function renderResources() {
     const player = state.players[viewSeat];
+    const production = aiIncome(viewSeat);
     const stored = totalResources(player);
     const capacity = playerCapacity(viewSeat);
     renderResourceTools();
@@ -2972,10 +2974,11 @@ function createGalacticReach(options = {}) {
     $('#capacity-meter').setAttribute('aria-label', `${stored} of ${capacity} resource storage used`);
     $('#capacity-fill').style.width = `${Math.min(100, stored / capacity * 100)}%`;
     $('#resource-grid').innerHTML = RESOURCES.map(resource => `
-      <article class="resource-box ${resource}" style="--resource:var(--${resource})" aria-label="${RESOURCE_NAMES[resource]}: ${player.resources[resource]}">
+      <article class="resource-box ${resource}" style="--resource:var(--${resource})" aria-label="${RESOURCE_NAMES[resource]}: ${player.resources[resource]} available, +${production[resource]} per round">
         ${resourceDot(resource)}
         <span class="resource-name">${RESOURCE_NAMES[resource]}</span>
         <strong class="resource-amount">${player.resources[resource]}</strong>
+        <span class="resource-production" aria-hidden="true" title="Current production per round">+${production[resource]}</span>
       </article>`).join('');
     const upgrade = $('#upgrade-storage-button');
     upgrade.disabled = !canIncreaseStorage(0);

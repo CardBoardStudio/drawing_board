@@ -1,0 +1,49 @@
+{
+  "sourceWorktree": "/private/tmp/drawing-board-ten-prestige",
+  "branch": "codex/experiment-ten-prestige",
+  "commit": "be527a90200ee474d96bc951235088152f65f24b",
+  "rulesVersion": "galactic-reach/17.22",
+  "saveFormat": 17,
+  "rulesRevision": 22,
+  "victoryTarget": 10,
+  "engineSha256": "556237ff7a64ea8af22172a14e8283085d171cd80235d4d392c29404be80268c",
+  "localPreview": "http://127.0.0.1:8867/galactic-reach/",
+  "localRulebook": "http://127.0.0.1:8867/galactic-reach/rulebook.html",
+  "published": false,
+  "githubWrites": false,
+  "githubWorkflowStarted": false,
+  "merged": false,
+  "changes": [
+    "10 Prestige at shared cleanup; all costs and score sources unchanged",
+    "First browser AI Shipyard on physical home inward Energy hex; first-success marker persists",
+    "Home-relative neighbor order only in AI nearestGoal/pathToCoord",
+    "Currently affordable ranked build fallback only after usable Shipyard",
+    "Legal destination/capacity/Pathfinder move safeguard and continue after rejection",
+    "Complete16.21 assets and policy12 preserved; current arena policy13 strategy logic unchanged"
+  ],
+  "verification": {
+    "nodeSuites": "all applicable suites passed",
+    "targeted": "scripts/test-ten-prestige.cjs passed",
+    "maps": "1000 unique physical layouts;0fallbacks;mean retries0.457,max5;adversarial/forcedfallback pass",
+    "replay": "1800 decisions",
+    "dialogs": "31/31",
+    "rulesContract": "tests and actual local diff contract passed",
+    "rulebook": "source+dist passed",
+    "rust": "61 passed;1 existing explicitly ignored live-chain test;localhost mock permission needed",
+    "rustFmt": true,
+    "clippyDenyWarnings": true,
+    "pinnedWasmBuild": true,
+    "packagedAssets": "current source and28 archived assets match exactly",
+    "archive16": "7assets and policy12 match30ac7a9 prior source byte for byte",
+    "policy13": "only version labels differ frompolicy12",
+    "balanceHarnessSmoke": true,
+    "packagedNativeHttpSmoke": "passed assets/auth/accounts/Voidwright +4seatGalacticReach/rotations/Elo/retry",
+    "presentationGoalAudit": "Current game header and Lab ladder now say10Prestige; JavaScript syntax, packaged manual/navigation/static wording, source/package equality, and unchanged frozen app hash pass."
+  },
+  "limitations": [
+    "Docker is unavailable; full HTTP smoke used the native packaged app, not a built container image",
+    "Browser QA belongs to root and is not claimed in this child record",
+    "Artificial prior sampler parity12cases passed under root at temporarily20threshold; resource-study results are separate"
+  ],
+  "reviewDraft": "/private/tmp/ten-prestige-review.md"
+}

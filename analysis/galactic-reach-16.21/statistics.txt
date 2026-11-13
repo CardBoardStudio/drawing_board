@@ -1,0 +1,556 @@
+{
+  "browser": {
+    "mixed": {
+      "games": 768,
+      "status": {
+        "stalled": 533,
+        "finished": 235
+      },
+      "finishRoundMean": 72.481,
+      "finishRoundMedian": 75,
+      "finishRoundP10": 50.0,
+      "finishRoundP90": 91.0,
+      "combatsMean": 7.443,
+      "zeroCombatGames": 0,
+      "tiesForFirst": 0,
+      "byStrategy": {
+        "military": {
+          "appearances": 301,
+          "wins": 15,
+          "shareOfWins": 6.382978723404255,
+          "winRatePerAppearance": 4.983388704318937,
+          "prestige": 13.771,
+          "colonies": 1.189,
+          "relics": 2.86,
+          "shipyards": 4.924,
+          "cardsPurchased": 63.073,
+          "controlled": 7.963,
+          "income": 13.096,
+          "capacity": 193.239,
+          "frontierPrestige": 0.027,
+          "deckPrestige": 7.482,
+          "shipyardPrestige": 2.213,
+          "settlers": 5.475,
+          "explorers": 4.262,
+          "fleets": 5.545,
+          "winShareCI95": [
+            3.603199612168222,
+            9.482843805370042
+          ]
+        },
+        "economy": {
+          "appearances": 314,
+          "wins": 55,
+          "shareOfWins": 23.404255319148938,
+          "winRatePerAppearance": 17.515923566878982,
+          "prestige": 15.408,
+          "colonies": 3.061,
+          "relics": 2.885,
+          "shipyards": 0.936,
+          "cardsPurchased": 72.099,
+          "controlled": 19.153,
+          "income": 39.643,
+          "capacity": 332.803,
+          "frontierPrestige": 0.818,
+          "deckPrestige": 8.643,
+          "shipyardPrestige": 0,
+          "settlers": 3.385,
+          "explorers": 3.758,
+          "fleets": 0.366,
+          "winShareCI95": [
+            18.490013598504166,
+            28.515490533562815
+          ]
+        },
+        "expansion": {
+          "appearances": 325,
+          "wins": 165,
+          "shareOfWins": 70.2127659574468,
+          "winRatePerAppearance": 50.76923076923077,
+          "prestige": 17.926,
+          "colonies": 4.6,
+          "relics": 2.938,
+          "shipyards": 0.985,
+          "cardsPurchased": 72.382,
+          "controlled": 19.154,
+          "income": 36.049,
+          "capacity": 295.415,
+          "frontierPrestige": 1.597,
+          "deckPrestige": 8.791,
+          "shipyardPrestige": 0,
+          "settlers": 2.729,
+          "explorers": 3.634,
+          "fleets": 0.108,
+          "winShareCI95": [
+            65.48592115848753,
+            74.79347241819526
+          ]
+        }
+      },
+      "bySeat": {
+        "0": {
+          "wins": 85,
+          "winShare": 36.170212765957444,
+          "winShareCI95": [
+            29.255367540029113,
+            43.334070796460175
+          ]
+        },
+        "1": {
+          "wins": 45,
+          "winShare": 19.148936170212767,
+          "winShareCI95": [
+            14.412905728695202,
+            24.137931034482758
+          ]
+        },
+        "2": {
+          "wins": 35,
+          "winShare": 14.893617021276595,
+          "winShareCI95": [
+            9.8419924071991,
+            19.90950226244344
+          ]
+        },
+        "3": {
+          "wins": 70,
+          "winShare": 29.78723404255319,
+          "winShareCI95": [
+            23.930678466076696,
+            36.15384615384615
+          ]
+        }
+      },
+      "winnerScoreComponents": {
+        "prestige": 20.013,
+        "colonies": 5.153,
+        "frontierPrestige": 1.855,
+        "shipyardPrestige": 0.289,
+        "relics": 3.796,
+        "deckPrestige": 8.919,
+        "cardsPurchased": 71.494
+      },
+      "stalls": {
+        "count": 533,
+        "medianRound": 24,
+        "actors": {
+          "expansion": 140,
+          "economy": 130,
+          "military": 263
+        }
+      }
+    },
+    "mirror": {
+      "games": 96,
+      "status": {
+        "stalled": 67,
+        "finished": 29
+      },
+      "finishRoundMean": 82.931,
+      "finishRoundMedian": 85,
+      "finishRoundP10": 69.0,
+      "finishRoundP90": 95.2,
+      "combatsMean": 3.862,
+      "zeroCombatGames": 1,
+      "tiesForFirst": 0,
+      "byStrategy": {
+        "military": {
+          "appearances": 0,
+          "wins": 0,
+          "shareOfWins": 0.0,
+          "winRatePerAppearance": null,
+          "prestige": null,
+          "colonies": null,
+          "relics": null,
+          "shipyards": null,
+          "cardsPurchased": null,
+          "controlled": null,
+          "income": null,
+          "capacity": null,
+          "frontierPrestige": null,
+          "deckPrestige": null,
+          "shipyardPrestige": null,
+          "settlers": null,
+          "explorers": null,
+          "fleets": null,
+          "winShareCI95": [
+            0.0,
+            0.0
+          ]
+        },
+        "economy": {
+          "appearances": 72,
+          "wins": 18,
+          "shareOfWins": 62.06896551724138,
+          "winRatePerAppearance": 25.0,
+          "prestige": 16.653,
+          "colonies": 3,
+          "relics": 2.972,
+          "shipyards": 1,
+          "cardsPurchased": 82.611,
+          "controlled": 17.556,
+          "income": 40.375,
+          "capacity": 376.806,
+          "frontierPrestige": 0.736,
+          "deckPrestige": 9.944,
+          "shipyardPrestige": 0,
+          "settlers": 2.958,
+          "explorers": 3.764,
+          "fleets": 0.181,
+          "winShareCI95": [
+            47.60504201680673,
+            77.77777777777777
+          ]
+        },
+        "expansion": {
+          "appearances": 44,
+          "wins": 11,
+          "shareOfWins": 37.93103448275862,
+          "winRatePerAppearance": 25.0,
+          "prestige": 16.432,
+          "colonies": 3,
+          "relics": 2.909,
+          "shipyards": 1,
+          "cardsPurchased": 79.955,
+          "controlled": 17.636,
+          "income": 40.591,
+          "capacity": 353.864,
+          "frontierPrestige": 0.818,
+          "deckPrestige": 9.705,
+          "shipyardPrestige": 0,
+          "settlers": 4.386,
+          "explorers": 3.5,
+          "fleets": 0.295,
+          "winShareCI95": [
+            22.22222222222222,
+            52.3949579831932
+          ]
+        }
+      },
+      "bySeat": {
+        "0": {
+          "wins": 16,
+          "winShare": 55.172413793103445,
+          "winShareCI95": [
+            36.666666666666664,
+            75.0
+          ]
+        },
+        "1": {
+          "wins": 2,
+          "winShare": 6.896551724137931,
+          "winShareCI95": [
+            0.0,
+            15.625
+          ]
+        },
+        "2": {
+          "wins": 4,
+          "winShare": 13.793103448275861,
+          "winShareCI95": [
+            3.225806451612903,
+            27.272727272727273
+          ]
+        },
+        "3": {
+          "wins": 7,
+          "winShare": 24.137931034482758,
+          "winShareCI95": [
+            10.336206896551724,
+            39.13431677018632
+          ]
+        }
+      },
+      "winnerScoreComponents": {
+        "prestige": 20,
+        "colonies": 3.862,
+        "frontierPrestige": 1.241,
+        "shipyardPrestige": 0,
+        "relics": 4.552,
+        "deckPrestige": 10.345,
+        "cardsPurchased": 82.931
+      },
+      "stalls": {
+        "count": 67,
+        "medianRound": 25,
+        "actors": {
+          "economy": 14,
+          "expansion": 21,
+          "military": 32
+        }
+      }
+    }
+  },
+  "guarded": {
+    "mixed": {
+      "games": 768,
+      "status": {
+        "finished": 768
+      },
+      "finishRoundMean": 71.798,
+      "finishRoundMedian": 73.0,
+      "finishRoundP10": 51.0,
+      "finishRoundP90": 88.0,
+      "combatsMean": 9.267,
+      "zeroCombatGames": 0,
+      "tiesForFirst": 0,
+      "byStrategy": {
+        "military": {
+          "appearances": 1024,
+          "wins": 71,
+          "shareOfWins": 9.244791666666666,
+          "winRatePerAppearance": 6.93359375,
+          "prestige": 13.975,
+          "colonies": 1.284,
+          "relics": 2.848,
+          "shipyards": 5.097,
+          "cardsPurchased": 63.198,
+          "controlled": 8.463,
+          "income": 13.281,
+          "capacity": 186.406,
+          "frontierPrestige": 0.056,
+          "deckPrestige": 7.486,
+          "shipyardPrestige": 2.301,
+          "settlers": 5.43,
+          "explorers": 4.227,
+          "fleets": 5.675,
+          "winShareCI95": [
+            7.161458333333333,
+            11.328125
+          ]
+        },
+        "economy": {
+          "appearances": 1024,
+          "wins": 217,
+          "shareOfWins": 28.255208333333332,
+          "winRatePerAppearance": 21.19140625,
+          "prestige": 15.495,
+          "colonies": 3.175,
+          "relics": 2.967,
+          "shipyards": 0.94,
+          "cardsPurchased": 70.759,
+          "controlled": 19.751,
+          "income": 40.146,
+          "capacity": 327.651,
+          "frontierPrestige": 0.858,
+          "deckPrestige": 8.495,
+          "shipyardPrestige": 0,
+          "settlers": 3.358,
+          "explorers": 3.67,
+          "fleets": 0.445,
+          "winShareCI95": [
+            25.0,
+            31.901041666666668
+          ]
+        },
+        "expansion": {
+          "appearances": 1024,
+          "wins": 480,
+          "shareOfWins": 62.5,
+          "winRatePerAppearance": 46.875,
+          "prestige": 17.564,
+          "colonies": 4.507,
+          "relics": 2.837,
+          "shipyards": 0.984,
+          "cardsPurchased": 71.576,
+          "controlled": 18.673,
+          "income": 35.062,
+          "capacity": 288.931,
+          "frontierPrestige": 1.524,
+          "deckPrestige": 8.696,
+          "shipyardPrestige": 0,
+          "settlers": 2.777,
+          "explorers": 3.666,
+          "fleets": 0.187,
+          "winShareCI95": [
+            58.854166666666664,
+            66.015625
+          ]
+        }
+      },
+      "bySeat": {
+        "0": {
+          "wins": 235,
+          "winShare": 30.598958333333332,
+          "winShareCI95": [
+            27.34375,
+            33.987630208333314
+          ]
+        },
+        "1": {
+          "wins": 167,
+          "winShare": 21.744791666666668,
+          "winShareCI95": [
+            18.489583333333332,
+            24.873046874999982
+          ]
+        },
+        "2": {
+          "wins": 149,
+          "winShare": 19.401041666666668,
+          "winShareCI95": [
+            16.796875,
+            21.875
+          ]
+        },
+        "3": {
+          "wins": 217,
+          "winShare": 28.255208333333332,
+          "winShareCI95": [
+            25.130208333333332,
+            31.510416666666668
+          ]
+        }
+      },
+      "winnerScoreComponents": {
+        "prestige": 20.01,
+        "colonies": 5.086,
+        "frontierPrestige": 1.828,
+        "shipyardPrestige": 0.434,
+        "relics": 3.866,
+        "deckPrestige": 8.797,
+        "cardsPurchased": 70.594
+      },
+      "stalls": {
+        "count": 0,
+        "medianRound": null,
+        "actors": {}
+      }
+    },
+    "mirror": {
+      "games": 96,
+      "status": {
+        "finished": 96
+      },
+      "finishRoundMean": 90.708,
+      "finishRoundMedian": 89.0,
+      "finishRoundP10": 72.5,
+      "finishRoundP90": 111.0,
+      "combatsMean": 9.146,
+      "zeroCombatGames": 2,
+      "tiesForFirst": 0,
+      "byStrategy": {
+        "military": {
+          "appearances": 128,
+          "wins": 32,
+          "shareOfWins": 33.333333333333336,
+          "winRatePerAppearance": 25.0,
+          "prestige": 17.656,
+          "colonies": 1,
+          "relics": 2.93,
+          "shipyards": 2.594,
+          "cardsPurchased": 104.398,
+          "controlled": 7,
+          "income": 7.852,
+          "capacity": 173.203,
+          "frontierPrestige": 0,
+          "deckPrestige": 12.711,
+          "shipyardPrestige": 1.016,
+          "settlers": 6.367,
+          "explorers": 4.453,
+          "fleets": 5.328,
+          "winShareCI95": [
+            33.333333333333336,
+            33.333333333333336
+          ]
+        },
+        "economy": {
+          "appearances": 128,
+          "wins": 32,
+          "shareOfWins": 33.333333333333336,
+          "winRatePerAppearance": 25.0,
+          "prestige": 16.625,
+          "colonies": 2.992,
+          "relics": 2.914,
+          "shipyards": 1,
+          "cardsPurchased": 82.859,
+          "controlled": 17.492,
+          "income": 40.148,
+          "capacity": 376.875,
+          "frontierPrestige": 0.734,
+          "deckPrestige": 9.984,
+          "shipyardPrestige": 0,
+          "settlers": 3.141,
+          "explorers": 3.812,
+          "fleets": 0.43,
+          "winShareCI95": [
+            33.333333333333336,
+            33.333333333333336
+          ]
+        },
+        "expansion": {
+          "appearances": 128,
+          "wins": 32,
+          "shareOfWins": 33.333333333333336,
+          "winRatePerAppearance": 25.0,
+          "prestige": 16.086,
+          "colonies": 3,
+          "relics": 2.836,
+          "shipyards": 1,
+          "cardsPurchased": 78.195,
+          "controlled": 17.516,
+          "income": 40.211,
+          "capacity": 345.234,
+          "frontierPrestige": 0.773,
+          "deckPrestige": 9.477,
+          "shipyardPrestige": 0,
+          "settlers": 4.43,
+          "explorers": 3.625,
+          "fleets": 0.547,
+          "winShareCI95": [
+            33.333333333333336,
+            33.333333333333336
+          ]
+        }
+      },
+      "bySeat": {
+        "0": {
+          "wins": 41,
+          "winShare": 42.708333333333336,
+          "winShareCI95": [
+            32.291666666666664,
+            53.125
+          ]
+        },
+        "1": {
+          "wins": 15,
+          "winShare": 15.625,
+          "winShareCI95": [
+            9.375,
+            21.875
+          ]
+        },
+        "2": {
+          "wins": 10,
+          "winShare": 10.416666666666666,
+          "winShareCI95": [
+            5.208333333333333,
+            15.625
+          ]
+        },
+        "3": {
+          "wins": 30,
+          "winShare": 31.25,
+          "winShareCI95": [
+            20.833333333333332,
+            42.708333333333336
+          ]
+        }
+      },
+      "winnerScoreComponents": {
+        "prestige": 20.01,
+        "colonies": 3.104,
+        "frontierPrestige": 0.875,
+        "shipyardPrestige": 0.365,
+        "relics": 4.417,
+        "deckPrestige": 11.25,
+        "cardsPurchased": 90.094
+      },
+      "stalls": {
+        "count": 0,
+        "medianRound": null,
+        "actors": {}
+      }
+    }
+  }
+}

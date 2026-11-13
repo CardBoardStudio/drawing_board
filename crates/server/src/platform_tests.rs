@@ -322,7 +322,7 @@ async fn arena_enforces_ownership_pairs_seats_and_rates_exactly_once() {
             &a,
             "GET",
             "/api/account",
-            "drawing_board_pass_buy_v7_session=forged",
+            "drawing_board_alien_v11_session=forged",
             json!({})
         )
         .await
@@ -399,7 +399,8 @@ async fn arena_enforces_ownership_pairs_seats_and_rates_exactly_once() {
 #[tokio::test]
 async fn galactic_reach_uses_shared_accounts_rotations_and_isolated_ratings() {
     let _serial = ARENA_TEST.lock().await;
-    let a = app(true);
+    let mut a = app(true);
+    a.arena_seed = Some([8; 32]);
     let (owner, _) = register_account(&a, "Four factions").await;
     let (other, _) = register_account(&a, "Other lab").await;
     let mut bots = vec![];

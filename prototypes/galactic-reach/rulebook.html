@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#060911">
-  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for the Cards in Play experiment 27.32.">
-  <meta name="rules-version" content="galactic-reach/27.32">
-  <title>Galactic Reach · Rulebook · 27.32</title>
+  <meta name="description" content="Learn Galactic Reach: explore worlds, build your faction, and race to 20 Prestige. The canonical rules for the Resource Capacities playtest 28.33.">
+  <meta name="rules-version" content="galactic-reach/28.33">
+  <title>Galactic Reach · Rulebook · 28.33</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="rulebook.css">
 </head>
@@ -28,7 +28,7 @@
   <a class="skip-link" href="#start">Skip to rules</a>
   <header class="book-header">
     <a href="./" class="button button-ghost">← Galactic Reach</a>
-    <span class="eyebrow">CANONICAL RULES · CARDS IN PLAY EXPERIMENT · 27.32</span>
+    <span class="eyebrow">CANONICAL RULES · RESOURCE CAPACITIES PLAYTEST · 28.33</span>
   </header>
   <div class="book-layout">
     <nav class="book-nav" aria-label="Rulebook sections">
@@ -47,7 +47,7 @@
       <a href="#victory">Prestige &amp; victory</a>
       <a href="#game-report">Game reports</a>
       <a href="#cards">Card reference</a>
-      <a href="#clarifications">27.32 clarifications</a>
+      <a href="#clarifications">28.33 clarifications</a>
     </nav>
     <main id="start" tabindex="-1">
       <div class="eyebrow">A GALAXY. FOUR FACTIONS. YOUR NEXT MOVE.</div>
@@ -63,7 +63,7 @@
         </ol>
         <p><strong>Try this:</strong> save a Construct card for its order; convert another card to help pay for a Settler. You cannot use the same card both ways.</p>
       </div>
-      <p class="book-note">This manual describes the <strong>27.32 Cards in Play experiment</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
+      <p class="book-note">This manual describes the <strong>28.33 Resource Capacities playtest</strong>. Start a new game to try these rules. Older saved tables keep their own rules. Some printed card summaries are ahead of the implementation; the <a href="#cards">reference below</a> records what those cards currently do.</p>
 
       <section id="setup">
         <h2>01 / Your starting faction</h2>
@@ -90,11 +90,13 @@
         <h2>03 / Resources &amp; storage</h2>
         <p>Under each available resource amount, <strong>+X</strong> shows what your current planets, Harvesters, and combat fleets would produce each round. It updates when control, buildings, or ships change. Occupied planets do not produce for their owner. Explorers alone and moons produce nothing. This is the full gain before choosing any excess-storage discards; card conversions and one-time rewards are not included.</p>
         <p><strong><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>Matter</span></strong> builds; <strong><span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>Energy</span></strong> funds fleets and cards; <strong><span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>Biomass</span></strong> founds colonies; <strong><span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>Data</span></strong> buys and improves cards. Pay the listed cost when you build or buy. Ordinary movement has no resource cost.</p>
-        <p>Start with space for <strong>10 resources total</strong>. During your own Operations or Buy turn, pay to permanently add <strong>5 storage</strong>. Your first paid upgrade costs <strong>1 of each resource</strong>, your second costs <strong>2 of each</strong>, your third costs <strong>3 of each</strong>, and so on. Count your own paid upgrades only. Free storage from a relic does not increase this price. For example, after one paid upgrade and one free relic upgrade, you have 20 storage and your next paid upgrade costs 2 Matter, 2 Energy, 2 Biomass, and 2 Data. Repeat while you can afford it. This is a free resource-management action: it needs no card, map hex, building, or purchase, and preserves your current order. Occupation does not reduce this capacity. Collect the full resource gain, then resolve any excess storage before taking another action.</p>
+        <p>Start with four separate limits: <strong>4 Matter, 4 Energy, 4 Biomass, and 4 Data</strong>. Unused space for one resource cannot hold another resource. For example, 5 Matter exceeds your starting Matter limit even if you have no other resources.</p>
+        <p id="storage-allocation">During your own Operations or Buy turn, buy <strong>4 permanent capacity points</strong> and choose how to distribute them among the four resource limits. Each point raises one chosen limit by 1. You may put all four into one resource, split them 2–2, add 1 to each, or use any other split totaling exactly four. For example, assigning 3 to Data and 1 to Energy changes your starting limits to 4 Matter, 5 Energy, 4 Biomass, and 7 Data. These are capacity points, not Prestige.</p>
+        <p>Your first paid upgrade costs <strong>1 of each resource</strong>, the second <strong>2 of each</strong>, the third <strong>3 of each</strong>, and so on. Count your own paid upgrades only. Choose the allocation before paying; cancelling spends nothing. Free relic capacity does not increase the next paid price. Repeat while you can afford it. Buying capacity uses no card, Operations action, purchase, building, or map hex, and preserves your current order. Occupation does not reduce your limits.</p>
         <p><strong>Convert all to resources</strong> checks your hand from left to right and pauses when a conversion exceeds storage. Choose what to discard before converting more cards. It includes Buy and reaction cards, so save those by converting individually instead. Converting a selected order cancels that selection; conversions never spend your Operations action.</p>
-        <p>Whenever a gain takes you over your storage limit, choose enough resources to discard to return to capacity. You may discard resources you already held or resources you just collected. Play pauses for your choice, including gains from Production, card conversions, relics, and combat. Reloading preserves the resources awaiting your choice. Computer rivals choose their own discards. During your own Operations or Buy turn, you may <strong>discard any number of stored resources</strong> to make room. Discarding is free, gives nothing in return, and does not spend a card or end your turn.</p>
+        <p>Collect every resource gain in full. If any resource exceeds its own limit, play pauses until you confirm the excess discards. Only that resource can satisfy its excess: if you hold 6 Matter with a Matter limit of 4, discard 2 Matter; discarding Data does not help. Several resources can exceed their limits at once. You may resolve them together or discard part of an excess before finishing the rest. Production, card conversions, relics, bank gains, and combat salvage all use these limits. Reloading preserves the pending resources and limits. Computer rivals resolve their own excess. During your own Operations or Buy turn, you may also discard stored resources voluntarily. Discarding gives nothing in return and spends no card or action.</p>
         <p>Combat salvage is collected in full by both sides. Each faction resolves its own excess resources before further turns continue.</p>
-        <p>Moons never produce resources. Rich planets and their star markers are removed. Each owned, unoccupied resource planet hex produces 1 of its resource, plus its Harvester level. A combat fleet on a planet hex also earns its faction 1 of that resource, regardless of ownership. That is one bonus per fleet, not per ship; Explorers alone earn none.</p>
+        <p>Moons never produce resources. Rich planets and their star markers are removed. Each owned, unoccupied resource planet hex produces 1 of its resource. A Harvester produces <strong>1 total</strong> on its hex. Do not add a separate base resource to Harvester production. A combat fleet on a planet hex also earns its faction 1 of that resource, regardless of ownership. That is one bonus per fleet, not per ship; Explorers alone earn none.</p>
       </section>
 
       <section id="orders">
@@ -104,7 +106,7 @@
         <div class="book-table" tabindex="0" role="region" aria-label="Basic orders">
           <table><thead><tr><th>Card</th><th>Convert</th><th>Use its order</th><th>Level II adds</th></tr></thead><tbody>
             <tr><th>Move</th><td><span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span></td><td>Move one group of ships or Explorers.</td><td>+1 movement.</td></tr>
-            <tr><th>Construct</th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span></td><td>Build one ship or structure, or upgrade one Harvester.</td><td>Reduce one chosen resource in that cost by 1.</td></tr>
+            <tr><th>Construct</th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span></td><td>Build one ship or structure.</td><td>Reduce one chosen resource in that cost by 1.</td></tr>
             <tr><th>Colonize</th><td><span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span></td><td>At a world’s center, spend <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>2 Biomass</span> and consume a Settler to found a Colony. Capture an occupied enemy center for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> and a Settler. Permanently trash the used Colonize card after success. Failed or canceled attempts keep it; converting it for 1 Biomass instead keeps it in play until cleanup.</td><td>Unit-bundled card; no starter upgrade.</td></tr>
             <tr><th>Probe</th><td>1 Data</td><td>Choose one of your Explorers anywhere on the map, including empty space, your home world or a Shipyard. Privately locate the nearest remaining relic you have not already located, measuring hex distance from that Explorer to the relic itself. Probe picks one if several sites tie. Spend your Operations action and permanently trash that Probe card: it leaves your deck and cannot be drawn again. Keep the Explorer; pay no resources. Failed or canceled attempts keep the card and action. If no unlocated relic remains, keep the card and action. Converting Probe for 1 Data instead keeps it in play until cleanup.</td><td>Unit-bundled card; no starter upgrade.</td></tr>
             <tr><th>Excavate</th><td><span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span></td><td>With an Explorer at a relic, pay 1 Matter, 1 Energy, and 2 Data. Choose one face-up relic card for your discard pile, remove the relic from the map, gain 2 Prestige, and trash Excavate. Consume one Explorer at the site.</td><td>Unit-bundled card; no starter upgrade.</td></tr>
@@ -126,7 +128,7 @@
 
       <section id="building">
         <h2>06 / Ships, buildings &amp; relics</h2>
-        <p>A Colony reserves its world for expansion; it does not immediately give ownership or production on every hex. Use Construct to claim an empty adjacent planet hex with a building. One building fits on a hex. Occupied hexes cannot build. A Colony cannot be replaced with a different building. Shipyards have one level and cannot be upgraded. Only Harvesters can upgrade to level II.</p>
+        <p>A Colony reserves its world for expansion; it does not immediately give ownership or production on every hex. Use Construct to claim an empty adjacent planet hex with a building. One building fits on a hex. Occupied hexes cannot build. A Colony cannot be replaced with a different building. All buildings have one level. Harvesters, Shipyards, and Colonies cannot be upgraded.</p>
         <p>Commission all units at an unoccupied Shipyard you own. Commission Explorers only at an unoccupied Shipyard you own. Colonies and other structures cannot commission them.</p>
         <p class="book-note">Costs use the same colored symbols as your cards and resource bar. Each symbol is labeled, so you can learn them as you play.</p>
         <div class="book-table" tabindex="0" role="region" aria-label="Ships and their costs">
@@ -137,8 +139,8 @@
           </tbody></table>
         </div>
         <div class="book-table" tabindex="0" role="region" aria-label="Structures and their costs">
-          <table><thead><tr><th>Structure</th><th>Build / upgrade to II</th><th>Benefit</th></tr></thead><tbody>
-            <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-harvester"></use></svg>Harvester</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> / <span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span></td><td>+1 local production per level.</td></tr>
+          <table><thead><tr><th>Structure</th><th>Build cost</th><th>Benefit</th></tr></thead><tbody>
+            <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-harvester"></use></svg>Harvester</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>1 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span></td><td>Produces 1 local resource each round. No additional base production. No upgrade.</td></tr>
             <tr><th><span class="book-unit"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-starbase"></use></svg>Shipyard</span></th><td><span class="book-resource matter"><span class="resource-symbol matter"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-matter"></use></svg></span>2 Matter</span> <span class="book-resource energy"><span class="resource-symbol energy"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-energy"></use></svg></span>1 Energy</span> <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> <span class="book-resource data"><span class="resource-symbol data"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-data"></use></svg></span>1 Data</span></td><td>Commission ships; defends its own hex with 3 attack and 3 hull. No upgrade.</td></tr>
           </tbody></table>
         </div>
@@ -208,7 +210,7 @@
         <p>Shipyards and card purchases award no Prestige. For example, one Colony, four Shipyards, and sixteen purchased cards still score just 3 Prestige before relics or combat. Occupation alone does not remove ownership-based Prestige.</p>
         <p>After everyone finishes Buy and the round is cleaned up, if anyone has at least <strong>20 Prestige</strong>, the highest Prestige wins. Break ties by most Colonies, then most stored resources. An exact tie selects the earliest seat in the browser; arena standings share that rank. Reaching 20 earlier does not lock in a win: finish the round before checking the standings. There is no round limit.</p>
         <p>For example, if you reach 20 during Operations but Ember Directorate finishes the round with 21, the result is “Ember Directorate wins.” When your faction wins, the message reads “You win.”</p>
-        <p>The goal is 20 Prestige. Your starting Colony is worth 3 points. Six Colonies and one relic score 20; five Colonies, two relics, and one decisive combat victory also score 20. Relic and combat Prestige survive later losses and are saved with your faction’s score. These scoring rules are retained from 23.28. New 27.32 games permanently trash successfully used Colonize and Probe cards and retain the storage-planning rivals; older tables keep their pinned behavior.</p>
+        <p>The goal is 20 Prestige. Your starting Colony is worth 3 points. Six Colonies and one relic score 20; five Colonies, two relics, and one decisive combat victory also score 20. Relic and combat Prestige survive later losses and are saved with your faction’s score. These scoring rules are retained from 23.28. New 28.33 games permanently trash successfully used Colonize and Probe cards and retain the storage-planning rivals; older tables keep their pinned behavior.</p>
         <p>Computer rivals follow the same costs, card limits, scoring, and victory check. They use public ships and structures to avoid exposed Settler moves, gather Fleets, and respond to nearby threats. They can use their own cards and private Probe results, but cannot inspect another faction’s hand or unlocated relics. Their strategy profile changes their priorities, not their legal actions.</p>
         <p>AI arena games use this same victory check. Only completed games earn placement ratings. Simulations have time and decision limits. If any game cannot finish within those limits, the arena reports an incomplete series and none of its games change ratings. Retry with another series; an unfinished game is never counted as a victory.</p>
       </section>
@@ -258,7 +260,7 @@
         <details>
           <summary>Advanced and relic orders</summary>
           <div class="book-table" tabindex="0" role="region" aria-label="Advanced card effects">
-            <table><thead><tr><th>Card</th><th>Current 27.32 effect</th></tr></thead><tbody>
+            <table><thead><tr><th>Card</th><th>Current 28.33 effect</th></tr></thead><tbody>
               <tr><th>Survey Drones</th><td>Normal movement at the selected group’s speed. Survey Drones does not add range or filter cards.</td></tr>
               <tr><th>Pathfinder Network</th><td>Move with +1 range; cannot enter hostile hexes.</td></tr>
               <tr><th>Drop Colony Modules</th><td>Found or capture for <span class="book-resource biomass"><span class="resource-symbol biomass"><svg aria-hidden="true" focusable="false" viewBox="0 0 24 24"><use href="#icon-biomass"></use></svg></span>1 Biomass</span> without consuming the Settler.</td></tr>
@@ -291,7 +293,7 @@
 <tr data-card="genesisSeedVault"><th>Genesis Seed Vault<small>An entire lost biosphere sleeps inside one seed.</small></th><td>Settlement</td><td>Found or capture a Colony for zero Biomass without consuming the Settler. Gain 2 Matter after success.</td><td>3 Biomass, 1 Matter</td></tr>
 <tr data-card="precursorMatterLoom"><th>Precursor Matter Loom<small>It weaves continents from the dust between suns.</small></th><td>Settlement</td><td>Gain 4 Matter and 2 Biomass, subject to storage capacity.</td><td>3 Matter, 1 Data</td></tr>
 <tr data-card="worldweaverSpore"><th>Worldweaver Spore<small>The garden outlived its gods.</small></th><td>Settlement</td><td>Gain 1 printed resource from each of up to two of your unoccupied owned planet hexes, chosen automatically. This creates no permanent production bonus.</td><td>3 Biomass, 1 Data</td></tr>
-<tr data-card="cradleOfLostSuns"><th>Cradle of Lost Suns<small>A pocket universe, still warm from its creation.</small></th><td>Settlement</td><td>Permanently add 5 storage, gain 2 Biomass, and draw one card.</td><td>2 Biomass, 2 Energy</td></tr>
+<tr data-card="cradleOfLostSuns"><th>Cradle of Lost Suns<small>A pocket universe, still warm from its creation.</small></th><td>Settlement</td><td>Choose how to distribute 4 permanent capacity points among your resource limits, gain 2 Biomass, and draw one card.</td><td>2 Biomass, 2 Energy</td></tr>
 <tr data-card="obeliskOfAnnihilation"><th>Obelisk of Annihilation<small>Its shadow arrives before its light.</small></th><td>Military</td><td>Move one group with +2 range. A battle you initiate with a surviving Fleet gains +2 hits in its first volley.</td><td>2 Matter, 2 Energy</td></tr>
 <tr data-card="aegisOfSilentArchitects"><th>Aegis of the Silent Architects<small>An impossible wall built by hands that never existed.</small></th><td>Military</td><td>Automatic reaction: prevent up to 4 incoming hits in your next combat volley.</td><td>3 Matter</td></tr>
 <tr data-card="warSongOfHollowStars"><th>War-Song of the Hollow Stars<small>The weapon is the song. Your fleet is its instrument.</small></th><td>Military</td><td>Automatic reaction: with a surviving Fleet, add 3 hits to your next combat volley. Without a Fleet, keep this card in hand.</td><td>2 Energy, 1 Data</td></tr>
@@ -316,7 +318,7 @@
           </ul>
         </details>
       </section>
-      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 27.32 · The game and this rulebook travel together in every deployment.</p></footer>
+      <footer class="book-footer"><p>Ready for your first expedition? <a href="./">Return to Galactic Reach →</a></p><p>Rules 28.33 · The game and this rulebook travel together in every deployment.</p></footer>
     </main>
   </div>
 </body>

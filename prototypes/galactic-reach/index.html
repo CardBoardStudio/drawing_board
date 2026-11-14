@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101d22">
-  <title>Galactic Reach · 27.32 · Tabletop playtest</title>
+  <title>Galactic Reach · 28.33 · Tabletop playtest</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=table-corners-a11y-27-32-1">
+  <link rel="stylesheet" href="styles.css?v=table-corners-a11y-28-33-1">
   <link rel="stylesheet" href="playtest-notes.css?v=1">
 </head>
 <body>
@@ -18,7 +18,7 @@
         <div class="brand-seal" aria-hidden="true">✦</div>
         <div><div class="eyebrow">A GAME OF EXPLORATION &amp; EMPIRE</div>
         <h1>Galactic Reach</h1></div>
-        <small class="rules-badge">27.32 · playtest</small>
+        <small class="rules-badge">28.33 · playtest</small>
       </div>
       <div class="header-actions">
         <a class="button button-ghost" href="/" style="text-decoration:none">Game library</a>
@@ -28,14 +28,14 @@
       </div>
     </header>
     <details class="playtest-changes" id="playtest-changes">
-      <summary><span class="new-feature">New in this playtest</span> A place at the table <span class="summary-hint">View changes</span></summary>
+      <summary><span class="new-feature">New in this playtest</span> Resource limits &amp; Harvester production <span class="summary-hint">View changes</span></summary>
       <ul>
-        <li><strong>A tabletop layout:</strong> shared standings, turn information, the scoring reference and recent actions sit around the galaxy inside the board frame. Your hand, reserves and card piles stay on your player mat. <a href="rulebook.html#player-mat">Your player mat</a> and <a href="rulebook.html#shared-board">shared board</a>.</li>
-        <li><strong>Printed cards and tactile pieces:</strong> clearer card faces, resource tokens, deck stacks and turn markers. Select a hex to inspect it, or use the map key for units and costs. <a href="rulebook.html#movement">Reading the board</a>.</li>
-        <li>Retains the current 27.32 rules, scoring and rivals, including cards staying in play until shared cleanup. This visual update does not change costs, actions or saved games. <a href="rulebook.html#round">Card timing</a>.</li>
+        <li><strong>Four separate resource limits:</strong> start with room for 4 of each resource. Unused space for one type cannot hold another. <a href="rulebook.html#resources">Resource limits</a>.</li>
+        <li><strong>Choose your capacity upgrades:</strong> each paid upgrade adds 4 points, split among the limits however you choose. Prices still rise from 1 of each resource to 2 of each, then 3 of each. Cradle of Lost Suns also grants 4 points. <a href="rulebook.html#storage-allocation">Capacity allocation</a>.</li>
+        <li><strong>Simpler buildings:</strong> Harvesters produce 1 resource total per round. All buildings have one level and no upgrades. <a href="rulebook.html#building">Building reference</a>.</li>
       </ul>
       <button class="button button-ghost" id="open-relic-catalog" type="button">Preview all 12 alien relics</button>
-      <p>27.32 visual playtest · Start a game on this separate preview. Earlier rulesets keep their archived interface.</p>
+      <p>28.33 playtest · Start a new game for these rules. Existing tables keep their archived rules. <a href="rules/27.32/">Continue a 27.32 game</a>.</p>
     </details>
 
     <section class="game-layout">
@@ -114,8 +114,8 @@
         <div class="panel-heading">
           <div><div class="eyebrow" id="command-eyebrow">YOUR COMMAND</div><h2>Your reserves</h2></div>
           <div class="storage-summary">
-            <span class="capacity" id="capacity-value">0 of 10 stored</span>
-            <div class="capacity-meter" id="capacity-meter" role="progressbar" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" aria-label="0 of 10 resource storage used"><span id="capacity-fill"></span></div>
+            <span class="capacity" id="capacity-value">Four separate resource limits</span>
+
           </div>
         </div>
         <div class="resource-grid" id="resource-grid"></div>
@@ -126,8 +126,8 @@
           <button id="discard-button" type="button" title="Browse your discard pile">Discard <strong id="discard-count">0</strong></button>
         </div>
         <div class="storage-upgrade-control">
-          <button class="button storage-upgrade-button" id="upgrade-storage-button" type="button" aria-describedby="storage-upgrade-help"><span>Add 5 storage</span><span id="storage-upgrade-cost"></span></button>
-          <p class="muted" id="storage-upgrade-help">Permanent capacity upgrade. Pay during your Operations or Buy turn.</p>
+          <button class="button storage-upgrade-button" id="upgrade-storage-button" type="button" aria-describedby="storage-upgrade-help"><span>Add 4 capacity</span><span id="storage-upgrade-cost"></span></button>
+          <p class="muted" id="storage-upgrade-help">Choose how to split 4 points among your resource limits. Pay during your Operations or Buy turn.</p>
         </div>
         <details class="resource-tools" id="resource-tools">
           <summary>Bank &amp; resource discards</summary>
@@ -217,7 +217,7 @@
 
   <dialog id="rules-dialog" aria-labelledby="rules-title">
     <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2 id="rules-title">How to command your faction</h2></div><button class="button button-ghost dialog-close" id="close-rules" type="button" aria-label="Close rules">Close</button></div>
-    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 27.32 ↗</a></p>
+    <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 28.33 ↗</a></p>
     <div class="rules-grid">
       <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Passing immediately starts your Buy turn. Finish Buy, then the remaining factions continue Operations.</p></section>
       <section><h3>Your round</h3><p>Produce → draw five → Operations (pass → your Buy turn) → everyone finishes → cleanup → victory check → next round.</p></section>
@@ -233,6 +233,17 @@
     <div id="combat-options" class="combat-options"></div>
     <div id="combat-history" class="combat-history"></div>
     <p class="muted">Finish the battle before normal play resumes. Your choices are saved.</p>
+  </dialog>
+
+  <dialog id="storage-allocation-dialog" class="storage-allocation-dialog" aria-labelledby="storage-allocation-title" aria-describedby="storage-allocation-help">
+    <div class="dialog-heading"><div><div class="eyebrow">YOUR RESOURCE LIMITS</div><h2 id="storage-allocation-title">Allocate capacity</h2></div><button type="button" class="button button-ghost dialog-close" id="storage-allocation-cancel">Cancel</button></div>
+    <p id="storage-allocation-help">Each point raises one resource limit by 1. Choose a split before paying.</p>
+    <p id="storage-allocation-cost"></p>
+    <form id="storage-allocation-form">
+      <div id="storage-allocation-options" class="storage-allocation-grid"></div>
+      <p id="storage-allocation-status" role="status" aria-live="polite"></p>
+      <button type="submit" class="button button-primary" id="storage-allocation-confirm" disabled>Confirm allocation</button>
+    </form>
   </dialog>
 
   <dialog id="overflow-dialog" class="choice-dialog" aria-labelledby="overflow-title" aria-describedby="overflow-help">
@@ -318,9 +329,9 @@
     <div class="relic-catalog-grid" id="relic-catalog-grid"></div>
   </dialog>
 
-  <script src="table.js?v=cards-in-play-27-32"></script>
-  <script src="replay.js?v=cards-in-play-27-32"></script>
-  <script src="app.js?v=table-corners-a11y-27-32-1"></script>
-  <script src="playtest-notes.js?v=2" data-game="Galactic Reach" data-rules="27.32"></script>
+  <script src="table.js?v=cards-in-play-28-33"></script>
+  <script src="replay.js?v=cards-in-play-28-33"></script>
+  <script src="app.js?v=table-corners-a11y-28-33-1"></script>
+  <script src="playtest-notes.js?v=2" data-game="Galactic Reach" data-rules="28.33"></script>
 </body>
 </html>

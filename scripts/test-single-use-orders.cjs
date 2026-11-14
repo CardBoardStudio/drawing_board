@@ -90,7 +90,7 @@ for (const key of ['probe','colonize']) {
 for (const seat of [0,1]) {
  const g=game(undefined,seat),yard=g.state.clusters[seat].coords[1];
  Object.assign(g.state.planets[yard],{owner:seat,upgrade:'starbase',occupiedBy:null});
- g.player.storageUpgrades=100;g.player.resources={matter:100,energy:100,biomass:100,data:100};
+ g.player.storageUpgrades=100;g.player.resourceLimits={matter:1000,energy:1000,biomass:1000,data:1000};g.player.resources={matter:100,energy:100,biomass:100,data:100};
  g.player.hand=[{id:'commission',key:'construct'}];
  g.state.fleets={'0,0':{[seat]:{fleet:5}},'1,0':{[seat]:{fleet:1}},'2,0':{[seat]:{settler:5}},'3,0':{[seat]:{settler:3}},'4,0':{[seat]:{explorer:5}}};
  assert(g.adapter.legalActions(seat).some(a=>a.type==='build'&&a.kind==='fleet'&&a.coord===yard),'A seventh Fleet is offered normally');

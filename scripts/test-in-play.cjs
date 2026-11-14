@@ -5,7 +5,7 @@ function game(prefix='prototypes/galactic-reach/'){
  let app=read(prefix+'app.js').replace('      clone, deckContents,','      drawCards, useReaction, runAiOperation, runAiBuy, aiCards, clone, deckContents,');
  vm.runInContext(read(prefix+'adapter.js')+app,c);const factory=c.createGalacticAdapter;c.createGalacticAdapter=x=>{e=x;return factory(x);};
  c.createGalacticReach({headless:true,random:()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32)});
- const s=e.state,p=s.players[0];Object.assign(s,{phase:'operations',activePlayer:0});Object.assign(p,{hand:[],deck:[],discard:[],resources:{matter:20,energy:20,biomass:20,data:20},storageUpgrades:20});
+ const s=e.state,p=s.players[0];Object.assign(s,{phase:'operations',activePlayer:0});Object.assign(p,{hand:[],deck:[],discard:[],resources:{matter:20,energy:20,biomass:20,data:20},storageUpgrades:20,resourceLimits:{matter:1000,energy:1000,biomass:1000,data:1000}});
  return {e,s,p,adapter:()=>factory(e)};
 }
 const card=(key,id=key)=>({key,id});const all=p=>[...p.hand,...p.deck,...p.discard,...(p.inPlay||[])];
@@ -54,6 +54,8 @@ function action(g,type,id,extra=()=>true){const a=g.adapter();const x=a.legalAct
 }
 const replayRoutes=vm.runInNewContext('('+read('prototypes/lab/replay.js').match(/const REPLAY_PATHS=(.*);/)[1]+')');
 assert.equal(replayRoutes['galactic-reach/26.31'],'/galactic-reach/rules/26.31/','Pinned replay opens its archived browser');
-assert.equal(replayRoutes['galactic-reach/27.32'],'/galactic-reach/','Current replay opens the In play browser');
+assert.equal(replayRoutes['galactic-reach/27.32'],'/galactic-reach/rules/27.32/','27.32 replay opens its archived In play browser');
 for(const [file,hash] of Object.entries(JSON.parse(read('scripts/in-play-archive-hashes.json'))))assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,file))).digest('hex'),hash,file);
 console.log('Cards in play: conversions/orders, pre-effect draw commitment, explicit discards, recovery/trashing isolation, public/private observations, reactions, Buy timing, shared cleanup, rival conversions and frozen26.31/policy22 passed.');
+
+assert.equal(replayRoutes['galactic-reach/28.33'],'/galactic-reach/');

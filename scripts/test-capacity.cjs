@@ -1,10 +1,11 @@
+// Historical pooled-storage contract; current independent limits are tested in test-resource-capacities.cjs.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const root = path.join(__dirname, '..');
 const plain = x => JSON.parse(JSON.stringify(x));
-function game(version = null) {
+function game(version = 27) {
   const base = version ? `crates/galactic-reach/rules/v${version}-` : 'prototypes/galactic-reach/';
   const c = vm.createContext({});
   vm.runInContext(['adapter.js', 'app.js'].map(n => fs.readFileSync(path.join(root, base + n), 'utf8')).join('\n'), c);

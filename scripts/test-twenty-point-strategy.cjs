@@ -20,7 +20,7 @@ function game(){
  for(let tier=1;tier<=3;tier++){
   p.resources=Object.fromEntries(e.RESOURCES.map(r=>[r,tier]));
   assert.deepEqual(plain(e.storageUpgradeCost(0)),p.resources);
-  assert(e.increaseStorage(0));assert.equal(p.storagePurchases,tier);assert.equal(e.playerCapacity(0),25+5*tier);
+  assert(e.increaseStorage(0,{matter:1,energy:1,biomass:1,data:1}));assert.equal(p.storagePurchases,tier);assert.equal(e.playerCapacity(0),16+4*tier);
   assert.deepEqual(plain(p.resources),{matter:0,energy:0,biomass:0,data:0});
  }
  assert.deepEqual(plain(a.observe(0).players[0].storageUpgradeCost),{matter:4,energy:4,biomass:4,data:4});
@@ -29,8 +29,8 @@ function game(){
  p.resources={matter:4,energy:4,biomass:3,data:4};const before=JSON.stringify(s);assert(!e.increaseStorage(0));assert.equal(JSON.stringify(s),before);
  // The actual free relic effect, rather than a synthetic count increment.
  p.hand=[{id:'cradle',key:'cradleOfLostSuns'}];p.resources={matter:0,energy:0,biomass:0,data:0};
- const paid=p.storagePurchases,capacity=e.playerCapacity(0);e.resolveHumanSpecial(p.hand[0],e.ALL_CARDS.cradleOfLostSuns,0);
- assert.equal(p.storagePurchases,paid);assert.equal(e.playerCapacity(0),capacity+5);assert.equal(e.storageUpgradeCost(0).matter,4);
+ const paid=p.storagePurchases,capacity=e.playerCapacity(0);e.resolveHumanSpecial(p.hand[0],e.ALL_CARDS.cradleOfLostSuns,0,{matter:1,energy:1,biomass:1,data:1});
+ assert.equal(p.storagePurchases,paid);assert.equal(e.playerCapacity(0),capacity+4);assert.equal(e.storageUpgradeCost(0).matter,4);
 }
 {
  const g=game(),{e,s}=g,p=s.players[1];p.strategy='military';p.hand=[{id:'move',key:'move',upgraded:true}];s.activePlayer=1;

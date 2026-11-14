@@ -272,14 +272,14 @@ for(const attacker of [0,1]) for(const stage of ['escape','tactic','committed','
 
 test('salvage overflow resolves before the saved automatic final report',()=>{
   const storage=combatStorage(0,'tactic'),state=JSON.parse(storage.getItem(SAVE_KEY));
-  for(const seat of [0,1]) {state.players[seat].resources.data=10;state.players[seat].hand.push({key:'salvageCrews',id:`report-salvage-${seat}`});}
+  for(const seat of [0,1]) {state.players[seat].resources.matter=4;state.players[seat].hand.push({key:'salvageCrews',id:`report-salvage-${seat}`});}
   writeSave(storage,state);let game=boot(storage),choices=0;
   while(game.saved().pendingCombat){assert(choices++<8);game.dom.lastQuery('[data-combat-action]')[0].click();game.settle();}
   assert(game.saved().pendingCombatReport);assert(game.dialog('overflow').open);assert(!game.dialog('message').open,'Final report waits behind the resource choice');
-  assert.equal(game.saved().players[0].resources.matter,2);
+  assert.equal(game.saved().players[0].resources.matter,6);
   game=boot(storage);assert(game.dialog('overflow').open);assert(!game.dialog('message').open);
-  game.dom.element('overflow-data').value='2';fire(game.dom.element('overflow-data'),'input');fire(game.dom.element('overflow-form'),'submit',{cancelable:true});game.settle();
-  assert(game.dialog('message').open);assert.equal(game.saved().players[0].resources.matter,2);
+  game.dom.element('overflow-matter').value='2';fire(game.dom.element('overflow-matter'),'input');fire(game.dom.element('overflow-form'),'submit',{cancelable:true});game.settle();
+  assert(game.dialog('message').open);assert.equal(game.saved().players[0].resources.matter,4);
   assert(game.dom.element('message-body').textContent.includes(game.saved().lastCombat.outcome));
   game.click('message-continue');assert(!game.saved().pendingCombatReport);
 });
@@ -314,7 +314,7 @@ test('a completed first round advances directly into round two', () => {
 function overflowStorage() {
   const storage = createStorage();
   const state = boot(storage).saved();
-  state.players[0].resources = { matter: 8, energy: 2, biomass: 0, data: 3 };
+  state.players[0].resourceLimits.matter=5;state.players[0].resources = { matter: 8, energy: 2, biomass: 0, data: 3 };
   state.activePlayer = 1;
   state.turnStage = 'ai';
   writeSave(storage,state);
@@ -418,7 +418,7 @@ function consortiumSave() {
   const storage=createStorage(),game=boot(storage),state=game.saved();
   Object.assign(state,{phase:'operations',activePlayer:0,turnStage:'consortium',pendingConsortium:{playerId:0,cardId:'choice-card',trades:0}});
   state.players[0].hand=[{id:'choice-card',key:'tradeConsortium'}];
-  state.players[0].resources={matter:6,energy:0,biomass:0,data:0};
+  state.players[0].resourceLimits.matter=6;state.players[0].resources={matter:6,energy:0,biomass:0,data:0};
   writeSave(storage,state);return storage;
 }
 test('Trade Consortium waits, preserves an exchange across reload, and finishes once',()=>{
@@ -453,26 +453,31 @@ test('paid storage button preserves Buy and survives reload without a map buildi
   writeSave(storage, state);
   const game = boot(storage), before = game.saved();
   game.click('upgrade-storage-button');
+  assert(game.dialog('storage-allocation').open);
+  assert.deepEqual(game.saved(),before,'Opening an allocation is not a paid action');
+  game.dom.element('storage-points-data').value='4';fire(game.dom.element('storage-points-data'),'input');
+  fire(game.dom.element('storage-allocation-form'),'submit',{cancelable:true});game.settle();
+  assert.equal(game.saved().players[0].resourceLimits.data,8);
   assert.equal(game.saved().players[0].storageUpgrades, 1);
   assert.equal(game.saved().phase, 'buy');
   assert.equal(game.saved().players[0].bought, before.players[0].bought);
   assert.deepEqual(game.saved().planets, before.planets);
-  assert.equal(game.dom.element('capacity-value').textContent, '0 of 15 stored');
+  assert.equal(game.dom.element('capacity-value').textContent, '0 stored · four separate limits');
   const reloaded = boot(storage);
   assert.equal(reloaded.saved().players[0].storageUpgrades, 1);
-  assert.equal(reloaded.dom.element('capacity-value').textContent, '0 of 15 stored');
+  assert.equal(reloaded.dom.element('capacity-value').textContent, '0 stored · four separate limits');
 });
 
 test('converting at full storage opens the discard choice without losing the gain', () => {
   const storage=createStorage(),state=boot(storage).saved();
-  state.players[0].resources={matter:9,energy:0,biomass:0,data:1};
+  state.players[0].resources={matter:4,energy:0,biomass:0,data:1};
   state.players[0].hand=[{id:'full-conversion',key:'construct',starter:true},{id:'keep-conversion',key:'move',starter:true}];
   writeSave(storage,state);
   const game=boot(storage);
   assert.equal(game.dom.element('convert-all-button').disabled,false);
   game.click('convert-all-button');
   assert(game.dialog('overflow').open);
-  assert.equal(game.saved().players[0].resources.matter,10);
+  assert.equal(game.saved().players[0].resources.matter,5);
   assert.equal(game.saved().players[0].resources.data,1);
   assert.equal(game.saved().players[0].hand.length,1);
 });
@@ -539,10 +544,10 @@ test('Production readout includes Harvesters and per-group collection and reacts
  const explorerData=coords('data').find(k=>k!==data);state.fleets[explorerData]={0:{explorer:1}};
  state.players[0].resources={matter:10,energy:0,biomass:0,data:0};
  writeSave(storage,state);const game=boot(storage);
- assert.deepEqual(productionNumbers(game),{matter:3,energy:2,biomass:1,data:0});
+ assert.deepEqual(productionNumbers(game),{matter:1,energy:2,biomass:1,data:0});
  assert.deepEqual(game.saved().players[0].resources,state.players[0].resources,'Forecast never collects resources or caps the gross gain');
  const updated=game.saved();updated.planets[occupiedMatter].occupiedBy=null;delete updated.fleets[occupiedMatter];updated.planets[energy].owner=null;updated.fleets[biomass][0]={explorer:1};writeSave(storage,updated);
- assert.deepEqual(productionNumbers(boot(storage)),{matter:4,energy:1,biomass:0,data:0});
+ assert.deepEqual(productionNumbers(boot(storage)),{matter:2,energy:1,biomass:0,data:0});
 });
 
 test('Probe resolves from empty space without selecting or reaching a world',()=>{
@@ -686,7 +691,7 @@ test('starter upgrade UI pays two of the selected resource and preserves Buy', (
  assert(boot(storage).saved().players[0].hand[0].upgraded);
 });
 
-test('Shipyard offers commissions without an upgrade; Harvester still offers level II', () => {
+test('Buildings have no upgrade actions; Shipyard still offers commissions', () => {
  const storage=createStorage(),state=boot(storage).saved(),coord=state.clusters[0].coords[1];
  Object.assign(state,{selected:coord,actionMode:null,actionCardId:null,actionOptions:{}});
  Object.assign(state.planets[coord],{owner:0,upgrade:'starbase',upgradeLevel:1});
@@ -701,7 +706,7 @@ test('Shipyard offers commissions without an upgrade; Harvester still offers lev
  state.planets[coord].upgrade='harvester';writeSave(storage,state);
  const harvester=boot(storage);
  harvester.dom.lastQuery('[data-order-card]').find(b=>b.dataset.orderCard==='yard-order').click();
- assert(harvester.dom.contextButton('Upgrade Harvester to II'));
+ assert.equal(harvester.dom.contextButton('Upgrade Harvester to II'),undefined);
 });
 
 test('decisive combat awards Prestige once and the saved report preserves it', () => {
@@ -757,7 +762,7 @@ test('export downloads a private read-only report without using RNG or changing 
 
 test('history is uncapped, persists resource transactions, and marks unavailable history partial', () => {
  const storage=createStorage(),state=boot(storage).saved();
- state.players[0].storageUpgrades=1000;state.players[0].resources={matter:400,energy:0,biomass:0,data:0};writeSave(storage,state);
+ state.players[0].storageUpgrades=1000;state.players[0].resourceLimits={matter:1000,energy:1000,biomass:1000,data:1000};state.players[0].resources={matter:400,energy:0,biomass:0,data:0};writeSave(storage,state);
  const game=boot(storage),before=game.saved(),calls=game.randomCalls();
  assert(game.dom.element('bank-exchange-button').disabled);
  game.click('bank-give-matter');assert(game.dom.element('bank-exchange-button').disabled);
@@ -815,9 +820,8 @@ test('a complete browser game exports setup through victory and retains its hist
    if(state.pendingCombatReport)game.click('message-continue');
    else if(state.pendingCombat){game.dom.lastQuery('[data-combat-action]')[0].click();game.settle();}
    else if(game.dialog('overflow').open){
-     const player=state.players[0],capacity=10+5*player.storageUpgrades;
-     let excess=Object.values(player.resources).reduce((a,b)=>a+b,0)-capacity;
-     for(const resource of ['matter','energy','biomass','data']) {const amount=Math.min(excess,player.resources[resource]);game.dom.element('overflow-'+resource).value=String(amount);excess-=amount;}
+     const player=state.players[0];
+     for(const resource of ['matter','energy','biomass','data']) game.dom.element('overflow-'+resource).value=String(Math.max(0,player.resources[resource]-player.resourceLimits[resource]));
      fire(game.dom.element('overflow-form'),'submit',{cancelable:true});game.settle();
    } else game.click(state.phase==='buy'?'finish-buy-button':'pass-button');
  }
@@ -879,6 +883,22 @@ test('Undo returns newly played cards to hand without leaving a second copy in p
 });
 test('Trade Consortium commits into play on its first exchange across reload',()=>{
  const storage=consortiumSave(),game=boot(storage);game.dom.element('consortium-give').value='matter';game.dom.element('consortium-get').value='energy';fire(game.dom.element('consortium-form'),'submit');game.settle();assert.equal(game.saved().players[0].hand.length,0);assert.equal(game.saved().players[0].inPlay.filter(c=>c.id==='choice-card').length,1);const reload=boot(storage);assert(reload.dialog('consortium').open);reload.click('consortium-finish');assert.equal(reload.saved().players[0].inPlay.filter(c=>c.id==='choice-card').length,1);
+});
+
+
+test('storage allocations cancel atomically, survive commitment and undo with the turn',()=>{
+ const storage=createStorage(),state=boot(storage).saved();state.players[0].resources={matter:2,energy:2,biomass:2,data:2};writeSave(storage,state);
+ let game=boot(storage),before=game.saved();game.click('upgrade-storage-button');assert(game.dialog('storage-allocation').open);
+ for(const r of ['matter','energy','biomass','data'])game.dom.element('storage-points-'+r).value='0';
+ game.dom.element('storage-points-data').value='3';fire(game.dom.element('storage-points-data'),'input');assert(game.dom.element('storage-allocation-confirm').disabled);
+ fire(game.dom.element('storage-allocation-form'),'submit',{cancelable:true});assert.deepEqual(game.saved(),before);
+ game.click('storage-allocation-cancel');assert(!game.dialog('storage-allocation').open);assert.deepEqual(game.saved(),before);
+ game.click('upgrade-storage-button');game.dom.element('storage-points-data').value='4';fire(game.dom.element('storage-points-data'),'input');game=boot(storage);assert.deepEqual(game.saved(),before,'Reloading a draft spends nothing');
+ game.click('upgrade-storage-button');for(const r of ['matter','energy','biomass','data'])game.dom.element('storage-points-'+r).value='1';fire(game.dom.element('storage-points-data'),'input');
+ fire(game.dom.element('storage-allocation-form'),'submit',{cancelable:true});game.settle();assert.deepEqual(game.saved().players[0].resourceLimits,{matter:5,energy:5,biomass:5,data:5});
+ game.click('export-game-report');const report=game.downloads.at(-1);assert.deepEqual(report.save.state.players[0].resourceLimits,game.saved().players[0].resourceLimits);
+ assert(report.save.gameHistory.events.some(e=>e.changes.some(c=>c.path.join('.')==='players.0.resourceLimits.data')));
+ const reload=boot(storage);assert.deepEqual(reload.saved(),game.saved());reload.click('pass-button');reload.click('undo-turn-button');assert.deepEqual(reload.saved().players[0].resourceLimits,before.players[0].resourceLimits);
 });
 
 let failed = 0;

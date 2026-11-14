@@ -152,8 +152,8 @@ r.playOrder(order.id); assert.equal(r.state.actionMode,'move'); assert.equal(r.s
 r.playOrder(order.id); assert.equal(r.state.actionMode,null,'Clicking again cancels without spending the card');
 assert.equal(r.state.players[0].hand.length,1);
 const old='untouched-v4-save'; storage.set('galactic-reach-save-v4',old);
-assert.equal(r.SAVE_KEY,'galactic-reach-save-v27');
-assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v27');
+assert.equal(r.SAVE_KEY,'galactic-reach-save-v28');
+assert.equal(r.TURN_HISTORY_KEY,'galactic-reach-turn-history-v28');
 const saved=JSON.stringify(fresh(123)); r.saveGame(); fresh(456);
 assert(r.loadGame()); assert.equal(JSON.stringify(r.state),saved,'Reload retains randomized placement');
 assert.equal(storage.get('galactic-reach-save-v4'),old);
@@ -194,7 +194,7 @@ assert.equal(r.state.tradeOffers[0].status,'open','Offer survives save and reloa
 assert(!r.respondTrade(2,1,'accept'),'Only the current responder may act');
 assert(r.respondTrade(1,1,'reject')); assert.equal(r.state.tradeOffers[0].status,'open');
 assert(!r.respondTrade(1,1,'accept'),'A rejected offer cannot be accepted by the same faction');
-r.state.activePlayer=2;
+r.state.activePlayer=2;r.state.players[2].resourceLimits.matter=5;
 assert(r.respondTrade(2,1,'accept'));
 assert.equal(r.state.players[0].resources.matter,1); assert.equal(r.state.players[0].resources.energy,4);
 assert.equal(r.state.players[2].resources.matter,5); assert.equal(r.state.players[2].resources.energy,2);

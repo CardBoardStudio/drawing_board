@@ -20,9 +20,9 @@ function game() {
 
 {
   const { e, s, adapter } = game();
-  assert.equal(adapter().rulesVersion, 'galactic-reach/27.32');
-  assert.equal(s.version, 27);
-  assert.equal(s.rulesRevision, 32);
+  assert.equal(adapter().rulesVersion, 'galactic-reach/28.33');
+  assert.equal(s.version, 28);
+  assert.equal(s.rulesRevision, 33);
   assert(!('awards' in s));
   assert(!('DIRECTIVES' in e));
   const score = e.calculatePrestige(0);
@@ -107,27 +107,27 @@ for (const resource of ['matter', 'energy', 'biomass', 'data']) {
   const before = JSON.stringify(s);
   assert.throws(() => a.applyAction(0, { type: 'pass' }), /Illegal/);
   assert(!e.discardOverflow(0, { matter: -1, data: 4 }));
-  assert(!e.discardOverflow(0, { matter: 4 }));
+  assert(!e.discardOverflow(0, { matter: 5 }));
   assert(!e.discardOverflow(0, { unknown: 3 }));
   assert.equal(JSON.stringify(s), before);
-  a.applyAction(0, { type: 'discard_overflow', resource: 'matter', amount: 3 });
-  assert.deepEqual(plain(p.resources), { matter: 5, energy: 2, biomass: 0, data: 3 });
+  a.applyAction(0, { type: 'discard_overflow', resource: 'matter', amount: 4 });
+  assert.deepEqual(plain(p.resources), { matter: 4, energy: 2, biomass: 0, data: 3 });
   assert.equal(e.overflowPlayer(), -1);
   assert.equal(a.activeSeat(), s.activePlayer);
 }
 
 {
   const { e, s, p, adapter } = game();
-  p.resources = { matter: 9, energy: 1, biomass: 0, data: 0 };
+  p.resources = { matter: 0, energy: 4, biomass: 0, data: 0 };
   p.hand = [{ key: 'move', id: 'convert' }, { key: 'construct', id: 'keep' }];
   const a = adapter();
   const action = a.legalActions(0).find(item => item.type === 'resource' && item.card === 'convert');
   assert(action, 'A full store can collect a card conversion');
   a.applyAction(0, action);
-  assert.equal(p.resources.energy, 2);
+  assert.equal(p.resources.energy, 5);
   assert.equal(p.hand.length, 1);
   assert(a.legalActions(0).every(item => item.type === 'discard_overflow'));
-  a.applyAction(0, { type: 'discard_overflow', resource: 'matter', amount: 1 });
+  a.applyAction(0, { type: 'discard_overflow', resource: 'energy', amount: 1 });
   assert.equal(s.activePlayer, 0);
   assert.equal(s.phase, 'operations');
   assert(a.legalActions(0).some(item => item.type === 'resource' && item.card === 'keep'));
@@ -135,7 +135,7 @@ for (const resource of ['matter', 'energy', 'biomass', 'data']) {
 
 {
   const { e, s, adapter } = game();
-  s.players.forEach(player => { player.resources = { matter: 10, energy: 0, biomass: 0, data: 0 }; player.hand = []; });
+  s.players.forEach(player => { player.resourceLimits.matter=10; player.resources = { matter: 10, energy: 0, biomass: 0, data: 0 }; player.hand = []; });
   for (let seat = 0; seat < 4; seat++) { e.passOperations(seat); e.nextBuyPlayer(); }
   assert.equal(s.round, 2);
   assert.equal(s.activePlayer, 1);
@@ -157,7 +157,7 @@ for (const key of ['salvageCrews', 'naniteOssuary']) {
     '1,0': { 1: { settler: 0, explorer: 0, fleet: 1 } }
   };
   for (const seat of [0, 1]) {
-    s.players[seat].resources = { matter: 0, energy: 0, biomass: 0, data: 10 };
+    s.players[seat].resources = { matter: 4, energy: 4, biomass: 0, data: 4 };
     s.players[seat].hand = [{ key, id: `salvage-${seat}` }];
   }
   assert(e.executeMove(0, '0,0', '1,0', { moveGroup: 'ships' }));
@@ -165,11 +165,12 @@ for (const key of ['salvageCrews', 'naniteOssuary']) {
   const excess = key === 'naniteOssuary' ? 4 : 2;
   const a = adapter();
   for (const seat of [0, 1]) {
-    assert.equal(s.players[seat].resources.matter, 2, 'Both factions collect the full combat salvage');
-    assert.equal(e.totalResources(s.players[seat]), 10 + excess, 'Combat cleanup preserves excess resources');
+    assert.equal(s.players[seat].resources.matter, 6, 'Both factions collect the full combat salvage');
+    assert.equal(e.totalResources(s.players[seat]), 12 + excess, 'Combat cleanup preserves excess resources');
     assert.equal(a.activeSeat(), seat);
-    a.applyAction(seat, { type: 'discard_overflow', resource: 'data', amount: excess });
-    assert.equal(s.players[seat].resources.matter, 2, 'The chosen discard preserves the collected salvage');
+    a.applyAction(seat, { type: 'discard_overflow', resource: 'matter', amount: 2 });
+    if(excess===4)a.applyAction(seat, { type: 'discard_overflow', resource: 'data', amount: 2 });
+    assert.equal(s.players[seat].resources.matter, 4, 'Only each over-limit resource supplies its own excess');
   }
   assert.equal(e.overflowPlayer(), -1);
 }

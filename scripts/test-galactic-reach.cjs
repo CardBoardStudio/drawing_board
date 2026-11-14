@@ -14,7 +14,7 @@ function engine() {
   return {port,adapter};
 }
 const {port,adapter}=engine();
-assert.equal(adapter.rulesVersion,'galactic-reach/27.32');
+assert.equal(adapter.rulesVersion,'galactic-reach/28.33');
 const before=JSON.stringify(port.state);
 adapter.legalActions(0);adapter.observe(0);
 assert.equal(JSON.stringify(port.state),before,'Observation and legality must not mutate state');
@@ -24,19 +24,19 @@ assert.throws(()=>adapter.applyAction(0,{...action,gain:{data:100}}),/Illegal ac
 assert.equal(JSON.stringify(port.state),before);
 // Retain direct coverage of construction, upgrades, colonization, and purchases.
 const e=engine().port, home=e.state.clusters[0], p=e.state.players[0];
-p.storageUpgrades=20;p.resources={matter:20,energy:20,biomass:20,data:20};
+p.storageUpgrades=20;p.resourceLimits={matter:1000,energy:1000,biomass:1000,data:1000};p.resources={matter:20,energy:20,biomass:20,data:20};
 assert(e.buildUpgrade(0,home.coords[1],'starbase'));
 assert(e.buildShip(0,home.coords[1],'fleet'));
 assert(!e.buildShip(0,home.center,'explorer'));assert(e.buildShip(0,home.coords[1],'explorer'));
-assert(e.increaseStorage(0));
-assert(e.increaseStorage(0));
+assert(e.increaseStorage(0,{matter:1,energy:1,biomass:1,data:1}));
+assert(e.increaseStorage(0,{matter:1,energy:1,biomass:1,data:1}));
 const center=e.state.clusters[4].center;
 e.state.fleets[center]={0:{settler:1,explorer:0,fleet:0}};
 assert(e.colonizePlanet(0,center));assert(!e.colonizePlanet(0,center));
 e.state.phase='buy';assert(e.buyCard(0,'market',0));assert(e.upgradeStarter(0,p.hand.find(c=>c.starter).id,'energy'));
 // Open offers and free responses use exactly the same rule functions in the arena.
 const t=engine();
-for (const player of t.port.state.players) player.resources={matter:3,energy:3,biomass:0,data:0};
+for (const player of t.port.state.players) {player.resourceLimits={matter:10,energy:10,biomass:10,data:10};player.resources={matter:3,energy:3,biomass:0,data:0};}
 const offer=t.adapter.legalActions(0).find(a=>a.type==='trade_offer'&&a.giveType==='matter'&&a.getType==='energy'&&a.giveAmount===2&&a.getAmount===1);
 assert(offer);
 t.adapter.applyAction(0,offer); assert.equal(t.adapter.activeSeat(),1);

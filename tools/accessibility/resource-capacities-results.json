@@ -1,0 +1,115 @@
+{
+  "rulesVersion": "galactic-reach/28.33",
+  "tool": "axe-core 4.14.0",
+  "scope": "WCAG 2.2 A/AA tags and best practices; desktop only",
+  "sourceHashes": {
+    "app.js": "68e68f4f6f6ba4162c08d69ce50d5048b51f194dad4655cec5f89f15b5ebee6e",
+    "index.html": "ad277a59dc5265846e7b4cea296da00611f923c3274ca1ce64c9530ac0f49033",
+    "styles.css": "cc915e33b5ef1dc4c726455f3098b0623e1c1da3bf5930f8baac796932ca675e",
+    "rulebook.html": "472bc4828193ab3d4d04254621a0e26dc53d6d22c21b803b9dc2f2839b9a9522",
+    "rulebook.css": "66776225d3838d9ca61feab5402a6af433798f0cee9f4e8a603dbaaa1c8e0b91",
+    "playtest-notes.js": "c2c4d6867ca1f005795a654486f687bd086938917215362f25b4c172fce1a740",
+    "playtest-notes.css": "3d8484181349c1720319d84189340fa6732ce9b7d7dee355019fc8ab0a5cef0d"
+  },
+  "cases": [
+    {
+      "case": "fresh-rulebook-page-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "axeViolations": 0,
+      "textContrastFailures": 0,
+      "mapContrastFailures": 0,
+      "rawReviewItems": 1
+    },
+    {
+      "case": "buy-market-page-1920",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "axeViolations": 0,
+      "textContrastFailures": 0,
+      "mapContrastFailures": 0,
+      "rawReviewItems": 1
+    },
+    {
+      "case": "storage-hand-storage-allocation-dialog-1280",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "axeViolations": 0,
+      "textContrastFailures": 0,
+      "mapContrastFailures": 0,
+      "rawReviewItems": 1
+    },
+    {
+      "case": "cradle-hand-storage-allocation-dialog-1280",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "axeViolations": 0,
+      "textContrastFailures": 0,
+      "mapContrastFailures": 0,
+      "rawReviewItems": 1
+    },
+    {
+      "case": "mixed-hand-page-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "axeViolations": 0,
+      "textContrastFailures": 0,
+      "mapContrastFailures": 0,
+      "rawReviewItems": 1
+    },
+    {
+      "case": "mixed-hand-page-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 1000
+      },
+      "axeViolations": 0,
+      "textContrastFailures": 0,
+      "mapContrastFailures": 0,
+      "rawReviewItems": 1
+    },
+    {
+      "case": "storage-hand-page-1280",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "axeViolations": 0,
+      "textContrastFailures": 0,
+      "mapContrastFailures": 0,
+      "rawReviewItems": 1
+    },
+    {
+      "case": "overflow-hand-overflow-dialog-1280",
+      "viewport": {
+        "width": 1280,
+        "height": 1000
+      },
+      "axeViolations": 0,
+      "textContrastFailures": 0,
+      "mapContrastFailures": 0,
+      "rawReviewItems": 0
+    }
+  ],
+  "manualChecks": [
+    "1024, 1280, 1440 and 1920 CSS-pixel desktop layouts fit without page overflow.",
+    "Shared standings and corner references do not overlap the map.",
+    "Single and mixed 2/4/5-symbol hexes reviewed; all eight sample count badges, including 10, fit within the hex polygon.",
+    "Card effect text is 16px; resource names do not overflow their tiles.",
+    "Allocation inputs show proposed limits; confirmation requires exactly four points.",
+    "Escape cancels the uncommitted selector and returns focus to the capacity button.",
+    "Paid and free allocations commit through the real UI; free relic can cancel without consuming the card.",
+    "Canonical capacity section navigation works."
+  ],
+  "limits": "Automated and keyboard evidence for tested states; no spoken screen-reader or mobile testing. Raw gradient indeterminates retained and reviewed with conservative contrast bounds."
+}

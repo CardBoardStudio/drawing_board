@@ -1274,3 +1274,4 @@ summary:focus-visible, input:focus-visible, select:focus-visible { outline: 2px 
   .resource-box .resource-limit { grid-column:1 / -1; grid-row:4; text-align:center; }
   #capacity-value, #storage-upgrade-help { font-size:13px; line-height:1.5; }
 }
+.faction-counter { color:#fff5df; }

@@ -215,35 +215,6 @@ p { line-height: 1.55; }
 .board-icon { position: relative; width: clamp(13px,1.45vw,18px); height: clamp(13px,1.45vw,18px); display: inline-grid; place-items: center; filter: drop-shadow(0 1px 1px rgba(0,0,0,.75)); }
 .board-glyph { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2.15; stroke-linecap: round; stroke-linejoin: round; }
 .board-icon-count { position: absolute; top: -5px; right: -5px; min-width: 11px; height: 11px; padding: 0 2px; display: grid; place-items: center; border-radius: 6px; background: #f7fbff; color: #07101a; font-size: 7px; font-weight: 750; line-height: 1; }
-/* Each ship type gets an in-bounds icon and count; negative badge offsets clip mixed fleets. */
-.hex-fleets { top: 18%; width: 84%; flex-direction: column; gap: 1px; }
-.hex-fleet-group { width: 100%; gap: 1px; }
-.hex-fleets .board-icon {
-  flex: 0 1 16px;
-  min-width: 0;
-  width: 16px;
-  height: 21px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-.hex-fleets .board-glyph { height: 11px; flex: 0 0 11px; }
-.hex-fleets .board-icon-count {
-  position: static;
-  min-width: 9px;
-  height: 9px;
-  padding: 0 1px;
-  font-size: 8px;
-  line-height: 9px;
-}
-.hex-buildings { bottom: 8%; }
-.hex-buildings .board-icon { width: 12px; height: 12px; }
-.hex:has(.hex-fleet-group + .hex-fleet-group) .hex-fleets { top: 6%; width: 72%; }
-.hex:has(.hex-fleet-group + .hex-fleet-group) .hex-buildings .board-icon { width: 10px; height: 10px; }
-.hex.space:has(.hex-fleet-group + .hex-fleet-group) .hex-fleets { top: 50%; }
-.hex:has(.hex-fleet-group + .hex-fleet-group) .board-icon { height: 14px; }
-.hex:has(.hex-fleet-group + .hex-fleet-group) .board-glyph { height: 6px; flex-basis: 6px; }
-.hex:has(.hex-fleet-group + .hex-fleet-group) .board-icon-count { height: 8px; font-size: 7px; line-height: 8px; }
 
 .hex .special { position: absolute; top: 18%; right: 18%; color: var(--gold); font-size: 10px; line-height: 1; }
 @keyframes target-pulse { 50% { filter: brightness(1.45); } }
@@ -1217,4 +1188,89 @@ summary:focus-visible, input:focus-visible, select:focus-visible { outline: 2px 
   .personal-report { margin-top: 4px; }
   .board-reference .prestige-legend, .board-reference .log-panel { grid-column: auto; }
   .player-tableau :is(button,input,select,a,[tabindex]) { scroll-margin-top: 116px; scroll-margin-bottom: 20px; }
+}
+
+/* Each resource owns its limit; capacity points are assigned before payment. */
+.resource-limit { display:block; color:var(--muted); font-size:10px; line-height:1.4; overflow-wrap:anywhere; }
+.storage-allocation-dialog { width:600px; max-width:calc(100vw - 40px); }
+.storage-allocation-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin:20px 0; }
+.storage-allocation-option { display:flex; align-items:center; gap:10px; padding:14px; border:1px solid var(--line-bright); border-radius:7px; background:#162d30; }
+.storage-allocation-option>span:not(.resource-symbol) { flex:1; font-weight:650; }
+.storage-allocation-option small { display:block; margin-top:5px; color:var(--muted); font-weight:400; font-size:12px; }
+.storage-allocation-option input { width:64px; min-height:42px; padding:8px; }
+#storage-allocation-status { color:var(--gold); }
+
+/* Desktop pieces share the hex interior. A lone piece fills it; only crowded
+   hexes divide that space, including buildings and located relic markers. */
+.hex .hex-pieces {
+  position:absolute; inset:20% 10%; display:grid;
+  grid-template-columns:repeat(var(--marker-columns,1),minmax(0,1fr));
+  grid-template-rows:repeat(var(--marker-rows,1),minmax(0,1fr));
+  align-items:center; justify-items:center; gap:0;
+}
+.hex[data-markers="1"] .hex-pieces { inset:12% 8%; }
+.hex .hex-pieces :is(.hex-fleets,.hex-buildings,.hex-fleet-group) { display:contents; }
+.hex .hex-pieces .board-icon {
+  position:relative; display:grid; place-items:center; width:100%; height:100%; min-width:0;
+  max-width:100%; flex:none;
+}
+.hex .hex-pieces .board-glyph { width:100%; height:100%; flex:none; }
+.hex .hex-pieces .board-icon-count {
+  position:absolute; inset:auto 0 0 auto; display:grid; min-width:11px; height:11px;
+  padding:0 1px; font:800 10px/11px ui-sans-serif,system-ui,sans-serif;
+  background:#fff7df; color:#102126; border-radius:3px;
+}
+.hex .hex-pieces .special {
+  position:static; display:grid; place-items:center; width:100%; height:100%;
+  transform:none; font-size:clamp(12px,1.7vw,24px); line-height:1; color:var(--gold);
+  text-shadow:0 1px 2px #07101a;
+}
+.hex .hex-pieces .special:empty { display:none; }
+.hex[data-markers="3"] .hex-pieces > .special:not(:empty) { grid-column:1 / -1; width:50%; }
+
+/* Readable table labels and card text at ordinary desktop zoom. */
+@media (min-width:761px) {
+  .board-canvas { --board-map-width:840px; }
+  .galaxy-board, .has-saved-table .galaxy-board, .has-replay .galaxy-board { width:840px; min-width:840px; }
+  .board-heading .board-inscription span:last-child, .brand-block .eyebrow { font-size:11px; }
+  .button, .header-actions .button, .board-toolbar .button, .map-tools .button { font-size:14px; }
+  .board-toolbar #turn-instruction { font-size:14px; max-width:480px; }
+  .board-key p, .board-key a, .board-resource-key, .prestige-legend, .game-log,
+  .personal-report .button, .personal-report #history-status { font-size:13px; line-height:1.5; }
+  .score-name { font-size:15px; white-space:normal; }
+  .score-meta { font-size:12px; line-height:1.5; }
+  .score-turn, .score-value small, .goal-token small { font-size:11px; }
+  .score-card { gap:8px; padding:12px; }
+  .score-value { font-size:30px; }
+  .resource-name, .resource-box .resource-name, .resource-limit, .resource-production { font-size:13px; }
+  .capacity-line, .storage-upgrade-button, .resource-tools summary, .pile-stats > button,
+  .bank-resource-button, .console-tab, .table-jump { font-size:14px; }
+  .section-intro p { font-size:14px; }
+  .card-effect { font-size:16px; line-height:1.5; }
+  .card-type, .card-footer small, .card-lore, .card-buttons .muted { font-size:12px; }
+  .card-buttons .button { min-height:42px; font-size:14px; }
+  .game-card .resource-chip strong { font-size:13px; }
+  .decommission-list, .decommission-list label, .decommission-list .button { font-size:14px; }
+  .dialog-close { font-size:14px; }
+  .storage-allocation-option small { font-size:14px; }
+}
+@media (min-width:761px) and (max-width:1380px) {
+  .board-canvas { min-width:840px; grid-template-columns:repeat(2,minmax(0,1fr)); grid-template-rows:repeat(5,auto); }
+  .board-shared .score-card { max-width:380px; }
+  .board-shared .score-card:nth-child(3), .board-shared .score-card:nth-child(4) { grid-column:2; justify-self:end; }
+  .board-map-region { grid-column:1 / -1; grid-row:4; }
+  .board-key { grid-column:1; grid-row:5; max-width:380px; }
+  .board-reference { grid-column:2; grid-row:5; max-width:380px; justify-self:end; }
+}
+
+.hex[data-markers="1"] .hex-pieces .board-icon-count { bottom:17%; }
+@media (min-width:761px) {
+  .resource-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .resource-box { display:grid; grid-template-columns:22px minmax(0,1fr); gap:3px 5px; padding:9px 7px; }
+  .resource-box > .resource-symbol { grid-column:1; grid-row:1; width:22px; height:22px; padding:3px; margin:0; }
+  .resource-box .resource-name { grid-column:2; grid-row:1; text-align:left; font-size:12px; letter-spacing:0; text-transform:none; }
+  .resource-box .resource-amount { grid-column:1 / -1; grid-row:2; font-size:26px; text-align:center; }
+  .resource-box .resource-production { grid-column:1 / -1; grid-row:3; font-size:13px; text-align:center; }
+  .resource-box .resource-limit { grid-column:1 / -1; grid-row:4; text-align:center; }
+  #capacity-value, #storage-upgrade-help { font-size:13px; line-height:1.5; }
 }

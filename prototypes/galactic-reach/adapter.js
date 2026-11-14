@@ -17,7 +17,7 @@ function createGalacticAdapter(e) {
       combat: e.combatView(seat), seat, round: state.round, phase: state.phase, firstPlayer: state.firstPlayer, overflowPlayer: e.overflowPlayer(),
       players: state.players.map((p, id) => ({
         id, resources: p.resources, relicsExcavated: e.excavatedRelicCount(id), combatVictories: p.combatVictories || 0, storageUpgrades: p.storageUpgrades, storagePurchases: p.storagePurchases || 0, storageUpgradeCost: e.storageUpgradeCost(id),
-        prestige: e.calculatePrestige(id), capacity: e.playerCapacity(id),
+        prestige: e.calculatePrestige(id), capacity: e.playerCapacity(id), resourceLimits: e.resourceLimits(id),
         hand: id === seat ? p.hand : undefined, discard: p.discard, inPlay: p.inPlay,
         handCount: p.hand.length, deckCount: p.deck.length, deckContents: id === seat ? e.deckContents(p) : undefined,
         passed: p.passed
@@ -42,8 +42,8 @@ function createGalacticAdapter(e) {
       cached=e.combatActions(seat);return e.clone(cached);
     }
     if (e.overflowPlayer() >= 0) {
-      const excess = e.totalResources(p) - e.playerCapacity(seat);
-      for (const resource of e.RESOURCES) for (let amount = 1; amount <= Math.min(excess,p.resources[resource]); amount++)
+      const excess = e.resourceExcess(seat);
+      for (const resource of e.RESOURCES) for (let amount = 1; amount <= excess[resource]; amount++)
         actions.push({type:'discard_overflow',resource,amount});
       cached = actions;
       return e.clone(actions);
@@ -132,10 +132,13 @@ function createGalacticAdapter(e) {
             if(e.excavate(seat,coord,card.id,relic.id,true)) actions.push({type:'excavate',...base,coord,relic:relic.id});
           });
         });
-        if (def.order === 'special') actions.push({ type: 'special', ...base });
+        if (def.order === 'special') {
+          if(def.tag==='alienCradle') for(const allocation of e.storageAllocations(e.RELIC_STORAGE_POINTS)) actions.push({type:'special',...base,allocation});
+          else actions.push({ type: 'special', ...base });
+        }
       });
     }
-    if (e.canIncreaseStorage(seat)) actions.push({type:'increase_storage'});
+    if (e.canIncreaseStorage(seat)) for(const allocation of e.storageAllocations()) actions.push({type:'increase_storage',allocation});
     if (e.canManageResources(seat)) {
       for (const resource of e.RESOURCES) {
         for (let amount = 1; amount <= p.resources[resource]; amount++) actions.push({type:'discard_resources',resource,amount});
@@ -160,7 +163,7 @@ function createGalacticAdapter(e) {
       case 'consortium_exchange': e.consortiumExchange(seat,action.giveType,action.getType); return;
       case 'finish_consortium': e.finishConsortium(seat); return;
       case 'cancel_consortium': e.finishConsortium(seat,true); return;
-      case 'increase_storage': e.increaseStorage(seat); return;
+      case 'increase_storage': e.increaseStorage(seat,action.allocation); return;
       case 'bank_trade': e.bankTrade(seat,action.giveType,action.getType); return;
       case 'discard_resources': e.discardResources(seat,action.resource,action.amount); return;
       case 'trade_offer': e.offerTrade(seat,action); return;
@@ -182,7 +185,7 @@ function createGalacticAdapter(e) {
       case 'move': e.performMoveOrder(seat, action.source, action.destination, card, { tag: def.tag, moveGroup: action.moveGroup }); return;
       case 'probe': e.probeRelic(seat,action.coord,action.card); return;
       case 'excavate': e.excavate(seat,action.coord,action.card,action.relic); return;
-      case 'special': e.resolveHumanSpecial(card, def, seat); return;
+      case 'special': e.resolveHumanSpecial(card, def, seat, action.allocation); return;
       default: throw new Error('Unknown action.');
     }
     e.removeHandCard(p, action.card);
@@ -203,6 +206,6 @@ function createGalacticAdapter(e) {
     const seat = activeSeat();
     return { active: seat, observation: seat === null ? null : observe(seat), legal: legalActions(seat), scores: scores() };
   }
-  return { rulesVersion: 'galactic-reach/27.32', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
+  return { rulesVersion: 'galactic-reach/28.33', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = createGalacticAdapter;

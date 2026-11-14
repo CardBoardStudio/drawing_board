@@ -19,7 +19,7 @@ function act(g,type,condition=()=>true) {
   assert(action,`Expected legal ${type}`);g.adapter.applyAction(seat,action);return action;
 }
 for(const phase of ['operations','buy']) {
-  const g=engine(),s=g.port.state,p=s.players[0];s.phase=phase;p.resources={matter:2,energy:8,biomass:0,data:0};
+  const g=engine(),s=g.port.state,p=s.players[0];s.phase=phase;p.resourceLimits={matter:12,energy:12,biomass:12,data:12};p.resources={matter:2,energy:8,biomass:0,data:0};
   const beforeTracks=JSON.stringify(p.tracks),beforeHand=JSON.stringify(p.hand),beforeStage=s.turnStage;
   const bank=act(g,'bank_trade',a=>a.giveType==='energy'&&a.getType==='data');
   assert.deepEqual(plain(p.resources),{matter:2,energy:4,biomass:0,data:1});
@@ -60,13 +60,13 @@ for(const version of [6,7]) {
 {
   const g=engine(),s=g.port.state,p=s.players[0];
   p.hand=[];p.discard=[{id:'trash1',key:'move',starter:true},{id:'trash2',key:'construct',starter:true,upgraded:true},{id:'trash3',key:'excavate'}];
-  p.resources={matter:0,energy:0,biomass:0,data:6};act(g,'pass');
+  p.resourceLimits.data=6;p.resources={matter:0,energy:0,biomass:0,data:6};act(g,'pass');
   act(g,'decommission',a=>a.card==='trash1');act(g,'decommission',a=>a.card==='trash2');
   assert.equal(p.resources.data,0);assert.deepEqual(plain(p.discard.map(c=>c.id)),['trash3']);
   assert(!g.adapter.legalActions(0).some(a=>a.type==='decommission'));assert.equal(s.phase,'buy');
 }
 function consortiumGame(resources={matter:4,energy:0,biomass:0,data:0}) {
-  const g=engine(),p=g.port.state.players[0];p.hand=[{id:'consortium',key:'tradeConsortium'}];p.resources=resources;
+  const g=engine(),p=g.port.state.players[0];p.hand=[{id:'consortium',key:'tradeConsortium'}];p.resourceLimits={matter:12,energy:12,biomass:12,data:12};p.resources=resources;
   act(g,'special');assert.equal(p.hand.length,1);assert.equal(g.adapter.activeSeat(),0);return g;
 }
 {
@@ -112,7 +112,7 @@ vm.runInContext(source.slice(0,boot)+`
     saveGame,loadGame,SAVE_KEY,describeDecision,constructAt};
 }`,context);
 const r=context.createGalacticReach({onTab:name=>tabs.push(name),storage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)}});
-function fresh(){r.state=r.newState();r.state.phase='operations';r.state.activePlayer=0;r.state.turnStage='prep';return r.state;}
+function fresh(){r.state=r.newState();r.state.phase='operations';r.state.activePlayer=0;r.state.turnStage='prep';r.state.players.forEach(p=>p.resourceLimits={matter:10,energy:10,biomass:10,data:10});return r.state;}
 function card(key,upgraded=false){return {...r.makeCard(key,true),upgraded};}
 {
   const s=fresh(),p=s.players[0],move=card('move');s.planets={};s.fleets={'0,0':{0:{settler:1,explorer:1}}};p.hand=[move,card('move')];
@@ -155,7 +155,7 @@ function card(key,upgraded=false){return {...r.makeCard(key,true),upgraded};}
   const s=fresh(),p=s.players[0];p.resources={matter:9,energy:0,biomass:0,data:1};const gain=card('construct',true);p.hand=[gain];
   assert(r.playResourceMode(gain.id));assert.equal(p.hand.length,0);assert.equal(p.resources.matter,11);
   r.saveGame();const pending=JSON.stringify(s);fresh();assert(r.loadGame());assert.equal(JSON.stringify(r.state),pending);
-  assert(r.discardOverflow(0,{matter:2}));assert.equal(r.state.players[0].resources.matter,9);
+  assert(r.discardOverflow(0,{matter:1}));assert.equal(r.state.players[0].resources.matter,10);
   r.saveGame();const expected=JSON.stringify(r.state);fresh();assert(r.loadGame());assert.equal(JSON.stringify(r.state),expected);
   storage.set('galactic-reach-save-v7','parent-game');r.saveGame();assert.equal(storage.get('galactic-reach-save-v7'),'parent-game');
 }

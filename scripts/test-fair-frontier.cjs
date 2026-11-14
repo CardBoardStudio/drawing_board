@@ -37,7 +37,7 @@ function game(){
 for(const kind of ['settler','explorer']){
  const g=game(),yard=g.s.clusters[0].coords[1];
  g.s.planets[yard].owner=0;g.s.planets[yard].upgrade='starbase';g.s.planets[yard].upgradeLevel=1;
- g.p.storageUpgrades=20;g.p.resources={matter:20,energy:20,biomass:20,data:20};
+ g.p.storageUpgrades=20;g.p.resourceLimits={matter:1000,energy:1000,biomass:1000,data:1000};g.p.resources={matter:20,energy:20,biomass:20,data:20};
  g.p.hand=[{key:'construct',id:'commission'}];g.p.discard=[];
  const beforeDeck=JSON.stringify(g.p.deck),calls=g.calls();
  const a=g.adapter(),action=a.legalActions(0).find(x=>x.type==='build'&&x.kind===kind&&x.coord===yard);
@@ -47,7 +47,7 @@ for(const kind of ['settler','explorer']){
  assert.equal(JSON.stringify(g.p.deck),beforeDeck);assert.equal(g.calls(),calls);assert.equal(g.p.cardsPurchased,0);
 }
 for(const source of ['basic','market']){
- const g=game();g.s.phase='buy';g.p.storageUpgrades=20;g.p.resources={matter:20,energy:20,biomass:20,data:20};
+ const g=game();g.s.phase='buy';g.p.storageUpgrades=20;g.p.resourceLimits={matter:1000,energy:1000,biomass:1000,data:1000};g.p.resources={matter:20,energy:20,biomass:20,data:20};
  const beforeDeck=JSON.stringify(g.p.deck),beforeHand=JSON.stringify(g.p.hand),calls=g.calls();
  const a=g.adapter(),action=a.legalActions(0).find(x=>x.type==='buy'&&x.source===source);
  assert(action);a.applyAction(0,action);

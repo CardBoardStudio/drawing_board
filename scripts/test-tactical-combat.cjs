@@ -93,8 +93,8 @@ for(const [units,bonus] of [[{settler:1},1],[{fleet:1},3]]){
 }
 // Salvage overflow resumes after one move completion, never consumes a second card.
 {
- const g=fixture({card:true});for(const seat of [0,1]){g.s.players[seat].hand.push({key:'salvageCrews',id:`salvage${seat}`});g.s.players[seat].resources.data=10;}g.start();stays(g);volley(g);volley(g);
- assert.equal(g.s.activePlayer,1);assert(!g.s.pendingMove);const a=g.adapter();assert.equal(a.activeSeat(),0);assert.equal(g.s.players[0].resources.matter,2);a.applyAction(0,{type:'discard_overflow',resource:'data',amount:2});assert.equal(a.activeSeat(),1);a.applyAction(1,{type:'discard_overflow',resource:'data',amount:2});assert.equal(g.s.players[0].inPlay.filter(c=>c.id==='battle-move').length,1);
+ const g=fixture({card:true});for(const seat of [0,1]){g.s.players[seat].hand.push({key:'salvageCrews',id:`salvage${seat}`});g.s.players[seat].resources.matter=4;}g.start();stays(g);volley(g);volley(g);
+ assert.equal(g.s.activePlayer,1);assert(!g.s.pendingMove);const a=g.adapter();assert.equal(a.activeSeat(),0);assert.equal(g.s.players[0].resources.matter,6);a.applyAction(0,{type:'discard_overflow',resource:'matter',amount:2});assert.equal(a.activeSeat(),1);a.applyAction(1,{type:'discard_overflow',resource:'matter',amount:2});assert.equal(g.s.players[0].inPlay.filter(c=>c.id==='battle-move').length,1);
 }
 // A JSON roundtrip resumes escape, a hidden commitment, and later damaged volleys.
 for(const stage of ['escape','committed','later']){

@@ -9,13 +9,13 @@ function game(prefix='prototypes/galactic-reach/',seed=53){
  return {e,a,s:e.state,calls:()=>calls};
 }
 function bot(g){g.s.activePlayer=1;g.s.phase='operations';g.s.turnStage='ai';g.s.players[1].strategy='military';return g.s.players[1];}
-function funds(p){p.storageUpgrades=100;p.resources={matter:30,energy:30,biomass:30,data:30};}
+function funds(p){p.storageUpgrades=100;p.resourceLimits={matter:1000,energy:1000,biomass:1000,data:1000};p.resources={matter:30,energy:30,biomass:30,data:30};}
 const record={fixtures:0,matchedSetups:0};
 for(let n=0;n<32;n++){
  const current=game(undefined,20261111+n*7919),old=game('crates/galactic-reach/rules/v20-',20261111+n*7919);
- assert.equal(current.a.rulesVersion,'galactic-reach/27.32');assert.equal(old.a.rulesVersion,'galactic-reach/20.25');
- const normalize=g=>{const s=plain(g.s);s.players.forEach(p=>{delete p.storagePurchases;delete p.inPlay;});return {...s,version:0,rulesRevision:0,visibilityRevision:0};};assert.deepEqual(normalize(current),normalize(old));assert.equal(current.calls(),old.calls());
- const observation=g=>{const v=plain(g.a.observe(0));v.clusters.forEach(c=>delete c.located);v.players.forEach(p=>{delete p.storagePurchases;delete p.storageUpgradeCost;delete p.inPlay;p.prestige=0;});return v;};assert.deepEqual(observation(current),observation(old));assert.deepEqual(plain(current.a.legalActions(0)),plain(old.a.legalActions(0)));record.matchedSetups++;
+ assert.equal(current.a.rulesVersion,'galactic-reach/28.33');assert.equal(old.a.rulesVersion,'galactic-reach/20.25');
+ const normalize=g=>{const s=plain(g.s);s.players.forEach(p=>{delete p.storagePurchases;delete p.inPlay;delete p.resourceLimits;});return {...s,version:0,rulesRevision:0,visibilityRevision:0};};assert.deepEqual(normalize(current),normalize(old));assert.equal(current.calls(),old.calls());
+ const observation=g=>{const v=plain(g.a.observe(0));v.clusters.forEach(c=>delete c.located);v.players.forEach(p=>{delete p.storagePurchases;delete p.storageUpgradeCost;delete p.inPlay;delete p.resourceLimits;p.capacity=0;p.prestige=0;});return v;};assert.deepEqual(observation(current),observation(old));assert.deepEqual(plain(current.a.legalActions(0)),plain(old.a.legalActions(0)));record.matchedSetups++;
 }
 {
  const g=game(),p=bot(g),center=g.s.clusters[4].center;funds(p);p.hand=[{id:'col',key:'colonize'},{id:'build',key:'construct'}];g.s.fleets={[center]:{1:{settler:1,explorer:0,fleet:0}}};
@@ -31,8 +31,8 @@ for(let n=0;n<32;n++){
  p.hand.push({id:'wild',key:'tradeConsortium'});assert(g.e.aiUseResources(p,'build',{data:2}));assert.equal(p.resources.data,2);record.fixtures++;
 }
 {
- const g=game(),p=bot(g);p.resources={matter:9,energy:0,biomass:0,data:0};p.hand=[{id:'move',key:'move',upgraded:true},{id:'build',key:'construct'}];
- assert(g.e.aiUseResources(p,'build',{matter:2,energy:1,data:1}));assert.deepEqual(plain(p.resources),{matter:4,energy:2,biomass:0,data:1});assert.equal(g.e.overflowPlayer(),-1);record.fixtures++;
+ const g=game(),p=bot(g);p.resourceLimits.matter=9;p.resources={matter:9,energy:0,biomass:0,data:0};p.hand=[{id:'move',key:'move',upgraded:true},{id:'build',key:'construct'}];
+ assert(g.e.aiUseResources(p,'build',{matter:2,energy:1,data:1}));assert.deepEqual(plain(p.resources),{matter:5,energy:2,biomass:0,data:1});assert.equal(g.e.overflowPlayer(),-1);record.fixtures++;
 }
 {
  const g=game(),p=bot(g),world=g.s.clusters[4],site=g.e.relicCoordInCluster(world);world.revealedBy=[0,1,2,3];world.scannedBy=[1];
@@ -59,7 +59,7 @@ for(let n=0;n<32;n++){
 {
  const g=game(),p=bot(g),yard=g.s.clusters[1].coords[1];funds(p);assert(g.e.constructAt(1,yard,'starbase'));p.storageUpgrades=4;p.resources={matter:8,energy:7,biomass:8,data:5};
  const before=JSON.stringify(p.resources);for(let n=0;n<10;n++)g.e.aiManageStorage(1);assert.equal(p.storageUpgrades,4);assert.equal(JSON.stringify(p.resources),before);record.fixtures++;
- p.resources={matter:4,energy:4,biomass:4,data:3};p.storageUpgrades=1;g.e.aiManageStorage(1);assert.equal(p.storageUpgrades,2);record.fixtures++;
+ p.resources={matter:4,energy:4,biomass:4,data:3};const incomeSite=g.s.clusters[1].coords[2];Object.assign(g.s.planets[incomeSite],{owner:1,type:'matter',upgrade:'harvester',occupiedBy:null});p.storageUpgrades=1;p.resourceLimits={matter:4,energy:4,biomass:4,data:4};g.e.aiManageStorage(1);assert.equal(p.storageUpgrades,2);record.fixtures++;
 }
 {
  const g=game(),p=bot(g),yard=g.s.clusters[1].coords[1];funds(p);assert(g.e.constructAt(1,yard,'starbase'));

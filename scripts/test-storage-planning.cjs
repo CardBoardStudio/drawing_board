@@ -1,8 +1,9 @@
+// Frozen 27.32 pooled-storage policy regression; current allocations have dedicated coverage.
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),crypto=require('node:crypto');
 const root=path.resolve(__dirname,'..'),read=n=>fs.readFileSync(path.join(root,n),'utf8'),plain=x=>JSON.parse(JSON.stringify(x));
-function game(prefix='prototypes/galactic-reach/', browserDiscards=false){
+function game(prefix='crates/galactic-reach/rules/v27-', browserDiscards=false){
  const c=vm.createContext({});let e,seed=1729,calls=0;
- let src=read(prefix+'app.js').replace('      clone, deckContents,','      trimResourcesToCapacity, aiManageStorage, aiReserves, aiIncome, aiStockpile, aiUseResources, runAiBuy, runAiOperation, '+(prefix.startsWith('prototypes')?'aiStorageBudget, aiStorageProtection, ':'')+'clone, deckContents,');
+ let src=read(prefix+'app.js').replace('      clone, deckContents,','      trimResourcesToCapacity, aiManageStorage, aiReserves, aiIncome, aiStockpile, aiUseResources, runAiBuy, runAiOperation, '+(prefix.includes('v27-')?'aiStorageBudget, aiStorageProtection, ':'')+'clone, deckContents,');
  if(browserDiscards)src=src.replace('!headless && player.id > 0','player.id > 0');
  vm.runInContext(read(prefix+'adapter.js')+src,c);const f=c.createGalacticAdapter;c.createGalacticAdapter=x=>{e=x;return f(x);};const a=c.createGalacticReach({headless:true,random:()=>{calls++;return ((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32);}});
  const s=e.state,p=s.players[1];s.activePlayer=1;p.strategy='military';p.hand=[];p.deck=[];p.discard=[];
@@ -47,7 +48,7 @@ for(const phase of ['production','draw','cleanup']){
  assert.deepEqual(plain(g.e.aiStorageBudget(1)),a,'Forecast cannot inspect enemy private cards');
 }
 {
- const a=game(),b=game('prototypes/galactic-reach/',true);
+ const a=game(),b=game('crates/galactic-reach/rules/v27-',true);
  for(const g of [a,b]){g.p.resources={matter:9,energy:0,biomass:0,data:0};g.p.hand=[{id:'keep',key:'construct'},{id:'convert',key:'move',upgraded:true}];assert(g.e.aiUseResources(g.p,'keep',{matter:2,energy:1,data:1}));}
  assert.deepEqual(plain(a.s),plain(b.s),'Funding overflow matches the live browser path');assert.equal(a.calls(),b.calls());
 }

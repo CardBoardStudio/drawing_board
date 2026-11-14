@@ -194,3 +194,10 @@ for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css 
 done
 cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/26.31/table.js
 cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/26.31/
+
+# Preserve the exact27.32 tabletop browser and shared resource-storage rules.
+mkdir -p dist/galactic-reach/rules/27.32
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js playtest-notes.js playtest-notes.css; do
+  cp "crates/galactic-reach/rules/v27-$asset" "dist/galactic-reach/rules/27.32/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/27.32/table.js

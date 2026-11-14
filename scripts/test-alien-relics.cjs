@@ -13,13 +13,13 @@ function game(version = null) {
   return {e,a,s:e.state,p:e.state.players[0]};
 }
 function effect(key) {
-  const g=game();g.p.hand=[{key,id:'relic-order'}];g.p.resources={matter:0,energy:0,biomass:0,data:0};g.p.storageUpgrades=10;
+  const g=game();g.p.hand=[{key,id:'relic-order'}];g.p.resources={matter:0,energy:0,biomass:0,data:0};g.p.storageUpgrades=10;g.p.resourceLimits={matter:100,energy:100,biomass:100,data:100};
   g.p.deck=[{key:'move',id:'draw1'},{key:'construct',id:'draw2'},{key:'move',id:'draw3'}];
   return g;
 }
 function special(g) {const action=g.a.legalActions(0).find(a=>a.type==='special');assert(action);g.a.applyAction(0,action);assert(g.p.inPlay.some(c=>c.id==='relic-order'));assert.equal(g.s.activePlayer,1);}
 {
-  const {e,a,s}=game();assert.equal(a.rulesVersion,'galactic-reach/27.32');assert.deepEqual(plain(s.fleets),{});
+  const {e,a,s}=game();assert.equal(a.rulesVersion,'galactic-reach/28.33');assert.deepEqual(plain(s.fleets),{});
   for(const p of s.players) {
     const cards=[...p.deck,...p.hand,...p.discard];assert.equal(cards.length,6);
     assert.equal(cards.filter(c=>c.key==='move').length,3);assert.equal(cards.filter(c=>c.key==='construct').length,3);
@@ -32,7 +32,7 @@ function special(g) {const action=g.a.legalActions(0).find(a=>a.type==='special'
   assert(s.advancedDeck.every(c=>!e.RELIC_CARDS[c.key])&&s.market.every(c=>!e.RELIC_CARDS[c.key]));
 }
 {
-  const {e,a,s,p}=game(),home=s.clusters[0].center,yard=s.clusters[0].coords[1];p.storageUpgrades=20;p.resources={matter:20,energy:20,biomass:20,data:20};
+  const {e,a,s,p}=game(),home=s.clusters[0].center,yard=s.clusters[0].coords[1];p.storageUpgrades=20;p.resourceLimits={matter:1000,energy:1000,biomass:1000,data:1000};p.resources={matter:20,energy:20,biomass:20,data:20};
   assert(!e.buildShip(0,home,'explorer'),'Colony cannot commission Explorers');
   s.planets[yard].owner=0;s.planets[yard].upgrade='harvester';s.planets[yard].upgradeLevel=2;
   assert(!e.buildShip(0,yard,'explorer'),'Level-II buildings cannot commission Explorers');
@@ -84,7 +84,7 @@ function special(g) {const action=g.a.legalActions(0).find(a=>a.type==='special'
   special(g);assert(!('rich' in g.s.planets[world.center])&&!('rich' in g.s.planets[world.coords[1]]));assert.equal(g.e.totalResources(g.p),2);
 }
 {
-  const g=effect('cradleOfLostSuns'),capacity=g.e.playerCapacity(0);special(g);assert.equal(g.e.playerCapacity(0),capacity+5);assert.equal(g.p.resources.biomass,2);assert.equal(g.p.hand.length,1);
+  const g=effect('cradleOfLostSuns'),capacity=g.e.playerCapacity(0);special(g);assert.equal(g.e.playerCapacity(0),capacity+4);assert.equal(g.p.resources.biomass,2);assert.equal(g.p.hand.length,1);
 }
 for(const capture of [false,true]) {
   const g=effect('genesisSeedVault'),world=g.s.clusters[capture?1:4],coord=world.center;

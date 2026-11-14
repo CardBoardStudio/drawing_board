@@ -6,7 +6,7 @@ function game(){
  vm.runInContext(fs.readFileSync(path.join(root,'prototypes/galactic-reach/adapter.js'),'utf8')+source,c);
  const real=c.createGalacticAdapter;c.createGalacticAdapter=p=>{e=p;return real(p);};
  c.createGalacticReach({headless:true,random:()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32),testCapture:p=>extra=p});
- const s=e.state,p=s.players[0];p.storageUpgrades=100;p.resources={matter:100,energy:100,biomass:100,data:100};p.hand=[{key:'construct',id:'construct',starter:true,upgraded:false}];
+ const s=e.state,p=s.players[0];p.storageUpgrades=100;p.resourceLimits={matter:1000,energy:1000,biomass:1000,data:1000};p.resources={matter:100,energy:100,biomass:100,data:100};p.hand=[{key:'construct',id:'construct',starter:true,upgraded:false}];
  return{e,s,p,...extra,adapter:()=>real(e)};
 }
 for(const upgraded of [false,true]){
@@ -30,8 +30,8 @@ for(const upgraded of [false,true]){
  assert.equal(JSON.stringify(g.s),before,'Forged upgrade command is atomic');
  assert.deepEqual(plain(g.combatPieces(0,coord,true,true)),[{type:'starbase',hull:3,power:3,damage:0}]);
  assert.equal(g.buildingLabel(g.s.planets[coord]),'Shipyard');
- const harvester=g.s.clusters[0].coords[2];assert(g.e.constructAt(0,harvester,'harvester'));assert(g.e.constructAt(0,harvester,'harvester'));
- assert.equal(g.s.planets[harvester].upgradeLevel,2,'Harvester still upgrades');
+ const harvester=g.s.clusters[0].coords[2];assert(g.e.constructAt(0,harvester,'harvester'));assert(!g.e.constructAt(0,harvester,'harvester'));
+ assert.equal(g.s.planets[harvester].upgradeLevel,1,'Harvester has no upgrade');
 }
 // With no open building sites or unit capacity, a rival must not plan a Shipyard upgrade.
 {

@@ -35,7 +35,7 @@ const game = context.createGalacticReach({ headless: true, random });
 // later random decisions.
 const openingWorld = engine.state.clusters.find(c=>engine.state.planets[c.center].owner===null);
 engine.state.players[0].hand.push({id:'replay-colonize-II',key:'colonize',starter:true,upgraded:true});
-engine.state.players[0].storageUpgrades=3;
+engine.state.players[0].storageUpgrades=3;engine.state.players[0].resourceLimits={matter:10,energy:10,biomass:10,data:10};
 engine.state.players[0].resources={matter:6,energy:5,biomass:4,data:5};
 engine.state.players[0].hand.push({id:'replay-recovery',key:'excavate',starter:true},{id:'replay-probe',key:'probe'});
 const openingRelic=openingWorld.coords.find(k=>engine.state.planets[k].special==='relic');
@@ -113,7 +113,7 @@ for (let index = 0; index <= frames.length; index++) {
   const presented=view.replayState(raw, { names, cardsPurchased: step.cardsPurchased, tradesWith: step.tradesWith, pendingColonyBuild: step.pendingColonyBuild, decision: step.decision });
   assert.deepEqual(JSON.parse(JSON.stringify(presented.players.map(p=>p.inPlay))),raw.players.map(p=>p.inPlay),`In-play cards reconstruct at decision ${index}`);
   raw.players.forEach((player, seat) => assert.equal(view.calculatePrestige(seat), player.prestige, `Prestige for seat ${seat} at decision ${index}`));
-  raw.players.forEach((player,seat)=>assert.equal(view.playerCapacity(seat),player.capacity,`Storage capacity for seat ${seat} at decision ${index}`));
+  raw.players.forEach((player,seat)=>{assert.equal(view.playerCapacity(seat),player.capacity,`Storage capacity for seat ${seat} at decision ${index}`);assert.deepEqual(JSON.parse(JSON.stringify(presented.players[seat].resourceLimits)),player.resourceLimits);});
   if (step.decision) {
     assert.match(step.decision.text, /^[^]+$/);
     assert.doesNotMatch(step.decision.text, /undefined|NaN|\[object/, `Decision ${index}: ${step.decision.text}`);

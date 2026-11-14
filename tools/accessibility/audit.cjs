@@ -21,12 +21,15 @@ function fixture(kind) {
   context.createGalacticAdapter=value=>{engine=value;return factory(value);};
   const adapter=context.createGalacticReach({headless:true,random:()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32)});
   const state=engine.state;
-  if (kind==='buy') {
+  if (kind==='storage' || kind==='cradle') {
+    state.players[0].resources={matter:2,energy:2,biomass:2,data:2};
+    if(kind==='cradle')state.players[0].hand=[{id:'qa-cradle',key:'cradleOfLostSuns'}];
+  } else if (kind==='buy') {
     Object.assign(state,{phase:'buy',turnStage:'buy',activePlayer:0});
     Object.assign(state.players[0],{passed:true,storageUpgrades:2,resources:{matter:4,energy:4,biomass:4,data:4}});
   } else if (kind==='mixed') {
-    state.fleets={'-9,0':{0:{settler:2,explorer:1,fleet:2}},'9,0':{2:{settler:2,explorer:1,fleet:2}}};
-  } else if (kind==='overflow') engine.addResources(state.players[0],{matter:10});
+    state.fleets={'-9,0':{0:{settler:2,explorer:1,fleet:10}},'-8,0':{0:{fleet:10}},'-7,0':{0:{fleet:3,explorer:2}},'9,0':{2:{settler:2,explorer:1,fleet:2},1:{explorer:2}}};
+  } else if (kind==='overflow') engine.addResources(state.players[0],{matter:10,energy:6});
   else if (kind==='combat') {
     Object.assign(state,{phase:'operations',turnStage:'action',activePlayer:0});
     state.fleets={'10,-10':{0:{fleet:1,explorer:0,settler:0}},'9,-10':{1:{fleet:1,explorer:0,settler:0}}};
@@ -68,7 +71,7 @@ http.createServer(async (req,res)=>{
       let html=content.toString();
       if(path.basename(filename)==='index.html') {
         const saved=JSON.stringify(JSON.stringify(fixture(url.searchParams.get('fixture')||'fresh'))).replace(/</g,'\\u003c');
-        html=html.replace('  <script src="table.js',`<script>localStorage.removeItem('galactic-reach-turn-history-v27');localStorage.removeItem('galactic-reach-history-v27');localStorage.setItem('galactic-reach-save-v27',${saved});</script>\n  <script src="table.js`);
+        html=html.replace('  <script src="table.js',`<script>localStorage.removeItem('galactic-reach-turn-history-v28');localStorage.removeItem('galactic-reach-history-v28');localStorage.setItem('galactic-reach-save-v28',${saved});</script>\n  <script src="table.js`);
       }
       content=html.replace('</body>','<script src="/__audit/axe.min.js"></script><script src="/__audit/runner.js"></script></body>');
     }

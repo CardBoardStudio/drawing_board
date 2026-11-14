@@ -1134,3 +1134,87 @@ dialog a { color: var(--gold); }
   .card-effect { color: #243b32; }
   .score-meta, .score-turn { color: var(--muted); }
 }
+
+/* The common table is printed inside the board. Grid cells reserve room for
+   the corner panels, so no panel can cover a selectable map hex. */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.topbar { grid-template-columns: minmax(0,1fr) auto; }
+.game-layout { display: block; }
+.board-stage { display: block; padding: 22px 20px 20px; }
+.board-canvas { --board-map-width: 680px; display: grid; grid-template-columns: minmax(180px,1fr) minmax(var(--board-map-width),3.2fr) minmax(180px,1fr); grid-template-rows: auto auto auto minmax(0,1fr); gap: 14px 18px; align-items: start; min-width: calc(var(--board-map-width) + 396px); }
+.board-heading { grid-column: 1 / -1; grid-row: 1; display: flex; align-items: center; justify-content: space-between; gap: 18px; padding-bottom: 10px; border-bottom: 1px solid #d9bd802b; }
+.board-heading .board-inscription { position: static; display: grid; gap: 7px; }
+.board-heading .board-inscription span:last-child { font-size: 7px; }
+.board-heading .board-inscription span:last-child { color: #aeb4a0; }
+.score-value small { color: var(--muted); }
+.score-card.active .score-turn { color: var(--text); }
+.basic-market-item { display: flex; align-items: center; min-width: 0; border: 1px dashed var(--line-bright); border-radius: 5px; }
+.basic-market-item > .button { flex: 1; width: auto; min-height: 44px; border: 0; background: transparent; }
+.basic-market-cost { flex: none; padding: 8px; }
+.board-heading .round-block { grid-row: auto; grid-column: auto; flex: none; border: 0; padding: 0; }
+.board-heading .round-block > div { min-width: 85px; }
+.board-heading .round-block > div:last-child { width: 165px; max-width: none; }
+.board-shared, .board-shared .faction-mats, .board-shared .score-ribbon { display: contents; }
+.board-shared .score-card { width: 100%; margin: 0; }
+.board-shared .score-card:nth-child(1) { grid-column: 1; grid-row: 2; }
+.board-shared .score-card:nth-child(2) { grid-column: 1; grid-row: 3; }
+.board-shared .score-card:nth-child(3) { grid-column: 3; grid-row: 2; }
+.board-shared .score-card:nth-child(4) { grid-column: 3; grid-row: 3; }
+.board-map-region { grid-column: 2; grid-row: 2 / 5; min-width: 0; align-self: center; display: grid; place-items: center; }
+.board-reference { grid-column: 3; grid-row: 4; align-self: end; display: grid; gap: 16px; min-width: 0; }
+.board-reference, .board-heading { background-color: #13252b; }
+.board-reference .prestige-legend { padding: 0 0 14px; border-top: 0; }
+.board-reference .log-panel { padding: 0; }
+.board-reference .game-log { max-height: 150px; }
+.board-key { grid-column: 1; grid-row: 4; align-self: end; min-width: 0; padding: 16px; border: 1px solid #8194814f; border-radius: 7px; background: #1c3031; }
+.board-key h2 { font-size: 22px; }
+.board-key p { margin: 12px 0 8px; color: var(--muted); font-size: 11px; }
+.board-key a { display: inline-flex; align-items: center; min-height: 28px; color: var(--gold); font-size: 11px; }
+.board-resource-key { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; padding: 0; margin: 15px 0 0; list-style: none; font-size: 11px; }
+.board-resource-key li { display: flex; align-items: center; gap: 7px; }
+.board-resource-key .resource-swatch { width: 12px; height: 12px; border-radius: 2px; flex: none; }
+.personal-report { display: grid; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+.personal-report .button { width: 100%; min-height: 40px; font-size: 11px; }
+.personal-report #history-status { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.dialog-close { flex: none; min-width: 64px; min-height: 40px; font-size: 12px; }
+.alien-relic .card-type { color: #6a552b; }
+summary:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.hex:focus-visible { outline: none; background: var(--gold); }
+.hex:focus-visible::before { inset: 3px; filter: brightness(1.2); }
+.hex::before { background-image: linear-gradient(145deg,#ffffff06,transparent 55%,#0000000c); }
+.hex.matter { --hex-fill: #718681; }
+.hex.energy { --hex-fill: #5f8b9c; }
+.hex.biomass { --hex-fill: #6b8c77; }
+.hex.data { --hex-fill: #8c7e9c; }
+.hex-fleets .board-glyph { filter: drop-shadow(1px 0 0 #07101a) drop-shadow(-1px 0 0 #07101a) drop-shadow(0 1px 0 #07101a) drop-shadow(0 -1px 0 #07101a); }
+.board-icon-count::after { content: attr(data-count); }
+.game-card .button:focus-visible { outline: 3px solid #315955; outline-offset: 3px; }
+.card-lore { color: #655941; }
+.board-stage.map-zoomed .board-canvas { --board-map-width: 1500px; }
+@media (max-width: 1220px) {
+  .board-canvas { min-width: 680px; grid-template-columns: repeat(2,minmax(0,1fr)); grid-template-rows: repeat(5,auto); }
+  .board-shared .score-card { max-width: 340px; }
+  .board-shared .score-card:nth-child(3) { grid-column: 2; justify-self: end; }
+  .board-shared .score-card:nth-child(4) { grid-column: 2; justify-self: end; }
+  .board-map-region { grid-column: 1 / -1; grid-row: 4; }
+  .board-key { grid-column: 1; grid-row: 5; max-width: 340px; }
+  .board-reference { grid-column: 2; grid-row: 5; max-width: 340px; justify-self: end; }
+  .board-stage.map-zoomed .board-canvas { min-width: 1500px; }
+}
+@media (max-width: 760px) {
+  .topbar { grid-template-columns: 1fr; }
+  .board-stage, .board-stage.map-zoomed { height: auto; max-height: none; overflow: visible; padding: 18px 12px; }
+  .board-canvas, .board-stage.map-zoomed .board-canvas { width: 100%; min-width: 0; }
+  .board-heading { flex-direction: column; align-items: stretch; gap: 16px; }
+  .board-heading .round-block { width: 100%; }
+  .board-heading .round-block > div { flex: 1; min-width: 0; padding: 2px 10px; }
+  .board-heading .round-block > div:first-child { padding-left: 0; }
+  .board-heading .round-block > div:last-child { width: auto; }
+  .board-map-region { display: block; width: 100%; height: 480px; max-height: 72vh; overflow: auto; overscroll-behavior: contain; }
+  .board-stage.map-zoomed .board-map-region { height: 560px; max-height: 72vh; }
+  .board-key { grid-column: 1 / -1; grid-row: 5; width: 100%; max-width: none; }
+  .board-reference { grid-column: 1 / -1; grid-row: 6; width: 100%; max-width: none; }
+  .personal-report { margin-top: 4px; }
+  .board-reference .prestige-legend, .board-reference .log-panel { grid-column: auto; }
+  .player-tableau :is(button,input,select,a,[tabindex]) { scroll-margin-top: 116px; scroll-margin-bottom: 20px; }
+}

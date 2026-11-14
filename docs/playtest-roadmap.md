@@ -2,11 +2,11 @@
 
 ## Tabletop interface in 27.32
 
-- Give the shared galaxy a printed board treatment, put faction mats beside it, and group the human hand, resource tokens and card piles into one player mat.
+- Give the shared galaxy a printed board treatment, put faction standings and references in reserved board corners, and group the human hand, resource tokens and card piles into one player mat.
 - Use warm card faces with illustrated emblems, clearer order/conversion buttons, deck stacks and active-faction markers. Keep map zoom, private discovery, pile inspection, reports and replay controls.
-- Bring the board into view for map orders and the market into view on passing. Keep resources visible while browsing cards on phones.
+- Bring the board into view for map orders and the market into view on passing. Keep private reserves and the full report download on the player mat.
 
-Status: implemented for a separate review preview carrying the current 27.32 experiment. This interface changes no costs, scoring, legal actions, bot decisions or saved-state meaning. Canonical player-mat guidance is under `#player-mat`; publication and validation are tracked in the new PR.
+Status: implemented for a separate review preview carrying the current 27.32 experiment. This interface changes no costs, scoring, legal actions, bot decisions or saved-state meaning. Canonical guidance covers `#player-mat`, `#shared-board` and `#keyboard-controls`. Desktop-only accessibility checks cover 29 states at 1024–1920px, with zero axe violations and zero supplementary contrast failures. Manual keyboard, mandatory-choice, mixed-unit-count and panel/map separation checks pass. Reproducible audit tooling and the source-hashed summary are in `tools/accessibility/`; publication is tracked in PR #38. Desktop-only UI scope is recorded in AGENTS.md.
 
 ## Victory wording in 27.32
 

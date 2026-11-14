@@ -39,7 +39,7 @@
     return node;
   }
   function button(text, fn, attrs = {}) { const b = el('button', {type: 'button', ...attrs}, text); b.addEventListener('click', fn); return b; }
-  const root = el('div', {id: 'playtest-notes-root'}), pins = el('div', {class: 'ptn-pins', 'aria-label': 'Playtest note pins'});
+  const root = el('div', {id: 'playtest-notes-root'}), pins = el('div', {class: 'ptn-pins', role: 'region', 'aria-label': 'Playtest note pins'});
   const launcher = button('Playtest notes', open, {id: 'playtest-notes-button', class: 'button button-ghost ptn-launcher', 'aria-haspopup': 'dialog'});
   const header = doc.querySelector('.header-actions');
   (header || root).append(launcher);

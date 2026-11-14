@@ -53,6 +53,7 @@ html { min-width: 0; }
 .book-resource.energy { color: var(--energy); }
 .book-resource.biomass { color: var(--biomass); }
 .book-resource.data { color: var(--data); }
+.rulebook .book-resource.data { color: #d0b3ff; }
 .rulebook .resource-symbol { width: 1em; height: 1em; }
 .rulebook td .book-resource { padding: 2px 5px; margin: 2px 1px; border: 1px solid var(--line); border-radius: 5px; background: var(--surface-2); }
 .book-unit { display: inline-flex; align-items: center; gap: 8px; }

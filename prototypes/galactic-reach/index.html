@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#101d22">
   <title>Galactic Reach · 27.32 · Tabletop playtest</title>
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
-  <link rel="stylesheet" href="styles.css?v=tabletop-27-32-1">
+  <link rel="stylesheet" href="styles.css?v=table-corners-a11y-27-32-1">
   <link rel="stylesheet" href="playtest-notes.css?v=1">
 </head>
 <body>
@@ -20,11 +20,6 @@
         <h1>Galactic Reach</h1></div>
         <small class="rules-badge">27.32 · playtest</small>
       </div>
-      <div class="round-block" aria-live="polite">
-        <div><span class="label">Round</span><strong id="round-value">1</strong></div>
-        <div><span class="label">Phase</span><strong id="phase-value">Production</strong></div>
-        <div><span class="label">Active</span><strong id="active-value">You</strong></div>
-      </div>
       <div class="header-actions">
         <a class="button button-ghost" href="/" style="text-decoration:none">Game library</a>
         <button class="button button-ghost" id="undo-turn-button" type="button" disabled title="Available after you complete a turn">Undo turn</button>
@@ -35,7 +30,7 @@
     <details class="playtest-changes" id="playtest-changes">
       <summary><span class="new-feature">New in this playtest</span> A place at the table <span class="summary-hint">View changes</span></summary>
       <ul>
-        <li><strong>A tabletop layout:</strong> the galaxy takes center stage, with faction mats alongside and your hand, resources and card piles together below. <a href="rulebook.html#player-mat">Your player mat</a>.</li>
+        <li><strong>A tabletop layout:</strong> shared standings, turn information, the scoring reference and recent actions sit around the galaxy inside the board frame. Your hand, reserves and card piles stay on your player mat. <a href="rulebook.html#player-mat">Your player mat</a> and <a href="rulebook.html#shared-board">shared board</a>.</li>
         <li><strong>Printed cards and tactile pieces:</strong> clearer card faces, resource tokens, deck stacks and turn markers. Select a hex to inspect it, or use the map key for units and costs. <a href="rulebook.html#movement">Reading the board</a>.</li>
         <li>Retains the current 27.32 rules, scoring and rivals, including cards staying in play until shared cleanup. This visual update does not change costs, actions or saved games. <a href="rulebook.html#round">Card timing</a>.</li>
       </ul>
@@ -44,7 +39,7 @@
     </details>
 
     <section class="game-layout">
-      <div class="board-column" id="table-board">
+      <div class="board-column" id="table-board" tabindex="-1">
         <div class="board-toolbar">
           <div>
             <span class="status-dot" id="turn-dot"></span>
@@ -56,18 +51,33 @@
           <button class="button button-ghost" id="report-button" type="button" hidden>Combat report</button>
         </div>
         <div class="board-stage">
-          <div class="board-inscription" aria-hidden="true"><span>THE REACH</span><span>CHARTED WORLDS · UNCHARTED POSSIBILITIES</span></div>
-          <div class="galaxy-board" id="galaxy-board" aria-label="Interactive galaxy map" aria-describedby="resource-legend symbol-legend"></div>
-        </div>
-        <div class="map-tools"><span class="map-pan-hint">Scroll or swipe to explore the board</span><label id="development-tools" hidden><input type="checkbox" id="reveal-entire-map"> Reveal entire map <small>Development</small></label><button class="button button-ghost" type="button" id="open-map-key">Map key · resources, units &amp; costs</button><button class="button button-ghost" type="button" id="map-zoom" aria-pressed="false">Zoom map</button></div>
+          <div class="board-canvas">
+            <div class="board-heading">
+              <div class="board-inscription" aria-hidden="true"><span>THE REACH</span><span>CHARTED WORLDS · UNCHARTED POSSIBILITIES</span></div>
+      <div class="round-block" aria-live="polite">
+        <div><span class="label">Round</span><strong id="round-value">1</strong></div>
+        <div><span class="label">Phase</span><strong id="phase-value">Production</strong></div>
+        <div><span class="label">Active</span><strong id="active-value">You</strong></div>
       </div>
-
-      <aside class="command-column">
+            </div>
+      <aside class="board-shared" aria-label="Shared table information">
         <section class="faction-mats" aria-labelledby="factions-title">
-          <div class="table-section-heading"><div><div class="eyebrow">AROUND THE TABLE</div><h2 id="factions-title">The factions</h2></div><span class="goal-token" title="Reach 20 Prestige at round end">20 <small>to win</small></span></div>
+          <h2 class="sr-only" id="factions-title">Faction standings</h2>
           <div class="score-ribbon" id="score-ribbon" role="group" aria-label="Player standings"></div>
         </section>
 
+        <section class="board-key" aria-labelledby="board-key-title">
+          <div class="eyebrow">AT A GLANCE</div><h2 id="board-key-title">Galaxy key</h2>
+          <ul class="board-resource-key">
+            <li><span class="resource-swatch matter" aria-hidden="true"></span>Matter</li>
+            <li><span class="resource-swatch energy" aria-hidden="true"></span>Energy</li>
+            <li><span class="resource-swatch biomass" aria-hidden="true"></span>Biomass</li>
+            <li><span class="resource-swatch data" aria-hidden="true"></span>Data</li>
+          </ul>
+          <p>Worlds are public. Moons and unlocated relics stay hidden.</p>
+          <a href="rulebook.html#movement" target="_blank" rel="noopener">Reading the galaxy ↗</a>
+        </section>
+        <div class="board-reference">
         <section class="panel prestige-legend" aria-labelledby="prestige-legend-title">
           <div class="prestige-legend-heading">
             <h2 id="prestige-legend-title">Victory points · Prestige</h2>
@@ -83,12 +93,20 @@
         <section class="panel log-panel">
           <div class="panel-heading">
             <div><div class="eyebrow">COMMS FEED</div><h2>Game log</h2></div>
-            <button class="button button-ghost" id="export-game-report" type="button">Export game report</button>
           </div>
-          <p class="muted" id="history-status" role="status"></p>
           <ol id="game-log" class="game-log" aria-live="polite"></ol>
         </section>
+        </div>
       </aside>
+            <div class="board-map-region">
+              <div class="galaxy-board" id="galaxy-board" role="group" aria-label="Interactive galaxy map" aria-describedby="resource-legend symbol-legend"></div>
+            </div>
+          </div>
+        </div>
+        <div class="map-tools"><span class="map-pan-hint">Scroll or swipe to explore the board</span><label id="development-tools" hidden><input type="checkbox" id="reveal-entire-map"> Reveal entire map <small>Development</small></label><button class="button button-ghost" type="button" id="open-map-key">Map key · resources, units &amp; costs</button><button class="button button-ghost" type="button" id="map-zoom" aria-pressed="false">Zoom map</button></div>
+      </div>
+
+
     </section>
 
     <section class="player-tableau" aria-label="Your player mat">
@@ -101,7 +119,7 @@
           </div>
         </div>
         <div class="resource-grid" id="resource-grid"></div>
-        <div class="pile-stats" aria-label="Your card piles">
+        <div class="pile-stats" role="group" aria-label="Your card piles">
           <button id="deck-button" type="button" title="Inspect remaining cards without revealing draw order">Deck <strong id="deck-count">0</strong></button>
           <span>Hand <strong id="hand-pile-count">0</strong></span>
           <button id="in-play-button" type="button" title="Inspect used cards held outside discard until shared cleanup">In play <strong id="in-play-count">0</strong></button>
@@ -129,8 +147,12 @@
             <button class="button" id="discard-resource-button" type="submit">Discard resources</button>
           </form>
         </details>
+        <div class="personal-report">
+          <button class="button button-ghost" id="export-game-report" type="button">Export game report</button>
+          <p class="muted" id="history-status" role="status"></p>
+        </div>
       </section>
-      <section class="console" id="console">
+      <section class="console" id="console" tabindex="-1" aria-label="Player controls">
         <div class="console-tabs" role="tablist" aria-label="Player controls">
           <button class="console-tab active" id="hand-tab" type="button" data-tab="hand" role="tab" aria-selected="true" aria-controls="hand-panel" tabindex="0">Hand <span id="hand-count">0</span></button>
           <button class="console-tab" id="market-tab" type="button" data-tab="market" role="tab" aria-selected="false" aria-controls="market-panel" tabindex="-1">Market</button>
@@ -160,14 +182,14 @@
             <div class="section-intro"><div><h2>Trade channel</h2><p>Publish one open offer per round as your action. Each other faction can accept or reject on its turn, without spending an action. First acceptance settles the trade. Offers expire when Operations end; resources must still be available when accepted.</p></div></div>
             <form id="trade-form" class="trade-form">
               <label>You give<select id="trade-give-type"></select></label>
-              <label>Amount<input id="trade-give-amount" type="number" min="1" max="5" value="1"></label>
+              <label>Amount to give<input id="trade-give-amount" type="number" min="1" max="5" value="1"></label>
               <label>You receive<select id="trade-get-type"></select></label>
-              <label>Amount<input id="trade-get-amount" type="number" min="1" max="5" value="1"></label>
+              <label>Amount to receive<input id="trade-get-amount" type="number" min="1" max="5" value="1"></label>
               <button class="button button-primary" type="submit">Publish open offer</button>
             </form>
             <div class="trade-response" id="trade-response" role="status"></div>
-            <div id="trade-offers" class="trade-offers" aria-label="Open trade offers"></div>
-            <div class="trade-ledger" id="trade-ledger" aria-label="Completed trades by rival"></div>
+            <div id="trade-offers" role="group" class="trade-offers" aria-label="Open trade offers"></div>
+            <div class="trade-ledger" id="trade-ledger" role="group" aria-label="Completed trades by rival"></div>
           </div>
           <div class="tab-panel" id="relics-panel" data-panel="relics" role="tabpanel" aria-labelledby="relics-tab" tabindex="0" hidden>
             <div class="section-intro"><div><h2 id="relic-row-title">Alien relics</h2><p id="relic-deck-count"></p></div><button class="button" id="cancel-excavate" type="button" hidden>Cancel Excavate</button></div>
@@ -187,14 +209,14 @@
   </main>
 
   <dialog id="prestige-dialog" aria-labelledby="prestige-title">
-    <div class="dialog-heading"><div><div class="eyebrow">POINT BREAKDOWN</div><h2 id="prestige-title">Prestige</h2></div><button class="icon-button" id="close-prestige" type="button" aria-label="Close point breakdown">×</button></div>
+    <div class="dialog-heading"><div><div class="eyebrow">POINT BREAKDOWN</div><h2 id="prestige-title">Prestige</h2></div><button class="button button-ghost dialog-close" id="close-prestige" type="button" aria-label="Close point breakdown">Close</button></div>
     <dl class="prestige-breakdown" id="prestige-breakdown"></dl>
     <p class="muted">Each Colony scores 3, each excavated relic 2, and each decisive combat victory 1. Relic and combat points are permanent.</p>
     <p><a href="rulebook.html#victory" target="_blank" rel="noopener">Scoring rules ↗</a></p>
   </dialog>
 
-  <dialog id="rules-dialog">
-    <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2>How to command your faction</h2></div><button class="icon-button" id="close-rules" type="button" aria-label="Close rules">×</button></div>
+  <dialog id="rules-dialog" aria-labelledby="rules-title">
+    <div class="dialog-heading"><div><div class="eyebrow">QUICK REFERENCE</div><h2 id="rules-title">How to command your faction</h2></div><button class="button button-ghost dialog-close" id="close-rules" type="button" aria-label="Close rules">Close</button></div>
     <p><a class="button button-primary" href="rulebook.html" target="_blank" rel="noopener">Read the canonical rulebook · 27.32 ↗</a></p>
     <div class="rules-grid">
       <section><h3>Your turn</h3><p>Convert cards for resources, then use one order, offer a trade, or pass. Passing immediately starts your Buy turn. Finish Buy, then the remaining factions continue Operations.</p></section>
@@ -241,7 +263,7 @@
   </dialog>
 
 
-  <dialog id="message-dialog">
+  <dialog id="message-dialog" aria-labelledby="message-title">
     <div class="dialog-heading"><div><div class="eyebrow" id="message-kicker">EVENT</div><h2 id="message-title">Title</h2></div></div>
     <p id="message-body"></p>
     <div id="message-details" class="message-details"></div>
@@ -251,7 +273,7 @@
   <dialog id="deck-dialog" class="pile-dialog" aria-labelledby="deck-dialog-title">
     <div class="dialog-heading">
       <div><div class="eyebrow">YOUR CARDS</div><h2 id="deck-dialog-title">Deck <span id="deck-dialog-count">0</span></h2><p>Remaining cards grouped by name and level. Draw order is hidden.</p></div>
-      <button class="icon-button" id="close-deck" type="button" aria-label="Close deck">×</button>
+      <button class="button button-ghost dialog-close" id="close-deck" type="button" aria-label="Close deck">Close</button>
     </div>
     <div class="discard-scroll"><div class="card-row discard-row" id="deck-row"></div></div>
   </dialog>
@@ -261,10 +283,10 @@
     <div id="in-play-row" class="card-row"></div>
   </dialog>
 
-  <dialog id="discard-dialog" class="pile-dialog">
+  <dialog id="discard-dialog" class="pile-dialog" aria-labelledby="discard-title">
     <div class="dialog-heading">
-      <div><div class="eyebrow">YOUR CARDS</div><h2>Discard pile <span id="discard-dialog-count">0</span></h2><p>Most recently discarded cards appear first.</p></div>
-      <button class="icon-button" id="close-discard" type="button" aria-label="Close discard pile">×</button>
+      <div><div class="eyebrow">YOUR CARDS</div><h2 id="discard-title">Discard pile <span id="discard-dialog-count">0</span></h2><p>Most recently discarded cards appear first.</p></div>
+      <button class="button button-ghost dialog-close" id="close-discard" type="button" aria-label="Close discard pile">Close</button>
     </div>
     <div class="discard-scroll"><div class="card-row discard-row" id="discard-row"></div></div>
   </dialog>
@@ -272,23 +294,23 @@
         <section class="panel inspector-panel sector-popover" id="sector-popover" popover="auto" role="dialog" aria-labelledby="inspect-title">
           <div class="panel-heading">
             <div><div class="eyebrow">SECTOR SCAN</div><h2 id="inspect-title">Select a hex</h2></div>
-            <span class="coordinate" id="inspect-coordinate">—</span><button class="icon-button" id="close-sector-scan" type="button" aria-label="Close sector scan" popovertarget="sector-popover" popovertargetaction="hide">×</button>
+            <span class="coordinate" id="inspect-coordinate">—</span><button class="button button-ghost dialog-close" id="close-sector-scan" type="button" aria-label="Close sector scan" popovertarget="sector-popover" popovertargetaction="hide">Close</button>
           </div>
           <p id="inspect-detail" class="muted">Choose a planet or space hex to inspect fleets, control, and possible actions.</p><label id="construction-discount-row" hidden>Construct II · reduce one resource by 1<select id="construction-discount"><option value="matter">Matter</option><option value="energy">Energy</option><option value="biomass">Biomass</option><option value="data">Data</option></select></label>
           <div id="inspect-facts" class="fact-list"></div>
           <div id="context-actions" class="context-actions"></div>
         </section>
 
-  <dialog id="map-key-dialog" class="map-key-dialog">
-    <div class="dialog-heading"><div><div class="eyebrow">GALACTIC REACH</div><h2>Map key</h2></div><button class="icon-button" id="close-map-key" type="button" aria-label="Close map key">×</button></div>
-        <div class="map-legend" id="resource-legend" aria-label="Map legend">
+  <dialog id="map-key-dialog" class="map-key-dialog" aria-labelledby="map-key-title">
+    <div class="dialog-heading"><div><div class="eyebrow">GALACTIC REACH</div><h2 id="map-key-title">Map key</h2></div><button class="button button-ghost dialog-close" id="close-map-key" type="button" aria-label="Close map key">Close</button></div>
+        <div class="map-legend" id="resource-legend" role="group" aria-label="Map legend">
           <span><i class="resource-swatch matter"></i>Matter</span>
           <span><i class="resource-swatch energy"></i>Energy</span>
           <span><i class="resource-swatch biomass"></i>Biomass</span>
           <span><i class="resource-swatch data"></i>Data</span>
           <span>◈ Located relic</span><span>● Gray moon · no production</span><span>Fog hides unvisited worlds</span>
         </div>
-        <div class="map-legend symbol-legend" id="symbol-legend" aria-label="Ship and building symbol legend"></div>
+        <div class="map-legend symbol-legend" id="symbol-legend" role="group" aria-label="Ship and building symbol legend"></div>
   </dialog>
 
   <dialog id="relic-catalog-dialog" class="relic-catalog-dialog" aria-labelledby="relic-catalog-title">
@@ -298,7 +320,7 @@
 
   <script src="table.js?v=cards-in-play-27-32"></script>
   <script src="replay.js?v=cards-in-play-27-32"></script>
-  <script src="app.js?v=tabletop-27-32-1"></script>
-  <script src="playtest-notes.js?v=1" data-game="Galactic Reach" data-rules="27.32"></script>
+  <script src="app.js?v=table-corners-a11y-27-32-1"></script>
+  <script src="playtest-notes.js?v=2" data-game="Galactic Reach" data-rules="27.32"></script>
 </body>
 </html>

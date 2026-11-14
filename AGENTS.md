@@ -1,5 +1,10 @@
 # Project instructions
 
+## Interface scope
+
+- Design, adjust, and verify the UI for desktop only. Do not spend work on mobile layouts or mobile UI tests.
+- Accessibility work still covers desktop keyboard operation, screen-reader labels, focus visibility, contrast, and desktop window sizes. State the coverage actually tested.
+
 ## GitHub workflow
 
 - Use HTTPS remotes, never SSH.
@@ -21,7 +26,7 @@
 - Drawing Board deployments on Render are the canonical live playtest sites. Never present a `chatgpt.site` deployment as the live game or rulebook unless the user explicitly requests that separate host.
 - The stable deployment is <https://drawing-board-p0g3.onrender.com/>. Before sharing any live link, verify the latest successful GitHub deployment status for the intended commit and use its `environment_url`; preview URLs can change.
 - An unmerged PR must link to its own successful Render deployment, including `/galactic-reach/rulebook.html` on that same origin. Do not link a preview game to `main`'s rules or a hard-coded old PR preview.
-- The build must package the canonical rulebook and stylesheet with the game. Verify anonymous access, game-to-rules navigation, section links, and a narrow viewport. Rules changes need a preview just like code changes; never add `render-preview-skip` to a rules PR.
+- The build must package the canonical rulebook and stylesheet with the game. Verify anonymous access, game-to-rules navigation, section links, and a narrow desktop window. Rules changes need a preview just like code changes; never add `render-preview-skip` to a rules PR.
 - Publishing means pushing to GitHub and confirming the corresponding Render deployment. Opening a PR does not authorize merging it. Report missing or failed deployments honestly.
 
 ## Playtest change lanes

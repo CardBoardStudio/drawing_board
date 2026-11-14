@@ -2809,7 +2809,9 @@ function createGalacticReach(options = {}) {
   }
 
   function boardIcon(type, count = 1) {
-    return `<span class="board-icon">${BOARD_ICONS[type]}${count > 1 ? `<b class="board-icon-count">${count}</b>` : ''}</span>`;
+    // Hex labels already announce each unit's type and quantity. Keep the
+    // separate visual badges from concatenating into a false label like "22".
+    return `<span class="board-icon" aria-hidden="true">${BOARD_ICONS[type]}${count > 1 ? `<b class="board-icon-count" data-count="${count}"></b>` : ''}</span>`;
   }
 
   function fleetSymbolsAt(key) {
@@ -2848,7 +2850,7 @@ function createGalacticReach(options = {}) {
     ];
     $('#symbol-legend').innerHTML = `<strong class="legend-heading">Units &amp; buildings</strong>${entries.map(([type,label]) => {
       const cost = type === 'colony' ? { biomass: 2 } : SHIP_STATS[type]?.cost || STRUCTURES[type]?.cost;
-      return `<span class="tooltip-anchor symbol-legend-item" tabindex="0" data-tooltip="${LEGEND_TOOLTIPS[type]}" aria-label="${label}. ${LEGEND_TOOLTIPS[type]}"><span class="symbol-legend-name">${BOARD_ICONS[type]}${label}</span><span class="symbol-legend-cost">${resourceDots(cost)}</span><span class="symbol-legend-description">${LEGEND_TOOLTIPS[type]}</span></span>`;
+      return `<span class="tooltip-anchor symbol-legend-item" role="group" tabindex="0" data-tooltip="${LEGEND_TOOLTIPS[type]}" aria-label="${label}. ${LEGEND_TOOLTIPS[type]}"><span class="symbol-legend-name">${BOARD_ICONS[type]}${label}</span><span class="symbol-legend-cost">${resourceDots(cost)}</span><span class="symbol-legend-description">${LEGEND_TOOLTIPS[type]}</span></span>`;
     }).join('')}`;
   }
 
@@ -2938,7 +2940,7 @@ function createGalacticReach(options = {}) {
       const elo = state.replayElo?.[id];
       const eloText = elo ? `<span class="score-elo">Elo ${Math.round(elo.before)} → ${Math.round(elo.after)} (${elo.after>=elo.before?'+':''}${(elo.after-elo.before).toFixed(1)})</span>` : '';
       const colonies = colonyPlanets(id).length;
-      return `<article class="score-card ${active?'active':''} ${replayMode&&id===viewSeat?'viewing':''}" style="--player:${player.color}"><span class="faction-counter" aria-hidden="true">${String(id+1).padStart(2,'0')}</span><div class="score-info"><div class="score-top"><span class="score-name">${esc(player.name)}</span><span class="score-turn">${active?'Acting':player.passed?'Passed':'Ready'}</span></div><div class="score-meta"><span>${colonies} ${colonies===1?'colony':'colonies'}</span><span>${player.cardsPurchased||0} cards bought</span><span>${strongestFleet(id)} fleet power</span>${eloText}</div></div><button type="button" class="score-value" data-score-player="${id}" aria-label="${esc(player.name)}: ${calculatePrestige(id)} Prestige. Show point breakdown" aria-haspopup="dialog">${calculatePrestige(id)}<small>Prestige</small></button></article>`;
+      return `<article class="score-card ${active?'active':''} ${replayMode&&id===viewSeat?'viewing':''}" style="--player:${player.color}"><span class="faction-counter" aria-hidden="true">${String(id+1).padStart(2,'0')}</span><div class="score-info"><div class="score-top"><span class="score-name">${esc(player.name)}</span><span class="score-turn">${active?'Acting':player.passed?'Passed':'Ready'}</span></div><div class="score-meta"><span>${colonies} ${colonies===1?'colony':'colonies'}</span><span>${player.cardsPurchased||0} cards bought</span><span>${strongestFleet(id)} fleet power</span>${eloText}</div></div><button type="button" class="score-value" data-score-player="${id}" aria-label="${esc(player.name)}: ${calculatePrestige(id)} Prestige. Show point breakdown" aria-haspopup="dialog">${calculatePrestige(id)} <small>Prestige</small></button></article>`;
     }).join('');
     $$('[data-score-player]').forEach(button=>button.addEventListener('click',()=>showPrestigeBreakdown(Number(button.dataset.scorePlayer))));
     renderHistoryStatus();
@@ -3221,7 +3223,7 @@ function createGalacticReach(options = {}) {
   function renderMarket() {
     const humanBuy=!replayMode&&state.phase==='buy'&&state.activePlayer===0;
     $('#market-help').textContent=replayMode?`${state.players[viewSeat].name} purchased ${state.players[viewSeat].cardsPurchased||0} cards. Card purchases award no Prestige.`:'Buy one card during your Buy turn. New cards enter discard. Card purchases award no Prestige.';
-    $('#basic-market').innerHTML=BASIC_MARKET.map(key=>[key,BASIC_CARDS[key]]).map(([key,def])=>`<span class="tooltip-anchor basic-market-item" data-tooltip="${BASIC_TOOLTIPS[key]}"><button class="button" data-buy-basic="${key}" aria-label="${def.name}. ${BASIC_TOOLTIPS[key]}" ${!humanBuy||state.players[0].bought>=state.players[0].buyLimit||!canAfford(state.players[0],def.cost,state.players[0].buyDiscountData)?'disabled':''}><span>${def.name}</span>${resourceDots(def.cost)}</button></span>`).join('');
+    $('#basic-market').innerHTML=BASIC_MARKET.map(key=>[key,BASIC_CARDS[key]]).map(([key,def])=>`<span class="tooltip-anchor basic-market-item" data-tooltip="${BASIC_TOOLTIPS[key]}"><button class="button" data-buy-basic="${key}" aria-describedby="basic-help-${key} basic-cost-${key}" ${!humanBuy||state.players[0].bought>=state.players[0].buyLimit||!canAfford(state.players[0],def.cost,state.players[0].buyDiscountData)?'disabled':''}>${def.name}</button><span class="basic-market-cost" id="basic-cost-${key}">${resourceDots(def.cost)}</span><span class="sr-only" id="basic-help-${key}">${BASIC_TOOLTIPS[key]}</span></span>`).join('');
     $('#market-row').innerHTML=replayMode?'<p class="muted">Replays record purchases in the game log, not the advanced market row.</p>':state.market.map((card,index)=>{
       const def=ALL_CARDS[card.key];
       const disabled=!humanBuy||state.players[0].bought>=state.players[0].buyLimit||!canAfford(state.players[0],def.cost,state.players[0].buyDiscountData);
@@ -3569,8 +3571,10 @@ function createGalacticReach(options = {}) {
       $('#map-zoom').setAttribute('aria-pressed',String(zoomed));
       if (zoomed) {
         const hex=$(`.hex[data-coord="${state.selected||state.clusters[0].center}"]`);
-        const a=stage.getBoundingClientRect(), b=hex.getBoundingClientRect();
-        stage.scrollLeft+=b.left-a.left-stage.clientWidth/2; stage.scrollTop+=b.top-a.top-stage.clientHeight/2;
+        const region=$('.board-map-region');
+        const viewport=region && region.scrollWidth>region.clientWidth ? region : stage;
+        const a=viewport.getBoundingClientRect(), b=hex.getBoundingClientRect();
+        viewport.scrollLeft+=b.left-a.left-viewport.clientWidth/2; viewport.scrollTop+=b.top-a.top-viewport.clientHeight/2;
       }
     });
     renderSymbolLegend();

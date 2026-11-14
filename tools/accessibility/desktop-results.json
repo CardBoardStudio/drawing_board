@@ -1,0 +1,383 @@
+{
+  "scope": "Desktop only",
+  "axeVersion": "4.14.0",
+  "wcagTarget": "WCAG 2.2 A/AA plus best practices, limited to tested states",
+  "sourceHashes": {
+    "app.js": "913705fb522658c8633afd68881fbc6135759a49ea49f0b128de4aae257b51a2",
+    "index.html": "cc962a76cec89aa52284281824582c997ca6ebe46320270891d8265bd97787bd",
+    "styles.css": "b16d3d8971042baa00dcd4ca7ef2fc942e4ae4691a1ca0b75ed9d966197e23f1",
+    "rulebook.html": "7ee310252981f09b10fcfd1c2544c4623af5192f34d4ce9d03071cf06eafe851",
+    "rulebook.css": "66776225d3838d9ca61feab5402a6af433798f0cee9f4e8a603dbaaa1c8e0b91",
+    "playtest-notes.js": "c2c4d6867ca1f005795a654486f687bd086938917215362f25b4c172fce1a740",
+    "playtest-notes.css": "3d8484181349c1720319d84189340fa6732ce9b7d7dee355019fc8ab0a5cef0d"
+  },
+  "scans": 29,
+  "violations": 0,
+  "textContrastFailures": 0,
+  "graphicalContrastFailures": 0,
+  "minimumReviewedNormalTextRatio": 4.66,
+  "minimumTileBoundaryRatio": 3.18,
+  "minimumBuildingRatio": 3.44,
+  "minimumFleetKeylineRatio": 4.55,
+  "cases": [
+    {
+      "case": "buy-market-page-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "testedAt": "2026-11-14T03:34:57.137Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "buy-market-page-1280",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "testedAt": "2026-11-14T03:34:58.408Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "buy-market-page-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:52.602Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "buy-market-page-1920",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "testedAt": "2026-11-14T03:34:59.731Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "combat-hand-combat-dialog-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:53.842Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-fleet-map-key-dialog-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:48.528Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-fleet-page-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:47.848Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-fleet-prestige-dialog-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:49.501Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-fleet-ptn-panel-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:51.575Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-fleet-sector-popover-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:50.606Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-hand-deck-dialog-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:43.113Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-hand-discard-dialog-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:44.111Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-hand-in-play-dialog-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:45.092Z",
+      "violations": 0,
+      "rawReviewRules": []
+    },
+    {
+      "case": "fresh-hand-in-play-dialog-playtest-changes_resource-tools-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:35:04.023Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-hand-page-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "testedAt": "2026-11-14T03:34:56.506Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-hand-page-1280",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "testedAt": "2026-11-14T03:34:57.769Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-hand-page-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:41.531Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-hand-page-1920",
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "testedAt": "2026-11-14T03:34:59.124Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-hand-page-playtest-changes_resource-tools-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:35:02.056Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-hand-page-resource-tools-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:35:01.332Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-hand-relic-catalog-dialog-playtest-changes_resource-tools-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:35:02.663Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-hand-rules-dialog-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:42.148Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-relics-page-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:46.239Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-rulebook-page-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "testedAt": "2026-11-14T03:35:00.220Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-rulebook-page-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:55.754Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "fresh-trade-page-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:47.066Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "mixed-hand-page-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:54.468Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "mixed-hand-page-zoom-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:55.206Z",
+      "violations": 0,
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "overflow-hand-overflow-dialog-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T03:34:53.193Z",
+      "violations": 0,
+      "rawReviewRules": []
+    }
+  ],
+  "manualChecks": [
+    "First Tab focuses the skip link; Enter focuses #console.",
+    "Player-control arrow keys and Home switch the tab and focus together.",
+    "Deck opens by keyboard; Escape closes it and returns focus to Deck.",
+    "Hex focus has a visible 3px gold boundary.",
+    "Enter on a hex opens the named sector inspector; Escape returns focus to that hex.",
+    "Required overflow and combat choices remain open on Escape; their actions work with Enter.",
+    "Shared panels do not cover map hexes at 1024, 1280, 1440 and 1920px desktop widths.",
+    "Mixed 2 Settlers / 1 Explorer / 2 Fleets retain visible in-bounds badges and complete spoken quantities."
+  ],
+  "limits": [
+    "Raw axe gradient indeterminates are retained; supplementary conservative contrast bounds are documented in README.md.",
+    "Spoken screen-reader usability and a complete conformance certification were not performed.",
+    "No mobile UI verification."
+  ]
+}

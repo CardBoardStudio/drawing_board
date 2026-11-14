@@ -1,5 +1,11 @@
 # Playtest roadmap
 
+## Victory wording in 27.32
+
+- Show “You win” for the human victory message, and keep “wins” for named rival factions. Apply the same wording to replay results.
+
+Status: implemented; verification and publication tracked in PR #37. Rules and save format stay 27.32.
+
 ## Cards in Play 27.32
 
 - Keep played, converted, Buy and reaction cards outside discard until shared round cleanup; draws cannot recycle them. Preserve explicit discard/trash/return effects and gained-card discard.

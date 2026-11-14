@@ -2605,6 +2605,11 @@ function createGalacticReach(options = {}) {
 
 
 
+  function victoryTitle() {
+    const name = state.players[state.winner].name;
+    return name === 'You' ? 'You win' : `${name} wins`;
+  }
+
   function finishRound() {
     state.phase = 'cleanup';
     const contenders = state.players.map((_,id)=>({id,prestige:calculatePrestige(id),colonies:colonyPlanets(id).length,resources:totalResources(state.players[id])})).filter(p=>p.prestige>=VICTORY_TARGET).sort((a,b)=>b.prestige-a.prestige||b.colonies-a.colonies||b.resources-a.resources);
@@ -2612,7 +2617,7 @@ function createGalacticReach(options = {}) {
       state.winner = contenders[0].id;
       logEvent(`${state.players[state.winner].name} won with ${contenders[0].prestige} Prestige at the end of Round ${state.round}.`);
       render(); saveGame();
-      showMessage('GAME COMPLETE',`${state.players[state.winner].name} wins`,`${contenders[0].prestige} Prestige · ${contenders[0].colonies} Colonies · ${contenders[0].resources} stored resources`);
+      showMessage('GAME COMPLETE',victoryTitle(),`${contenders[0].prestige} Prestige · ${contenders[0].colonies} Colonies · ${contenders[0].resources} stored resources`);
       return;
     }
     state.round += 1;
@@ -3400,7 +3405,7 @@ function createGalacticReach(options = {}) {
     }
     const standings = state.players.map((player,id) => ({ player, id, prestige: calculatePrestige(id), colonies: colonyPlanets(id).length, resources: totalResources(player) }))
       .sort((a,b) => b.prestige-a.prestige || b.colonies-a.colonies || b.resources-a.resources);
-    showMessage('GAME COMPLETE', `${state.players[state.winner].name} wins`, standings.map(({player,id,prestige,colonies,resources},rank) => {
+    showMessage('GAME COMPLETE', victoryTitle(), standings.map(({player,id,prestige,colonies,resources},rank) => {
       const elo = state.replayElo?.[id];
       return `${rank+1}. ${player.name}: ${prestige} Prestige · ${colonies} Colonies · ${resources} stored resources${elo ? ` · Elo ${Math.round(elo.before)} → ${Math.round(elo.after)}` : ''}`;
     }).join('\n'));

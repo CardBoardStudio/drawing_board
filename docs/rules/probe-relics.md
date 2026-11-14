@@ -1,0 +1,11 @@
+# Probe Relics22.27
+
+Establish the intended rule before implementation: arrival reveals terrain but never relic locations. Each commissioned Explorer grants one Probe and one Excavate to discard. A Probe order requires that player's Explorer somewhere on the selected world or moon, privately locates its remaining relic, discards Probe and ends that Operations action. It costs no resources and keeps the Explorer. Repeated or illegal probes fail without spending anything. A first Probe of a neutral world or moon may find no remaining relic; it still searches the location, discards the card and spends the action. Homes and the relic-free center are not Probe targets. This keeps target availability independent of hidden relic contents. Discovery relic cards retain their explicit printed location abilities. Excavation requires the acting player to know the exact site.
+
+Worlds remain public. A ship arriving on a moon reveals its terrain globally. Keep terrain surveys (`revealedBy`) separate from relic knowledge (`scannedBy`). Probe changes only the actor's relic knowledge. Observer commands and logs must not reveal an unknown relic sector to another seat. Exploration goals cannot inspect unlocated relic coordinates.
+
+Isolate this breaking change as save22/rules27, visibility revision4, policy18. Preserve the complete21.26 bundle (including the bank buttons) and exact native policy17. Existing games retain their discovery rules. Native and browser rivals must use Probe, retain it until useful, and still earn their points through legal actions. Previous21.26 balance results do not measure the changed exploration rules.
+
+Verify arrival with every ship type on planets and moons, private Probe visibility, legal targets and card/turn accounting, repeated/invalid actions without mutation, excavation knowledge, Explorer bundles in discard, special discovery cards, observer privacy, browser dialogs, replay reconstruction, AI use and old-engine hashes. Run the rules checks, native workspace/fmt/Clippy, Wasm/package and container smoke. Publish a separate Render preview without merging main.
+
+Rules grounding: canonical `rulebook.html#setup`, `#gaining-cards`, `#orders`, `#movement`, `#building`, `#excavation`, `#cards`, `#computer-rivals` and `#trade` for the carried-forward bank-button controls.

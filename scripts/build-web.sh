@@ -14,13 +14,14 @@ cp prototypes/galactic-reach/index.html dist/galactic-reach/index.html
 cp prototypes/galactic-reach/styles.css dist/galactic-reach/styles.css
 cp prototypes/galactic-reach/rulebook.html prototypes/galactic-reach/rulebook.css dist/galactic-reach/
 cp prototypes/galactic-reach/app.js dist/galactic-reach/app.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/
 cp prototypes/galactic-reach/table.js dist/galactic-reach/table.js
 cp prototypes/galactic-reach/replay.js dist/galactic-reach/replay.js
 cp prototypes/lab/index.html dist/index.html
 cp prototypes/lab/index.html dist/lab/index.html
 cp prototypes/lab/lab.css prototypes/lab/lab.js prototypes/lab/replay.js dist/lab/
 
-# Preserve the complete v4, v5, and v6 browsers alongside v7; tables never upgrade implicitly.
+# Preserve the complete v4 through v10 browsers alongside v11; tables never upgrade implicitly.
 mkdir -p dist/galactic-reach/rules/4.9
 cp crates/galactic-reach/rules/v4-app.js dist/galactic-reach/rules/4.9/app.js
 cp crates/galactic-reach/rules/v4-styles.css dist/galactic-reach/rules/4.9/styles.css
@@ -40,3 +41,156 @@ for asset in app.js styles.css index.html replay.js rulebook.html rulebook.css; 
   cp "crates/galactic-reach/rules/v6-$asset" "dist/galactic-reach/rules/6.11/$asset"
 done
 cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/6.11/table.js
+
+# Preserve the parent Pass & Buy experiment for pinned tables and replays.
+mkdir -p dist/galactic-reach/rules/7.12
+for asset in app.js styles.css index.html replay.js rulebook.html rulebook.css; do
+  cp "crates/galactic-reach/rules/v7-$asset" "dist/galactic-reach/rules/7.12/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/7.12/table.js
+
+# Preserve the Resource Actions experiment for its existing tables and replays.
+mkdir -p dist/galactic-reach/rules/8.13
+for asset in app.js styles.css index.html replay.js rulebook.html rulebook.css; do
+  cp "crates/galactic-reach/rules/v8-$asset" "dist/galactic-reach/rules/8.13/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/8.13/table.js
+
+# Keep the previous local Settlers & Explorers rules available for pinned tables.
+mkdir -p dist/galactic-reach/rules/9.14
+for asset in app.js styles.css index.html replay.js rulebook.html rulebook.css; do
+  cp "crates/galactic-reach/rules/v9-$asset" "dist/galactic-reach/rules/9.14/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/9.14/table.js
+
+# Preserve the Fleet & Storage experiment for pinned tables and recorded matches.
+mkdir -p dist/galactic-reach/rules/10.15
+for asset in app.js styles.css index.html replay.js rulebook.html rulebook.css; do
+  cp "crates/galactic-reach/rules/v10-$asset" "dist/galactic-reach/rules/10.15/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/10.15/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/10.15/
+
+# Keep 11.16 tables and replays on the full Alien Relics implementation.
+mkdir -p dist/galactic-reach/rules/11.16
+for asset in app.js styles.css index.html replay.js rulebook.html rulebook.css; do
+  cp "crates/galactic-reach/rules/v11-$asset" "dist/galactic-reach/rules/11.16/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/11.16/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/11.16/
+
+# Keep the full 12.17 browser for existing tables and replays.
+mkdir -p dist/galactic-reach/rules/12.17
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v12-$asset" "dist/galactic-reach/rules/12.17/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/12.17/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/12.17/
+
+# Preserve the complete 13.18 browser for pinned tables and replays.
+mkdir -p dist/galactic-reach/rules/13.18
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v13-$asset" "dist/galactic-reach/rules/13.18/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/13.18/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/13.18/
+
+# Preserve14.19 before the combat rules experiment; pinned games never upgrade.
+mkdir -p dist/galactic-reach/rules/14.19
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v14-$asset" "dist/galactic-reach/rules/14.19/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/14.19/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/14.19/
+
+# Preserve the full15.20 combat/Relics browser for pinned games and replays.
+mkdir -p dist/galactic-reach/rules/15.20
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v15-$asset" "dist/galactic-reach/rules/15.20/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/15.20/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/15.20/
+
+# Preserve the full16.21 browser for pinned games and replays.
+mkdir -p dist/galactic-reach/rules/16.21
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v16-$asset" "dist/galactic-reach/rules/16.21/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/16.21/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/16.21/
+
+# Preserve the complete Ten Prestige browser for existing tables and replays.
+mkdir -p dist/galactic-reach/rules/17.22
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v17-$asset" "dist/galactic-reach/rules/17.22/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/17.22/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/17.22/
+
+# Preserve the complete Central Frontier browser for existing tables and replays.
+mkdir -p dist/galactic-reach/rules/18.23
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v18-$asset" "dist/galactic-reach/rules/18.23/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/18.23/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/18.23/
+
+# Preserve the complete Game Reports browser for pinned tables and replays.
+mkdir -p dist/galactic-reach/rules/19.24
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v19-$asset" "dist/galactic-reach/rules/19.24/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/19.24/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/19.24/
+
+# Preserve Open Worlds browser engines and manuals for pinned tables/replays.
+mkdir -p dist/galactic-reach/rules/20.25
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v20-$asset" "dist/galactic-reach/rules/20.25/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/20.25/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/20.25/
+
+# Preserve Scoring Bots, its discovery rules and bank-button UI for pinned games.
+mkdir -p dist/galactic-reach/rules/21.26
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v21-$asset" "dist/galactic-reach/rules/21.26/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/21.26/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/21.26/
+
+mkdir -p dist/galactic-reach/rules/22.27
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v22-$asset" "dist/galactic-reach/rules/22.27/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/22.27/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/22.27/
+
+mkdir -p dist/galactic-reach/rules/23.28
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v23-$asset" "dist/galactic-reach/rules/23.28/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/23.28/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/23.28/
+
+mkdir -p dist/galactic-reach/rules/24.29
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v24-$asset" "dist/galactic-reach/rules/24.29/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/24.29/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/24.29/
+
+mkdir -p dist/galactic-reach/rules/25.30
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v25-$asset" "dist/galactic-reach/rules/25.30/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/25.30/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/25.30/
+
+# Keep26.31 tables and replays on their original immediate-discard rules.
+mkdir -p dist/galactic-reach/rules/26.31
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js; do
+  cp "crates/galactic-reach/rules/v26-$asset" "dist/galactic-reach/rules/26.31/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/26.31/table.js
+cp prototypes/galactic-reach/playtest-notes.js prototypes/galactic-reach/playtest-notes.css dist/galactic-reach/rules/26.31/

@@ -1,0 +1,37 @@
+{
+  "rules": "galactic-reach/25.30",
+  "baseProbeCommit": "6d4d579c82de257b9a958cb7e4a52fb5b900b6d0",
+  "engineSha256": "65c8adbe756f57144d75d6052dadeab13def8890f106c193c0487202987115ba",
+  "controlSha256": "b7de0f3503558be99eb88d75b819988ae26a4420edc73a20a5b596093a4d5f76",
+  "declaredDesign": {
+    "main": {
+      "blocks": [
+        4000,
+        4031
+      ],
+      "gamesPerPolicy": 432
+    },
+    "headtohead": {
+      "blocks": [
+        4100,
+        4115
+      ],
+      "games": 192
+    },
+    "gift": {
+      "blocks": [
+        4000,
+        4007
+      ],
+      "rounds": [
+        1,
+        10
+      ],
+      "amount": 2,
+      "gamesPerPolicy": 768
+    },
+    "totalGames": 2592,
+    "roundLimit": 100
+  },
+  "tuning": "None after inherited planner freeze; interrupted old-Probe outcomes excluded"
+}

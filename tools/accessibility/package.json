@@ -1,0 +1,7 @@
+{
+  "name": "galactic-reach-accessibility-audit",
+  "private": true,
+  "description": "Local browser audit fixture; never bundled with the game.",
+  "scripts": { "start": "node audit.cjs" },
+  "devDependencies": { "axe-core": "4.14.0" }
+}

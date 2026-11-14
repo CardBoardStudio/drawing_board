@@ -1,11 +1,14 @@
 # Project instructions
 
-## GitHub identity
+## Interface scope
 
-- Every GitHub write, including commits, pushes, PRs, comments, labels, and merges, must use `bitswell`. Never use `willemneal` or its credentials, even if the local defaults point there. Do not add co-author trailers for that account or an AI agent.
-- Run every GitHub CLI/API call through `~/.config/bitswell/gh-bitswell gh <args>`. The wrapper injects the token from 1Password only for that command. Never print, persist, export, or paste the token; do not read, list, or explore other 1Password items.
-- Set this repository's commit identity to `bitswell` / `96487943+bitswell@users.noreply.github.com`. Use HTTPS remotes, never SSH. Reset this repo's GitHub credential helper with `git config credential.https://github.com.helper ''`, then add `~/.config/bitswell/git-credential-bitswell` with `git config --add credential.https://github.com.helper ~/.config/bitswell/git-credential-bitswell`.
-- Before the first write, verify that `~/.config/bitswell/gh-bitswell gh api user --jq .login` reports `bitswell`, `git config user.email` reports its noreply address, and `git remote -v` contains HTTPS URLs. If any check fails, or 1Password reports an authentication or network error, stop and report it. Never fall back to another account.
+- Design, adjust, and verify the UI for desktop only. Do not spend work on mobile layouts or mobile UI tests.
+- Accessibility work still covers desktop keyboard operation, screen-reader labels, focus visibility, contrast, and desktop window sizes. State the coverage actually tested.
+
+## GitHub workflow
+
+- Use HTTPS remotes, never SSH.
+- Do not add co-author trailers for an AI agent.
 - Do not merge without explicit user authorization. Do not write to upstream or third-party repositories unless the user names them.
 
 ## Ground every PR in the rules
@@ -23,7 +26,7 @@
 - Drawing Board deployments on Render are the canonical live playtest sites. Never present a `chatgpt.site` deployment as the live game or rulebook unless the user explicitly requests that separate host.
 - The stable deployment is <https://drawing-board-p0g3.onrender.com/>. Before sharing any live link, verify the latest successful GitHub deployment status for the intended commit and use its `environment_url`; preview URLs can change.
 - An unmerged PR must link to its own successful Render deployment, including `/galactic-reach/rulebook.html` on that same origin. Do not link a preview game to `main`'s rules or a hard-coded old PR preview.
-- The build must package the canonical rulebook and stylesheet with the game. Verify anonymous access, game-to-rules navigation, section links, and a narrow viewport. Rules changes need a preview just like code changes; never add `render-preview-skip` to a rules PR.
+- The build must package the canonical rulebook and stylesheet with the game. Verify anonymous access, game-to-rules navigation, section links, and a narrow desktop window. Rules changes need a preview just like code changes; never add `render-preview-skip` to a rules PR.
 - Publishing means pushing to GitHub and confirming the corresponding Render deployment. Opening a PR does not authorize merging it. Report missing or failed deployments honestly.
 
 ## Playtest change lanes

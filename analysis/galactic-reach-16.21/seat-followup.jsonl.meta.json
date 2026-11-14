@@ -1,0 +1,63 @@
+{
+  "sourceCommit": "30ac7a94133b8d493c4856f95999eda255405dc8",
+  "engineSha256": "c36b02100e148189bc5c8f542b1c29814e873f5b781ecb1071e7a51950f60ae2",
+  "suite": "followup",
+  "seeds": 16,
+  "offset": 0,
+  "variants": [
+    [
+      "inward-yard",
+      0
+    ],
+    [
+      "yard-direction",
+      1
+    ],
+    [
+      "yard-direction",
+      2
+    ],
+    [
+      "yard-direction",
+      3
+    ],
+    [
+      "yard-direction",
+      4
+    ],
+    [
+      "yard-direction",
+      5
+    ],
+    [
+      "relative-paths",
+      0
+    ],
+    [
+      "inward-relative-paths",
+      0
+    ],
+    [
+      "affordable-build",
+      0
+    ],
+    [
+      "inward-affordable",
+      0
+    ],
+    [
+      "all-policy",
+      0
+    ]
+  ],
+  "games": 528,
+  "notes": [
+    "All profiles homogeneous; the legal-move safeguard from the balance study remains.",
+    "Ownership rotations remap initial home owners/founders while keeping player IDs, decks and initial actor fixed.",
+    "Starter rotations move the initial shuffled six-card decks between identities before any draw.",
+    "Home palette intervention changes only home resource types; geometry and AI are unchanged.",
+    "Shipyard interventions change only the first successful Shipyard preference, not costs or subsequent building priorities.",
+    "Every intervention shares map seed and RNG initialization with its baseline."
+  ],
+  "adapterSha256": "6b986e56978ce183b6386cbd5992b499575c4b2e26ce1f4dc1425f656ee759c4"
+}

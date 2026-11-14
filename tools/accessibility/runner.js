@@ -42,7 +42,7 @@
   const controls=document.createElement('div');controls.id='accessibility-audit-controls';
   controls.style.cssText='position:fixed;bottom:8px;right:8px;z-index:9999;padding:10px;background:#fff;color:#111;border:2px solid #111;border-radius:6px;font:14px/1.4 system-ui;max-width:calc(100vw - 16px)';
   controls.innerHTML='<button type="button" id="run-accessibility-audit" style="font:inherit;padding:8px;color:#111;background:#fff;border:2px solid #111">Run WCAG audit</button> <output id="accessibility-audit-status" aria-live="polite">Ready</output>';
-  function positionControls(){const host=document.querySelector('dialog[open]')||document.querySelector('[popover]:popover-open')||document.body;if(controls.parentElement!==host)host.appendChild(controls);}
+  function positionControls(){const host=[...document.querySelectorAll('dialog[open]')].at(-1)||document.querySelector('[popover]:popover-open')||document.body;if(controls.parentElement!==host)host.appendChild(controls);}
   positionControls();new MutationObserver(positionControls).observe(document.body,{subtree:true,attributes:true,attributeFilter:['open']});
   document.addEventListener('toggle',positionControls,true);
   controls.querySelector('button').addEventListener('click',async()=>{
@@ -50,13 +50,15 @@
     controls.hidden=true;
     try {
       const results=await axe.run({exclude:[['#accessibility-audit-controls']]},{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa','best-practice']}});
-      const fixture=new URL(location.href).searchParams.get('fixture')||'fresh';
+      const params=new URL(location.href).searchParams;
+      const fixture=(params.get('fixture')||'fresh')+(params.has('queue')?'-'+params.get('queue'):'');
       const panel=document.querySelector('.console-tab[aria-selected="true"]')?.dataset.tab||'rulebook';
-      const modal=document.querySelector('dialog[open]');
+      const modal=[...document.querySelectorAll('dialog[open]')].at(-1);
       const dialog=modal?(modal.id||modal.classList[0]):document.querySelector('[popover]:popover-open')?.id||'page';
       const expanded=[...document.querySelectorAll('details[open]')].map(el=>el.id).filter(Boolean).join('_');
       const zoom=document.querySelector('#map-zoom')?.getAttribute('aria-pressed')==='true'?'-zoom':'';
-      const name=`${fixture}-${panel}-${dialog}${expanded?'-'+expanded:''}${zoom}-${innerWidth}`;
+      const queueView=document.querySelector('.cq-pr-heading')?(document.querySelector('.cq-pr-heading .cq-kicker').textContent.includes('MERGED')?'review-merged':'review'):document.querySelector('#cq-token')?'connect':document.querySelector('#cq-tab-pulls[aria-selected="true"]')?'pulls':document.querySelector('#cq-tab-requests[aria-selected="true"]')?'requests':'';
+      const name=`${fixture}-${panel}-${dialog}${queueView?'-'+queueView:''}${expanded?'-'+expanded:''}${zoom}-${innerWidth}`;
       const report={case:name,testedAt:new Date().toISOString(),url:location.href,viewport:{width:innerWidth,height:innerHeight},axeVersion:results.testEngine.version,violations:results.violations,incomplete:results.incomplete,passes:results.passes.map(rule=>rule.id)};
       report.contrastReview=reviewContrast(results.incomplete.filter(rule=>rule.id==='color-contrast').flatMap(rule=>rule.nodes));
       report.mapContrastReview=reviewMapContrast();

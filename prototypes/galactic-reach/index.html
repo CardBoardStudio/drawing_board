@@ -8,6 +8,7 @@
   <meta name="description" content="Play Galactic Reach against three computer-controlled rival factions.">
   <link rel="stylesheet" href="styles.css?v=table-corners-a11y-27-32-1">
   <link rel="stylesheet" href="playtest-notes.css?v=1">
+  <link rel="stylesheet" href="change-queue.css?v=1">
 </head>
 <body>
   <a class="skip-link" href="#console">Skip to player controls</a>
@@ -30,12 +31,13 @@
     <details class="playtest-changes" id="playtest-changes">
       <summary><span class="new-feature">New in this playtest</span> A place at the table <span class="summary-hint">View changes</span></summary>
       <ul>
+        <li id="developer-change-note" hidden><strong>Developer change queue:</strong> collect requested changes, link implementation PRs, review checks and previews, and approve a merge from the side panel. Available to host administrators.</li>
         <li><strong>A tabletop layout:</strong> shared standings, turn information, the scoring reference and recent actions sit around the galaxy inside the board frame. Your hand, reserves and card piles stay on your player mat. <a href="rulebook.html#player-mat">Your player mat</a> and <a href="rulebook.html#shared-board">shared board</a>.</li>
         <li><strong>Printed cards and tactile pieces:</strong> clearer card faces, resource tokens, deck stacks and turn markers. Select a hex to inspect it, or use the map key for units and costs. <a href="rulebook.html#movement">Reading the board</a>.</li>
         <li>Retains the current 27.32 rules, scoring and rivals, including cards staying in play until shared cleanup. This visual update does not change costs, actions or saved games. <a href="rulebook.html#round">Card timing</a>.</li>
       </ul>
       <button class="button button-ghost" id="open-relic-catalog" type="button">Preview all 12 alien relics</button>
-      <p>27.32 visual playtest · Start a game on this separate preview. Earlier rulesets keep their archived interface.</p>
+      <p>27.32 playtest · Start a new game for these rules. Earlier rulesets keep their archived interface.</p>
     </details>
 
     <section class="game-layout">
@@ -322,5 +324,6 @@
   <script src="replay.js?v=cards-in-play-27-32"></script>
   <script src="app.js?v=table-corners-a11y-27-32-1"></script>
   <script src="playtest-notes.js?v=2" data-game="Galactic Reach" data-rules="27.32"></script>
+  <script src="change-queue.js?v=1"></script>
 </body>
 </html>

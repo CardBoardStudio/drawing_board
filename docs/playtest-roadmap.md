@@ -1,5 +1,13 @@
 # Playtest roadmap
 
+## Tabletop interface in 27.32
+
+- Give the shared galaxy a printed board treatment, put faction mats beside it, and group the human hand, resource tokens and card piles into one player mat.
+- Use warm card faces with illustrated emblems, clearer order/conversion buttons, deck stacks and active-faction markers. Keep map zoom, private discovery, pile inspection, reports and replay controls.
+- Bring the board into view for map orders and the market into view on passing. Keep resources visible while browsing cards on phones.
+
+Status: implemented for a separate review preview carrying the current 27.32 experiment. This interface changes no costs, scoring, legal actions, bot decisions or saved-state meaning. Canonical player-mat guidance is under `#player-mat`; publication and validation are tracked in the new PR.
+
 ## Victory wording in 27.32
 
 - Show “You win” for the human victory message, and keep “wins” for named rival factions. Apply the same wording to replay results.

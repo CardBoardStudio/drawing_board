@@ -2937,7 +2937,8 @@ function createGalacticReach(options = {}) {
       const active = state.activePlayer===id && state.winner===null;
       const elo = state.replayElo?.[id];
       const eloText = elo ? `<span class="score-elo">Elo ${Math.round(elo.before)} → ${Math.round(elo.after)} (${elo.after>=elo.before?'+':''}${(elo.after-elo.before).toFixed(1)})</span>` : '';
-      return `<article class="score-card ${active?'active':''} ${replayMode&&id===viewSeat?'viewing':''}" style="--player:${player.color}"><div class="score-top"><span class="score-name">${esc(player.name)}</span><button type="button" class="score-value" data-score-player="${id}" aria-label="${esc(player.name)}: ${calculatePrestige(id)} Prestige. Show point breakdown" aria-haspopup="dialog">${calculatePrestige(id)}</button></div><div class="score-meta"><span>${colonyPlanets(id).length} colonies</span><span>${player.cardsPurchased||0} cards purchased</span><span>${strongestFleet(id)} fleet</span>${eloText}</div></article>`;
+      const colonies = colonyPlanets(id).length;
+      return `<article class="score-card ${active?'active':''} ${replayMode&&id===viewSeat?'viewing':''}" style="--player:${player.color}"><span class="faction-counter" aria-hidden="true">${String(id+1).padStart(2,'0')}</span><div class="score-info"><div class="score-top"><span class="score-name">${esc(player.name)}</span><span class="score-turn">${active?'Acting':player.passed?'Passed':'Ready'}</span></div><div class="score-meta"><span>${colonies} ${colonies===1?'colony':'colonies'}</span><span>${player.cardsPurchased||0} cards bought</span><span>${strongestFleet(id)} fleet power</span>${eloText}</div></div><button type="button" class="score-value" data-score-player="${id}" aria-label="${esc(player.name)}: ${calculatePrestige(id)} Prestige. Show point breakdown" aria-haspopup="dialog">${calculatePrestige(id)}<small>Prestige</small></button></article>`;
     }).join('');
     $$('[data-score-player]').forEach(button=>button.addEventListener('click',()=>showPrestigeBreakdown(Number(button.dataset.scorePlayer))));
     renderHistoryStatus();
@@ -3138,6 +3139,15 @@ function createGalacticReach(options = {}) {
     $('#game-log').innerHTML=state.log.slice(0,18).map(item=>`<li>${replayMode?esc(item):item}</li>`).join('');
   }
 
+  // Printed emblems reuse the board's unit vocabulary. They are decorative;
+  // the card text and existing action buttons remain the source of its effect.
+  function cardIllustration(definition) {
+    const motif = definition.kind === 'Military' || definition.affinity === 'Military' ? 'fleet'
+      : {move:'fleet',construct:'starbase',colonize:'colony',probe:'explorer',excavate:'harvester'}[definition.order]
+      || (definition.kind === 'Expansion' || definition.affinity === 'Settlement' ? 'colony' : 'starbase');
+    return `<span class="card-art" aria-hidden="true"><span class="card-orbit"></span>${BOARD_ICONS[motif]}<span class="card-registration">GALACTIC REACH</span></span>`;
+  }
+
   function cardMarkup(card, location) {
     const definition=ALL_CARDS[card.key];
     const isHumanOps=!replayMode&&state.phase==='operations'&&state.activePlayer===0;
@@ -3148,7 +3158,7 @@ function createGalacticReach(options = {}) {
     const canOrder=location==='hand'&&isHumanOps&&['prep','action'].includes(state.turnStage)&&definition.order&&!definition.reaction&&!definition.buyEffect;
     const isSelectedOrder=canOrder&&state.actionCardId===card.id&&Boolean(state.actionMode);
     const canBuyEffect=location==='hand'&&!replayMode&&state.phase==='buy'&&state.activePlayer===0&&definition.buyEffect&&!(definition.buyEffect==='manipulation'&&state.players[0].marketManipulated);
-    return `<article class="game-card ${definition.kind==='Alien Relic'?'alien-relic':''} ${card.upgraded?'upgraded':''} ${isSelectedOrder?'order-selected':''}" style="--card-accent:${definition.accent}"><span class="card-type">${definition.kind}${definition.affinity?' · '+definition.affinity:''}${card.starter?' · STARTER':''}</span><span class="card-name">${definition.name}${card.upgraded?' II':''}</span>${definition.lore?`<span class="card-lore">${esc(definition.lore)}</span>`:''}<span class="card-effect">${resourceText(definition.text)}${card.upgraded?` II: ${upgradedOrderText(card)} Conversion gains one extra resource.`:''}</span><div class="card-footer"><span>${definition.resource?`<small>Gain</small>${resourceDots(conversionGain(card))}`:''}</span><span>${definition.cost?`<small>Buy</small>${resourceDots(definition.cost)}`:''}</span></div>${location==='hand'?`<div class="card-buttons">${canResource?`<button class="button" data-resource-card="${card.id}" ${canStoreCard?'':`disabled title="Choose excess resources first"`}>${canStoreCard?'Convert to resources':`Choose discards first`}</button>`:''}${canOrder?`<button class="button ${isSelectedOrder?'button-danger':'button-primary'}" data-order-card="${card.id}" aria-pressed="${isSelectedOrder}">${isSelectedOrder?'Cancel order':'Use order'}</button>`:''}${canBuyEffect?`<button class="button button-primary" data-buy-effect="${card.id}">Use in Buy</button>`:''}${definition.reaction&&isHumanOps?'<span class="muted">Automatic reaction</span>':''}</div>`:''}</article>`;
+    return `<article class="game-card ${definition.kind==='Alien Relic'?'alien-relic':''} ${card.upgraded?'upgraded':''} ${isSelectedOrder?'order-selected':''}" style="--card-accent:${definition.accent}"><span class="card-type">${definition.kind}${definition.affinity?' · '+definition.affinity:''}${card.starter?' · STARTER':''}</span><span class="card-name">${definition.name}${card.upgraded?' II':''}</span>${cardIllustration(definition)}${definition.lore?`<span class="card-lore">${esc(definition.lore)}</span>`:''}<span class="card-effect">${resourceText(definition.text)}${card.upgraded?` II: ${upgradedOrderText(card)} Conversion gains one extra resource.`:''}</span><div class="card-footer"><span>${definition.resource?`<small>Gain</small>${resourceDots(conversionGain(card))}`:''}</span><span>${definition.cost?`<small>Buy</small>${resourceDots(definition.cost)}`:''}</span></div>${location==='hand'?`<div class="card-buttons">${canResource?`<button class="button" data-resource-card="${card.id}" ${canStoreCard?'':`disabled title="Choose excess resources first"`}>${canStoreCard?'Convert to resources':`Choose discards first`}</button>`:''}${canOrder?`<button class="button ${isSelectedOrder?'button-danger':'button-primary'}" data-order-card="${card.id}" aria-pressed="${isSelectedOrder}">${isSelectedOrder?'Cancel order':'Use order'}</button>`:''}${canBuyEffect?`<button class="button button-primary" data-buy-effect="${card.id}">Use in Buy</button>`:''}${definition.reaction&&isHumanOps?'<span class="muted">Automatic reaction</span>':''}</div>`:''}</article>`;
   }
 
   function deckContents(player) {
@@ -3189,7 +3199,10 @@ function createGalacticReach(options = {}) {
     $('#hand-row').innerHTML=player.hand.length?player.hand.map(card=>cardMarkup(card,'hand')).join(''):`<p class="muted">${replayMode?`${esc(player.name)}’s hand is empty.`:'Your hand is empty.'}</p>`;
     $('#discard-row').innerHTML=replayMode?'<p class="muted discard-empty">Replays record discard pile size, not its cards.</p>':player.discard.length?[...player.discard].reverse().map(card=>cardMarkup(card,'discard')).join(''):'<p class="muted discard-empty">Your discard pile is empty.</p>';
     $$('[data-resource-card]').forEach(button=>button.addEventListener('click',()=>playResourceMode(button.dataset.resourceCard)));
-    $$('[data-order-card]').forEach(button=>button.addEventListener('click',()=>playOrder(button.dataset.orderCard)));
+    $$('[data-order-card]').forEach(button=>button.addEventListener('click',()=>{
+      playOrder(button.dataset.orderCard);
+      if (['move','construct','colonize','probe'].includes(state.actionMode)) $('#table-board')?.scrollIntoView?.({block:'start'});
+    }));
     $$('[data-buy-effect]').forEach(button=>button.addEventListener('click',()=>useBuyEffect(button.dataset.buyEffect)));
     const prep=state.phase==='operations'&&state.activePlayer===0&&state.turnStage==='prep';
     const convertAll = $('#convert-all-button');
@@ -3212,7 +3225,7 @@ function createGalacticReach(options = {}) {
     $('#market-row').innerHTML=replayMode?'<p class="muted">Replays record purchases in the game log, not the advanced market row.</p>':state.market.map((card,index)=>{
       const def=ALL_CARDS[card.key];
       const disabled=!humanBuy||state.players[0].bought>=state.players[0].buyLimit||!canAfford(state.players[0],def.cost,state.players[0].buyDiscountData);
-      return `<button class="game-card" style="--card-accent:${def.accent}" data-buy-market="${index}" ${disabled?'disabled':''}><span class="card-type">${def.kind}</span><span class="card-name">${def.name}</span><span class="card-effect">${resourceText(def.text)}</span><span class="card-footer"><small>Buy</small>${resourceDots(def.cost)}</span></button>`;
+      return `<button class="game-card" style="--card-accent:${def.accent}" data-buy-market="${index}" ${disabled?'disabled':''}><span class="card-type">${def.kind}</span><span class="card-name">${def.name}</span>${cardIllustration(def)}<span class="card-effect">${resourceText(def.text)}</span><span class="card-footer"><small>Buy</small>${resourceDots(def.cost)}</span></button>`;
     }).join('');
     $$('[data-buy-basic]').forEach(button=>button.addEventListener('click',()=>{if(buyCard(0,'basic',button.dataset.buyBasic)){render();saveGame();}}));
     $$('[data-buy-market]').forEach(button=>button.addEventListener('click',()=>{if(buyCard(0,'market',Number(button.dataset.buyMarket))){render();saveGame();}}));
@@ -3585,7 +3598,10 @@ function createGalacticReach(options = {}) {
     $('#skip-colony-build').addEventListener('click',()=>finishColonyBuild(0));
     $('#construction-discount').addEventListener('change',event=>{state.actionOptions.discountResource=event.target.value;render();saveGame();});
     $('#finish-buy-button').addEventListener('click',finishHumanBuy);
-    $('#pass-button').addEventListener('click',()=>passOperations(0));
+    $('#pass-button').addEventListener('click',()=>{
+      passOperations(0);
+      if (state.phase==='buy' && state.activePlayer===0) $('#console').scrollIntoView?.({block:'start'});
+    });
     $('#open-relic-catalog').addEventListener('click',()=>{
       $('#relic-catalog-grid').innerHTML=Object.keys(RELIC_CARDS).map(key=>cardMarkup({key},'catalog')).join('');
       $('#relic-catalog-dialog').showModal();

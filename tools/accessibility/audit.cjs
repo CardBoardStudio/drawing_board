@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
 const crypto = require('node:crypto');
+const queueFixture = require('./queue-fixture.cjs');
 const root = path.resolve(__dirname, '../..');
 const source = path.join(root, 'prototypes/galactic-reach');
 const port = Number(process.env.A11Y_PORT || 8885);
@@ -11,7 +12,7 @@ const output = path.resolve(process.env.A11Y_OUTPUT || path.join(__dirname, 'rep
 const axe = require.resolve('axe-core/axe.min.js');
 fs.mkdirSync(output, {recursive:true});
 const escape = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const hashes = () => Object.fromEntries(['app.js','index.html','styles.css','rulebook.html','rulebook.css','playtest-notes.js','playtest-notes.css'].map(file => [file,crypto.createHash('sha256').update(fs.readFileSync(path.join(source,file))).digest('hex')]));
+const hashes = () => Object.fromEntries(['app.js','index.html','styles.css','rulebook.html','rulebook.css','playtest-notes.js','playtest-notes.css','change-queue.js','change-queue.css'].map(file => [file,crypto.createHash('sha256').update(fs.readFileSync(path.join(source,file))).digest('hex')]));
 
 function fixture(kind) {
   let engine, seed=1729;
@@ -40,7 +41,7 @@ function fixture(kind) {
 function summary() {
   const reports=fs.readdirSync(output).filter(file=>file.endsWith('.json')).map(file=>({file,...JSON.parse(fs.readFileSync(path.join(output,file),'utf8'))}));
   const current=hashes();
-  const currentReports=reports.filter(r=>Object.entries(current).every(([file,hash])=>r.sourceHashes[file]===hash));
+  const currentReports=reports.filter(r=>Object.entries(current).every(([file,hash])=>r.sourceHashes?.[file]===hash));
   const rows=currentReports.map(r=>`<tr><td><a href="${escape(r.file)}">${escape(r.case)}</a></td><td>${r.viewport.width} × ${r.viewport.height}</td><td>${r.violations.length}</td><td>${r.contrastReview?(r.contrastReview.failures.length+(r.mapContrastReview?.failures.length||0)):'pending'}</td><td>${r.incomplete.length}</td><td>${escape(r.testedAt)}</td></tr>`).join('');
   fs.writeFileSync(path.join(output,'index.html'),`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Galactic Reach accessibility audit</title><style>body{font:16px/1.6 system-ui;max-width:1100px;margin:40px auto;padding:20px;background:#152526;color:#fff5df}a{color:#ffe09f}table{border-collapse:collapse;width:100%}th,td{padding:12px;border:1px solid #819481;text-align:left}.scroll{overflow:auto}</style><main><h1>Galactic Reach accessibility audit</h1><p>axe-core 4.14.0 · WCAG 2.2 A/AA and best practices. Automated scans do not replace keyboard, reflow, focus and assistive-technology review. The table includes only the current source hashes. Each JSON records exact source hashes, raw axe results and conservative gradient contrast checks. Earlier scans remain in this folder as evidence. Icon controls and gradient indeterminates also receive manual review.</p><div class="scroll"><table><thead><tr><th>Case</th><th>Viewport</th><th>Violations</th><th>Contrast checks</th><th>Raw review items</th><th>Tested</th></tr></thead><tbody>${rows}</tbody></table></div></main></html>`);
 }
@@ -50,6 +51,7 @@ const send=(res,status,body,type='text/plain')=>{res.writeHead(status,{'Content-
 http.createServer(async (req,res)=>{
   try {
     const url=new URL(req.url,'http://127.0.0.1');
+    if(await queueFixture.handle(req,res,url))return;
     if(req.method==='POST'&&url.pathname==='/__audit/result') {
       let body='';for await(const part of req){body+=part;if(body.length>12_000_000)throw Error('Report too large');}
       const report=JSON.parse(body);report.sourceHashes=hashes();
@@ -67,6 +69,8 @@ http.createServer(async (req,res)=>{
     if(path.extname(filename)==='.html') {
       let html=content.toString();
       if(path.basename(filename)==='index.html') {
+        if(url.searchParams.get('fixture')==='queue')queueFixture.reset(url.searchParams.get('queue'));
+        else queueFixture.reset('guest');
         const saved=JSON.stringify(JSON.stringify(fixture(url.searchParams.get('fixture')||'fresh'))).replace(/</g,'\\u003c');
         html=html.replace('  <script src="table.js',`<script>localStorage.removeItem('galactic-reach-turn-history-v27');localStorage.removeItem('galactic-reach-history-v27');localStorage.setItem('galactic-reach-save-v27',${saved});</script>\n  <script src="table.js`);
       }

@@ -1,5 +1,12 @@
 # Playtest roadmap
 
+## Developer change queue
+
+- Add a desktop administrator side panel for requested changes stored as GitHub issues, with linked implementation PRs, current checks and exact-head previews.
+- Use a temporary per-administrator GitHub connection; explicit approval merges a reviewed head into main after fresh server checks. Show deployment separately.
+
+Status: implemented on a separate PR from the now-stable 27.32 main. Rust workspace tests, Clippy, formatting, source rulebook/rules-contract checks and client reference/origin validation pass. Twenty desktop browser audits report zero axe or supplementary contrast failures; manual request/link/connection/approval and keyboard checks pass against local fixtures. Publication and native image checks are tracked in the PR. This tool changes no game rules or saves. See [developer queue specification](developer-change-queue.md).
+
 ## Tabletop interface in 27.32
 
 - Give the shared galaxy a printed board treatment, put faction standings and references in reserved board corners, and group the human hand, resource tokens and card piles into one player mat.

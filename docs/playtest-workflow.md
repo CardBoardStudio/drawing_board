@@ -2,7 +2,7 @@
 
 ## Stable lane
 
-The stable playtest lane is `main`. Keep ongoing games save-compatible. Long Reach 6.11 was promoted in PR #16; old PR preview URLs are not current deployment links.
+The stable playtest lane is `main`. Galactic Reach 27.32 and the tabletop interface were promoted in PR #38. Keep ongoing 27.32 games save-compatible; earlier pinned tables and replays use their archived engines. Closed PR preview URLs are not current deployment links.
 
 Create save-compatible work on `codex/<short-name>` from the latest `origin/main` head, open a PR against `main`, and apply `playtest-safe`. This includes accessibility, layout, wording, diagnostics, and fixes that preserve available decisions and saved-state meaning. Keep existing guest saves, pinned tables, and replays playable.
 

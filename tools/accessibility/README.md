@@ -11,7 +11,9 @@ node tools/accessibility/audit.cjs
 
 Open the printed localhost URL in the in-app browser. Click **Run WCAG audit** after opening the screen or dialog to check. The control moves into the active dialog or popover so it remains reachable. It hides during the scan and is excluded from the results. Reports go to `tools/accessibility/reports/`; set `A11Y_OUTPUT` to choose another local directory, or `A11Y_PORT` to choose another port.
 
-The `fixture` query accepts `fresh`, `buy`, `combat`, `overflow`, and `mixed`. These are disposable, seeded QA positions on localhost. Each page load replaces only the fixture origin’s v27 game/history keys. Combat is created through the real adapter’s legal move and combat actions. The JSON reports record hashes of all seven reviewed browser assets, the viewport, axe results, and supplementary contrast calculations. The HTML index shows only reports matching the current source; earlier failures remain on disk as evidence.
+The `fixture` query accepts `fresh`, `buy`, `combat`, `overflow`, and `mixed`. These are disposable, seeded QA positions on localhost. Each page load replaces only the fixture origin’s v27 game/history keys. Combat is created through the real adapter’s legal move and combat actions. The JSON reports record hashes of all nine reviewed browser assets, the viewport, axe results, and supplementary contrast calculations. The HTML index shows only reports matching the current source; earlier failures remain on disk as evidence.
+
+For the developer panel, use `?fixture=queue&queue=ready&dev=1`. Queue modes include `disconnected`, `preview`, `guest`, `member`, `blocked`, `breaking`, `stale` and `error`. The in-memory fixture simulates request creation, PR linking, connection and merge outcomes; it never contacts GitHub and cannot merge a real PR. Only use a visibly fake token in this fixture. Reports include both new queue assets in their source hashes. Nested merge confirmations are audited as the active dialog.
 
 ## Scope and manual review
 

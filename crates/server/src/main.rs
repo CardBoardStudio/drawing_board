@@ -1,5 +1,6 @@
 mod accounts;
 mod arena;
+mod change_queue;
 mod config;
 mod invites;
 mod nido;
@@ -468,6 +469,7 @@ async fn command(
 }
 fn router(app: App) -> Router {
     Router::new()
+        .merge(change_queue::routes(Arc::new(change_queue::Config::from_env())))
         .route(
             "/api/health",
             get(|| async { Json(json!({"ok":true,"rules":RULES_VERSION,"galactic_reach_rules":galactic_reach::RULES})) }),

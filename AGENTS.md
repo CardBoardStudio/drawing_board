@@ -31,7 +31,7 @@
 
 ## Playtest change lanes
 
-- `main` is the current stable lane: Long Reach 6.11 was promoted in PR #16. The former `codex/add-galactic-reach-prototype` lane has merged; do not target it or a closed PR by default. If a new stable playtest lane is explicitly established, update this file and the workflow together.
+- `main` is the current stable lane: Galactic Reach 27.32 with the tabletop interface was promoted in PR #38. Earlier pinned tables and replays retain their archived engines. The former `codex/add-galactic-reach-prototype` lane has merged; do not target it or a closed PR by default. If a new stable playtest lane is explicitly established, update this file and the workflow together.
 - Use a `codex/<short-name>` branch from latest `origin/main` and a PR into `main` for save-compatible work. Apply `playtest-safe`. Examples: layout, accessibility, wording, diagnostics, and fixes that do not change legal decisions or saved-state meaning.
 - Put every breaking rules experiment on its own `codex/experiment-<short-name>` branch from the latest stable head, target `main`, and apply `playtest-breaking`. Never mix both labels. A change is breaking if it can invalidate an ongoing game or materially change player decisions, including setup, topology, phases, economy, combat, card contents, scoring, victory, limits, or persisted state meaning.
 - Test experiments only on their successful Render preview and start a new game there. The distinct origin keeps guest saves separate. Preserve pinned table versions and their archived engines; never redirect an existing game to an incompatible ruleset.

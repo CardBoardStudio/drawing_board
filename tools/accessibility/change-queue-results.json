@@ -1,0 +1,233 @@
+{
+  "scope": "Desktop developer queue, 1024 and 1440 CSS pixels",
+  "axeVersion": "4.14.0",
+  "sourceHashes": {
+    "app.js": "913705fb522658c8633afd68881fbc6135759a49ea49f0b128de4aae257b51a2",
+    "index.html": "12495a09e51f2c3190373ea6e822d4191d9f54cd1e8abcf41a4f58bf252c5b29",
+    "styles.css": "b16d3d8971042baa00dcd4ca7ef2fc942e4ae4691a1ca0b75ed9d966197e23f1",
+    "rulebook.html": "7ee310252981f09b10fcfd1c2544c4623af5192f34d4ce9d03071cf06eafe851",
+    "rulebook.css": "66776225d3838d9ca61feab5402a6af433798f0cee9f4e8a603dbaaa1c8e0b91",
+    "playtest-notes.js": "c2c4d6867ca1f005795a654486f687bd086938917215362f25b4c172fce1a740",
+    "playtest-notes.css": "3d8484181349c1720319d84189340fa6732ce9b7d7dee355019fc8ab0a5cef0d",
+    "change-queue.js": "b7fc3c7321df802a6a0efd5fd4820e8eb593db286e63d2d53d7653ec69a7d17f",
+    "change-queue.css": "9194cd27afcf129d130ec1e3bb09a057b2d8681dad7888d13a6629f5865356d4"
+  },
+  "scans": 20,
+  "violations": 0,
+  "supplementaryTextContrastFailures": 0,
+  "supplementaryGraphicalContrastFailures": 0,
+  "cases": [
+    {
+      "case": "fresh-hand-page-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:56.791Z",
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "queue-blocked-hand-change-queue-dialog-review-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:49.655Z",
+      "rawReviewRules": []
+    },
+    {
+      "case": "queue-breaking-hand-cq-confirm-review-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:47.334Z",
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "queue-disconnected-hand-change-queue-dialog-connect-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:50.348Z",
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "queue-disconnected-hand-change-queue-dialog-connect-cq-connection-permissions-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:50.927Z",
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "queue-error-hand-change-queue-dialog-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:53.663Z",
+      "rawReviewRules": []
+    },
+    {
+      "case": "queue-guest-hand-change-queue-dialog-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:52.294Z",
+      "rawReviewRules": []
+    },
+    {
+      "case": "queue-long-hand-change-queue-dialog-requests-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:27:58.050Z",
+      "rawReviewRules": []
+    },
+    {
+      "case": "queue-member-hand-change-queue-dialog-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:52.981Z",
+      "rawReviewRules": []
+    },
+    {
+      "case": "queue-preview-hand-change-queue-dialog-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:51.613Z",
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "queue-ready-hand-change-queue-dialog-pulls-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:43.653Z",
+      "rawReviewRules": []
+    },
+    {
+      "case": "queue-ready-hand-change-queue-dialog-requests-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:54.364Z",
+      "rawReviewRules": []
+    },
+    {
+      "case": "queue-ready-hand-change-queue-dialog-requests-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:42.541Z",
+      "rawReviewRules": []
+    },
+    {
+      "case": "queue-ready-hand-change-queue-dialog-requests-cq-request-composer-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:54.960Z",
+      "rawReviewRules": []
+    },
+    {
+      "case": "queue-ready-hand-change-queue-dialog-requests-cq-request-composer-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:43.097Z",
+      "rawReviewRules": []
+    },
+    {
+      "case": "queue-ready-hand-change-queue-dialog-review-1024",
+      "viewport": {
+        "width": 1024,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:55.558Z",
+      "rawReviewRules": []
+    },
+    {
+      "case": "queue-ready-hand-change-queue-dialog-review-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:44.560Z",
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "queue-ready-hand-change-queue-dialog-review-merged-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:45.999Z",
+      "rawReviewRules": []
+    },
+    {
+      "case": "queue-ready-hand-cq-confirm-review-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:45.142Z",
+      "rawReviewRules": [
+        "color-contrast"
+      ]
+    },
+    {
+      "case": "queue-stale-hand-change-queue-dialog-review-1440",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "testedAt": "2026-11-14T04:26:48.650Z",
+      "rawReviewRules": []
+    }
+  ],
+  "manualChecks": [
+    "Escape closes the drawer and returns focus to Change queue; Enter opens it.",
+    "Draft title/description survive closing, reopening and page reload.",
+    "Requests can be created and linked to own-repository PRs; foreign-repository links are rejected.",
+    "ArrowRight selects and focuses the Pull requests tab.",
+    "Merge requires explicit approval; breaking PRs additionally require reset acknowledgement.",
+    "Failed checks disable merging; a stale head returns an error.",
+    "The mock merge has no live link until a successful matching deployment exists.",
+    "Connect clears the password field; disconnect returns an empty password field.",
+    "Ordinary guest pages have no queue button; forced entry still requires administrator access.",
+    "A 160-character unbroken title and 5400-character description fit the 1024px drawer without horizontal overflow."
+  ],
+  "limits": [
+    "All mutations used the local mock fixture; no real GitHub credential or PR merge was used as a test.",
+    "The Rust HTTP tests separately verify administrator checks, token isolation/expiry, append-only linking, current-head evidence, and the merge request.",
+    "Raw contrast indeterminates are preserved and use the documented conservative review; this is not complete conformance or spoken screen-reader certification.",
+    "No mobile UI testing."
+  ]
+}

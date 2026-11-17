@@ -168,10 +168,10 @@ function card(key,upgraded=false){return {...r.makeCard(key,true),upgraded};}
   Object.assign(s.planets[yard],{owner:0,occupiedBy:null,upgrade:'starbase'});
   s.fleets={[yard]:{0:{fleet:1}}}; // Give the movement purchase a useful group to move.
   p.hand=[];p.deck=[];p.discard=[];
-  // 31.36+: basic cards are not sold; Fold-Space Gate (32.37: 7 Energy, 2 Data) needs a raised Energy limit.
+  // 31.36+: basic cards are not sold; Fold-Space Gate (rebalance b2: 6 Energy, 2 Data) needs a raised Energy limit.
   p.resourceLimits={matter:4,energy:12,biomass:4,data:4};p.resources={matter:0,energy:12,biomass:0,data:1};
   s.phase='buy';p.passed=true;s.market=[{key:'foldSpaceGate',id:'ion-1'}];s.marketDecks={expensive:[],medium:[],cheap:[]};r.runAiBuy();
-  assert.equal(p.bought,1);assert.equal(p.resources.data,0);assert.equal(p.resources.energy,1,'AI paid the same 4:1 exchange and card price while keeping the next unit’s Energy');
+  assert.equal(p.bought,1);assert.equal(p.resources.data,0);assert.equal(p.resources.energy,2,'AI paid the same 4:1 exchange and card price while keeping the next unit’s Energy');
   assert(p.discard.some(c=>c.id==='ion-1'),'A bought normal card enters discard');
 }
 {

@@ -32,20 +32,25 @@ function weighted(rng, entries) {
 }
 
 // ---------- power model (price units ~ total resources) ----------
-// Fitted by hand to the printed market: Ion Thrusters (+2 move) 5, Fold-Space Gate (+5) 9,
-// Strike Vector 6, Prefab Yards 5, World Engine 11, Seed Ark 5, Colony Pods 6,
-// Genesis Charter 11, Signal Relay (draw 2) 3, Strategy Core 6, Command Nexus 8,
+// Fitted by hand to the printed market: Ion Thrusters (+2 move) 5, Fold-Space Gate (+5) 8,
+// Strike Vector 6, Prefab Yards 5, World Engine 10, Seed Ark 5, Colony Pods 6,
+// Genesis Charter 10, Signal Relay (draw 2) 3, Strategy Core 6, Command Nexus 8,
 // Archive Purge 6, Cargo Expansion 6, Hyperspace Vaults 9, Monument 10, Dyson Lattice 14,
 // Ascendancy Codex 14, Rail Battery 5, Deflector Grid 5, Nova Barrage 10, Aegis Lattice 9.
+// Refitted after the 2026-11-16 rebalance (changes/gr-rebalance-b2.md), which made
+// per-play Prestige, reusable limit raises and Wonder Prestige dearer.
 const DRAW_VALUE = [0, 1.5, 3, 6, 8, 10];
 function effectPower(effect = {}) {
   let v = DRAW_VALUE[effect.draw || 0] || 0;
   v += (effect.trashStarters || 0) * 2;
   const limitPoints = RESOURCES.reduce((n, r) => n + ((effect.limits || {})[r] || 0), 0);
-  v += limitPoints * (effect.trashSelf ? 0.75 : 0.95);
+  // A reusable limit raise repeats every play (Hyperspace Vaults: +1 each for 9); a one-shot
+  // raise is close to a Capacity Module (Cargo Expansion: +2 each, then trashed, for 6).
+  v += limitPoints * (effect.trashSelf ? 0.75 : 1.9);
   v += effect.produce ? 5 : 0;
   v += RESOURCES.reduce((n, r) => n + ((effect.gain || {})[r] || 0), 0) * 0.9;
-  v += (effect.prestige || 0) * 6.25;
+  // Prestige on every play (Ascendancy Codex: 1 for 14).
+  v += (effect.prestige || 0) * 14;
   if (effect.trashSelf && !limitPoints) v *= 0.6;
   return v;
 }
@@ -55,11 +60,13 @@ function power(card) {
     // Shields are worth less per point as they grow (Deflector Grid 3 -> 5, Aegis Lattice 8 -> 9).
     return 1 + 1.8 * (card.attack || 0) + 2.3 * Math.sqrt(card.shield || 0) + (card.pierce ? 3.4 : 0) + (card.victoryPrestige || 0) * 2.2 + loot * 0.8;
   }
-  if (card.gainPrestige) return 4 + 2 * card.gainPrestige;
+  // Wonders: Monument of Accord 3 for 10, Dyson Lattice 4 for 14.
+  if (card.gainPrestige) return -2 + 4 * card.gainPrestige;
   if (card.buyEffect) return 6;
   if (card.reaction) return card.reaction === 'prevent' ? 1 + card.strength * 1.5 : 1 + card.strength * 2 - (card.requiresFleet ? 1 : 0);
   switch (card.order) {
-    case 'move': return 2 + 1.5 * (card.range || 0) - (card.pathfinder ? 1.5 : 0) + 1.25 * (card.assault || 0);
+    // Range beyond 3 is worth less per point (Fold-Space Gate: +5 for 8).
+    case 'move': { const range = card.range || 0; return 2 + 1.5 * Math.min(range, 3) + Math.max(0, range - 3) - (card.pathfinder ? 1.5 : 0) + 1.25 * (card.assault || 0); }
     case 'construct': {
       const gain = RESOURCES.reduce((n, r) => n + ((card.buildGain || {})[r] || 0), 0);
       return 2 + ({ each: 2, free: 9 }[card.buildDiscount] || 0) + (card.secondBuild ? 1 : 0) + gain * 1.2;

@@ -38,7 +38,7 @@ function game(){
  // The actual free relic effect, rather than a synthetic count increment.
  p.hand=[{id:'cradle',key:'foldedWarehouse'}];p.resources={matter:0,energy:0,biomass:0,data:0};
  const paid=p.storagePurchases,capacity=e.playerCapacity(0);e.resolveHumanSpecial(p.hand[0],e.ALL_CARDS.foldedWarehouse,0);
- assert.equal(p.storagePurchases,paid);assert.equal(e.playerCapacity(0),capacity+4);assert.equal(e.storageUpgradeCost(0).matter,4);
+ assert.equal(p.storagePurchases,paid);assert.equal(e.playerCapacity(0),capacity+8);assert.equal(e.storageUpgradeCost(0).matter,4);
 }
 {
  const g=game(),{e,s}=g,p=s.players[1];p.strategy='military';p.hand=[{id:'move',key:'move',upgraded:true}];s.activePlayer=1;

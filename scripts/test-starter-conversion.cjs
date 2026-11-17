@@ -70,13 +70,13 @@ for(const key of ['move','construct']){
  const g=game();g.s.phase='buy';g.s.market=[{id:'monument',key:'monumentOfAccord'},{id:'dyson',key:'dysonLattice'}];g.s.marketDecks={expensive:[],medium:[],cheap:[]};
  const start=g.e.calculatePrestige(0);g.a.applyAction(0,g.a.legalActions(0).find(a=>a.type==='buy'&&a.key==='monumentOfAccord'));
  g.a.applyAction(0,g.a.legalActions(0).find(a=>a.type==='buy'&&a.key==='dysonLattice'));
- assert.equal(g.e.calculatePrestige(0),start+8);assert.equal(g.p.discard.length,2);
+ assert.equal(g.e.calculatePrestige(0),start+7,'Monument 3 + Dyson Lattice 4');assert.equal(g.p.discard.length,2);
  assert(!g.e.decommission(0,'dyson','matter'),'Newly bought Wonders cannot be trashed in the same Buy turn');
  g.p.hand=g.p.discard.splice(0);g.s.phase='operations';
  assert(g.a.legalActions(0).every(a=>!['resource','special'].includes(a.type)),'Wonders are inert in hand');
  g.p.discard=g.p.hand.splice(0);g.p.buyStartDiscardIds=g.p.discard.map(c=>c.id);g.s.phase='buy';
  for(const id of ['monument','dyson'])assert(g.e.decommission(0,id,'matter'));
- assert.equal(g.p.discard.length,0);assert.equal(g.e.calculatePrestige(0),start+8,'Trashing keeps purchased Prestige');
+ assert.equal(g.p.discard.length,0);assert.equal(g.e.calculatePrestige(0),start+7,'Trashing keeps purchased Prestige');
 }
 {
  const g=game();g.p.resources={matter:0,energy:0,biomass:0,data:0};g.p.hand=plain([...eligible,...forbidden]);

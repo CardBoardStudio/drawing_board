@@ -18,14 +18,14 @@ function act(g, seat, type, match = () => true) {
 }
 const big = p => { p.resourceLimits = { matter: 30, energy: 30, biomass: 30, data: 30 }; p.resources = { matter: 20, energy: 20, biomass: 20, data: 20 }; };
 
-// Catalog: 36 designs with stable ids, every one priced above the starting limit of 4.
+// Catalog: 31 designs with stable ids, every one priced above the starting limit of 4.
 const catalog = vm.runInContext(app + ';createGalacticReach({catalog:true})', vm.createContext({}));
 const cards = { ...catalog.ADVANCED_CARDS, ...catalog.MARKET_MILITARY };
 const codes = Object.values(cards).map(c => c.code);
-assert.equal(Object.keys(catalog.ADVANCED_CARDS).length, 22); assert.equal(Object.keys(catalog.MARKET_MILITARY).length, 9);
+assert.equal(Object.keys(catalog.ADVANCED_CARDS).length, 21); assert.equal(Object.keys(catalog.MARKET_MILITARY).length, 10);
 assert.equal(new Set(codes).size, 31, 'Card ids are unique');
-assert.deepEqual(codes.filter(c => c[0] === 'N').sort(), Array.from({ length: 29 }, (_, i) => `N${String(i + 1).padStart(2, '0')}`).filter(c=>!['N06','N11','N12','N13','N14','N15','N24'].includes(c)));
-assert.deepEqual(codes.filter(c => c[0] === 'M').sort(), Array.from({ length: 10 }, (_, i) => `M${String(i + 1).padStart(2, '0')}`).filter(c=>c!=='M04'));
+assert.deepEqual(codes.filter(c => c[0] === 'N').sort(), Array.from({ length: 29 }, (_, i) => `N${String(i + 1).padStart(2, '0')}`).filter(c=>!['N06','N11','N12','N13','N14','N15','N22','N24'].includes(c)));
+assert.deepEqual(codes.filter(c => c[0] === 'M').sort(), Array.from({ length: 11 }, (_, i) => `M${String(i + 1).padStart(2, '0')}`).filter(c=>c!=='M04'));
 for (const [key, def] of Object.entries(cards)) {
   assert(['signalRelay','surveyNetwork','tacticalBriefing'].includes(key)||Object.values(def.cost).some(n => n > catalog.STARTING_LIMIT), `${key} must need a raised limit`);
   assert.equal(!!def.military, def.code[0] === 'M');
@@ -80,15 +80,14 @@ assert.equal(catalog.rulesVersion, 'galactic-reach/38.43');
 {
   const g = game(), { s, p } = g; s.phase = 'buy'; s.activePlayer = 0; p.passed = true; big(p);
   s.market = [{ key: 'novaBarrage', id: 'nova' }, { key: 'dysonLattice', id: 'dyson' }, { key: 'railBattery', id: 'rail' }];
-  p.hand = [{ key: 'procurementHub', id: 'hub' }, { key: 'tradeSyndicate', id: 'syn' }];
+  p.hand = [{ key: 'procurementHub', id: 'hub' }];
   p.resources.energy = 25;
   act(g, 0, 'buy_effect', a => a.card === 'hub'); assert.equal(p.buyHubDiscounts, 1);
-  // 34.39: Procurement Hub's purchase also costs 1 less of each; with Trade Syndicate both apply.
+  // 34.39: Procurement Hub's purchase costs 1 less of each resource.
   assert.deepEqual(JSON.parse(JSON.stringify(g.e.purchaseCost(p, 'dysonLattice'))), { matter: 3, energy: 7, data: 1 });
-  act(g, 0, 'buy_effect', a => a.card === 'syn'); assert.deepEqual(JSON.parse(JSON.stringify(g.e.purchaseCost(p, 'dysonLattice'))), { matter: 2, energy: 6, data: 0 });
   act(g, 0, 'buy', a => a.key === 'dysonLattice');
-  assert.equal(p.cardPrestige, 5); assert.equal(g.e.calculatePrestige(0), 8, 'Colony 3 + Dyson Lattice 5 (34.39)');
-  assert.equal(p.resources.energy, 19, 'Trade Syndicate and Procurement Hub each took 1 off each resource of the next purchase');
+  assert.equal(p.cardPrestige, 4); assert.equal(g.e.calculatePrestige(0), 7, 'Colony 3 + Dyson Lattice 4 (rebalance b2)');
+  assert.equal(p.resources.energy, 18, 'Procurement Hub took 1 off each resource of the next purchase');
   assert.equal(p.buyDiscountEach, 0, 'The discounts are used up'); assert.equal(p.buyHubDiscounts, 0);
   assert.deepEqual(JSON.parse(JSON.stringify(g.e.purchaseCost(p, 'novaBarrage'))), { matter: 3, energy: 7 }, 'The next purchase is at full price');
   act(g, 0, 'buy', a => a.key === 'novaBarrage');
@@ -105,7 +104,7 @@ assert.equal(catalog.rulesVersion, 'galactic-reach/38.43');
   assert.deepEqual(JSON.parse(JSON.stringify(p.resourceLimits)), { matter: 6, energy: 6, biomass: 6, data: 6 }, 'Cargo Expansion raises every limit');
   assert.equal(p.storagePurchases || 0, 0, 'Card capacity does not raise the next paid price');
   s.activePlayer = 0; p.hand = [{ key: 'ascendancyCodex', id: 'codex' }]; p.deck = [{ key: 'move', id: 'drawn' }];
-  act(g, 0, 'special', a => a.card === 'codex'); assert.equal(p.cardPrestige, 2); assert(p.hand.some(c => c.id === 'drawn'));
+  act(g, 0, 'special', a => a.card === 'codex'); assert.equal(p.cardPrestige, 1, 'Ascendancy Codex: 1 Prestige per use (rebalance b2)'); assert(!p.hand.some(c => c.id === 'drawn'), 'Ascendancy Codex no longer draws (rebalance b2)');
   s.activePlayer = 0; p.hand = [{ key: 'commandNexus', id: 'nexus' }]; p.deck = [1, 2, 3, 4, 5].map(n => ({ key: 'move', id: `d${n}` }));
   act(g, 0, 'special', a => a.card === 'nexus'); assert.equal(p.hand.length, 4);
   assert(p.inPlay.some(c => c.id === 'nexus'), 'Used orders stay in play until cleanup');

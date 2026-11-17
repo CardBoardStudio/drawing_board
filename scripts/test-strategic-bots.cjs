@@ -80,7 +80,7 @@ for(const strategy of ['military','economy','expansion']) {
 }
 {
   const g=game(),stats=g.a.observe(1).cardStats;
-  assert.equal(stats.signalRelay.draw,2);assert.equal(stats.ascendancyCodex.prestige,2);
+  assert.equal(stats.signalRelay.draw,2);assert.equal(stats.ascendancyCodex.prestige,1);
   g.s.players[0].hand=[{id:'private-hand-identifier',key:'novaBarrage'}];
   assert.deepEqual(plain(g.a.observe(1).cardStats),plain(stats),'Printed card metadata is independent of private ownership');
   assert(!JSON.stringify(stats).includes('private-hand-identifier'));

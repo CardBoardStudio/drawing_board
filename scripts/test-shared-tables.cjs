@@ -133,3 +133,34 @@ state.pendingCombat = null;
 }
 
 console.log('Shared table authority, fold, private views, undo marks and snapshots passed.');
+
+// Public tablet DTO: all hidden identities and new/unreviewed fields stay out.
+{
+  const {adapter,port}=engine(recorder(37).shuffle), state=port.state;
+  const sentinel='PRIVATE_SENTINEL_NEVER_ON_BOARD';
+  state.privateFutureField=sentinel;state.players.forEach(p=>{p.privateFutureField=sentinel;p.buyStartHandIds=[sentinel];});
+  const moon=state.clusters.find(c=>c.kind==='moon');
+  moon.scannedBy=[0];moon.privateFutureField=sentinel;
+  const world=state.clusters.find(c=>c.kind==='world'&&c.scannedBy.length===0);
+  world.scannedBy=[0];
+  const signal=world.coords.find(k=>state.planets[k].special==='relic');
+  let view=plain(adapter.publicState());
+  assert(!JSON.stringify(view).includes(sentinel),'allowlist rejects new hidden fields');
+  assert(!Object.hasOwn(view.planets,moon.center),'a private probe must not reveal a moon');
+  assert.equal(view.planets[signal].relic,false,'one faction’s signal stays private');
+  for(const p of state.players)for(const c of [...p.hand,...p.deck])assert(!JSON.stringify(view).includes(c.id),'no hidden card identity');
+  assert(view.players.every(p=>!('hand' in p)&&!('deck' in p)&&!('buyStartHandIds' in p)));
+  moon.revealedBy=[0,1,2,3];
+  assert(adapter.publicState().planets[moon.center],'a surveyed moon is public');
+  state.pendingCombat={coord:'0,0',origin:'1,0',stage:'tactic',volley:0,attackerId:0,defenderId:1,options:{},
+    attackerPieces:[],defenderPieces:[],used:{attacker:[],defender:[]},hands:{attacker:{concentratedFire:2},defender:{defensiveScreen:2}},
+    commitments:{attacker:sentinel,defender:null},escapeDone:{attacker:true,defender:true},summary:[],volleys:[]};
+  view=plain(adapter.publicState());
+  assert.equal(view.combat.sides.attacker.committed,true);
+  assert(!JSON.stringify(view).includes(sentinel),'committed tactic is never public');
+  assert(!('hand' in view.combat.sides.attacker)&&!('choice' in view.combat.sides.attacker));
+  state.pendingCombat=null;state.winner=0;
+  view=plain(adapter.publicState());
+  assert(view.players.every(p=>!('hand' in p)&&!('deck' in p)),'finishing does not disclose hands to board');
+}
+console.log('Public board privacy passed.');

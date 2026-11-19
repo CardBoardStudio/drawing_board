@@ -14,6 +14,7 @@ mod platform_tests;
 mod shared;
 mod store;
 mod tables;
+mod tabletop;
 use axum::{
     Json, Router,
     extract::{Path, State},
@@ -182,6 +183,11 @@ async fn protect(State(app): State<App>, request: axum::extract::Request, next: 
     let gated = app.nido.access.invite_only && !access::is_public(path);
     let check = async {
         access::limit(&app, path, headers).map_err(IntoResponse::into_response)?;
+        // Delegated device routes validate their own narrowly scoped capability.
+        // Keep CSRF above this exception; do not issue a general account session.
+        if tabletop::delegated_path(path) {
+            return Ok(());
+        }
         if gated || (path.starts_with("/api/") && !path.starts_with("/api/auth/")) {
             nido::check_session(&app, headers)
                 .await
@@ -578,6 +584,31 @@ fn router(app: App) -> Router {
         .route("/api/tables/{id}/lobby/leave", post(lobby::leave))
         .route("/api/tables/{id}/lobby/settings", post(lobby::settings))
         .route("/api/tables/{id}/lobby/start", post(lobby::start))
+        .route("/tabletop/host.html", get(tabletop::host_page))
+        .route("/tabletop/phone.html", get(tabletop::phone_page))
+        .route("/tabletop/pairing.js", get(tabletop::pairing_script))
+        .route("/api/tabletop/{id}/phone-invite", post(tabletop::invite))
+        .route("/api/tabletop/{id}/host-phone", post(tabletop::host_phone))
+        .route("/api/tabletop/{id}/requests", get(tabletop::requests))
+        .route("/api/tabletop/{id}/approve", post(tabletop::approve))
+        .route("/api/tabletop/{id}/join", post(tabletop::join))
+        .route("/api/tabletop/{id}/seat", get(tabletop::seat))
+        .route("/api/tabletop/{id}/act", post(tabletop::act))
+        .route("/api/tabletop/{id}/undo", post(tabletop::undo))
+        .route("/api/tabletop/{id}/report", get(tabletop::report))
+        .route("/api/tabletop/{id}/player-stream", get(tabletop::player_stream))
+        .route("/api/tabletop/{id}/repair", post(tabletop::repair))
+        .route("/api/tabletop/{id}/client/", get(tabletop::client_index))
+        .route("/api/tabletop/{id}/client/{*file}", get(tabletop::client))
+        .route("/tabletop/board.html", get(tabletop::board_page))
+        .route("/tabletop/board.js", get(tabletop::board_script))
+        .route("/tabletop/board.css", get(tabletop::board_style))
+        .route("/api/tabletop/{id}/board-grant", post(tabletop::issue_board))
+        .route("/api/tabletop/{id}/board-revoke", post(tabletop::revoke_board))
+        .route("/api/tabletop/{id}/redeem", post(tabletop::redeem))
+        .route("/api/tabletop/{id}/board", get(tabletop::board))
+        .route("/api/tabletop/{id}/focus", post(tabletop::focus))
+        .route("/api/tabletop/{id}/stream", get(tabletop::stream))
         .route("/api/shared", get(shared::list))
         .route("/api/shared/{id}", get(shared::view))
         .route("/api/shared/{id}/act", post(shared::act))

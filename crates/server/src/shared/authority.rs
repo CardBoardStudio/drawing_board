@@ -29,6 +29,10 @@ pub trait HiddenInfoAuthority: Send + Sync {
     /// Everything `seat` may see: public table state plus its own hand and deck
     /// contents. Never another seat's hand, any deck order, or unlocated relics.
     fn private_view(&self, engine: &GalacticReach, seat: usize) -> Result<Value, String>;
+    /// Public board information only, including after the game ends.
+    fn public_view(&self, engine: &GalacticReach) -> Result<Value, String> {
+        engine.public_state()
+    }
     /// After the game ends: opens every hidden shuffle so anyone holding the log
     /// can replay the whole game and check each commitment.
     fn reveal(&self, table: &str, events: &[Event]) -> Result<NewEvent, String>;

@@ -2,7 +2,9 @@
 // page shows the signed-in seat's private view, sends that seat's commands, and
 // follows every other seat live over server-sent events.
 (() => {
-  const id = new URLSearchParams(location.search).get('shared');
+  const params = new URLSearchParams(location.search), tabletop = params.has('tabletop');
+  const id = params.get(tabletop ? 'tabletop' : 'shared');
+  const endpoint = suffix => tabletop ? `/api/tabletop/${id}/${suffix || 'seat'}` : `/api/shared/${id}${suffix ? '/' + suffix : ''}`;
   if (id === null) return;
   globalThis.drawingBoardTableBoot = true;
   document.addEventListener('DOMContentLoaded', async () => {
@@ -14,11 +16,25 @@
     bar.setAttribute('aria-label', 'Shared table');
     bar.innerHTML = '<a class="button button-ghost" href="/?game=galactic-reach#tables">← Your tables</a><strong id="saved-table-name">Opening shared table…</strong><span id="table-rules" class="rules-badge"></span><ol class="shared-seats" id="shared-seats" aria-label="Seats"></ol><span id="table-sync" role="status" aria-live="polite">Connecting…</span><span id="shared-undo-note" class="shared-undo-note" hidden></span>';
     shell.before(bar);
+    const boardButton = document.createElement('button');
+    boardButton.className = 'button button-ghost'; boardButton.textContent = 'Pair public board';
+    const boardLink = document.createElement('a'); boardLink.hidden = true; boardLink.target = '_blank'; boardLink.rel = 'noopener'; boardLink.textContent = 'Open public board';
+    const revokeBoard = document.createElement('button'); revokeBoard.className = 'button button-ghost'; revokeBoard.textContent = 'Revoke board links';
+    if (!tabletop) bar.append(boardButton, boardLink, revokeBoard);
+    boardButton.addEventListener('click', async () => {
+      try { const result = await api(`/api/tabletop/${id}/board-grant`, {}); boardLink.href = result.url; boardLink.hidden = false;
+        status.textContent = 'Open this link on the tablet, or copy it there. It pairs one public board.';
+      } catch (error) { status.textContent = error.message; }
+    });
+    revokeBoard.addEventListener('click', async () => {
+      try { await api(`/api/tabletop/${id}/board-revoke`, {}); boardLink.hidden = true; boardLink.removeAttribute('href'); status.textContent = 'Public board access revoked.'; }
+      catch (error) { status.textContent = error.message; }
+    });
     const status = bar.querySelector('#table-sync');
     const seatList = bar.querySelector('#shared-seats');
     const undoNote = bar.querySelector('#shared-undo-note');
     const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    let current = null, game = null, busy = false, stream = null;
+    let current = null, game = null, controls = null, busy = false, stream = null;
     async function api(path, body) {
       const response = await fetch(path, {method: body === undefined ? 'GET' : 'POST', credentials: 'same-origin',
         headers: body === undefined ? {} : {'Content-Type': 'application/json', 'x-drawing-board': '1'},
@@ -37,7 +53,7 @@
       document.title = `${mine && view.status !== 'finished' ? '● Your move · ' : ''}${view.name} · Galactic Reach`;
       // Say why Undo stops short of the start of the turn: a reveal is final.
       const undo = view.undo || {};
-      const note = !mine ? '' : undo.available && undo.stop ? `Undo goes back only to just after ${undo.stop}.` : !undo.available && /^Undo stops/.test(undo.reason || '') ? undo.reason : '';
+      const note = view.committed_only ? 'Confirmed choices are final. No Undo in this game.' : !mine ? '' : undo.available && undo.stop ? `Undo goes back only to just after ${undo.stop}.` : !undo.available && /^Undo stops/.test(undo.reason || '') ? undo.reason : '';
       undoNote.textContent = note; undoNote.hidden = !note;
     }
     function adopt(view) {
@@ -45,13 +61,14 @@
       current = view;
       describe(view);
       game?.sync(view);
+      controls?.update(view);
     }
-    async function refresh() { adopt(await api(`/api/shared/${id}`)); }
-    function act(intents) {
+    async function refresh() { adopt(await api(endpoint(''))); }
+    function send(intents) {
       if (busy || !current) { status.textContent = 'Still sending your last choice…'; return false; }
       busy = true;
       status.textContent = 'Sending…';
-      api(`/api/shared/${id}/act`, {seq: current.seq, actions: intents})
+      api(endpoint('act'), {seq: current.seq, actions: intents})
         .then(result => {
           busy = false;
           adopt(result.view);
@@ -68,14 +85,14 @@
       if (busy || !current) return false;
       busy = true;
       status.textContent = 'Undoing…';
-      api(`/api/shared/${id}/undo`, {seq: current.seq})
+      api(endpoint('undo'), {seq: current.seq})
         .then(result => { busy = false; adopt(result.view); status.textContent = `Took back ${result.undone} choice${result.undone === 1 ? '' : 's'}.`; })
         .catch(async error => { busy = false; status.textContent = error.message; try { await refresh(); status.textContent = error.message; } catch { /* The live stream resyncs on reconnect. */ } });
       return true;
     }
     async function report() {
       try {
-        const data = await api(`/api/shared/${id}/report`);
+        const data = await api(endpoint('report'));
         const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
         const link = document.createElement('a'); link.href = url; link.download = `galactic-reach-shared-${id}.json`; link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -94,7 +111,7 @@
       status.textContent = message; shell.inert = true;
     }
     function resync() {
-      refresh().catch(error => { if (error.status === 409 || error.status === 404) halt(error.message); });
+      refresh().catch(error => { if (error.status === 409 || error.status === 404 || (tabletop && [401,403].includes(error.status))) halt(error.message); });
     }
     function reconnect(reason) {
       if (halted) return;
@@ -106,7 +123,7 @@
       if (halted) return;
       stream?.close();
       lastMessage = Date.now();
-      stream = new EventSource(`/api/shared/${id}/stream`);
+      stream = new EventSource(endpoint(tabletop ? 'player-stream' : 'stream'));
       stream.addEventListener('view', event => {
         lastMessage = Date.now(); retry = 0;
         try { adopt(JSON.parse(event.data)); } catch { /* Ignore a malformed frame; the next one resyncs. */ }
@@ -132,28 +149,32 @@
       if (!stream || stream.readyState === EventSource.CLOSED || Date.now() - lastMessage > 15000) reconnect();
     });
     window.addEventListener('online', () => { resync(); reconnect(); });
-    const leave = () => { clearTimeout(retryTimer); stream?.close(); stream = null; location.assign('/?game=galactic-reach#tables'); };
+    const leave = () => { clearTimeout(retryTimer); stream?.close(); stream = null; location.assign(tabletop ? `/tabletop/phone.html?table=${id}` : '/?game=galactic-reach#tables'); };
     bar.querySelector('a').addEventListener('click', event => { event.preventDefault(); leave(); });
     try {
       if (!/^[a-f0-9]{32}$/.test(id)) throw new Error('Invalid table link. Return to Your tables.');
-      const view = await api(`/api/shared/${id}`);
+      const view = await api(endpoint(''));
       // A table keeps the rules revision it was dealt with: open that revision's browser.
-      if (view.client_path && location.pathname !== view.client_path) { location.replace(`${view.client_path}?shared=${id}`); return; }
+      if (view.client_path && location.pathname !== view.client_path) { location.replace(`${view.client_path}?${tabletop ? 'tabletop' : 'shared'}=${id}`); return; }
       current = view;
       bar.querySelector('#saved-table-name').textContent = view.name;
       bar.querySelector('#table-rules').textContent = `Rules ${view.rules_version.split('/')[1]} · shared`;
       describe(view);
+      if (tabletop) controls = globalThis.createTabletopControls({bar, status, current:()=>current, game:()=>game, send, busy:()=>busy});
       game = globalThis.createGalacticReach({
-        network: {seat: view.seat, rules: view.rules_version, initial: view, act, undo, busy: () => busy, report},
-        paused: () => busy, newTable: leave
+        network: {tabletop, committedOnly:view.committed_only===true, seat: view.seat, rules: view.rules_version, initial: view,
+          act: intents=>controls?controls.preview(intents):send(intents), undo, busy: () => busy || !!controls?.pending(), report},
+        paused: () => busy || !!controls?.pending(), newTable: leave
       });
+      controls?.update(view);
+      if (tabletop) { bar.querySelector('a').textContent='Phone pairing'; bar.querySelector('a').href=`/tabletop/phone.html?table=${id}`; }
       const library = document.querySelector('.header-actions a');
-      if (library) { library.textContent = 'Your tables'; library.href = '/?game=galactic-reach#tables'; }
+      if (library) { library.textContent = tabletop ? 'Phone pairing' : 'Your tables'; library.href = tabletop ? `/tabletop/phone.html?table=${id}` : '/?game=galactic-reach#tables'; }
       shell.inert = false;
       listen();
     } catch (error) {
       status.textContent = error.message;
-      if (error.status === 401) {
+      if (error.status === 401 && !tabletop) {
         const link = document.createElement('a'); link.className = 'button button-ghost'; link.textContent = 'Sign in to open this table';
         link.href = `/?return_to=${encodeURIComponent('/galactic-reach/?shared=' + id)}#account`; bar.append(link);
       }

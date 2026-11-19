@@ -284,6 +284,35 @@ function createGalacticAdapter(e) {
       if (battle[`${side}Id`] !== seat && battle.commitments[side] !== null) battle.commitments[side] = 'hidden';
     return state;
   }
+  // Deliberate public allowlist. Never clone the authoritative state or combine
+  // player views: either approach can disclose a private signal or a new field.
+  function publicState() {
+    const state = s();
+    const cards = list => list.map(c => ({key:c.key, name:e.ALL_CARDS[c.key]?.name || c.key, level:c.level || 1}));
+    const known = c => c.kind !== 'moon' || [0,1,2,3].every(seat => e.clusterRevealed(c, seat));
+    const located = c => [0,1,2,3].every(seat => e.relicKnown(c, seat));
+    return e.clone({
+      round:state.round, phase:state.phase, active:activeSeat(), winner:state.winner,
+      victoryTarget:e.victoryTarget(), boardRadius:e.BOARD_RADIUS, portalLinks:state.portalLinks,
+      players:state.players.map((p,id) => ({
+        id, name:p.name, color:p.color, resources:p.resources, limits:e.resourceLimits(id),
+        prestige:e.calculatePrestige(id), passed:p.passed,
+        handCount:p.hand.length, deckCount:p.deck.length,
+        discard:cards(p.discard), inPlay:cards(p.inPlay), military:cards(p.military)
+      })),
+      planets:Object.fromEntries(Object.entries(state.planets).filter(([,p]) => known(state.clusters[p.cluster])).map(([coord,p]) => [coord, {
+        name:p.name, type:p.type, owner:p.owner, hasColony:p.hasColony,
+        upgrade:p.upgrade, upgradeLevel:p.upgradeLevel,
+        relic:located(state.clusters[p.cluster]) && p.special === 'relic',
+        relicClaimed:located(state.clusters[p.cluster]) && p.relicClaimed
+      }])),
+      fleets:Object.fromEntries(Object.entries(state.fleets).map(([coord, fleets]) => [coord,
+        Object.fromEntries(Object.entries(fleets).map(([seat,f]) => [seat,{settler:f.settler||0,explorer:f.explorer||0,fleet:f.fleet||0}]))])),
+      market:cards(e.marketOffers()), relicRow:cards(state.relicRow), capacitySupply:state.capacitySupply,
+      // combatView already returns only public information to a nonparticipant.
+      combat:e.combatView(-1)
+    });
+  }
   // Shared-table Undo (rulebook #shared-tables). `turn` identifies the current
   // turn; `reveal` changes whenever an action shows anyone hidden information:
   // a draw, a market or relic card turned up, a survey, a located relic, combat.
@@ -312,6 +341,6 @@ function createGalacticAdapter(e) {
     const seat = activeSeat();
     return { active: seat, observation: seat === null ? null : observe(seat), legal: legalActions(seat), scores: scores() };
   }
-  return { rulesVersion: 'galactic-reach/38.43', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot, privateState, hints, undoMark, snapshotState };
+  return { rulesVersion: 'galactic-reach/38.43', activeSeat, observe, legalActions, applyAction, scores, standings, snapshot, privateState, publicState, hints, undoMark, snapshotState };
 }
 if (typeof module !== 'undefined' && module.exports) module.exports = createGalacticAdapter;

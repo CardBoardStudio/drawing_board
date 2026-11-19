@@ -757,4 +757,5 @@ async function main() {
   console.log(`${checks - failures}/${checks} viewport-fit checks passed.`);
   if (failures) process.exit(1);
 }
-main().catch(error => { console.error(error); process.exit(1); });
+if (require.main === module) main().catch(error => { console.error(error); process.exit(1); });
+module.exports = { findChrome, launch };

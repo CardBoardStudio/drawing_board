@@ -190,13 +190,14 @@ function lobbyView() {
     ? `<form id="lobby-settings" class="lobby-settings"><label for="lobby-target">Prestige target</label><select id="lobby-target" name="victory_target">${lobby.victory_targets.map(n => `<option value="${n}" ${n === lobby.victory_target ? "selected" : ""}>${n} Prestige${n === 30 ? " (default)" : ""}</option>`).join("")}</select><p class="form-note">The first faction at or above the target when a round ends wins.</p></form>`
     : lobby.victory_target ? `<p class="form-note">Race to ${lobby.victory_target} Prestige.</p>` : "";
   const invite = lobby.host && !started ? `<div class="lobby-invite"><label for="lobby-invite-link">Invite link</label><div class="lobby-invite-row"><input id="lobby-invite-link" readonly value="${esc(lobby.invite_url)}"><button class="secondary" id="copy-lobby-invite" type="button">Copy link</button></div><p class="form-note">Anyone with this link can take a seat after signing in. Share it privately.</p></div>` : "";
+  const phonePairing = lobby.host ? `<a class="secondary" href="/tabletop/host.html?table=${lobby.id}">Pair phones / public tablet</a>` : "";
   const start = started
     ? (lobby.table_url && (lobby.host || lobby.shared) ? `<a class="primary" href="${esc(lobby.table_url)}">Open the game →</a>` : `<p class="form-note">The host started this table solo before you joined.</p>`)
     : lobby.host ? `<button class="primary" id="lobby-start" ${lobby.blocked ? "disabled" : ""}>Start the game →</button>${lobby.blocked ? `<p class="form-note lobby-blocked" role="status">${esc(lobby.blocked)}</p>` : ""}`
     : lobby.member ? `<p class="form-note" role="status">You have a seat. Waiting for the host to start.${lobby.blocked ? ` ${esc(lobby.blocked)}` : ""}</p><button class="secondary" id="lobby-leave">Leave this table</button>`
     : `<button class="primary" id="lobby-join">Take a seat →</button>`;
   return head("GALACTIC REACH · WAITING ROOM", esc(lobby.name), started ? "This table has started." : "Seats fill as friends join. The host starts the game.", `Rules ${esc(lobby.rules_version.split("/").pop())}`) +
-    `<div class="split"><section class="panel"><h2>Seats</h2><ol class="lobby-seats">${lobby.seats.map(seat => `<li class="lobby-seat ${seat.kind}">${seatLabel(seat)}</li>`).join("")}</ol></section><section class="panel"><h2>${lobby.host ? "Host controls" : "Table"}</h2>${invite}${settings}${target}${start}</section></div><p><a class="text-link" href="#tables">← Your tables</a></p>`;
+    `<div class="split"><section class="panel"><h2>Seats</h2><ol class="lobby-seats">${lobby.seats.map(seat => `<li class="lobby-seat ${seat.kind}">${seatLabel(seat)}</li>`).join("")}</ol></section><section class="panel"><h2>${lobby.host ? "Host controls" : "Table"}</h2>${invite}${settings}${target}${start}${phonePairing}</section></div><p><a class="text-link" href="#tables">← Your tables</a></p>`;
 }
 function roster() {
   if (!arena.bots.length)

@@ -62,6 +62,7 @@ fn table(id: &str, people: &[(&str, &str)]) -> Table {
         status: "active".into(),
         seats: seats(&people),
         victory_target: 40,
+        committed_only: false,
     }
 }
 fn store_with(accounts: &[&str]) -> Arc<Store> {
@@ -531,6 +532,7 @@ async fn a_live_view_streams_the_current_seat_view_first() {
             status: "active".into(),
             seats: seats(&ids),
             victory_target: 40,
+            committed_only: false,
         })
         .await
         .unwrap();

@@ -294,6 +294,13 @@ impl GalacticReach {
     pub fn private_state(&self, seat: usize) -> Result<Value, String> {
         self.eval_json(&format!("JSON.stringify(game.privateState({seat}))"))
     }
+    /// Public tablet projection, with no player seat or hidden cards. Older
+    /// pinned engines do not acquire new display semantics implicitly.
+    pub fn public_state(&self) -> Result<Value, String> {
+        self.eval_json(
+            "JSON.stringify(typeof game.publicState === 'function' ? game.publicState() : null)",
+        )
+    }
     /// The whole position, secrets included, for [`Self::shared_on`], as the
     /// engine's JSON text (keep it as text: object key order matters to the rules).
     pub fn snapshot(&self) -> Result<String, String> {

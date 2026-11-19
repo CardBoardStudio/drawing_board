@@ -81,6 +81,7 @@ jobs:
       - run: node scripts/test-no-shipyard-upgrades.cjs
       - run: node scripts/test-combat-prestige.cjs
       - run: node scripts/test-tactical-combat.cjs
+      - run: node scripts/test-shared-tables.cjs
       - run: node scripts/test-replay-view.cjs
       - run: node scripts/test-galactic-reach-dialogs.cjs
       - run: node scripts/test-cleanup-draw.cjs

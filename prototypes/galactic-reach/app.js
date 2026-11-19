@@ -1581,6 +1581,7 @@ function createGalacticReach(options = {}) {
   // answer, Pass is the only way forward except posting a trade, so the browser passes
   // for the player. Undo restores the Operations turn, so no legal choice is lost.
   function autoPassIfHandEmpty() {
+    if (network?.committedOnly) return false;
     if (headless || replayMode || options.paused?.() || state.phase !== 'operations' || state.activePlayer !== ME || !['prep','action'].includes(state.turnStage)) return false;
     const player = state.players[ME];
     if (player.passed || player.hand.length || state.pendingCombat || state.pendingCombatReport || state.pendingConstruct || state.pendingColonyBuild || state.pendingConsortium || overflowPlayer() >= 0 || state.winner !== null) return false;
@@ -1608,6 +1609,7 @@ function createGalacticReach(options = {}) {
   }
 
   function autoSkipBuy() {
+    if (network?.committedOnly) return false;
     if (headless || replayMode || options.paused?.() || state.phase !== 'buy' || state.activePlayer !== ME || overflowPlayer() >= 0 || state.pendingCombat || state.winner !== null || humanBuyHasChoice()) return false;
     const wasAuto = autoTurn;
     autoTurn = true;
@@ -4149,7 +4151,16 @@ function createGalacticReach(options = {}) {
 
   function renderContextOrders(actions, coord) {
     const orders = availableContextOrders(coord);
-    if (!orders.length) return;
+    if (!orders.length) {
+      if (network?.tabletop) {
+        const note=document.createElement('p'); note.className='tabletop-requirement';
+        note.textContent=state.activePlayer!==ME || state.phase!=='operations'
+          ? 'Inspect and plan now. Choose map orders on your Operations turn.'
+          : 'No order in your hand starts here. Choose a sector with your units or an eligible building site.';
+        actions.appendChild(note);
+      }
+      return;
+    }
     if (state.actionMode) {
       actions.appendChild(actionButton('Choose another order',()=>{const excavation=state.actionMode==='excavate';clearAction();if(excavation)switchTab('hand');render();saveGame();}));
       return;
@@ -4279,7 +4290,14 @@ function createGalacticReach(options = {}) {
   }
 
   function actionButton(label,handler,enabled=true,cost=null) {
-    const button=document.createElement('button'); button.type='button'; button.className='button'; button.innerHTML=cost?`<span>${label}</span>${resourceDots(cost)}`:label; button.disabled=!enabled; button.addEventListener('click',handler); return button;
+    const button=document.createElement('button'); button.type='button'; button.className='button'; button.innerHTML=cost?`<span>${label}</span>${resourceDots(cost)}`:label; button.disabled=!enabled;
+    if (network?.tabletop && !enabled && cost) {
+      const missing=RESOURCES.filter(r=>(cost[r]||0)>state.players[ME].resources[r]).map(r=>`${cost[r]-state.players[ME].resources[r]} ${RESOURCE_NAMES[r]}`);
+      const note=document.createElement('small'); note.className='tabletop-requirement';
+      note.textContent=missing.length?`Need ${missing.join(', ')}`:'Requires an eligible site or unit.';
+      button.appendChild(note);button.title=note.textContent;
+    }
+    button.addEventListener('click',handler); return button;
   }
 
 
@@ -5475,16 +5493,18 @@ function createGalacticReach(options = {}) {
     window.addEventListener('resize',() => fitMap());
     // A resized window balances the supply afresh, from its narrowest cards.
     window.addEventListener('resize',() => { supplyExtra = 0; fitMarket(); stackLeft(); fitMap(); balanceSupply(); });
-    // Late layout (web fonts, panels settling) re-fits the market and the map; their own sizing
-    // does not change the panels' sizes, so this cannot loop.
+    // Late layout re-fits the market and map on the next frame. A fit can change
+    // an observed panel; never write layout inside ResizeObserver delivery.
     if (typeof ResizeObserver === 'function') {
-      const refit = new ResizeObserver(() => { fitMarket(); stackLeft(); fitMap(); balanceSupply(); settleFit(); });
+      let refitFrame = 0;
+      const queueRefit = () => { if (!refitFrame) refitFrame = requestAnimationFrame(() => { refitFrame = 0; fitMarket(); stackLeft(); fitMap(); balanceSupply(); settleFit(); }); };
+      const refit = new ResizeObserver(queueRefit);
       ['.app-shell', '#market-panel', '#relics-panel', '.board-map-region'].forEach(sel => { const el = $(sel); if (el) refit.observe(el); });
       // Hex positions are measured as fractions of the board, and a hex's fixed-size parts shift
       // those fractions a little with scale. When a fit has resized the board (a frame later), fit
       // once more at the new size; a fit that keeps the size ends it, so this cannot loop.
       const board = $('#galaxy-board');
-      if (board) new ResizeObserver(() => { const now = board.getBoundingClientRect().width; if (fitMapFrom && Math.abs(now - fitMapFrom) > 0.02 * fitMapFrom) { stackLeft(); fitMap(); } }).observe(board);
+      if (board) new ResizeObserver(() => { const now = board.getBoundingClientRect().width; if (fitMapFrom && Math.abs(now - fitMapFrom) > 0.02 * fitMapFrom) queueRefit(); }).observe(board);
     }
     document.fonts?.ready?.then?.(() => { fitMarket(); stackLeft(); fitMap(); balanceSupply(); settleFit(); });
     document.addEventListener('scroll',event=>{if(!$('#sector-popover').contains(event.target))positionSectorScan();},true);
@@ -5757,7 +5777,7 @@ function createGalacticReach(options = {}) {
       removeHandCard, passOperations, completeAction, nextBuyPlayer, buyCard, upgradeStarter,
       decommission, trashEligibleCards, excavatedRelicCount, useBuyEffect, resolveHumanSpecial,
       colonizePlanet, buildUpgrade, probeStatus, probeRelic, excavate, buildShip, getFleet, fleetCount,
-      PORTAL_MOVEMENT_COST, portalExit, movementRoutes, travelDistance, fleetGroup, moveSelection, fleetMove, fleetPower, reachableFrom, executeMove, performMoveOrder, combatActor, combatView, combatActions, applyCombatAction, nearestUnscannedRelicCluster,
+      BOARD_RADIUS, PORTAL_MOVEMENT_COST, portalExit, movementRoutes, travelDistance, fleetGroup, moveSelection, fleetMove, fleetPower, reachableFrom, executeMove, performMoveOrder, combatActor, combatView, combatActions, applyCombatAction, nearestUnscannedRelicCluster,
       clusterKnown, clusterRevealed, clusterScanned, relicKnown, relicCoordInCluster, calculatePrestige, colonyPlanets,
       totalResources, playerCapacity, resourceLimits, resourceExcess, totalResourceExcess, storageAllocations, validStorageAllocation, overflowPlayer, discardOverflow,
       canConsortiumGain, canConsortiumExchange, consortiumGain, consortiumExchange, finishConsortium,
@@ -5809,7 +5829,21 @@ function createGalacticReach(options = {}) {
     wireUi();
     $('#new-game-button').hidden = true;
     adoptServerView(network.initial);
-    return { sync: adoptServerView, seat: ME };
+    return {
+      sync: adoptServerView, seat: ME,
+      inspectSector(coord) {
+        if (!boardHas(coord) || state.actionMode || state.pendingCombat) return false;
+        state.selected=coord;render();showSectorScan(true);return true;
+      },
+      selectedSector:()=>state.selected,
+      cardName(id) { const card=state.players[ME].hand.find(c=>c.id===id);return card?`${ALL_CARDS[card.key].name}${starterLevel(card)>1?' '+starterLevel(card):''}`:'Card no longer in hand'; },
+      describeChoice(intent) {
+        const held=state.players[ME].hand.find(c=>c.id===intent.card);
+        if(intent.type==='upgrade' && held)return `Upgrade ${ALL_CARDS[held.key].name} to level ${starterLevel(held)+1} · ${upgradePrice(held)} ${RESOURCE_NAMES[intent.resource]}`;
+        const action={...intent,...(held?{gain:cardResources(held)}:{})};
+        return describeDecision(ME,action,state,state.players.map(p=>p.name)).text;
+      }
+    };
   }
 
   wireUi();

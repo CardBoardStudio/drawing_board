@@ -755,7 +755,8 @@
     // before the next paint, so it never rests on a hex.
     const replace = () => { if (coach && !coach.hidden && coach.dataset.side !== 'inline') position(coach, currentAnchor && shown(currentAnchor) ? currentAnchor : null); };
     if (globalThis.ResizeObserver) {
-      const watch = new ResizeObserver(replace);
+      let replaceFrame = 0;
+      const watch = new ResizeObserver(() => { if (!replaceFrame) replaceFrame = requestAnimationFrame(() => { replaceFrame = 0; replace(); }); });
       for (const el of [$('#map-legend-corner'), $('#galaxy-board'), document.documentElement]) if (el) watch.observe(el);
       ensureCoach(); watch.observe(coach);
     }

@@ -3,14 +3,14 @@
 //! ledger or contract could implement the same trait (docs/shared-tables.md).
 use crate::store::Store;
 use rusqlite::{Connection, OptionalExtension, params};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
 
 /// One seat at a shared table. `account` is set for a person and empty for an
 /// AI rival, which the table service plays with `policy`.
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Seat {
     pub seat: usize,
     pub account: Option<String>,
@@ -23,7 +23,7 @@ impl Seat {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Table {
     pub id: String,
     pub name: String,
@@ -34,6 +34,9 @@ pub struct Table {
     pub seats: Vec<Seat>,
     /// Prestige target chosen in the waiting room (rules 31.36 #victory-target).
     pub victory_target: u32,
+    /// Opt-in for freshly paired tabletop games; old rows/deals preserve Undo.
+    #[serde(default)]
+    pub committed_only: bool,
 }
 
 /// What happened, in log order:
@@ -50,7 +53,7 @@ pub struct NewEvent {
     pub private: Option<Value>,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Event {
     pub seq: u64,
     pub kind: String,
@@ -116,6 +119,15 @@ pub fn migrate(db: &Connection) -> rusqlite::Result<()> {
             "ALTER TABLE gr_shared_tables ADD COLUMN victory_target INTEGER NOT NULL DEFAULT 40;",
         )?;
     }
+    let has_commitment = db
+        .prepare("PRAGMA table_info(gr_shared_tables)")?
+        .query_map([], |r| r.get::<_, String>(1))?
+        .any(|c| c.as_deref() == Ok("committed_only"));
+    if !has_commitment {
+        db.execute_batch(
+            "ALTER TABLE gr_shared_tables ADD COLUMN committed_only INTEGER NOT NULL DEFAULT 0;",
+        )?;
+    }
     Ok(())
 }
 
@@ -144,7 +156,7 @@ fn seats(db: &Connection, id: &str) -> Result<Vec<Seat>, String> {
 fn load(db: &Connection, id: &str) -> Result<Option<Table>, String> {
     let row = db
         .query_row(
-            "SELECT name,rules,authority,status,victory_target FROM gr_shared_tables WHERE id=?",
+            "SELECT name,rules,authority,status,victory_target,committed_only FROM gr_shared_tables WHERE id=?",
             [id],
             |r| {
                 Ok((
@@ -153,12 +165,13 @@ fn load(db: &Connection, id: &str) -> Result<Option<Table>, String> {
                     r.get::<_, String>(2)?,
                     r.get::<_, String>(3)?,
                     r.get::<_, u32>(4)?,
+                    r.get::<_, bool>(5)?,
                 ))
             },
         )
         .optional()
         .map_err(sql)?;
-    let Some((name, rules, authority, status, victory_target)) = row else {
+    let Some((name, rules, authority, status, victory_target, committed_only)) = row else {
         return Ok(None);
     };
     Ok(Some(Table {
@@ -169,6 +182,7 @@ fn load(db: &Connection, id: &str) -> Result<Option<Table>, String> {
         status,
         seats: seats(db, id)?,
         victory_target,
+        committed_only,
     }))
 }
 /// Domain-separated chain: each event commits to its predecessor. Checked
@@ -192,8 +206,8 @@ impl TableLog for SqliteTableLog {
         let tx = db.transaction().map_err(sql)?;
         let now = crate::now();
         tx.execute(
-            "INSERT INTO gr_shared_tables(id,name,rules,authority,status,created,updated,victory_target) VALUES(?,?,?,?,?,?,?,?)",
-            params![table.id, table.name, table.rules, table.authority, table.status, now, now, table.victory_target],
+            "INSERT INTO gr_shared_tables(id,name,rules,authority,status,created,updated,victory_target,committed_only) VALUES(?,?,?,?,?,?,?,?,?)",
+            params![table.id, table.name, table.rules, table.authority, table.status, now, now, table.victory_target, table.committed_only],
         )
         .map_err(sql)?;
         for seat in &table.seats {

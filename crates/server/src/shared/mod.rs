@@ -168,6 +168,9 @@ impl Live {
     /// Undo (rulebook #shared-tables): only the seat to move, only within its
     /// current turn, and never back past an action that revealed hidden information.
     fn undo_window(&self, seat: usize) -> Result<UndoWindow, String> {
+        if self.table.committed_only {
+            return Err("Confirmed choices are final at this tabletop game.".into());
+        }
         if self.table.status == "finished" {
             return Err("The game is over.".into());
         }
@@ -573,9 +576,23 @@ impl Tables {
             "authority": live.table.authority, "status": live.table.status, "seq": live.head,
             "seat": seat, "active": active,
             "seats": live.table.seats.iter().map(|s| json!({"seat":s.seat,"name":s.name,"human":s.human(),"you":s.seat==seat})).collect::<Vec<_>>(),
-            "state": state, "hints": hints, "undo": undo,
+            "state": state, "hints": hints, "undo": undo, "committed_only":live.table.committed_only,
             "ai_error": ai_error,
         }))
+    }
+    fn public_view(&mut self, id: &str) -> Result<Value, Refusal> {
+        let authority = self.authority.clone();
+        let channel = self.channel.clone();
+        let live = self.live(id)?;
+        let state = authority.public_view(&live.engine).map_err(broken)?;
+        if state.is_null() {
+            return Err(Refusal::Conflict(
+                "This older table has no public-board view. Start a fresh table.".into(),
+            ));
+        }
+        Ok(json!({"id":id,"role":"board","name":live.table.name,
+            "rules_version":live.table.rules,"client_path":channel.client_path(&live.table.rules),
+            "status":live.table.status,"seq":live.head,"state":state,"committed_only":live.table.committed_only}))
     }
     fn act(
         &mut self,
@@ -807,6 +824,7 @@ pub struct Service {
     /// old process keeps serving a frozen copy of every table.)
     closing: tokio::sync::watch::Sender<bool>,
     ai_running: Mutex<HashSet<String>>,
+    board_focus: Mutex<HashMap<String, (std::time::Instant, u64, Value)>>,
     /// The rules this server deals and the engines it keeps (channel.rs).
     pub channel: Arc<Channel>,
     /// Tests only: see [`Service::start_seeded`].
@@ -875,10 +893,40 @@ impl Service {
             ping_ms: (PING_EVERY.as_millis() as u64).into(),
             closing: tokio::sync::watch::channel(false).0,
             ai_running: Mutex::new(HashSet::new()),
+            board_focus: Mutex::new(HashMap::new()),
             channel,
             #[cfg(test)]
             seed: None,
         })
+    }
+    /// Bounded, short-lived presentation hints; never part of the game log/save.
+    pub fn suggest_sector(&self, id: &str, seq: u64, coord: &str) -> Result<(), Refusal> {
+        let mut focus = self.board_focus.lock().map_err(broken)?;
+        focus.retain(|_, (at, _, _)| at.elapsed() < Duration::from_secs(120));
+        if focus.len() >= 256 && !focus.contains_key(id) {
+            return Err(Refusal::Bad(
+                "Too many board suggestions; try again shortly.".into(),
+            ));
+        }
+        focus.insert(
+            id.into(),
+            (
+                std::time::Instant::now(),
+                seq,
+                json!({"coord":coord,"nonce":uuid::Uuid::new_v4().simple().to_string()}),
+            ),
+        );
+        drop(focus);
+        let _ = self.changes.send((id.into(), seq));
+        Ok(())
+    }
+    pub fn sector_suggestion(&self, id: &str, seq: u64) -> Option<Value> {
+        self.board_focus
+            .lock()
+            .ok()?
+            .get(id)
+            .filter(|(at, head, _)| *head == seq && at.elapsed() < Duration::from_secs(120))
+            .map(|(_, _, v)| v.clone())
     }
     /// Ends every live stream (server shutdown).
     pub fn close(&self) {
@@ -921,6 +969,17 @@ impl Service {
     pub async fn view(self: &Arc<Self>, id: &str, account: &str) -> Result<Value, Refusal> {
         let (id, account) = (id.to_string(), account.to_string());
         self.call(move |t| t.view(&id, &account)).await
+    }
+    /// Caller must authenticate a table-scoped board credential before using this.
+    pub async fn public_view(self: &Arc<Self>, id: &str) -> Result<Value, Refusal> {
+        let id = id.to_string();
+        self.call(move |t| t.public_view(&id)).await
+    }
+    pub fn subscribe(&self) -> tokio::sync::broadcast::Receiver<(String, u64)> {
+        self.changes.subscribe()
+    }
+    pub fn shutdown_subscription(&self) -> tokio::sync::watch::Receiver<bool> {
+        self.closing.subscribe()
     }
     pub async fn act(
         self: &Arc<Self>,

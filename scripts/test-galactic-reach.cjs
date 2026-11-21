@@ -130,3 +130,6 @@ require("./test-maxbot-study.cjs");
 require("./test-captured-harvesters.cjs");
 
 require('./test-relic-deck.cjs');
+
+// Learn to play's saved place and Back review (tutorial.js) runs here too, so CI covers it without a workflow edit.
+require('./test-tutorial-progress.cjs');

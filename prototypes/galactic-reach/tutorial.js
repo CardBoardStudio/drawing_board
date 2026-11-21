@@ -34,8 +34,9 @@
   // Another tab restarted the walkthrough or began a new one: follow it here, so this tab never
   // writes the earlier practice game or place back over it.
   globalThis.addEventListener?.('storage', event => { if (event.key === PROGRESS && event.newValue === null) location.reload(); });
+  // Reviewing an earlier step (Back) is not a place: a reload returns to the current step.
   function loadProgress() {
-    try { const saved = JSON.parse(localStorage.getItem(PROGRESS) || 'null'); if (saved && saved.rules === RULES && Number.isInteger(saved.step)) return saved; } catch { /* fresh */ }
+    try { const saved = JSON.parse(localStorage.getItem(PROGRESS) || 'null'); if (saved && saved.rules === RULES && Number.isInteger(saved.step)) return { ...saved, view: saved.step }; } catch { /* fresh */ }
     return { rules: RULES, step: 0, view: 0, base: null, staged: {}, cardFirst: true };
   }
   let progress = loadProgress();
@@ -461,7 +462,8 @@
       if (progress.step > 0 || Object.keys(progress.staged).length) { progress = { rules: RULES, step: 0, view: 0, base: null, staged: {}, cardFirst: true }; saveProgress(); }
       port.stage(s => { s.state.tutorialRules = RULES; }, null);
     }
-    if (progress.view === progress.step) advance();
+    // The current step's action still counts while you review an earlier one: doing it ends the review.
+    advance();
     const finished = progress.step >= STEPS.length;
     if (finished) return {
       id: 'finished', eyebrow: 'Tutorial complete', title: 'You are ready',
@@ -483,6 +485,25 @@
     const openDialog = Object.keys(step.dialogs || {}).find(modalOpen);
     const lesson = step.lesson;
     const eyebrow = `Lesson ${step.lessonIndex + 1} of ${LESSONS.length} · ${lesson.title} · step ${step.index + 1} of ${lesson.steps.length}${reviewing ? ' · done' : ''}`;
+    // A step you have done, seen again with Back: its note only. Nothing on the table is lit,
+    // ringed or shown being dragged, since its action is finished, and the note keeps its place.
+    if (reviewing) {
+      const modal = $$('dialog[open]').find(d => d.matches(':modal') && d.id);
+      return {
+        id: step.id, step: `${progress.step}:${progress.view}`, eyebrow, title: step.title, rule: step.rule,
+        text: typeof step.text === 'function' ? step.text(state, port) : step.text,
+        aside: 'Looking back at a step you have done: nothing to do here.',
+        inDialog: modal ? `#${modal.id}` : null, anchor: null, hold: true,
+        progress: { lessons: LESSONS.length, current: step.lessonIndex, finishedLessons: STEPS[progress.step]?.lessonIndex ?? LESSONS.length },
+        buttons: [
+          { action: 'back', label: 'Back', disabled: progress.view === 0 },
+          { action: 'next', label: 'Next', primary: true },
+          { action: 'resume', label: 'Return to current step', link: true },
+          { action: 'exit', label: 'Exit tutorial', quiet: true },
+          { action: 'skip', label: 'Skip lesson', link: true },
+        ]
+      };
+    }
     let text = openDialog ? step.dialogs[openDialog] : typeof step.text === 'function' ? step.text(state, port) : step.text;
 
     if (!reviewing && !openDialog && !step.dialog && state.activePlayer !== 0 && state.phase === 'operations' && !state.pendingCombat) text = `Rivals are taking their turns… ${text}`;
@@ -523,6 +544,7 @@
       else if (STEPS[progress.step]?.info) enter(progress.step + 1);
       saveProgress();
     }
+    else if (action === 'resume') { progress.view = progress.step; saveProgress(); }
     else if (action === 'skip') {
       const current = STEPS[progress.view]?.lessonIndex ?? 0;
       const next = STEPS.findIndex(s => s.lessonIndex > current);

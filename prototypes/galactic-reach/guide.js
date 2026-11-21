@@ -416,6 +416,7 @@
       return;
     }
     currentDock = Boolean(tip.dock);
+    currentHold = Boolean(tip.hold);
     box.classList.toggle('docked', Boolean(tip.dock && dockRect()));
     position(box, anchor);
   }
@@ -468,7 +469,7 @@
   // ---- Show, don't tell: a spotlight, labelled callouts and a ghost drag, drawn over the real
   // table (never intercepting a click). A step names the parts it talks about; the stage lights
   // them, labels them one at a time, and shows the drag it asks for. Reduced motion: all still. ----
-  let pendingShow = null, currentDock = false;
+  let pendingShow = null, currentDock = false, currentHold = false;
   let following = false, dismissed = '';
   let stage = null, currentShow = null, showKey = '', activeCallout = 0, ghostAnimation = null, ghostKey = '';
   const reducedMotion = () => Boolean(matchMedia?.('(prefers-reduced-motion: reduce)').matches);
@@ -562,7 +563,15 @@
     box.style.visibility = ''; box.dataset.placed = lastKey;
     // Your own games' notes dock whenever the map key has room, decided again as the table settles.
     if (box.classList.contains('free') && !box.classList.contains('in-dialog')) box.classList.toggle('docked', Boolean(currentDock && dockRect()));
-    positionBox(box, anchor); placePointer(anchor); drawStage();
+    // A note that holds its place (a walkthrough step seen again with Back) stays where it was,
+    // kept on screen, and points at nothing.
+    if (currentHold && box.style.top) {
+      const r = box.getBoundingClientRect(), margin = 10;
+      box.style.left = `${Math.round(Math.max(margin, Math.min(innerWidth - r.width - margin, r.left)))}px`;
+      box.style.top = `${Math.round(Math.max(margin, Math.min(innerHeight - r.height - margin, r.top)))}px`;
+      box.dataset.side = 'none';
+    } else positionBox(box, anchor);
+    placePointer(anchor); drawStage();
   }
   // The map's open stretch: with the market's whole cards up (app.js showMarket), the sheet's free part
   // left of the cards.

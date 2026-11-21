@@ -58,7 +58,7 @@ function target(s,coord){const i=s.clusters.length,[q,r]=coord.split(',').map(Nu
 // 31.36 #victory: the target is a table setting, 30 by default; a table may choose 20.
 for(const [target,points] of [[undefined,29],[undefined,30],[undefined,31],[20,19],[20,20],[20,21]]){const{e,s}=game();if(target)s.victoryTarget=target;s.players[0].cardPrestige=points-3;assert.equal(e.calculatePrestige(0),points);e.finishRound();assert.equal(s.winner,points>=(target||30)?0:null);}
 {
- const{e,s}=game();assert.equal(e.DEFAULT_VICTORY_TARGET,30);assert.equal(s.victoryTarget,30);assert.equal(e.victoryTarget(),30);assert.equal(s.version,38);assert.equal(s.rulesRevision,43);assert.equal(e.SAVE_KEY,'galactic-reach-save-v38');assert.equal(e.TURN_HISTORY_KEY,'galactic-reach-turn-history-v38');
+ const{e,s}=game();assert.equal(e.DEFAULT_VICTORY_TARGET,30);assert.equal(s.victoryTarget,30);assert.equal(e.victoryTarget(),30);assert.equal(s.version,39);assert.equal(s.rulesRevision,44);assert.equal(e.SAVE_KEY,'galactic-reach-save-v39');assert.equal(e.TURN_HISTORY_KEY,'galactic-reach-turn-history-v39');
  assert.deepEqual(plain(e.STRUCTURES.starbase.cost),{matter:2,energy:2,data:1});assert.deepEqual(plain(e.EXCAVATION_COST),{energy:1,data:3});
  assert.deepEqual(plain(e.SHIP_STATS.explorer.cost),{energy:1,data:2});assert.deepEqual(plain(e.SHIP_STATS.settler.cost),{matter:1,biomass:2},'Settlers use Matter and Life');assert.deepEqual(plain(e.STRUCTURES.harvester.cost),{matter:1,energy:1,data:1});assert.deepEqual(plain(e.SHIP_STATS.fleet.cost),{matter:2,energy:2});
 }

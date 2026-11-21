@@ -10,8 +10,8 @@ const vm = require('node:vm');
 const source = fs.readFileSync(path.join(__dirname, '../prototypes/galactic-reach/tutorial.js'), 'utf8');
 const PROGRESS = 'galactic-reach-tutorial-progress-v1';
 const RULES = /const RULES = '([^']+)'/.exec(source)[1];
-const PRACTICE = ['galactic-reach-tutorial-save-v38', 'galactic-reach-tutorial-history-v38', 'galactic-reach-tutorial-turn-history-v38'];
-const GUEST = ['galactic-reach-save-v38', 'galactic-reach-history-v38', 'galactic-reach-turn-history-v38', 'galactic-reach-guide-v1'];
+const PRACTICE = ['galactic-reach-tutorial-save-v39', 'galactic-reach-tutorial-history-v39', 'galactic-reach-tutorial-turn-history-v39'];
+const GUEST = ['galactic-reach-save-v39', 'galactic-reach-history-v39', 'galactic-reach-turn-history-v39', 'galactic-reach-guide-v1'];
 
 // localStorage keeps its entries as own enumerable keys: tutorial.js lists them with Object.keys.
 function storage(entries, { blocked = false } = {}) {
@@ -112,8 +112,8 @@ assert.equal(open({ entries: {}, blocked: true }).context.galacticReachTutorial.
 {
   const page = open({ entries: practice({ step: 12, stepId: 'shipyard-aim' }) });
   page.fire('storage', { key: PROGRESS, newValue: JSON.stringify({ step: 13 }) });
-  page.fire('storage', { key: 'galactic-reach-tutorial-save-v38', newValue: null });
-  page.fire('storage', { key: 'galactic-reach-save-v38', newValue: null });
+  page.fire('storage', { key: 'galactic-reach-tutorial-save-v39', newValue: null });
+  page.fire('storage', { key: 'galactic-reach-save-v39', newValue: null });
   assert.equal(page.reloads(), 0);
   page.fire('storage', { key: PROGRESS, newValue: null });
   assert.equal(page.reloads(), 1);

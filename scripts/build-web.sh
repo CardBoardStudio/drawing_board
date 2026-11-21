@@ -262,6 +262,13 @@ for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css 
 done
 cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/37.42/table.js
 
+# Preserve the exact 38.43 Construct III Playtest browser and shared-table engine.
+mkdir -p dist/galactic-reach/rules/38.43
+for asset in app.js adapter.js index.html styles.css rulebook.html rulebook.css replay.js playtest-notes.js playtest-notes.css shared.js cards.html; do
+  cp "crates/galactic-reach/rules/v38-$asset" "dist/galactic-reach/rules/38.43/$asset"
+done
+cp prototypes/galactic-reach/table.js dist/galactic-reach/rules/38.43/table.js
+
 # Testnet seat (Nido + zero-knowledge private draws) for the current tabletop.
 # The Docker image builds it in its own Node stage and sets SKIP_ZK_SEAT=1 here.
 if [ -z "${SKIP_ZK_SEAT:-}" ]; then

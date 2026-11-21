@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101d22">
+  <title>Card gallery · Galactic Reach 38.43</title>
+  <meta name="description" content="Every Galactic Reach 38.43 market card with its id, price, effect and a place to leave playtest feedback.">
+  <link rel="stylesheet" href="styles.css?v=cheaper-cards-32-37">
+  <link rel="stylesheet" href="card-feel.css?v=2">
+  <style>
+    body { margin: 0; background: var(--bg); color: var(--text); }
+    .gallery { max-width: 1240px; margin: 0 auto; padding: 24px 16px 64px; }
+    .gallery header { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; justify-content: space-between; border-bottom: 1px solid var(--line); padding-bottom: 16px; }
+    .gallery h1 { margin: 4px 0 0; font-size: 2rem; }
+    .gallery .lede { max-width: 72ch; color: var(--muted); line-height: 1.5; }
+    .gallery .links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; margin: 20px 0 8px; }
+    .toolbar fieldset { border: 0; padding: 0; margin: 0; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .toolbar legend { float: left; margin-right: 8px; color: var(--muted); font-size: .9rem; }
+    .store-status { color: var(--muted); font-size: .9rem; margin: 0 0 16px; }
+    .store-status strong { color: var(--text); }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; }
+    .gallery-card { background: var(--surface); border: 1px solid var(--line); border-top: 4px solid var(--accent, var(--line-bright)); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+    .gallery-card.military { --accent: var(--red); }
+    .gallery-card .meta { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; }
+    .gallery-card .code { color: var(--gold); font-weight: 700; }
+    .gallery-card h2 { margin: 0; font-size: 1.15rem; }
+    .gallery-card .effect { margin: 0; line-height: 1.45; }
+    .facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; margin: 0; font-size: .9rem; }
+    .facts dt { color: var(--muted); }
+    .facts dd { margin: 0; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+    .chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--line-bright); font-weight: 600; font-size: .85rem; }
+    .chip::before { content: ""; width: .6rem; height: .6rem; border-radius: 50%; background: var(--dot); }
+    .chip.matter { --dot: var(--matter); } .chip.energy { --dot: var(--energy); } .chip.biomass { --dot: var(--biomass); } .chip.data { --dot: var(--data); }
+    .needs { color: var(--gold); font-size: .85rem; }
+    .vote { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; padding-top: 6px; border-top: 1px solid var(--line); }
+    .vote button[aria-pressed="true"] { border-color: var(--cyan); background: color-mix(in srgb, var(--cyan) 22%, transparent); color: var(--text); }
+    .gallery-card label { font-size: .85rem; color: var(--muted); }
+    .gallery-card textarea { width: 100%; box-sizing: border-box; min-height: 3.2em; resize: vertical; background: var(--surface-2); color: var(--text); border: 1px solid var(--line-bright); border-radius: 6px; padding: 6px 8px; font: inherit; }
+    .save-row { display: flex; gap: 8px; align-items: center; }
+    .save-state { font-size: .82rem; color: var(--muted); }
+    .export { margin-top: 28px; }
+    .export textarea { width: 100%; box-sizing: border-box; min-height: 10em; background: var(--surface-2); color: var(--text); border: 1px solid var(--line-bright); border-radius: 6px; padding: 8px; font: .85rem/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    :focus-visible { outline: 3px solid var(--cyan); outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <main class="gallery" id="gallery">
+    <header>
+      <div>
+        <div class="eyebrow" id="gallery-version">GALACTIC REACH · 38.43 CONSTRUCT III PLAYTEST</div>
+        <h1>Card gallery</h1>
+        <p class="lede">Every market card in this playtest: 22 normal-deck designs and 9 military designs. Use the printed id when leaving feedback. Market cards cannot convert to resources. Three draw-two cards fit your starting limits of 4. Other market cards need raised limits.</p>
+      </div>
+      <nav class="links" aria-label="Galactic Reach">
+        <a class="button button-ghost" href="./" style="text-decoration:none">← Back to the game</a>
+        <a class="button button-ghost" href="rulebook.html#cards" style="text-decoration:none">Card rules</a>
+      </nav>
+    </header>
+    <div class="toolbar">
+      <fieldset id="deck-filter"><legend>Show</legend></fieldset>
+      <label>Sort <select id="sort-cards"><option value="id">By id</option><option value="price">By price</option></select></label>
+    </div>
+    <p class="store-status" id="store-status" role="status">Checking where feedback is saved…</p>
+    <div class="card-grid" id="card-grid"></div>
+    <section class="export" aria-labelledby="export-title">
+      <h2 id="export-title">All your feedback</h2>
+      <p class="store-status">Copy this text into a message if you prefer. It lists every card you marked or commented on.</p>
+      <div class="save-row"><button class="button" id="copy-feedback" type="button">Copy all feedback</button><span class="save-state" id="copy-state" role="status"></span></div>
+      <textarea id="feedback-text" readonly aria-label="All card feedback as text"></textarea>
+    </section>
+  </main>
+  <script>globalThis.drawingBoardTableBoot = true;</script>
+  <script src="app.js?v=cheaper-cards-32-37"></script>
+  <script>
+  'use strict';
+  (() => {
+    const catalog = createGalacticReach({ catalog: true });
+    // The label follows the engine this page loaded, so an archived copy names its own rules.
+    const version = catalog.rulesVersion.split('/').pop();
+    document.querySelector('#gallery-version').textContent = `GALACTIC REACH · ${version} · CARD GALLERY`;
+    document.title = `Card gallery · Galactic Reach ${version}`;
+    const $ = selector => document.querySelector(selector);
+    const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const cards = [...Object.entries(catalog.ADVANCED_CARDS), ...Object.entries(catalog.MARKET_MILITARY)].map(([key, def]) => ({ key, ...def }));
+    const price = card => catalog.RESOURCES.reduce((n, r) => n + (card.cost[r] || 0), 0);
+    const chips = gain => catalog.RESOURCES.filter(r => gain?.[r]).map(r => `<span class="chip ${r}">${gain[r]} ${catalog.RESOURCE_NAMES[r]}</span>`).join('') || '<span class="muted">None</span>';
+    const storeKey = 'galactic-reach-card-feedback-31-36';
+    let saved = {}, serverEnabled = false, filter = 'all';
+    try { saved = JSON.parse(localStorage.getItem(storeKey) || '{}') || {}; } catch { saved = {}; }
+    const remember = () => { try { localStorage.setItem(storeKey, JSON.stringify(saved)); } catch { /* The text export still works. */ } };
+
+    function needs(card) {
+      const over = catalog.RESOURCES.filter(r => (card.cost[r] || 0) > catalog.STARTING_LIMIT);
+      return over.map(r => `${catalog.RESOURCE_NAMES[r]} limit ${card.cost[r]}`).join(' and ');
+    }
+    function extras(card) {
+      const notes = [];
+      if (card.military) notes.push(`Military deck · ${[card.attack ? `+${card.attack} hits` : '', card.shield ? `prevent ${card.shield}` : '', card.pierce ? 'ignores shields' : ''].filter(Boolean).join(', ')}`);
+      if (card.gainPrestige) notes.push(`${card.gainPrestige} Prestige when bought`);
+      if (card.effect?.prestige) notes.push(`${card.effect.prestige} Prestige each use`);
+      if (card.colonyPrestige) notes.push(`${card.colonyPrestige} Prestige per Colony founded`);
+      if (card.victoryPrestige) notes.push(`${card.victoryPrestige} Prestige per decisive win`);
+      return notes.join(' · ');
+    }
+    function render() {
+      $('#deck-filter').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.filter === filter)));
+      const order = $('#sort-cards').value;
+      const shown = cards.filter(c => filter === 'all' || (filter === 'military') === !!c.military)
+        .sort((a, b) => order === 'price' ? price(a) - price(b) || a.code.localeCompare(b.code) : Number(!!a.military) - Number(!!b.military) || a.code.localeCompare(b.code));
+      $('#card-grid').innerHTML = shown.map(card => {
+        const entry = saved[card.code] || {};
+        const note = `note-${card.code}`;
+        return `<article class="gallery-card ${card.military ? 'military' : ''}" style="--accent:${card.accent}" aria-labelledby="name-${card.code}">
+          <div class="meta"><span class="code">${card.code}</span><span>${card.military ? 'Military deck' : `Normal deck · ${esc(card.kind)}`}</span></div>
+          <h2 id="name-${card.code}">${esc(card.name)}</h2>
+          <p class="effect">${esc(card.text)}</p>
+          <dl class="facts">
+            <dt>Buy</dt><dd>${chips(card.cost)}</dd>
+            <dt>Needs</dt><dd class="needs">${esc(needs(card))}</dd>
+            ${extras(card) ? `<dt>Notes</dt><dd>${esc(extras(card))}</dd>` : ''}
+          </dl>
+          <div class="vote" role="group" aria-label="Your verdict on ${esc(card.name)}">
+            ${['like', 'neutral', 'dislike'].map(vote => `<button type="button" class="button" data-card="${card.code}" data-vote="${vote}" aria-pressed="${entry.vote === vote}">${vote === 'like' ? 'Liked it' : vote === 'dislike' ? 'Disliked it' : 'Neutral'}</button>`).join('')}
+          </div>
+          <label for="${note}">What would you change?</label>
+          <textarea id="${note}" data-note="${card.code}" maxlength="1000" placeholder="Cost, effect, timing…">${esc(entry.note || '')}</textarea>
+          <div class="save-row"><button type="button" class="button button-primary" data-save="${card.code}">Save feedback</button><span class="save-state" id="state-${card.code}" role="status">${entry.savedAt ? `Saved ${entry.where}` : ''}</span></div>
+        </article>`;
+      }).join('');
+      $('#card-grid').querySelectorAll('[data-vote]').forEach(button => button.addEventListener('click', () => {
+        const entry = saved[button.dataset.card] ||= {};
+        entry.vote = entry.vote === button.dataset.vote ? undefined : button.dataset.vote;
+        button.parentElement.querySelectorAll('[data-vote]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.vote === entry.vote)));
+        remember(); renderExport();
+      }));
+      $('#card-grid').querySelectorAll('[data-note]').forEach(area => area.addEventListener('input', () => {
+        (saved[area.dataset.note] ||= {}).note = area.value; remember(); renderExport();
+      }));
+      $('#card-grid').querySelectorAll('[data-save]').forEach(button => button.addEventListener('click', () => save(button.dataset.save)));
+      renderExport();
+    }
+    async function save(code) {
+      const entry = saved[code] ||= {}, status = $(`#state-${code}`);
+      entry.note = $(`#note-${code}`).value;
+      if (!serverEnabled) {
+        entry.savedAt = Date.now(); entry.where = 'in this browser'; remember();
+        status.textContent = 'Saved in this browser. Use “Copy all feedback” to send it.'; renderExport(); return;
+      }
+      status.textContent = 'Saving…';
+      try {
+        const response = await fetch('/api/galactic-reach/card-feedback', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'x-drawing-board': '1' }, body: JSON.stringify({ card: code, vote: entry.vote || 'neutral', note: entry.note || '', game: 'card gallery' }) });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'The host did not save this feedback.');
+        entry.savedAt = Date.now(); entry.where = 'for the developer'; remember();
+        status.textContent = 'Saved for the developer.';
+      } catch (error) {
+        entry.where = 'in this browser'; remember();
+        status.textContent = `${error.message} Kept in this browser.`;
+      }
+      renderExport();
+    }
+    function renderExport() {
+      const lines = cards.filter(c => saved[c.code]?.vote || saved[c.code]?.note?.trim())
+        .sort((a, b) => a.code.localeCompare(b.code))
+        .map(c => `${c.code} ${c.name}: ${saved[c.code].vote || 'no vote'}${saved[c.code].note?.trim() ? ` — ${saved[c.code].note.trim()}` : ''}`);
+      $('#feedback-text').value = lines.length ? `Galactic Reach ${catalog.rulesVersion} card feedback\n${lines.join('\n')}` : '';
+    }
+    $('#deck-filter').insertAdjacentHTML('beforeend', [['all', `All ${cards.length}`], ['normal', 'Normal deck'], ['military', 'Military deck']]
+      .map(([id, label]) => `<button type="button" class="button button-ghost" data-filter="${id}">${label}</button>`).join(''));
+    $('#deck-filter').querySelectorAll('button').forEach(button => button.addEventListener('click', () => { filter = button.dataset.filter; render(); }));
+    $('#sort-cards').addEventListener('change', render);
+    $('#copy-feedback').addEventListener('click', async () => {
+      const text = $('#feedback-text').value;
+      if (!text) { $('#copy-state').textContent = 'Mark or comment on a card first.'; return; }
+      try { await navigator.clipboard.writeText(text); $('#copy-state').textContent = 'Copied.'; }
+      catch { $('#feedback-text').select(); $('#copy-state').textContent = 'Select the text and copy it.'; }
+    });
+    fetch('/api/galactic-reach/card-feedback', { credentials: 'same-origin' }).then(r => r.ok ? r.json() : { enabled: false }).catch(() => ({ enabled: false })).then(info => {
+      serverEnabled = !!info.enabled;
+      $('#store-status').innerHTML = serverEnabled
+        ? '<strong>Saving is on:</strong> “Save feedback” sends your verdict and note to this host for the developer, and keeps a copy in this browser.'
+        : '<strong>Saved in this browser only:</strong> this host does not collect feedback. Use “Copy all feedback” below to send it.';
+    });
+    render();
+  })();
+  </script>
+</body>
+</html>

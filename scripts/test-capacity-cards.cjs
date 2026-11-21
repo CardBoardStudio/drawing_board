@@ -35,7 +35,7 @@ const prices = Object.values(cards).map(c => Object.values(c.cost).reduce((n, x)
 assert.equal(Math.min(...prices), 3, 'The cheapest draw cards still cost three resources');
 assert.equal(Math.max(...prices), 14, 'Top cards stay aspirational');
 assert.equal(prices.reduce((n, p) => n + p, 0), 219, 'Price v1 reduces the eight selected designs by eleven resources total');
-assert.equal(catalog.rulesVersion, 'galactic-reach/38.43');
+assert.equal(catalog.rulesVersion, 'galactic-reach/39.44');
 
 // Setup: nine face-up cards (three per price tier) from 54 cards that mix both decks; target defaults to 30.
 {

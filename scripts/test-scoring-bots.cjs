@@ -27,7 +27,7 @@ function relativeTerrain(s){
 }
 for(let n=0;n<32;n++){
  const current=game(undefined,20261111+n*7919),old=game('crates/galactic-reach/rules/v20-',20261111+n*7919);
- assert.equal(current.a.rulesVersion,'galactic-reach/38.43');assert.equal(old.a.rulesVersion,'galactic-reach/20.25');
+ assert.equal(current.a.rulesVersion,'galactic-reach/39.44');assert.equal(old.a.rulesVersion,'galactic-reach/20.25');
  const now=current.a.observe(0);assert(now.goalDirectedTrading);for(const p of now.players){assert.deepEqual(plain(p.bankExchangeResources),[]);assert(Object.values(p.bankTradeRates).every(rate=>rate===4),'Before any exchange order all give resources retain4:1');}
  // Current planning capabilities and public bank rates are new metadata; archived terrain/decks still match.
  // 31.36 replaces the market supply (72 cards, new serials) and adds a Prestige target; the map,

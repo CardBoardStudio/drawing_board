@@ -138,7 +138,7 @@ for(const [file,hash] of Object.entries(JSON.parse(read('scripts/capacity-cards-
  p.hand=[];action(g,'pass');assert(g.adapter().legalActions(0).some(a=>a.type==='buy'&&a.source==='basic'),'30.35 tables still sell basic cards');
 }
 {
- const g=game(),{s}=g;assert.equal(g.adapter().rulesVersion,'galactic-reach/38.43');assert.equal(s.market.length,9,'The tiered market shows three cards in each of three price rows');assert.equal(s.victoryTarget,30);
+ const g=game(),{s}=g;assert.equal(g.adapter().rulesVersion,'galactic-reach/39.44');assert.equal(s.market.length,9,'The tiered market shows three cards in each of three price rows');assert.equal(s.victoryTarget,30);
 }
 
 // 33.38 preserves the exact published 32.37 whole-group engine and client assets.

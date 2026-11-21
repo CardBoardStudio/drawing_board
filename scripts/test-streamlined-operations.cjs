@@ -4,7 +4,7 @@ function game(old=false){const prefix=old?'crates/galactic-reach/rules/v28-':'pr
 function action(g,type,pred=()=>true,seat=g.a().activeSeat()){const a=g.a(),x=a.legalActions(seat).find(x=>x.type===type&&pred(x));assert(x,'Missing legal '+type);a.applyAction(seat,x);return x;}
 const full=p=>{p.resourceLimits={matter:100,energy:100,biomass:100,data:100};p.resources={matter:30,energy:30,biomass:30,data:30}};
 {
- const g=game();assert.equal(g.a().rulesVersion,'galactic-reach/38.43');g.p.resources={matter:3,energy:4,biomass:2,data:0};const r=g.e.addResources(g.p,{matter:3,energy:2,data:8});assert.deepEqual(plain(g.p.resources),{matter:4,energy:4,biomass:2,data:4});assert.deepEqual(plain(r.lost),{matter:2,energy:2,data:4});assert.equal(r.totalLost,8);assert.equal(g.e.overflowPlayer(),-1);assert(!g.a().legalActions(0).some(x=>x.type==='discard_overflow'));assert(g.s.log.some(l=>l.includes('automatically discarded')));
+ const g=game();assert.equal(g.a().rulesVersion,'galactic-reach/39.44');g.p.resources={matter:3,energy:4,biomass:2,data:0};const r=g.e.addResources(g.p,{matter:3,energy:2,data:8});assert.deepEqual(plain(g.p.resources),{matter:4,energy:4,biomass:2,data:4});assert.deepEqual(plain(r.lost),{matter:2,energy:2,data:4});assert.equal(r.totalLost,8);assert.equal(g.e.overflowPlayer(),-1);assert(!g.a().legalActions(0).some(x=>x.type==='discard_overflow'));assert(g.s.log.some(l=>l.includes('automatically discarded')));
  const before=JSON.stringify(g.s);assert(!g.e.discardOverflow(0,{matter:1}));assert.equal(JSON.stringify(g.s),before);
  g.p.resources={matter:4,energy:0,biomass:0,data:4};action(g,'bank_trade',a=>a.giveType==='matter'&&a.getType==='data');assert.equal(g.p.resources.data,4);assert.equal(g.p.resources.matter,0);
 }

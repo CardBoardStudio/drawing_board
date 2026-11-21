@@ -6,7 +6,7 @@ const unit=(settler=0,explorer=0,fleet=0)=>({settler,explorer,fleet});
 function card(g,key,id=key,extra={}){const c={key,id,...extra};g.p.hand.push(c);return c;}
 function battle(g){let n=0;while(g.s.pendingCombat&&n++<15){const a=g.a(),seat=a.activeSeat(),acts=a.legalActions(seat);a.applyAction(seat,acts.find(a=>a.type==='combat_stay')||acts.find(a=>a.tactic==='concentratedFire')||acts[0]);}assert(!g.s.pendingCombat);}
 {
- const g=game();assert.equal(g.s.version,38);assert.equal(g.s.rulesRevision,43);assert.equal(Object.values(g.s.planets).filter(p=>p.special==='relic').length,13);assert(g.s.clusters[12].coords.some(k=>g.s.planets[k].special==='relic'));
+ const g=game();assert.equal(g.s.version,39);assert.equal(g.s.rulesRevision,44);assert.equal(Object.values(g.s.planets).filter(p=>p.special==='relic').length,13);assert(g.s.clusters[12].coords.some(k=>g.s.planets[k].special==='relic'));
  assert.equal(Object.keys(g.e.RELIC_CARDS).length,16);assert(!g.e.ALL_CARDS.voidglassAstrolabe);
  for(const key of ['signalRelay','surveyNetwork','tacticalBriefing']){const d=g.e.ALL_CARDS[key];assert.equal(d.effect.draw,2);assert(Object.values(d.cost).every(n=>n<=4));}
  for(const d of Object.values(g.e.ALL_CARDS)){assert(!/reuse it each time/i.test(d.text));if(d.order==='special'&&d.effect)assert(d.effect.draw||d.effect.limits||d.effect.allocate||d.effect.prestige||d.effect.trashStarters||d.effect.bankRate===2,'No resource-only special orders');}

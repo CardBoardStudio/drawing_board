@@ -16,7 +16,7 @@ const distance=(a,b)=>{const [q,r]=a.split(',').map(Number),[x,y]=b.split(',').m
 // The screenshot's two five-hex arms share their corner. Keep the aligned order, without rotation.
 {
  const g=game(),left=['-10,6','-10,7','-10,8','-10,9','-10,10','-9,10','-8,10','-7,10','-6,10'],right=['6,-10','7,-10','8,-10','9,-10','10,-10','10,-9','10,-8','10,-7','10,-6'];
- assert.equal(g.a().rulesVersion,'galactic-reach/38.43');assert.equal(g.s.version,38);assert.equal(g.s.rulesRevision,43);
+ assert.equal(g.a().rulesVersion,'galactic-reach/39.44');assert.equal(g.s.version,39);assert.equal(g.s.rulesRevision,44);
  assert.deepEqual(plain(g.s.portalLinks),Object.fromEntries(left.flatMap((a,i)=>[[a,right[i]],[right[i],a]])));
  assert.notEqual(g.s.portalLinks['-10,6'],'10,-6','The exits are straight across, not rotated 180 degrees');
  for(let seat=0;seat<4;seat++){const v=g.a().observe(seat);assert.deepEqual(plain(v.portalLinks),plain(g.s.portalLinks));assert.equal(v.portalMovementCost,2);}
